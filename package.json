@@ -3,13 +3,28 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "./lib/powerplay.umd.cjs",
+  "module": "./lib/powerplay.js",
+  "types": "./lib/powerplay.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/powerplay.js",
+      "require": "./lib/powerplay.umd.cjs"
+    }
+  },
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:watch": "tsc && vite build --watch",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^20.9.0",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.6.3"
   }
 }
