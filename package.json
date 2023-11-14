@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
+    "@types/three": "^0.158.2",
+    "three": "^0.158.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-plugin-dts": "^3.6.3"

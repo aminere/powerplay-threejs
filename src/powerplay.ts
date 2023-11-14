@@ -1,4 +1,6 @@
 
-export { Component, type ComponentProps } from "./components/Components";
-export { componentFactory } from "./components/ComponentFactory";
+export { Component, type ComponentProps } from "./Components";
+export { componentFactory } from "./ComponentFactory";
+
+export { engine } from "./Engine";
 

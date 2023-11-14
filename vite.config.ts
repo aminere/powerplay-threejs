@@ -15,7 +15,15 @@ export default defineConfig({
       name: 'powerplay',
       fileName: 'powerplay',
     },
-    sourcemap: true    
+    sourcemap: true,
+    rollupOptions: {
+      external: ['three'],
+      output: {
+        globals: {
+          three: 'THREE'
+        }
+      }
+    }
   },
   plugins: [dts()],
 });
