@@ -1,14 +1,21 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { Serialization } from "./Serialization";
 
 class Engine {
     public get renderer() { return this._renderer; }
+    public set scene(value: Scene | null) { this._scene = value; }
+    public get scene() { return this._scene; }
+    public set camera(value: Camera | null) { this._camera = value; }
+    public get camera() { return this._camera; }
+    public get cameras() { return this._cameras; }
 
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _camera: Camera | null = null;
+    private _cameras: Camera[] = [];
 
-    public init(container: HTMLElement) {
+    public init(width: number, height: number) {
         console.assert(this._renderer === null);
         const renderer = new WebGLRenderer({ alpha: true });
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -17,10 +24,7 @@ class Engine {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = PCFSoftShadowMap;
         renderer.autoClear = false;
-        const { width, height } = container.getBoundingClientRect();
         renderer!.setSize(width, height, false);
-        console.assert(container.children.length === 0);        
-        container.appendChild(renderer.domElement);
         this._renderer = renderer;
     }
 
@@ -42,6 +46,26 @@ class Engine {
     public parseScene(data: object) {
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
+
+        this._cameras.length = 0;
+        scene.traverse(obj => {
+            if ((obj as THREE.Camera).isCamera) {
+                this._cameras.push(obj as THREE.Camera);
+            }
+            Serialization.postDeserialize(obj);
+        });
+
+        this._camera = (() => {
+            const { mainCamera } = scene.userData;
+            if (mainCamera) {
+                return this._cameras.find(c => c.uuid === mainCamera)!;
+            } else if (this._cameras.length > 0) {
+                return this._cameras[0];
+            } else {
+                return null;
+            }
+        })();        
+        console.assert(this._camera !== null);
     }    
 }
 
