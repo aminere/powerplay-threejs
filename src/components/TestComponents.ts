@@ -1,4 +1,4 @@
-import { Component, ComponentProps } from "./Components";
+import { Component, ComponentProps } from "../Components";
 
 export interface TestComponentProps extends ComponentProps {
     a: number;
