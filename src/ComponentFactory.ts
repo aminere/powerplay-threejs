@@ -1,15 +1,16 @@
-import { type Component, ComponentProps } from "./Components";
-import { TestComponent, TestComponentProps } from "./components/TestComponents";
+import { type Component, ComponentProps } from "./Component";
+import { TestComponent, TestComponent2, TestComponentProps, TestComponentProps2 } from "./components/TestComponents";
 
 class ComponentFactory {
-    private _library = new Map<string, (props?: ComponentProps) => Component>();
+    private _library = new Map<string, (props?: ComponentProps) => Component<ComponentProps>>();
 
     constructor() {
-        this.register<TestComponentProps>(TestComponent);  
+        this.register<TestComponentProps>(TestComponent);
+        this.register<TestComponentProps2>(TestComponent2);
     }
 
-    public register<props>(ctor: new (p?: props) => Component) {
-        this._library.set(ctor.name, (p?: ComponentProps) => new ctor(p as props));
+    public register<T extends ComponentProps>(ctor: new (p?: T) => Component<T>) {
+        this._library.set(ctor.name, (p?: ComponentProps) => new ctor(p as T));
     }
 
     public create(typename: string, props?: ComponentProps) {

@@ -1,6 +1,8 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
+import { Component, ComponentProps } from "./Component";
+import { TimeInternal } from "./Time";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -29,7 +31,15 @@ class Engine {
     }
 
     public update() {
-
+        TimeInternal.updateDeltaTime();
+        this._scene!.traverse(obj => {
+            const { components } = obj.userData;
+            if (components) {
+                for (const instance of Object.values(components)) {
+                    (instance as Component<ComponentProps>).update(obj);
+                }
+            }
+        });
     }
 
     public render(camera: Camera) {

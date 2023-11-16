@@ -1,5 +1,5 @@
 import { Object3D } from "three";
-import { Component } from "./Components";
+import { Component, ComponentProps } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 
 export class Serialization {
@@ -17,7 +17,7 @@ export class Serialization {
         const { components } = obj.userData;
         if (components) {
             for (const [key, value] of Object.entries(components)) {
-                const serializedInstance = value as Component;
+                const serializedInstance = value as Component<ComponentProps>;
                 const instance = componentFactory.create(key, serializedInstance.props);
                 components[key] = instance;
             }

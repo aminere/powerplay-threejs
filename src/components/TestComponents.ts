@@ -1,14 +1,18 @@
-import { Component, ComponentProps } from "../Components";
+import { MathUtils, Object3D } from "three";
+import { Component, ComponentProps } from "../Component";
+import { Time } from "../Time";
 
 export interface TestComponentProps extends ComponentProps {
-    a: number;
-    b: string;
-    c: boolean;
+    moveSpeed: number;   
 }
 
-export class TestComponent extends Component {
+export class TestComponent extends Component<TestComponentProps> {
     constructor(props?: TestComponentProps) {        
-        super(props ?? { a: 1, b: "2", c: true });
+        super(props ?? { moveSpeed: 1 });
+    }
+
+    override update(owner: Object3D) {
+        owner.position.y += this.props.moveSpeed * Time.deltaTime;
     }
 }
 
@@ -17,14 +21,16 @@ export function TestComponentUpdate(component: TestComponent) {
 }
 
 export interface TestComponentProps2 extends ComponentProps {
-    d: number;
-    e: string;
-    f: boolean;
+    rotationSpeed: number;    
 }
 
-export class TestComponent2 extends Component {
+export class TestComponent2 extends Component<TestComponentProps2> {
     constructor(props?: TestComponentProps2) {
-        super(props ?? { d: 1, e: "2", f: true });
+        super(props ?? { rotationSpeed: 1 });
+    }
+
+    override update(owner: Object3D) {
+        owner.rotateY(this.props.rotationSpeed * MathUtils.DEG2RAD * Time.deltaTime);
     }
 }
 
