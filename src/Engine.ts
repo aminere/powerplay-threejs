@@ -2,6 +2,11 @@
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
 
+export interface ISceneInfo {
+    mainCamera: Camera;
+    cameras: Camera[];
+}
+
 class Engine {
     public get renderer() { return this._renderer; }
     public set scene(value: Scene | null) { this._scene = value; }
@@ -32,18 +37,38 @@ class Engine {
         this._renderer!.render(this._scene!, camera);
     }
 
-    public async loadScene(path: string) {
+    public async loadScene(path: string, onLoaded: (props: ISceneInfo) => void) {
         const response = await fetch(path);
         const data = await response.json();
-        this.parseScene(data);
+        this.parseScene(data, onLoaded);
     }
 
-    public parseScene(data: object) {
+    public parseScene(data: object, onParsed: (props: ISceneInfo) => void) {
         const scene = new ObjectLoader().parse(data) as Scene;
-        this._scene = scene;        
+        this._scene = scene;
+        const cameras: THREE.Camera[] = [];  
         scene.traverse(obj => {
             Serialization.postDeserialize(obj);
+            const camera = obj as THREE.Camera;
+            if (camera.isCamera) {
+                cameras.push(camera);
+            }
         });
+
+        let mainCamera: Camera | undefined = undefined;
+        if (scene.userData.mainCamera) {
+            mainCamera = cameras.find(c => c.uuid === scene.userData.mainCamera);
+            if (!mainCamera && cameras.length > 0) {
+                console.warn("No main camera found in scene, using first camera found");
+                mainCamera = cameras[0];
+            }
+        } else if (cameras.length > 0) {
+            mainCamera = cameras[0];
+        }
+        if (!mainCamera) {
+            console.error("No camera found in scene");
+        }        
+        onParsed({ mainCamera: mainCamera!, cameras });       
     }    
 }
 
