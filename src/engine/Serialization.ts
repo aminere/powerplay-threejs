@@ -5,9 +5,9 @@ import { componentFactory } from "./ComponentFactory";
 export class Serialization {
     public static postDeserialize(obj: Object3D) {
         if ((obj as THREE.Mesh).isMesh) {
-            const gemeotry = (obj as THREE.Mesh).geometry;
-            if (gemeotry.type === "PlaneGeometry") {
-                gemeotry.rotateX(-Math.PI / 2);
+            const geometry = (obj as THREE.Mesh).geometry;
+            if (geometry.type === "PlaneGeometry") {
+                geometry.rotateX(-Math.PI / 2);
             }
         }        
         const { eulerRotation } = obj.userData;

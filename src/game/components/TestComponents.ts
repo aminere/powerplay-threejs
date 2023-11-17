@@ -1,6 +1,6 @@
 import { MathUtils, Object3D } from "three";
-import { Component, ComponentProps } from "../Component";
-import { Time } from "../Time";
+import { Component, ComponentProps } from "../../engine/Component";
+import { Time } from "../../engine/Time";
 
 export interface TestComponentProps extends ComponentProps {
     moveSpeed: number;   

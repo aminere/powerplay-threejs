@@ -54,6 +54,19 @@ class Engine {
     }
 
     public parseScene(data: object, onParsed: (props: ISceneInfo) => void) {
+        if (this._scene) {
+            this._scene.traverse(obj => {
+                const { components } = obj.userData;
+                if (components) {
+                    for (const instance of Object.values(components)) {
+                        (instance as Component<ComponentProps>).dispose();
+                    }
+                }
+
+                // TODO dispose of 3D resources
+            });
+        }
+
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
         const cameras: THREE.Camera[] = [];  

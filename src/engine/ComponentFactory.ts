@@ -1,13 +1,7 @@
 import { type Component, ComponentProps } from "./Component";
-import { TestComponent, TestComponent2, TestComponentProps, TestComponentProps2 } from "./components/TestComponents";
 
 class ComponentFactory {
-    private _library = new Map<string, (props?: ComponentProps) => Component<ComponentProps>>();
-
-    constructor() {
-        this.register<TestComponentProps>(TestComponent);
-        this.register<TestComponentProps2>(TestComponent2);
-    }
+    private _library = new Map<string, (props?: ComponentProps) => Component<ComponentProps>>();    
 
     public register<T extends ComponentProps>(ctor: new (p?: T) => Component<T>) {
         this._library.set(ctor.name, (p?: ComponentProps) => new ctor(p as T));

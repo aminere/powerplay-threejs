@@ -10,6 +10,10 @@
     ".": {
       "import": "./lib/powerplay.js",
       "require": "./lib/powerplay.umd.cjs"
+    },
+    "./lib/style.css": {
+      "import": "./lib/style.css",
+      "require": "./lib/style.css"
     }
   },
   "files": [
@@ -23,10 +27,18 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
-    "@types/three": "^0.158.2",
-    "three": "^0.158.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-plugin-dts": "^3.6.3"
+  },
+  "peerDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/three": "^0.158.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.158.0",
+    "ts-events": "^3.4.1"
   }
 }
