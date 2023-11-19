@@ -3,6 +3,7 @@ import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, W
 import { Serialization } from "./Serialization";
 import { Component, ComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
+import { registerComponents } from "../game/components/ComponentRegistration";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -27,7 +28,9 @@ class Engine {
         renderer.shadowMap.type = PCFSoftShadowMap;
         renderer.autoClear = false;
         renderer!.setSize(width, height, false);
-        this._renderer = renderer;
+        this._renderer = renderer; 
+        
+        registerComponents();
     }
 
     public update() {

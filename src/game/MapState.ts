@@ -1,20 +1,16 @@
 
-import { Box2, Object3D } from "three";
-import { ISector } from "./GameTypes";
+import { Box2 } from "three";
+import { GameMapProps } from "./components/GameMapProps";
 
 export class MapState {
-    public get sectors() { return this._sectors; }
-    public get bounds() { return this._bounds; }
-    public set bounds(value: Box2 | undefined) { this._bounds = value; }
-    public get root() { return this._root; }
-    public set root(value: Object3D) { this._root = value; }
+    public get sectors() { return this._props.sectors; }
+    public get bounds() { return this._props.bounds; }
+    public set bounds(value: Box2 | undefined) { this._props.bounds = value; }        
+    
+    private _props: GameMapProps;
 
-    private _sectors = new Map<string, ISector>();
-    private _bounds?: Box2;
-    private _root: Object3D;
-
-    constructor(root: Object3D) {
-        this._root = root;
+    constructor(props: GameMapProps) {
+        this._props = props;
     }
 }
 
@@ -23,12 +19,13 @@ export function getMapState() {
     return instance!;
 }
 
-export function createMapState(root: Object3D) {
+export function createMapState(props: GameMapProps) {
     console.assert(!instance);
-    instance = new MapState(root);
+    instance = new MapState(props);
 }
 
 export function destroyMapState() {
     console.assert(instance);
     instance = null;
 }
+
