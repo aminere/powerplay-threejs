@@ -11,6 +11,7 @@ export class Sector {
         const { mapRes, cellSize } = config.game;
 
         const sectorRoot = new THREE.Object3D();
+        sectorRoot.name = `sector-${x},${y}`;
         const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
         sectorRoot.position.set(x * mapSize + offset, 0, y * mapSize + offset);
@@ -19,9 +20,13 @@ export class Sector {
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch();
         const buildings = new THREE.Object3D();
+        buildings.name = "buildings";
         const rails = new THREE.Object3D();
+        rails.name = "rails";
         const trains = new THREE.Object3D();
+        trains.name = "trains";
         const cars = new THREE.Object3D();
+        cars.name = "cars";
 
         const { sectors } = getMapState();
         sectors.set(

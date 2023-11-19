@@ -21,7 +21,7 @@ export class GameMap extends Component<GameMapProps> {
             this._initialized = true;
             this._owner = owner;
             createMapState(this.props);
-            this.createSector(new Vector2(0, 0));
+            this.createSector(new Vector2(0, 0));            
         }
     }
 
