@@ -1,8 +1,8 @@
 import { MathUtils, Object3D } from "three";
-import { Component, ComponentProps } from "../../engine/Component";
+import { Component, IComponentProps } from "../../engine/Component";
 import { Time } from "../../engine/Time";
 
-export interface TestComponentProps extends ComponentProps {
+export interface TestComponentProps extends IComponentProps {
     moveSpeed: number;   
 }
 
@@ -20,7 +20,7 @@ export function TestComponentUpdate(component: TestComponent) {
     console.log(component);
 }
 
-export interface TestComponentProps2 extends ComponentProps {
+export interface TestComponentProps2 extends IComponentProps {
     rotationSpeed: number;    
 }
 

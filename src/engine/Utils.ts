@@ -1,6 +1,6 @@
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera } from "three";
 import { config } from "../game/config";
-import { Component, ComponentProps } from "./Component";
+import { Component, IComponentProps } from "./Component";
 
 class Utils {
     public updateCameraAspect(camera: Camera, width: number, height: number) {
@@ -20,7 +20,7 @@ class Utils {
         }
     }
 
-    public getComponent<U extends Component<ComponentProps>>(ctor: new () => U, owner: Object3D) {
+    public getComponent<U extends Component<IComponentProps>>(ctor: new () => U, owner: Object3D) {
         return owner.userData.components[ctor.name];
     }
 

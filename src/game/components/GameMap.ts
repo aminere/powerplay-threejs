@@ -1,26 +1,33 @@
 import { Box2, Object3D, Vector2 } from "three";
-import { Component } from "../../engine/Component"
+import { Component, IComponentProps } from "../../engine/Component"
 import { createMapState, destroyMapState } from "../MapState";
-import { GameMapProps } from "./GameMapProps";
 import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
+import { ISector } from "../GameTypes";
 
-export class GameMap extends Component<GameMapProps> {
+interface IGameMapState {
+    sectors: Map<string, ISector>;
+    bounds?: Box2;
+}
+
+export class GameMap extends Component<IComponentProps> {
     private _initialized = false;
     private _owner!: Object3D;
+    private _state!: IGameMapState;
 
-    constructor(props?: GameMapProps) {
-        super(props ?? {
+    constructor(props?: IComponentProps) {
+        super(props);
+        this._state = {
             sectors: new Map<string, any>()
-        });
+        };
     }
 
     override update(owner: Object3D) {
         if (!this._initialized) {
             this._initialized = true;
             this._owner = owner;
-            createMapState(this.props);
+            createMapState(this._state);
             this.createSector(new Vector2(0, 0));            
         }
     }
@@ -38,9 +45,9 @@ export class GameMap extends Component<GameMapProps> {
         const [min, max] = GameUtils.pool.vec2.get(2);
         min.set(sectorRoot.position.x, sectorRoot.position.z);
         max.set(min.x + mapSize, min.y + mapSize);
-        const { bounds } = this.props;
+        const { bounds } = this._state;
         if (!bounds) {
-            this.props.bounds = new Box2(min.clone(), max.clone());
+            this._state.bounds = new Box2(min.clone(), max.clone());
         } else {
             bounds.expandByPoint(min);
             bounds.expandByPoint(max);

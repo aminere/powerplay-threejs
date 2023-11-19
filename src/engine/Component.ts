@@ -1,8 +1,8 @@
 import { Object3D } from "three";
 
-export interface ComponentProps { }
+export interface IComponentProps { }
 
-export class Component<T extends ComponentProps> {
+export class Component<T extends IComponentProps> {
 
     props: T;
 

@@ -1,7 +1,7 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
-import { Component, ComponentProps } from "./Component";
+import { Component, IComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
 import { registerComponents } from "../game/components/ComponentRegistration";
 
@@ -39,7 +39,7 @@ class Engine {
             const { components } = obj.userData;
             if (components) {
                 for (const instance of Object.values(components)) {
-                    (instance as Component<ComponentProps>).update(obj);
+                    (instance as Component<IComponentProps>).update(obj);
                 }
             }
         });
@@ -62,7 +62,7 @@ class Engine {
                 const { components } = obj.userData;
                 if (components) {
                     for (const instance of Object.values(components)) {
-                        (instance as Component<ComponentProps>).dispose();
+                        (instance as Component<IComponentProps>).dispose();
                     }
                 }
 
