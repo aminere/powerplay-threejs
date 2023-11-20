@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, Object3D, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
 import { Component, IComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
@@ -17,6 +17,8 @@ class Engine {
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
+    private _sceneStarted = false;
+    private _components = new Map<Object3D, Component<IComponentProps>[]>();
 
     public init(width: number, height: number) {
         console.assert(this._renderer === null);
@@ -35,14 +37,29 @@ class Engine {
 
     public update() {
         TimeInternal.updateDeltaTime();
+
+        this._components.clear();
         this._scene!.traverse(obj => {
             const { components } = obj.userData;
             if (components) {
-                for (const instance of Object.values(components)) {
-                    (instance as Component<IComponentProps>).update(obj);
-                }
+                this._components.set(obj, Object.values(components).map(c => c as Component<IComponentProps>));
             }
         });
+
+        if (!this._sceneStarted) {
+            for (const [obj, components] of this._components) {
+                for (const instance of components) {
+                    instance.start(obj);
+                }
+            }
+            this._sceneStarted = true;
+        }
+
+        for (const [obj, components] of this._components) {
+            for (const instance of components) {
+                instance.update(obj);
+            }
+        }
     }
 
     public render(camera: Camera) {
@@ -72,6 +89,7 @@ class Engine {
 
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
+        this._sceneStarted = false;
         const cameras: THREE.Camera[] = [];  
         scene.traverse(obj => {
             Serialization.postDeserialize(obj);

@@ -12,7 +12,6 @@ interface IGameMapState {
 }
 
 export class GameMap extends Component<IComponentProps> {
-    private _initialized = false;
     private _owner!: Object3D;
     private _state!: IGameMapState;
 
@@ -23,13 +22,10 @@ export class GameMap extends Component<IComponentProps> {
         };
     }
 
-    override update(owner: Object3D) {
-        if (!this._initialized) {
-            this._initialized = true;
-            this._owner = owner;
-            createMapState(this._state);
-            this.createSector(new Vector2(0, 0));            
-        }
+    override start(owner: Object3D) {
+        this._owner = owner;
+        createMapState(this._state);
+        this.createSector(new Vector2(0, 0));      
     }
 
     override dispose() {

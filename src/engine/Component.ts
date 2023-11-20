@@ -10,6 +10,8 @@ export class Component<T extends IComponentProps> {
         this.props = props ?? {} as T;
     }
 
+    start(_owner: Object3D) { }
+
     update(_owner: Object3D) { }
 
     dispose() { }
