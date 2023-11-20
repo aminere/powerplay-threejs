@@ -1,4 +1,4 @@
-import { Box2, Camera, MathUtils, Object3D, Vector2, Vector3 } from "three";
+import { Box2, Camera, DirectionalLight, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { Component, IComponentProps } from "../../engine/Component"
 import { createMapState, destroyMapState } from "../MapState";
 import { Sector } from "../Sector";
@@ -9,6 +9,7 @@ import { input } from "../../engine/Input";
 import { Time } from "../../engine/Time";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/Pools";
+import { DOMUtils } from "../../engine/DOMUtils";
 
 interface IGameMapState {
     sectors: Map<string, ISector>;
@@ -22,6 +23,7 @@ export class GameMap extends Component<IComponentProps> {
     private _cameraAngleRad = 0;
     private _cameraRoot!: Object3D;
     private _camera!: Camera;
+    private _light!: DirectionalLight;
     private _cameraBoundsAccessors = [0, 1, 2, 3];  
     private _cameraBounds = [
         new Vector3(), // top
@@ -43,17 +45,21 @@ export class GameMap extends Component<IComponentProps> {
         this.createSector(new Vector2(0, 0));
         this._cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this._camera = this._cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
+        this._light = this._cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
         const [, rotationY] = config.camera.rotation;
         this._cameraAngleRad = MathUtils.degToRad(rotationY);
-        console.log(this._camera);
+
+        this.onWheel = this.onWheel.bind(this);
+        document.addEventListener("wheel", this.onWheel, { passive: false });
     }
 
     override update(owner: Object3D) {        
-        this.updateCameraPan();
+        // this.updateCameraPan();
     }
 
     override dispose() {
         destroyMapState();
+        document.removeEventListener("wheel", this.onWheel);
     }
 
     private createSector(coords: Vector2) {
@@ -150,6 +156,48 @@ export class GameMap extends Component<IComponentProps> {
         GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.max.y), this._camera, bottom);
         GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.max.y), this._camera, left);
         GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), this._camera, right);
+    }
+
+    private onWheel(e: WheelEvent) {
+        const delta = DOMUtils.getWheelDelta(e.deltaY, e.deltaMode);
+        const { zoomSpeed, zoomRange, orthoSize } = config.camera;
+        const [min, max] = zoomRange;
+        const newZoom = MathUtils.clamp(this._cameraZoom + delta * zoomSpeed, min, max);
+        const deltaZoom = newZoom - this._cameraZoom;
+        const rc = engine.renderer!.domElement.getBoundingClientRect();
+        const width = rc.width;
+        const height = rc.height;
+        // [0, s] to [-1, 1]
+        const touchPos = input.touchPos;
+        const [xNorm, yNorm] = [(touchPos.x / width) * 2 - 1, (touchPos.y / height) * 2 - 1];
+        const aspect = width / height;
+        const offsetX = orthoSize * aspect * xNorm * deltaZoom;
+        const offsetY = orthoSize * aspect * yNorm * deltaZoom;
+        const deltaPos = pools.vec3.getOne();
+        deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
+        this._cameraRoot.position.add(deltaPos);
+        this._cameraZoom = newZoom;
+        this.updateCameraSize();
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    private updateCameraSize() {
+        const rc = engine.renderer!.domElement.getBoundingClientRect();
+        const width = rc.width;
+        const height = rc.height;
+        const aspect = width / height;
+        const { orthoSize, shadowRange } = config.camera;
+        (this._camera as OrthographicCamera).zoom = 1 / this._cameraZoom;
+        (this._camera as OrthographicCamera).updateProjectionMatrix();
+        this.updateCameraBounds();        
+        const cameraLeft = -orthoSize * this._cameraZoom * aspect;
+        const _shadowRange = Math.abs(cameraLeft) * shadowRange;        
+        this._light.shadow.camera.left = -_shadowRange;
+        this._light.shadow.camera.right = _shadowRange;
+        this._light.shadow.camera.top = _shadowRange;
+        this._light.shadow.camera.bottom = -_shadowRange;
+        this._light.shadow.camera.updateProjectionMatrix();
     }
 }
 
