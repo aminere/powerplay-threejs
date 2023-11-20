@@ -1,9 +1,9 @@
 
-import { Camera, Line3, Plane, Vector2, Vector3, Raycaster, Triangle, Matrix4 } from "three";
+import { Camera, Vector2, Vector3, Raycaster } from "three";
 import { config } from "./config";
 import { ICell } from "./GameTypes";
-import { ObjectPool } from "../engine/ObjectPool";
 import { getMapState } from "./MapState";
+import { pools } from "../engine/Pools";
 
 export class GameUtils {
 
@@ -12,29 +12,13 @@ export class GameUtils {
         right: new Vector3(1, 0, 0),
         up: new Vector3(0, 1, 0),
         forward: new Vector3(0, 0, 1)
-    };
-
-    public static pool = {
-        vec2: new ObjectPool(Vector2, 128),
-        vec3: new ObjectPool(Vector3, 128),
-        mat4: new ObjectPool(Matrix4, 32),
-        plane: new ObjectPool(Plane, 128),
-        line3: new ObjectPool(Line3, 128),
-        triangle: new ObjectPool(Triangle, 128)
-    };
-
-    private static _pools = Object.values(GameUtils.pool);
-    public static flushPools() {
-        for (const pool of GameUtils._pools) {
-            pool.flush();
-        }
-    }
+    };    
 
     public static rayCaster = new Raycaster();
 
     public static worldToScreen(worldPos: Vector3, camera: Camera, screenPos: Vector3) {
         const { clientWidth, clientHeight } = document.body;
-        const normalizedPos = GameUtils.pool.vec3.getOne();
+        const normalizedPos = pools.vec3.getOne();
         normalizedPos.copy(worldPos).project(camera);
         screenPos.x = (normalizedPos.x + 1) / 2 * clientWidth;
         screenPos.y = -(normalizedPos.y - 1) / 2 * clientHeight;
@@ -134,11 +118,11 @@ export class GameUtils {
     
     public static screenCastOnPlane(camera: Camera, screenPos: Vector2, yHeight: number, intersectionOut: Vector3) {
         const { clientWidth, clientHeight } = document.body;
-        const normalizedPos = GameUtils.pool.vec2.getOne();
+        const normalizedPos = pools.vec2.getOne();
         const { up } = GameUtils.vec3;
-        const ground = GameUtils.pool.plane.getOne();
-        const line = GameUtils.pool.line3.getOne();
-        const rayEnd = GameUtils.pool.vec3.getOne();
+        const ground = pools.plane.getOne();
+        const line = pools.line3.getOne();
+        const rayEnd = pools.vec3.getOne();
         normalizedPos.set(
             (screenPos.x / clientWidth) * 2 - 1,
             -(screenPos.y / clientHeight) * 2 + 1

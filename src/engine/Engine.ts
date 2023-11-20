@@ -5,6 +5,7 @@ import { Component, IComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { input } from "./Input";
+import { pools } from "./Pools";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -43,33 +44,9 @@ class Engine {
 
     public update() {
         TimeInternal.updateDeltaTime();
-
-        const rc = this._renderer!.domElement.getBoundingClientRect();
-        input.update(rc);
-
-        this._components.clear();
-        this._scene!.traverse(obj => {
-            const { components } = obj.userData;
-            if (components) {
-                this._components.set(obj, Object.values(components).map(c => c as Component<IComponentProps>));
-            }
-        });
-
-        if (!this._sceneStarted) {
-            for (const [obj, components] of this._components) {
-                for (const instance of components) {
-                    instance.start(obj);
-                }
-            }
-            this._sceneStarted = true;
-        }
-
-        for (const [obj, components] of this._components) {
-            for (const instance of components) {
-                instance.update(obj);
-            }
-        }
-
+        pools.flush();
+        input.update(this._renderer!.domElement.getBoundingClientRect());
+        this.updateComponents();
         input.postUpdate();
     }
 
@@ -126,7 +103,30 @@ class Engine {
         onParsed({ mainCamera: mainCamera!, cameras });       
     }    
 
+    private updateComponents() {
+        this._components.clear();
+        this._scene!.traverse(obj => {
+            const { components } = obj.userData;
+            if (components) {
+                this._components.set(obj, Object.values(components).map(c => c as Component<IComponentProps>));
+            }
+        });
 
+        if (!this._sceneStarted) {
+            for (const [obj, components] of this._components) {
+                for (const instance of components) {
+                    instance.start(obj);
+                }
+            }
+            this._sceneStarted = true;
+        }
+
+        for (const [obj, components] of this._components) {
+            for (const instance of components) {
+                instance.update(obj);
+            }
+        }
+    }
 }
 
 export const engine = new Engine();
