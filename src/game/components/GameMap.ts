@@ -5,6 +5,7 @@ import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
+import { input } from "../../engine/Input";
 
 interface IGameMapState {
     sectors: Map<string, ISector>;
@@ -26,6 +27,12 @@ export class GameMap extends Component<IComponentProps> {
         this._owner = owner;
         createMapState(this._state);
         this.createSector(new Vector2(0, 0));      
+    }
+
+    override update(owner: Object3D) {        
+        if (input.touchInside) {
+
+        }
     }
 
     override dispose() {

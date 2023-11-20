@@ -4,6 +4,7 @@ import { Serialization } from "./Serialization";
 import { Component, IComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
 import { registerComponents } from "../game/components/ComponentRegistration";
+import { input } from "./Input";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -30,13 +31,21 @@ class Engine {
         renderer.shadowMap.type = PCFSoftShadowMap;
         renderer.autoClear = false;
         renderer!.setSize(width, height, false);
-        this._renderer = renderer; 
-        
+        this._renderer = renderer;        
+
+        input.init();
         registerComponents();
+    }
+
+    public dispose() {
+        input.dispose();
     }
 
     public update() {
         TimeInternal.updateDeltaTime();
+
+        const rc = this._renderer!.domElement.getBoundingClientRect();
+        input.update(rc);
 
         this._components.clear();
         this._scene!.traverse(obj => {
@@ -60,6 +69,8 @@ class Engine {
                 instance.update(obj);
             }
         }
+
+        input.postUpdate();
     }
 
     public render(camera: Camera) {
@@ -114,6 +125,8 @@ class Engine {
         }        
         onParsed({ mainCamera: mainCamera!, cameras });       
     }    
+
+
 }
 
 export const engine = new Engine();
