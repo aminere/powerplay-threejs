@@ -19,6 +19,7 @@ class Engine {
     public set scene(value: Scene | null) { this._scene = value; }
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
+    public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;

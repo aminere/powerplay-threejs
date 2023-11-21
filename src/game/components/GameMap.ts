@@ -8,13 +8,15 @@ import { input } from "../../engine/Input";
 import { Time } from "../../engine/Time";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/Pools";
-import { DOMUtils } from "../../engine/DOMUtils";
-import gsap from "gsap";
 import { IGameMapState } from "./GameMapState";
+import { raycastOnCells } from "./GameMapUtils";
+import { TileSector } from "../TileSelector";
+import gsap from "gsap";
 
 export class GameMap extends Component<IComponentProps> {
     private _owner!: Object3D;
     private _state!: IGameMapState;
+
     private _cameraZoom = 1;
     private _cameraAngleRad = 0;
     private _cameraTween: gsap.core.Tween | null = null;
@@ -30,6 +32,9 @@ export class GameMap extends Component<IComponentProps> {
         new Vector3() // left
     ];
     private _pressedKeys = new Set<string>();
+    private _previousTouchPos = new Vector2();
+    private _tileSelector!: TileSector;
+    private _selectedCellCoords = new Vector2();
 
     constructor(props?: IComponentProps) {
         super(props);
@@ -49,10 +54,11 @@ export class GameMap extends Component<IComponentProps> {
         const [, rotationY] = config.camera.rotation;
         this._cameraAngleRad = MathUtils.degToRad(rotationY);
 
-        this.onWheel = this.onWheel.bind(this);
+        this._tileSelector = new TileSector();
+        owner.parent!.add(this._tileSelector);
+
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
-        document.addEventListener("wheel", this.onWheel, { passive: false });
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
     }
@@ -60,12 +66,42 @@ export class GameMap extends Component<IComponentProps> {
     override update(_owner: Object3D) {
         if (input.touchInside) {
             this.updateCameraPan();
+
+            if (!input.touchPos.equals(this._previousTouchPos)) {
+                this._previousTouchPos.copy(input.touchPos);
+                // if (this._action) {
+                    const cellCoords = raycastOnCells(input.touchPos, this._camera);
+                    if (cellCoords?.equals(this._selectedCellCoords) === false) {
+                        this._tileSelector.setPosition(cellCoords!);
+                        this._selectedCellCoords.copy(cellCoords!);                        
+                        // default rail preview was here                        
+                    }
+                // }
+            }
+        }
+
+        if (input.wheelDelta !== 0) {
+            const { zoomSpeed, zoomRange, orthoSize } = config.camera;
+            const [min, max] = zoomRange;
+            const newZoom = MathUtils.clamp(this._cameraZoom + input.wheelDelta * zoomSpeed, min, max);
+            const deltaZoom = newZoom - this._cameraZoom;
+            const { width, height } = engine.screenRect;
+            // [0, s] to [-1, 1]
+            const touchPos = input.touchPos;
+            const [xNorm, yNorm] = [(touchPos.x / width) * 2 - 1, (touchPos.y / height) * 2 - 1];
+            const aspect = width / height;
+            const offsetX = orthoSize * aspect * xNorm * deltaZoom;
+            const offsetY = orthoSize * aspect * yNorm * deltaZoom;
+            const deltaPos = pools.vec3.getOne();
+            deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
+            this._cameraRoot.position.add(deltaPos);
+            this._cameraZoom = newZoom;
+            this.updateCameraSize();
         }
     }
 
     override dispose() {
         destroyMapState();
-        document.removeEventListener("wheel", this.onWheel);
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
     }
@@ -88,11 +124,8 @@ export class GameMap extends Component<IComponentProps> {
         }
     }
 
-    private updateCameraPan() {
-        const rc = engine.renderer!.domElement.getBoundingClientRect();
-        const width = rc.width;
-        const height = rc.height;        
-
+    private updateCameraPan() {        
+        const { width, height } = engine.screenRect;
         const touchPos = input.touchPos;
         // [0, s] to [-1, 1]
         let xNorm = (touchPos.x / width) * 2 - 1;
@@ -181,30 +214,6 @@ export class GameMap extends Component<IComponentProps> {
         GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), this._camera, right);
     }
 
-    private onWheel(e: WheelEvent) {
-        const delta = DOMUtils.getWheelDelta(e.deltaY, e.deltaMode);
-        const { zoomSpeed, zoomRange, orthoSize } = config.camera;
-        const [min, max] = zoomRange;
-        const newZoom = MathUtils.clamp(this._cameraZoom + delta * zoomSpeed, min, max);
-        const deltaZoom = newZoom - this._cameraZoom;
-        const rc = engine.renderer!.domElement.getBoundingClientRect();
-        const width = rc.width;
-        const height = rc.height;
-        // [0, s] to [-1, 1]
-        const touchPos = input.touchPos;
-        const [xNorm, yNorm] = [(touchPos.x / width) * 2 - 1, (touchPos.y / height) * 2 - 1];
-        const aspect = width / height;
-        const offsetX = orthoSize * aspect * xNorm * deltaZoom;
-        const offsetY = orthoSize * aspect * yNorm * deltaZoom;
-        const deltaPos = pools.vec3.getOne();
-        deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
-        this._cameraRoot.position.add(deltaPos);
-        this._cameraZoom = newZoom;
-        this.updateCameraSize();
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
     private onKeyDown(e: KeyboardEvent) {
         this._pressedKeys.add(e.key);
     }
@@ -249,9 +258,7 @@ export class GameMap extends Component<IComponentProps> {
     }
 
     private updateCameraSize() {
-        const rc = engine.renderer!.domElement.getBoundingClientRect();
-        const width = rc.width;
-        const height = rc.height;
+        const { width, height } = engine.screenRect;        
         const aspect = width / height;
         const { orthoSize, shadowRange } = config.camera;
         (this._camera as OrthographicCamera).zoom = 1 / this._cameraZoom;

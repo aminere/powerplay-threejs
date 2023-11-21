@@ -4,6 +4,7 @@ import { config } from "./config";
 import { ICell } from "./GameTypes";
 import { getMapState } from "./MapState";
 import { pools } from "../engine/Pools";
+import { engine } from "../powerplay";
 
 export class GameUtils {
 
@@ -17,11 +18,11 @@ export class GameUtils {
     public static rayCaster = new Raycaster();
 
     public static worldToScreen(worldPos: Vector3, camera: Camera, screenPos: Vector3) {
-        const { clientWidth, clientHeight } = document.body;
+        const { width, height } = engine.screenRect;
         const normalizedPos = pools.vec3.getOne();
         normalizedPos.copy(worldPos).project(camera);
-        screenPos.x = (normalizedPos.x + 1) / 2 * clientWidth;
-        screenPos.y = -(normalizedPos.y - 1) / 2 * clientHeight;
+        screenPos.x = (normalizedPos.x + 1) / 2 * width;
+        screenPos.y = -(normalizedPos.y - 1) / 2 * height;
         return screenPos;
     }
 
@@ -117,15 +118,15 @@ export class GameUtils {
     // }
     
     public static screenCastOnPlane(camera: Camera, screenPos: Vector2, yHeight: number, intersectionOut: Vector3) {
-        const { clientWidth, clientHeight } = document.body;
+        const { width, height } = engine.screenRect;
         const normalizedPos = pools.vec2.getOne();
         const { up } = GameUtils.vec3;
         const ground = pools.plane.getOne();
         const line = pools.line3.getOne();
         const rayEnd = pools.vec3.getOne();
         normalizedPos.set(
-            (screenPos.x / clientWidth) * 2 - 1,
-            -(screenPos.y / clientHeight) * 2 + 1
+            (screenPos.x / width) * 2 - 1,
+            -(screenPos.y / height) * 2 + 1
         );
         GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
         const { ray } = GameUtils.rayCaster;
