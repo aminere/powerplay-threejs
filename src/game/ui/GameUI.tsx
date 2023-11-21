@@ -1,17 +1,16 @@
 import { useEffect, useRef } from "react";
 import { Action, Actions } from "../GameTypes";
 import { evtCursorOverUI } from "../../Events";
-import styles from './GameUI.module.css';
 import { utils } from "../../powerplay";
 import { Vector2 } from "three";
+import styles from './GameUI.module.css';
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
-    return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+    return x > rect.x && x <= rect.x + rect.width && y > rect.y && y <= rect.y + rect.height
 }
-
 interface IProps {
     isWeb: boolean;
-    pointerPos: Vector2;
+    rawPointerPos: Vector2;
 }
 
 export function GameUI(props: IProps) {
@@ -20,6 +19,7 @@ export function GameUI(props: IProps) {
     const actions = useRef<Record<string, HTMLElement>>({});
     const hoveredElement = useRef<HTMLElement | null>(null);
     const hoveredElementOnDown = useRef<HTMLElement | null>(null);
+    const cursorOverUI = useRef(false);
 
     useEffect(() => {
         if (!root.current) {
@@ -27,14 +27,17 @@ export function GameUI(props: IProps) {
         }
         const onGamePointerMove = () => {
             const rect = root.current!.getBoundingClientRect();
-            const { pointerPos } = props;
-            const cursorOverUI = isPointInRect(pointerPos.x, pointerPos.y, rect);
-            evtCursorOverUI.post(cursorOverUI);
+            const { rawPointerPos } = props;
+            const _cursorOverUI = isPointInRect(rawPointerPos.x, rawPointerPos.y, rect);
+            if (cursorOverUI.current !== _cursorOverUI) {
+                evtCursorOverUI.post(_cursorOverUI);
+                cursorOverUI.current = _cursorOverUI;
+            }
 
             if (utils.isPointerLocked()) {
                 hoveredElement.current = null;
                 for (const [, elem] of Object.entries(actions.current)) {
-                    const hovered = isPointInRect(pointerPos.x, pointerPos.y, elem.getBoundingClientRect());
+                    const hovered = isPointInRect(rawPointerPos.x, rawPointerPos.y, elem.getBoundingClientRect());
                     if (hovered) {
                         hoveredElement.current = elem;
                         elem.classList.add("hovered");

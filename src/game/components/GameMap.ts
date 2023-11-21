@@ -12,6 +12,7 @@ import { IGameMapState } from "./GameMapState";
 import { raycastOnCells } from "./GameMapUtils";
 import { TileSector } from "../TileSelector";
 import gsap from "gsap";
+import { evtCursorOverUI } from "../../Events";
 
 export class GameMap extends Component<IComponentProps> {
     private _owner!: Object3D;
@@ -35,6 +36,7 @@ export class GameMap extends Component<IComponentProps> {
     private _previousTouchPos = new Vector2();
     private _tileSelector!: TileSector;
     private _selectedCellCoords = new Vector2();
+    private _cursorOverUI = false;
 
     constructor(props?: IComponentProps) {
         super(props);
@@ -59,12 +61,21 @@ export class GameMap extends Component<IComponentProps> {
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onCursorOverUI = this.onCursorOverUI.bind(this);
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
+        evtCursorOverUI.attach(this.onCursorOverUI);
+    }
+
+    override dispose() {
+        destroyMapState();
+        document.removeEventListener("keyup", this.onKeyUp);
+        document.removeEventListener("keydown", this.onKeyDown);
+        evtCursorOverUI.detach(this.onCursorOverUI);
     }
 
     override update(_owner: Object3D) {
-        if (input.touchInside) {
+        if (input.touchInside && !this._cursorOverUI) {
             this.updateCameraPan();
 
             if (!input.touchPos.equals(this._previousTouchPos)) {
@@ -98,13 +109,7 @@ export class GameMap extends Component<IComponentProps> {
             this._cameraZoom = newZoom;
             this.updateCameraSize();
         }
-    }
-
-    override dispose() {
-        destroyMapState();
-        document.removeEventListener("keyup", this.onKeyUp);
-        document.removeEventListener("keydown", this.onKeyDown);
-    }
+    }    
 
     private createSector(coords: Vector2) {
         const sectorRoot = Sector.create(coords, this._owner);
@@ -271,6 +276,13 @@ export class GameMap extends Component<IComponentProps> {
         this._light.shadow.camera.top = _shadowRange;
         this._light.shadow.camera.bottom = -_shadowRange;
         this._light.shadow.camera.updateProjectionMatrix();
+    }
+
+    private onCursorOverUI(over: boolean) {
+        this._cursorOverUI = over;
+        // if (this._action !== null) {
+            this._tileSelector.visible = !over;
+        // }
     }
 }
 
