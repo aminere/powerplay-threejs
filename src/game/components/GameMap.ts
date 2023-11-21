@@ -1,37 +1,35 @@
-import { Box2, Camera, DirectionalLight, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Box2, Camera, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { Component, IComponentProps } from "../../engine/Component"
 import { createMapState, destroyMapState } from "../MapState";
 import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { ISector } from "../GameTypes";
 import { input } from "../../engine/Input";
 import { Time } from "../../engine/Time";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/Pools";
 import { DOMUtils } from "../../engine/DOMUtils";
-
-interface IGameMapState {
-    sectors: Map<string, ISector>;
-    bounds?: Box2;
-}
+import gsap from "gsap";
+import { IGameMapState } from "./GameMapState";
 
 export class GameMap extends Component<IComponentProps> {
     private _owner!: Object3D;
     private _state!: IGameMapState;
     private _cameraZoom = 1;
     private _cameraAngleRad = 0;
+    private _cameraTween: gsap.core.Tween | null = null;
     private _cameraRoot!: Object3D;
+    private _cameraPivot!: Object3D;
     private _camera!: Camera;
     private _light!: DirectionalLight;
-    private _cameraBoundsAccessors = [0, 1, 2, 3];  
+    private _cameraBoundsAccessors = [0, 1, 2, 3];
     private _cameraBounds = [
         new Vector3(), // top
         new Vector3(), // right
         new Vector3(), // bottom
         new Vector3() // left
     ];
-    
+
     constructor(props?: IComponentProps) {
         super(props);
         this._state = {
@@ -45,21 +43,25 @@ export class GameMap extends Component<IComponentProps> {
         this.createSector(new Vector2(0, 0));
         this._cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this._camera = this._cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
+        this._cameraPivot = this._camera.parent!;
         this._light = this._cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
         const [, rotationY] = config.camera.rotation;
         this._cameraAngleRad = MathUtils.degToRad(rotationY);
 
         this.onWheel = this.onWheel.bind(this);
+        this.onKeyUp = this.onKeyUp.bind(this);
         document.addEventListener("wheel", this.onWheel, { passive: false });
+        document.addEventListener("keyup", this.onKeyUp);
     }
 
-    override update(owner: Object3D) {        
-        // this.updateCameraPan();
+    override update(_owner: Object3D) {
+        this.updateCameraPan();
     }
 
     override dispose() {
         destroyMapState();
         document.removeEventListener("wheel", this.onWheel);
+        document.removeEventListener("keyup", this.onKeyUp);
     }
 
     private createSector(coords: Vector2) {
@@ -81,14 +83,16 @@ export class GameMap extends Component<IComponentProps> {
     }
 
     private updateCameraPan() {
-        const touchPos = input.touchPos;
-        const dt = Time.deltaTime;
         const rc = engine.renderer!.domElement.getBoundingClientRect();
         const width = rc.width;
-        const height = rc.height;        
-        const { panMargin, panSpeed } = config.camera;
+        const height = rc.height;
+
+        const touchPos = input.touchPos;
         // [0, s] to [-1, 1]
         const [xNorm, yNorm] = [(touchPos.x / width) * 2 - 1, (touchPos.y / height) * 2 - 1];
+
+        const dt = Time.deltaTime;
+        const { panMargin, panSpeed } = config.camera;
         const margin = 50;
         const [delta, oldPos] = pools.vec3.get(2);
         if (Math.abs(xNorm) > 1 - panMargin) {
@@ -106,19 +110,19 @@ export class GameMap extends Component<IComponentProps> {
                 if (leftX > 0) {
                     if (rightX > width - margin) {
                         this._cameraRoot.position.copy(oldPos);
-                        this.updateCameraBounds();            
+                        this.updateCameraBounds();
                     }
                 }
             } else {
                 if (rightX < width) {
                     if (leftX < margin) {
                         this._cameraRoot.position.copy(oldPos);
-                        this.updateCameraBounds();            
+                        this.updateCameraBounds();
                     }
                 }
             }
         }
-        if (Math.abs(yNorm) > 1 - panMargin) {            
+        if (Math.abs(yNorm) > 1 - panMargin) {
             const aspect = width / height;
             const dy = yNorm * aspect * dt * panSpeed * this._cameraZoom;
             delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
@@ -182,6 +186,43 @@ export class GameMap extends Component<IComponentProps> {
         e.stopPropagation();
     }
 
+    private onKeyUp(e: KeyboardEvent) {
+        let cameraDirection = 0;
+        switch (e.key) {
+            case 'q': cameraDirection = -1; break;
+            case 'e': cameraDirection = 1; break;
+        }
+        if (cameraDirection !== 0 && !this._cameraTween) {
+            this._cameraTween = gsap.to(this,
+                {
+                    _cameraAngleRad: this._cameraAngleRad + Math.PI / 2 * cameraDirection,
+                    duration: .45,
+                    ease: "power2.out",
+                    onUpdate: () => {
+                        const [rotationX] = config.camera.rotation;
+                        this._cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this._cameraAngleRad, 0, 'YXZ'));
+                    },
+                    onComplete: () => {
+                        this._cameraTween = null;
+
+                        // rotate camera bounds
+                        const length = this._cameraBoundsAccessors.length;
+                        this._cameraBoundsAccessors = this._cameraBoundsAccessors.map((_, index) => {
+                            if (cameraDirection < 0) {
+                                return this._cameraBoundsAccessors[(index + 1) % length];
+                            } else {
+                                if (index === 0) {
+                                    return this._cameraBoundsAccessors[length - 1];
+                                } else {
+                                    return this._cameraBoundsAccessors[index - 1];
+                                }
+                            }
+                        });
+                    }
+                });
+        }
+    }
+
     private updateCameraSize() {
         const rc = engine.renderer!.domElement.getBoundingClientRect();
         const width = rc.width;
@@ -190,9 +231,9 @@ export class GameMap extends Component<IComponentProps> {
         const { orthoSize, shadowRange } = config.camera;
         (this._camera as OrthographicCamera).zoom = 1 / this._cameraZoom;
         (this._camera as OrthographicCamera).updateProjectionMatrix();
-        this.updateCameraBounds();        
+        this.updateCameraBounds();
         const cameraLeft = -orthoSize * this._cameraZoom * aspect;
-        const _shadowRange = Math.abs(cameraLeft) * shadowRange;        
+        const _shadowRange = Math.abs(cameraLeft) * shadowRange;
         this._light.shadow.camera.left = -_shadowRange;
         this._light.shadow.camera.right = _shadowRange;
         this._light.shadow.camera.top = _shadowRange;

@@ -18,12 +18,13 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: ['react', 'react-dom', 'three', 'ts-events'],
+      external: ['react', 'react-dom', 'three', 'ts-events', 'gsap'],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-          three: 'THREE'
+          three: 'THREE',
+          gsap: 'gsap'
         }
       }
     }

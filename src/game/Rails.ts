@@ -3,6 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { RailFactory } from "./RailFactory";
 import { Axis, ICell } from "./GameTypes";
 import { getMapState } from "./MapState";
+import { pools } from "../engine/Pools";
 
 export class Rails {
     
@@ -140,7 +141,7 @@ export class Rails {
     public static onEndDrag(rail: ICell[]) {
         // link to neighbors
         for (const cell of rail) {
-            const neighborCoord = GameUtils.pool.vec2.getOne();
+            const neighborCoord = pools.vec2.getOne();
             const { mapCoords, endCell, axis } = cell.rail!;
             for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
                 neighborCoord.set(mapCoords.x + offset[0], mapCoords.y + offset[1]);
@@ -207,7 +208,7 @@ export class Rails {
         endAxis?: Axis
     ) {
         const { sectors } = getMapState();
-        const [sectorCoords, sectorCoords2] = GameUtils.pool.vec2.get(2);
+        const [sectorCoords, sectorCoords2] = pools.vec2.get(2);
         const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
@@ -224,7 +225,7 @@ export class Rails {
         };
         if (endCoords) {
             console.assert(endAxis);
-            const endPos = GameUtils.pool.vec3.getOne();
+            const endPos = pools.vec3.getOne();
             GameUtils.mapToWorld(endCoords!, endPos)
             endCell!.rail = {
                 obj: rail,

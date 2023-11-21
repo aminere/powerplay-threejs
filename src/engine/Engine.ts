@@ -12,17 +12,21 @@ export interface ISceneInfo {
     cameras: Camera[];
 }
 
+type Runtime = "editor" | "game";
+
 class Engine {
     public get renderer() { return this._renderer; }
     public set scene(value: Scene | null) { this._scene = value; }
     public get scene() { return this._scene; }    
+    public get runtime() { return this._runtime; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
     private _components = new Map<Object3D, Component<IComponentProps>[]>();
+    private _runtime: Runtime = "game";
 
-    public init(width: number, height: number) {
+    public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
         const renderer = new WebGLRenderer({ alpha: true });
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -33,6 +37,7 @@ class Engine {
         renderer.autoClear = false;
         renderer!.setSize(width, height, false);
         this._renderer = renderer;        
+        this._runtime = runtime;
 
         input.init();
         registerComponents();

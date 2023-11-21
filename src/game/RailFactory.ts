@@ -5,6 +5,7 @@ import { config } from "./config";
 import { BezierPath } from "./BezierPath";
 import { IRail } from "./GameTypes";
 import { Meshes } from "./Meshes";
+import { pools } from "../engine/Pools";
 
 export class RailFactory {
 
@@ -73,7 +74,7 @@ export class RailFactory {
                 //         maxZ = z;
                 //     }
                 // }
-                const [point, bitangent, curvedPos, offset] = GameUtils.pool.vec3.get(4);
+                const [point, bitangent, curvedPos, offset] = pools.vec3.get(4);
                 offset.set(halfCell, 0, 0);
                 for (let i = 0; i < vertices.count; ++i) {   
                     const t = (vertices.getZ(i) - minZ) / (maxZ - minZ);                            

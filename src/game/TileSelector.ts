@@ -3,6 +3,7 @@ import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, Tex
 import { config } from "./config";
 import { GameUtils } from "./GameUtils";
 import { getMapState } from "./MapState";
+import { pools } from "../engine/Pools";
 
 export class TileSector extends Object3D {
 
@@ -71,7 +72,7 @@ export class TileSector extends Object3D {
     public fit(mapCoords: Vector2) {
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
-        const [cellCoords, sectorCoords, localCoords] = GameUtils.pool.vec2.get(3);
+        const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
         
         const fitTile = (mapX: number, mapY: number, tileIndex: number) => {
             const cell = GameUtils.getCell(cellCoords.set(mapX, mapY), sectorCoords, localCoords);

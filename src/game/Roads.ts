@@ -3,6 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { Axis, ICell } from "./GameTypes";
 import { Sector } from "./Sector";
 import { getMapState } from "./MapState";
+import { pools } from "../engine/Pools";
 
 const neighborCombinations: {
     [key: string]: number; // tileIndex
@@ -32,7 +33,7 @@ const neighborCombinations: {
 
 export class Roads {
     public static onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
-        const currentPos = GameUtils.pool.vec2.getOne();
+        const currentPos = pools.vec2.getOne();
         const scan = (_start: Vector2, direction: Vector2, iterations: number) => {
             console.assert(iterations >= 0);
             for (let i = 0; i <= iterations; ++i) {
@@ -81,7 +82,7 @@ export class Roads {
     }
 
     public static create(mapCoords: Vector2) {
-        const [sectorCoords, localCoords] = GameUtils.pool.vec2.get(2);
+        const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         const { tileIndex, neighbors } = Roads.getRoadTile(mapCoords);
         Roads.setRoadTile(cell, sectorCoords, localCoords, tileIndex);
@@ -96,7 +97,7 @@ export class Roads {
 
     public static clear(mapCoords: Vector2) {
         const { sectors } = getMapState();
-        const [sectorCoords, localCoords] = GameUtils.pool.vec2.get(2);
+        const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         delete cell.roadTile;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
@@ -121,7 +122,7 @@ export class Roads {
     }
 
     private static getRoadTile(mapCoords: Vector2) {
-        const [neighborCoord, neighborSector, neighbordLocalCoords] = GameUtils.pool.vec2.get(3);
+        const [neighborCoord, neighborSector, neighbordLocalCoords] = pools.vec2.get(3);
         const getNeighbor = (dx: number, dy: number) => {
             neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
             const neighbor = GameUtils.getCell(neighborCoord, neighborSector, neighbordLocalCoords);

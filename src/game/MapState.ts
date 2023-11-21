@@ -1,15 +1,15 @@
 
 import { Box2 } from "three";
-import { GameMapProps } from "./components/GameMapProps";
+import { IGameMapState } from "./components/GameMapState";
 
 export class MapState {
     public get sectors() { return this._props.sectors; }
     public get bounds() { return this._props.bounds; }
     public set bounds(value: Box2 | undefined) { this._props.bounds = value; }        
     
-    private _props: GameMapProps;
+    private _props: IGameMapState;
 
-    constructor(props: GameMapProps) {
+    constructor(props: IGameMapState) {
         this._props = props;
     }
 }
@@ -19,7 +19,7 @@ export function getMapState() {
     return instance!;
 }
 
-export function createMapState(props: GameMapProps) {
+export function createMapState(props: IGameMapState) {
     console.assert(!instance);
     instance = new MapState(props);
 }
