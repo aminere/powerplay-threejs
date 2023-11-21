@@ -1,14 +1,16 @@
 import { Vector2 } from "three";
 
 class Input {
+    set touchPos(value: Vector2) { this._touchPos.copy(value); }
+    set touchInside(value: boolean) { this._touchInside = value; }
+
     get touchPos() { return this._touchPos; }
     get touchJustPressed() { return this._touchJustPressed; }
     get touchPressed() { return this._touchPressed; }
     get touchJustReleased() { return this._touchJustReleased; }
     get touchJustMoved() { return this._touchJustMoved; }
     get touchInside() { return this._touchInside; }
-
-    private _rawTouchPos = new Vector2();
+    
     private _touchPos = new Vector2();
     private _touchJustPressed = false;
     private _touchPressed = false;
@@ -26,7 +28,7 @@ class Input {
         window.addEventListener("pointermove", this.onPointerMove);
     }
 
-    public update(touchArea: DOMRect) {
+    public update() {
         if (this._pointerDown) {
             if (!this._touchPressed) {
                 this._touchJustPressed = true;
@@ -37,10 +39,7 @@ class Input {
                 this._touchJustReleased = true;
             }
             this._touchPressed = false;
-        }
-        
-        this._touchPos.set(this._rawTouchPos.x - touchArea.x, this._rawTouchPos.y - touchArea.y);
-        this._touchInside = this._touchPos.x >= 0 && this._touchPos.x < touchArea.width && this._touchPos.y >= 0 && this._touchPos.y < touchArea.height;
+        }        
     }
 
     public postUpdate() {
@@ -55,18 +54,15 @@ class Input {
         window.removeEventListener("pointermove", this.onPointerMove);
     }
 
-    private onPointerDown(e: PointerEvent) {
+    private onPointerDown() {
         this._pointerDown = true;        
-        this._rawTouchPos.set(e.clientX, e.clientY);
     }
 
-    private onPointerUp(e: PointerEvent) {
+    private onPointerUp() {
         this._pointerDown = false;        
-        this._rawTouchPos.set(e.clientX, e.clientY);
     }
 
-    private onPointerMove(e: PointerEvent) {
-        this._rawTouchPos.set(e.clientX, e.clientY);
+    private onPointerMove() {
         this._touchJustMoved = true;
     }
 }

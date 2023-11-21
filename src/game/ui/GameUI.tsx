@@ -1,8 +1,9 @@
-import { MutableRefObject, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Action, Actions } from "../GameTypes";
 import { evtCursorOverUI } from "../../Events";
 import styles from './GameUI.module.css';
 import { utils } from "../../powerplay";
+import { Vector2 } from "three";
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
     return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
@@ -10,7 +11,7 @@ function isPointInRect(x: number, y: number, rect: DOMRect) {
 
 interface IProps {
     isWeb: boolean;
-    pointerPosRef: MutableRefObject<{ x: number, y: number }>;
+    pointerPos: Vector2;
 }
 
 export function GameUI(props: IProps) {
@@ -26,7 +27,7 @@ export function GameUI(props: IProps) {
         }
         const onGamePointerMove = () => {
             const rect = root.current!.getBoundingClientRect();
-            const pointerPos = props.pointerPosRef.current;
+            const { pointerPos } = props;
             const cursorOverUI = isPointInRect(pointerPos.x, pointerPos.y, rect);
             evtCursorOverUI.post(cursorOverUI);
 

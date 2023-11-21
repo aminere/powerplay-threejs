@@ -56,3 +56,11 @@
     outline: 2px solid yellow !important;
 }
 
+.hovered {
+    filter: opacity(.75);
+}
+
+.active {
+    transform: translateY(10px);
+}
+

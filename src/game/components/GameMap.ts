@@ -55,7 +55,9 @@ export class GameMap extends Component<IComponentProps> {
     }
 
     override update(_owner: Object3D) {
-        this.updateCameraPan();
+        if (input.touchInside) {
+            this.updateCameraPan();
+        }
     }
 
     override dispose() {

@@ -50,7 +50,7 @@ class Engine {
     public update() {
         TimeInternal.updateDeltaTime();
         pools.flush();
-        input.update(this._renderer!.domElement.getBoundingClientRect());
+        input.update();
         this.updateComponents();
         input.postUpdate();
     }
