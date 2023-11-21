@@ -91,6 +91,7 @@ export function GameUI(props: IProps) {
                 ref={e => actions.current[action] = e as HTMLElement}
                 onClick={() => {
                     if (!utils.isPointerLocked()) {
+                        console.log('click', action);
                         // setAction(action);
                     }
                 }}

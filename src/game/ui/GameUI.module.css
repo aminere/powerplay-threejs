@@ -6,10 +6,10 @@
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: .2rem;
+    gap: 1rem;
     padding: .5rem;
     padding-top: 1rem;
-    --actionsSize: 2rem;
+    --actionsSize: 8rem;
 } 
 
 .action {
@@ -21,7 +21,7 @@
     padding: .1rem;
     outline: 1px solid black;
     position: relative;    
-    font-size: .5rem;
+    font-size: 2rem;
 }
 
 .action > div:first-of-type {
