@@ -29,6 +29,7 @@ export class GameMap extends Component<IComponentProps> {
         new Vector3(), // bottom
         new Vector3() // left
     ];
+    private _pressedKeys = new Set<string>();
 
     constructor(props?: IComponentProps) {
         super(props);
@@ -50,8 +51,10 @@ export class GameMap extends Component<IComponentProps> {
 
         this.onWheel = this.onWheel.bind(this);
         this.onKeyUp = this.onKeyUp.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
         document.addEventListener("wheel", this.onWheel, { passive: false });
         document.addEventListener("keyup", this.onKeyUp);
+        document.addEventListener("keydown", this.onKeyDown);
     }
 
     override update(_owner: Object3D) {
@@ -64,6 +67,7 @@ export class GameMap extends Component<IComponentProps> {
         destroyMapState();
         document.removeEventListener("wheel", this.onWheel);
         document.removeEventListener("keyup", this.onKeyUp);
+        document.removeEventListener("keydown", this.onKeyDown);
     }
 
     private createSector(coords: Vector2) {
@@ -87,11 +91,24 @@ export class GameMap extends Component<IComponentProps> {
     private updateCameraPan() {
         const rc = engine.renderer!.domElement.getBoundingClientRect();
         const width = rc.width;
-        const height = rc.height;
+        const height = rc.height;        
 
         const touchPos = input.touchPos;
         // [0, s] to [-1, 1]
-        const [xNorm, yNorm] = [(touchPos.x / width) * 2 - 1, (touchPos.y / height) * 2 - 1];
+        let xNorm = (touchPos.x / width) * 2 - 1;
+        let yNorm = (touchPos.y / height) * 2 - 1;
+
+        // can pan with keyboard too
+        if (this._pressedKeys.has("a")) {
+            xNorm = -1;
+        } else if (this._pressedKeys.has("d")) {
+            xNorm = 1;
+        }
+        if (this._pressedKeys.has("w")) {
+            yNorm = -1;
+        } else if (this._pressedKeys.has("s")) {
+            yNorm = 1;
+        }
 
         const dt = Time.deltaTime;
         const { panMargin, panSpeed } = config.camera;
@@ -188,6 +205,10 @@ export class GameMap extends Component<IComponentProps> {
         e.stopPropagation();
     }
 
+    private onKeyDown(e: KeyboardEvent) {
+        this._pressedKeys.add(e.key);
+    }
+
     private onKeyUp(e: KeyboardEvent) {
         let cameraDirection = 0;
         switch (e.key) {
@@ -223,6 +244,8 @@ export class GameMap extends Component<IComponentProps> {
                     }
                 });
         }
+
+        this._pressedKeys.delete(e.key);
     }
 
     private updateCameraSize() {
