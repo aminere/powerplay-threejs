@@ -6,6 +6,10 @@ import { config } from "../config";
 import { engine } from "../../engine/Engine";
 import { gameMapState } from "./GameMapState";
 import { Elevation } from "../Elevation";
+import { ICell } from "../GameTypes";
+import { Roads } from "../Roads";
+import { Rails } from "../Rails";
+import { Buildings } from "../Buildings";
 
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
     const { sectors } = gameMapState;
@@ -119,20 +123,78 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera) {
     return cellCoords;
 }
 
-export function onBeginDrag(from: Vector2, to: Vector2) { // map coords
-    console.log("onBeginDrag", from, to);
+export function onDrag(start: Vector2, current: Vector2) { // map coords
+    switch (gameMapState.action) {
+        case "road": {
+            for (const cell of gameMapState.previousRoad) {
+                Roads.clear(cell);
+            }
+            gameMapState.previousRoad.length = 0;
+            Roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
+        }
+            break;
+
+        case "rail": {
+            for (const cell of gameMapState.previousRail) {
+                Rails.clear(cell);
+            }
+            gameMapState.previousRail.length = 0;                
+            Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousRail);
+            
+        } break;
+    }
 }
 
-export function onDrag(from: Vector2, to: Vector2) { // map coords
-    console.log("onDrag", from, to);
+export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
+    if (start.x === current.x) {
+        gameMapState.initialDragAxis = "z";
+    } else if (start.y === current.y) {
+        gameMapState.initialDragAxis = "x";
+    } else {
+        if (current.y < start.y) {
+            gameMapState.initialDragAxis = "x";
+        } else {
+            gameMapState.initialDragAxis = "z";
+        }
+    }
+
+    if (gameMapState.action === "rail") {
+        const neighborCoord = pools.vec2.getOne();
+        for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            neighborCoord.set(start.x + offset[0], start.y + offset[1]);
+            const neighbor = GameUtils.getCell(neighborCoord);
+            const rail = neighbor?.rail
+            if (rail) {
+                gameMapState.initialDragAxis = rail.axis;
+                break;
+            }
+        }
+    }
+
+    onDrag(start, current);
 }
 
-export function onEndDrag(from: Vector2, to: Vector2) { // map coords
-    console.log("onEndDrag", from, to);
+export function onEndDrag() { // map coords
+    gameMapState.previousRoad.length = 0;
+
+    if (gameMapState.previousRail.length > 0) {
+        console.assert(gameMapState.action === "rail");
+        Rails.onEndDrag(gameMapState.previousRail);
+    }
+
+    gameMapState.previousRail.length = 0;
 }
 
 export function onCancelDrag() {
-    console.log("onCancelDrag");
+    for (const cell of gameMapState.previousRoad) {
+        Roads.clear(cell);
+    }
+    gameMapState.previousRoad.length = 0;
+
+    for (const cell of gameMapState.previousRail) {
+        Rails.clear(cell);
+    }
+    gameMapState.previousRail.length = 0;
 }
 
 export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: number, button: number) {
@@ -140,6 +202,38 @@ export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoor
         Elevation.elevate(mapCoords, sectorCoords, localCoords, 1, radius);
     } else if (button === 2) {
         Elevation.elevate(mapCoords, sectorCoords, localCoords, -1, radius);
+    }
+}
+
+export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
+    if (button === 0) {
+        if (!GameUtils.hasStructure(cell)) {
+            Roads.create(mapCoords);
+        }
+    } else if (button === 2) {
+        if (cell.roadTile !== undefined) {
+            Roads.clear(mapCoords);
+        }
+    } else if (button === 1) {
+        // TODO temp
+        // Entities.create()
+        //     .setComponent(Car, {
+                
+        //     });
+    }
+}
+
+export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+    const { sectors } = gameMapState;
+    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    if (button === 0) {
+        if (!GameUtils.hasStructure(cell)) {
+            Buildings.create(sector, localCoords, cell);
+        }
+    } else if (button === 2) {
+        if (cell.building) {
+            Buildings.clear(sector, cell);
+        }
     }
 }
 

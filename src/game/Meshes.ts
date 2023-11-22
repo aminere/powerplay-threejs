@@ -10,7 +10,7 @@ export class Meshes {
         const cached = Meshes._cache.get(path);
         if (cached) {
             console.log(`returning cached meshes for ${path}`);
-            return Promise.resolve(cached.map(mesh => mesh.clone()));
+            return cached.map(mesh => mesh.clone());
         }
         return new Promise<THREE.Mesh[]>((resolve, reject) => {            
             Meshes._loader.load(

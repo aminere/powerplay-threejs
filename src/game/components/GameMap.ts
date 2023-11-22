@@ -11,7 +11,7 @@ import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
 import gsap from "gsap";
-import { onBeginDrag, onCancelDrag, onDrag, onElevation, onEndDrag, raycastOnCells } from "./GameMapUtils";
+import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onRoad, raycastOnCells } from "./GameMapUtils";
 
 
 export class GameMap extends Component<IComponentProps> {
@@ -45,7 +45,9 @@ export class GameMap extends Component<IComponentProps> {
         super(props);
         this._state = {
             sectors: new Map<string, any>(),
-            action: null
+            action: null,
+            previousRoad: [],
+            previousRail: []
         };
     }
 
@@ -185,22 +187,20 @@ export class GameMap extends Component<IComponentProps> {
                                 break;
         
                                 case "road": {
-                                    console.log("road");
-                                    // onRoad(mapCoords, cell, input.touchButton);
+                                    onRoad(mapCoords, cell, input.touchButton);
                                 }
                                 break;
         
                                 case "building": {
-                                    console.log("building");
-                                    // onBuilding(sectorCoords, localCoords, cell, input.touchButton);
+                                    onBuilding(sectorCoords, localCoords, cell, input.touchButton);
                                 }
                                 break;
         
                                 case "car": {                                    
                                     if (input.touchButton === 0) {
                                         if (!cell.unit) {
-                                            const { sectors } = this._state;
-                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;            
+                                            // const { sectors } = this._state;
+                                            // const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;            
                                             // const car = Entities.create()
                                             //     .setComponent(Visual, {
                                             //         root: sector.layers.cars,
@@ -237,11 +237,11 @@ export class GameMap extends Component<IComponentProps> {
                                 case "train": {
                                     if (input.touchButton === 0) {
                                         if (cell.rail) {
-                                            const { sectors } = this._state;
-                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                                            const wagonLength = 2;
-                                            const numWagons = 4;
-                                            const gap = .3;
+                                            // const { sectors } = this._state;
+                                            // const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                                            // const wagonLength = 2;
+                                            // const numWagons = 4;
+                                            // const gap = .3;
                                             // Entities.create()
                                             //     .setComponent(Train, {
                                             //         sector,
@@ -255,10 +255,9 @@ export class GameMap extends Component<IComponentProps> {
                                 }
                                 break;
                             }
-                        }
-                        
+                        }                        
                     } else {
-                        onEndDrag(this._touchStartCoords, this._touchHoveredCoords);
+                        onEndDrag();
                     }
                 } 
             }
