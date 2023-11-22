@@ -1,4 +1,4 @@
-import { Box2, Camera, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Box2, Camera, Color, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { Component, IComponentProps } from "../../engine/Component"
 import { Sector } from "../Sector";
 import { config } from "../config";
@@ -15,10 +15,10 @@ import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, 
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
+import { Car } from "./Car";
 
 
 export class GameMap extends Component<IComponentProps> {
-    private _owner!: Object3D;
     private _state: IGameMapState;
 
     private _cameraZoom = 1;
@@ -50,12 +50,13 @@ export class GameMap extends Component<IComponentProps> {
             sectors: new Map<string, any>(),
             action: null,
             previousRoad: [],
-            previousRail: []
+            previousRail: [],
+            owner: null!
         };
     }
 
     override start(owner: Object3D) {
-        this._owner = owner;
+        this._state.owner = owner;
         gameMapState.instance = this._state;
         this.createSector(new Vector2(0, 0));
         this._cameraRoot = engine.scene?.getObjectByName("camera-root")!;
@@ -203,34 +204,29 @@ export class GameMap extends Component<IComponentProps> {
                                 case "car": {                                    
                                     if (input.touchButton === 0) {
                                         if (!cell.unit) {
-                                            // const { sectors } = this._state;
-                                            // const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;            
-                                            // const car = Entities.create()
-                                            //     .setComponent(Visual, {
-                                            //         root: sector.layers.cars,
-                                            //         node: new THREE.Object3D()
-                                            //     })                                    
-                                            //     .setUpdatableComponent(Car, {
-                                            //         coords: this._selectedCellCoords.clone()
-                                            //     });
+                                            const { sectors } = this._state;
+                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                                            
+                                            const car = utils.createObject(sector.layers.cars, "car");
+                                            utils.setComponent(car, new Car({
+                                                coords: this._selectedCellCoords.clone()
+                                            }));
             
-                                            // Sector.updateHighlightTexture(sector, localCoords, new THREE.Color(0xff0000));
-                                            // cell.unit = car;
+                                            Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
+                                            cell.unit = car;
                                         }
         
                                     } else if (input.touchButton === 2) {
-                                        // const cars = Components.ofType(Car);
-                                        // if (cars) {
-                                        //     const groupMotion: IGroupMotion = {
-                                        //         arrived: false
-                                        //     };                                    
-                                        //     for (const car of cars) {
-                                        //         car.entity.setComponent(GroupMotion, {
-                                        //             motion: groupMotion
-                                        //         });
-                                        //         car.goTo(this._selectedCellCoords);
-                                        //     }
-                                        // }
+                                        const cars = utils.getComponents(Car);
+                                        if (cars) {
+                                            for (const car of cars) {
+                                                // car.entity.setComponent(GroupMotion, {
+                                                //     motion: groupMotion
+                                                // });                             
+                                                car.component.goTo(this._selectedCellCoords);
+                                            }
+                                        }
+
                                     } else if (input.touchButton === 1) {
                                         console.log(cell);
                                         // console.log(Components.ofType(Car)?.filter(c => c.coords.equals(this._selectedCellCoords)));                                        
@@ -268,7 +264,7 @@ export class GameMap extends Component<IComponentProps> {
     }    
 
     private createSector(coords: Vector2) {
-        const sectorRoot = Sector.create(coords, this._owner);
+        const sectorRoot = Sector.create(coords, this._state.owner);
 
         // update bounds
         const { mapRes, cellSize } = config.game;

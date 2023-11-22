@@ -1,4 +1,4 @@
-import { Box2, Vector2 } from "three";
+import { Box2, Object3D, Vector2 } from "three";
 import { Action, ICell, ISector } from "../GameTypes";
 
 export interface IGameMapState {
@@ -8,6 +8,7 @@ export interface IGameMapState {
     initialDragAxis?: "x" | "z";
     previousRoad: Vector2[];
     previousRail: ICell[];
+    owner: Object3D;
 }
 
 export class GameMapState {
@@ -19,6 +20,7 @@ export class GameMapState {
     public get initialDragAxis() { return this._instance.initialDragAxis; }
     public get previousRoad() { return this._instance.previousRoad; }
     public get previousRail() { return this._instance.previousRail; }
+    public get owner() { return this._instance.owner; }
 
     public set bounds(value: Box2 | undefined) { this._instance.bounds = value; }  
     public set action(value: Action | null) { this._instance.action = value; }    

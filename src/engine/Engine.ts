@@ -1,7 +1,7 @@
 
-import { ACESFilmicToneMapping, Camera, Object3D, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
-import { Component, IComponentProps } from "./Component";
+import { Component, IComponentInstance, IComponentProps } from "./Component";
 import { TimeInternal } from "./Time";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { input } from "./Input";
@@ -20,12 +20,13 @@ class Engine {
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
+    public get components() { return this._components; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
-    private _components = new Map<Object3D, Component<IComponentProps>[]>();
-    private _runtime: Runtime = "game";    
+    private _components = new Map<string, IComponentInstance<Component<IComponentProps>>[]>();
+    private _runtime: Runtime = "game";
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -111,22 +112,35 @@ class Engine {
         this._scene!.traverse(obj => {
             const { components } = obj.userData;
             if (components) {
-                this._components.set(obj, Object.values(components).map(c => c as Component<IComponentProps>));
+                for (const [type, value] of Object.entries(components)) {
+                    const list = this._components.get(type);
+                    if (list) {
+                        list.push({
+                            owner: obj,
+                            component: value as Component<IComponentProps>
+                        });
+                    } else {
+                        this._components.set(type, [{
+                            owner: obj,
+                            component: value as Component<IComponentProps>
+                        }]);
+                    }
+                }
             }
         });
 
         if (!this._sceneStarted) {
-            for (const [obj, components] of this._components) {
+            for (const [, components] of this._components) {
                 for (const instance of components) {
-                    instance.start(obj);
+                    instance.component.start(instance.owner);
                 }
             }
             this._sceneStarted = true;
         }
 
-        for (const [obj, components] of this._components) {
+        for (const [, components] of this._components) {
             for (const instance of components) {
-                instance.update(obj);
+                instance.component.update(instance.owner);
             }
         }
     }
