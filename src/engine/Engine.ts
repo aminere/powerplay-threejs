@@ -39,13 +39,10 @@ class Engine {
         renderer!.setSize(width, height, false);
         this._renderer = renderer;        
         this._runtime = runtime;
-
-        input.init();
         registerComponents();
     }
 
     public dispose() {
-        input.dispose();
     }
 
     public update() {

@@ -21,7 +21,7 @@ export class RailFactory {
         container.rotateY(rotationY);
         container.userData = {
             rotation: rotationY
-        } as IRail;     
+        } as IRail;
         return container;
     }
 

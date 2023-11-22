@@ -5,6 +5,9 @@ class Input {
     set touchPos(value: Vector2) { this._touchPos.copy(value); }
     set touchInside(value: boolean) { this._touchInside = value; }
     set rawWheelDelta(e: WheelEvent) {this._rawWheelDelta = DOMUtils.getWheelDelta(e.deltaY, e.deltaMode); }
+    set rawTouchDown(value: boolean) { this._rawTouchDown = value; }
+    set rawTouchButton(value: number) { this._rawTouchButton = value; }
+    set rawTouchJustMoved(value: boolean) { this._rawTouchJustMoved = value; }
 
     get touchPos() { return this._touchPos; }
     get touchButton() { return this._touchButton; }
@@ -21,23 +24,19 @@ class Input {
     private _touchJustPressed = false;
     private _touchPressed = false;
     private _touchJustReleased = false;
-    private _touchJustMoved = false;
-    private _pointerDown = false;
+    private _touchJustMoved = false;   
+    private _rawTouchJustMoved = false; 
+    private _touchDown = false;
+    private _rawTouchDown = false;
     private _touchInside = false;
     private _wheelDelta = 0;
-    private _rawWheelDelta = 0;
-
-    public init() {
-        this.onPointerDown = this.onPointerDown.bind(this);
-        this.onPointerUp = this.onPointerUp.bind(this);
-        this.onPointerMove = this.onPointerMove.bind(this);
-        window.addEventListener("pointerdown", this.onPointerDown);
-        window.addEventListener("pointerup", this.onPointerUp);
-        window.addEventListener("pointermove", this.onPointerMove);
-    }
+    private _rawWheelDelta = 0;    
 
     public update() {
-        if (this._pointerDown) {
+        this._touchDown = this._rawTouchDown;
+        this._wheelDelta = this._rawWheelDelta;
+        this._touchJustMoved = this._rawTouchJustMoved;
+        if (this._touchDown) {
             if (!this._touchPressed) {
                 this._touchJustPressed = true;
                 this._touchButton = this._rawTouchButton;
@@ -48,35 +47,14 @@ class Input {
                 this._touchJustReleased = true;
             }
             this._touchPressed = false;
-        }        
-        this._wheelDelta = this._rawWheelDelta;
+        }
     }
 
     public postUpdate() {
         this._touchJustPressed = false;
-        this._touchJustReleased = false;
-        this._touchJustMoved = false;
-        this._wheelDelta = 0;
+        this._touchJustReleased = false;        
         this._rawWheelDelta = 0;
-    }
-
-    public dispose() {
-        window.removeEventListener("pointerdown", this.onPointerDown);
-        window.removeEventListener("pointerup", this.onPointerUp);
-        window.removeEventListener("pointermove", this.onPointerMove);
-    }
-
-    private onPointerDown(e: PointerEvent) {
-        this._pointerDown = true;
-        this._rawTouchButton = e.button;
-    }
-
-    private onPointerUp() {
-        this._pointerDown = false;        
-    }
-
-    private onPointerMove() {
-        this._touchJustMoved = true;
+        this._rawTouchJustMoved = false;
     }
 }
 

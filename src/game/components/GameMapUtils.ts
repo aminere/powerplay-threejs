@@ -146,7 +146,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
 }
 
 export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
-    if (start.x === current.x) {
+        if (start.x === current.x) {
         gameMapState.initialDragAxis = "z";
     } else if (start.y === current.y) {
         gameMapState.initialDragAxis = "x";
