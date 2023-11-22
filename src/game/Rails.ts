@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
-import { RailFactory } from "./RailFactory";
+import { railFactory } from "./RailFactory";
 import { Axis, ICell } from "./GameTypes";
 import { pools } from "../engine/Pools";
 import { gameMapState } from "./components/GameMapState";
@@ -32,7 +32,7 @@ export class Rails {
         if (start.y === current.y) {
             const dx = current.x - start.x;
             if (dx === 0) {
-                const rail = RailFactory.makeRail(1, 1);
+                const rail = railFactory.makeRail(1, 1);
                 Rails.setRail(rail, start, "x");
             } else {
                 Rails.setStraightRailX(start, current);
@@ -42,7 +42,7 @@ export class Rails {
         } else if (start.x === current.x) {
             const dz = current.y - start.y;
             if (dz === 0) {
-                const rail = RailFactory.makeRail(1, 0);
+                const rail = railFactory.makeRail(1, 0);
                 Rails.setRail(rail, start, "z");
             } else {
                 Rails.setStraightRailZ(start, current);
@@ -69,7 +69,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailX(start, end1);
                             } else {
-                                const rail = RailFactory.makeRail(1, 1);
+                                const rail = railFactory.makeRail(1, 1);
                                 Rails.setRail(rail, start, dragAxis);
                             }
                             railsOut.push(startCell);
@@ -89,7 +89,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailZ(start2, current);
                             } else {
-                                const rail = RailFactory.makeRail(1, 0);
+                                const rail = railFactory.makeRail(1, 0);
                                 Rails.setRail(rail, start2, "z");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
@@ -109,7 +109,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailX(start2, current);
                             } else {
-                                const rail = RailFactory.makeRail(1, 1);
+                                const rail = railFactory.makeRail(1, 1);
                                 Rails.setRail(rail, start2, "x");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
@@ -124,7 +124,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailZ(start, end1);
                             } else {
-                                const rail = RailFactory.makeRail(1, 0);
+                                const rail = railFactory.makeRail(1, 0);
                                 Rails.setRail(rail, start, dragAxis);
                             }
                             railsOut.push(startCell);
@@ -240,13 +240,13 @@ export class Rails {
 
     private static setStraightRailX(start: Vector2, end: Vector2) {
         const dx = end.x - start.x;
-        const rail = RailFactory.makeRail(Math.abs(dx) + 1, dx > 0 ? 1 : 3);
+        const rail = railFactory.makeRail(Math.abs(dx) + 1, dx > 0 ? 1 : 3);
         Rails.setRail(rail, start, "x", end, "x");
     }
 
     private static setStraightRailZ(start: Vector2, end: Vector2) {
         const dz = end.y - start.y;
-        const rail = RailFactory.makeRail(Math.abs(dz) + 1, dz > 0 ? 0 : 2);
+        const rail = railFactory.makeRail(Math.abs(dz) + 1, dz > 0 ? 0 : 2);
         Rails.setRail(rail, start, "z", end, "z");
     }
 
@@ -285,7 +285,7 @@ export class Rails {
                 }
             }
         })();
-        const rail = RailFactory.makeCurvedRail(adx + 1, rotation, directionX);
+        const rail = railFactory.makeCurvedRail(adx + 1, rotation, directionX);
         Rails.setRail(rail, start, initialDirection, end, initialDirection === "x" ? "z" : "x");
     }
 }

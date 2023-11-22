@@ -12,6 +12,7 @@ import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
 import gsap from "gsap";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onRoad, raycastOnCells } from "./GameMapUtils";
+import { railFactory } from "../RailFactory";
 
 
 export class GameMap extends Component<IComponentProps> {
@@ -73,6 +74,7 @@ export class GameMap extends Component<IComponentProps> {
         document.addEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.attach(this.onCursorOverUI);
         cmdShowUI.post("gamemap");
+        railFactory.preload();
     }
 
     override dispose() {
