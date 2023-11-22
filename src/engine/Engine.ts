@@ -43,7 +43,7 @@ class Engine {
         registerComponents();
     }
 
-    public dispose() {
+    public dispose() {        
     }
 
     public update() {
