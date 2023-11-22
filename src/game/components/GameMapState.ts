@@ -1,8 +1,9 @@
 import { Box2 } from "three";
-import { ISector } from "../GameTypes";
+import { Action, ISector } from "../GameTypes";
 
 export interface IGameMapState {
     sectors: Map<string, ISector>;
     bounds?: Box2;
+    action: Action | null;
 }
 

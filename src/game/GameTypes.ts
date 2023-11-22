@@ -77,4 +77,5 @@ export const Actions = [
 ] as const;
 export type Action = typeof Actions[number];
 
+export type UIType = "gamemap";
 

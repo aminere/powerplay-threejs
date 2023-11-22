@@ -5,7 +5,8 @@ import { IGameMapState } from "./components/GameMapState";
 export class MapState {
     public get sectors() { return this._props.sectors; }
     public get bounds() { return this._props.bounds; }
-    public set bounds(value: Box2 | undefined) { this._props.bounds = value; }        
+    public set bounds(value: Box2 | undefined) { this._props.bounds = value; }  
+    public get action() { return this._props.action; }      
     
     private _props: IGameMapState;
 

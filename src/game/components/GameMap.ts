@@ -12,7 +12,8 @@ import { IGameMapState } from "./GameMapState";
 import { raycastOnCells } from "./GameMapUtils";
 import { TileSector } from "../TileSelector";
 import gsap from "gsap";
-import { evtCursorOverUI } from "../../Events";
+import { cmdHideUI, cmdSetAction, cmdShowUI, evtCursorOverUI } from "../../Events";
+import { Action } from "../GameTypes";
 
 export class GameMap extends Component<IComponentProps> {
     private _owner!: Object3D;
@@ -41,7 +42,8 @@ export class GameMap extends Component<IComponentProps> {
     constructor(props?: IComponentProps) {
         super(props);
         this._state = {
-            sectors: new Map<string, any>()
+            sectors: new Map<string, any>(),
+            action: null
         };
     }
 
@@ -57,14 +59,18 @@ export class GameMap extends Component<IComponentProps> {
         this._cameraAngleRad = MathUtils.degToRad(rotationY);
 
         this._tileSelector = new TileSector();
+        this._tileSelector.visible = false;
         owner.parent!.add(this._tileSelector);
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onCursorOverUI = this.onCursorOverUI.bind(this);
+        this.onSetAction = this.onSetAction.bind(this);
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.attach(this.onCursorOverUI);
+        cmdSetAction.attach(this.onSetAction);
+        cmdShowUI.post("gamemap");
     }
 
     override dispose() {
@@ -72,6 +78,8 @@ export class GameMap extends Component<IComponentProps> {
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.detach(this.onCursorOverUI);
+        cmdSetAction.detach(this.onSetAction);
+        cmdHideUI.post("gamemap");
     }
 
     override update(_owner: Object3D) {
@@ -80,14 +88,15 @@ export class GameMap extends Component<IComponentProps> {
 
             if (!input.touchPos.equals(this._previousTouchPos)) {
                 this._previousTouchPos.copy(input.touchPos);
-                // if (this._action) {
+
+                if (this._state.action) {
                     const cellCoords = raycastOnCells(input.touchPos, this._camera);
                     if (cellCoords?.equals(this._selectedCellCoords) === false) {
                         this._tileSelector.setPosition(cellCoords!);
                         this._selectedCellCoords.copy(cellCoords!);                        
                         // default rail preview was here                        
                     }
-                // }
+                }
             }
         }
 
@@ -280,9 +289,13 @@ export class GameMap extends Component<IComponentProps> {
 
     private onCursorOverUI(over: boolean) {
         this._cursorOverUI = over;
-        // if (this._action !== null) {
+        if (this._state.action) {
             this._tileSelector.visible = !over;
-        // }
+        }
+    }
+
+    private onSetAction(action: Action | null) {
+        this._state.action = action;
     }
 }
 
