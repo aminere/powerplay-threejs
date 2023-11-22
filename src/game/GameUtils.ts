@@ -2,9 +2,9 @@
 import { Camera, Vector2, Vector3, Raycaster } from "three";
 import { config } from "./config";
 import { ICell } from "./GameTypes";
-import { getMapState } from "./MapState";
 import { pools } from "../engine/Pools";
 import { engine } from "../powerplay";
+import { gameMapState } from "./components/GameMapState";
 
 export class GameUtils {
 
@@ -43,7 +43,7 @@ export class GameUtils {
     }
 
     public static getCell(mapCoords: Vector2, sectorCoordsOut?: Vector2, localCoordsOut?: Vector2) {
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         const { mapRes } = config.game;
         const sectorX = Math.floor(mapCoords.x / mapRes);
         const sectorY = Math.floor(mapCoords.y / mapRes);

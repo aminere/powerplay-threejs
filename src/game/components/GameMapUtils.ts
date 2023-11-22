@@ -2,12 +2,13 @@ import { Camera, Vector2 } from "three";
 import { input } from "../../engine/Input";
 import { pools } from "../../engine/Pools";
 import { GameUtils } from "../GameUtils";
-import { getMapState } from "../MapState";
 import { config } from "../config";
 import { engine } from "../../engine/Engine";
+import { gameMapState } from "./GameMapState";
+import { Elevation } from "../Elevation";
 
-function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
-    const { sectors } = getMapState();
+export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
+    const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorX},${sectorY}`);
     let selectedVertexIndex = -1;
     if (sector) {        
@@ -58,7 +59,7 @@ function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
 }
 
 export function raycastOnCells(screenPos: Vector2, camera: Camera) {
-    const intersection = pools.vec3.getOne();        
+    const intersection = pools.vec3.getOne();
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return;
     }
@@ -72,7 +73,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera) {
     if (selectedVertexIndex < 0 && cell) {
         // check neighboring sectors, from closest to farthest
         const neighborSectors = new Array<[number, number]>();
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         for (const offsetY of [-1, 0, 1]) {
             for (const offsetX of [-1, 0, 1]) {
                 if (offsetX === 0 && offsetY === 0) {
@@ -116,5 +117,29 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera) {
     }
 
     return cellCoords;
+}
+
+export function onBeginDrag(from: Vector2, to: Vector2) { // map coords
+    console.log("onBeginDrag", from, to);
+}
+
+export function onDrag(from: Vector2, to: Vector2) { // map coords
+    console.log("onDrag", from, to);
+}
+
+export function onEndDrag(from: Vector2, to: Vector2) { // map coords
+    console.log("onEndDrag", from, to);
+}
+
+export function onCancelDrag() {
+    console.log("onCancelDrag");
+}
+
+export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: number, button: number) {
+    if (button === 0) {
+        Elevation.elevate(mapCoords, sectorCoords, localCoords, 1, radius);
+    } else if (button === 2) {
+        Elevation.elevate(mapCoords, sectorCoords, localCoords, -1, radius);
+    }
 }
 

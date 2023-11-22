@@ -4,7 +4,8 @@ import { Action, Actions } from "../GameTypes";
 import styles from './GameMapUI.module.css';
 import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
-import { cmdSetAction, evtCursorOverUI } from "../../Events";
+import { evtCursorOverUI } from "../../Events";
+import { gameMapState } from "../components/GameMapState";
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
     return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
@@ -20,12 +21,15 @@ export function GameMapUI(props: IGameUIProps) {
 
     const setAction = useCallback((newAction: Action) => {
         if (newAction === selectedAction) {
-            cmdSetAction.post(null);
+            gameMapState.action = null;
             setSelectedAction(null);
         } else {
-            cmdSetAction.post(newAction);
+            gameMapState.action = newAction;
             setSelectedAction(newAction);
         }
+
+        
+
     }, [selectedAction]);
 
     useEffect(() => {

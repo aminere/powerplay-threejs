@@ -1,6 +1,5 @@
 import { Box2, Camera, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { Component, IComponentProps } from "../../engine/Component"
-import { createMapState, destroyMapState } from "../MapState";
 import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
@@ -8,16 +7,16 @@ import { input } from "../../engine/Input";
 import { Time } from "../../engine/Time";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/Pools";
-import { IGameMapState } from "./GameMapState";
-import { raycastOnCells } from "./GameMapUtils";
+import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
+import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
 import gsap from "gsap";
-import { cmdHideUI, cmdSetAction, cmdShowUI, evtCursorOverUI } from "../../Events";
-import { Action } from "../GameTypes";
+import { onBeginDrag, onCancelDrag, onDrag, onElevation, onEndDrag, raycastOnCells } from "./GameMapUtils";
+
 
 export class GameMap extends Component<IComponentProps> {
     private _owner!: Object3D;
-    private _state!: IGameMapState;
+    private _state: IGameMapState;
 
     private _cameraZoom = 1;
     private _cameraAngleRad = 0;
@@ -37,6 +36,9 @@ export class GameMap extends Component<IComponentProps> {
     private _previousTouchPos = new Vector2();
     private _tileSelector!: TileSector;
     private _selectedCellCoords = new Vector2();
+    private _touchStartCoords = new Vector2();
+    private _touchHoveredCoords = new Vector2();
+    private _touchDragged = false;
     private _cursorOverUI = false;
 
     constructor(props?: IComponentProps) {
@@ -49,7 +51,7 @@ export class GameMap extends Component<IComponentProps> {
 
     override start(owner: Object3D) {
         this._owner = owner;
-        createMapState(this._state);
+        gameMapState.instance = this._state;
         this.createSector(new Vector2(0, 0));
         this._cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this._camera = this._cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
@@ -65,26 +67,27 @@ export class GameMap extends Component<IComponentProps> {
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onCursorOverUI = this.onCursorOverUI.bind(this);
-        this.onSetAction = this.onSetAction.bind(this);
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.attach(this.onCursorOverUI);
-        cmdSetAction.attach(this.onSetAction);
         cmdShowUI.post("gamemap");
     }
 
     override dispose() {
-        destroyMapState();
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.detach(this.onCursorOverUI);
-        cmdSetAction.detach(this.onSetAction);
         cmdHideUI.post("gamemap");
     }
 
     override update(_owner: Object3D) {
         if (input.touchInside && !this._cursorOverUI) {
-            this.updateCameraPan();
+            const { width, height } = engine.screenRect;
+            const touchPos = input.touchPos;
+            // [0, s] to [-1, 1]
+            const xNorm = (touchPos.x / width) * 2 - 1;
+            const yNorm = (touchPos.y / height) * 2 - 1;
+            this.checkCameraPan(xNorm, yNorm);
 
             if (!input.touchPos.equals(this._previousTouchPos)) {
                 this._previousTouchPos.copy(input.touchPos);
@@ -99,6 +102,8 @@ export class GameMap extends Component<IComponentProps> {
                 }
             }
         }
+
+        this.checkKeyboardCameraPan();
 
         if (input.wheelDelta !== 0) {
             const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -117,6 +122,146 @@ export class GameMap extends Component<IComponentProps> {
             this._cameraRoot.position.add(deltaPos);
             this._cameraZoom = newZoom;
             this.updateCameraSize();
+        }
+        
+        if (input.touchJustPressed) {
+            if (!this._cursorOverUI) {
+                if (this._state.action !== null) {
+                    if (input.touchButton === 0) {
+                        this._touchStartCoords.copy(this._selectedCellCoords);
+                    }
+                }
+            }
+        } else if (input.touchPressed) {
+            if (input.touchJustMoved) {
+                if (!this._cursorOverUI) {
+                    if (this._state.action) {
+                        if (!this._touchDragged) {
+                            const cellCoords = raycastOnCells(input.touchPos, this._camera);
+                            if (cellCoords?.equals(this._touchStartCoords) === false) {
+                                this._touchDragged = true;
+                                this._touchHoveredCoords.copy(cellCoords!);
+                                onBeginDrag(this._touchStartCoords, this._touchHoveredCoords);
+                            }
+                        } else {
+                            const cellCoords = raycastOnCells(input.touchPos, this._camera);
+                            if (cellCoords?.equals(this._touchHoveredCoords) === false) {
+                                this._touchHoveredCoords.copy(cellCoords!);
+                                onDrag(this._touchStartCoords, this._touchHoveredCoords);
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (input.touchJustReleased) {
+            const wasDragged = this._touchDragged;
+            this._touchDragged = false;
+            let canceled = false;
+
+            if (this._cursorOverUI) {
+                if (wasDragged) {
+                    onCancelDrag();                    
+                }
+                canceled = true;           
+            }
+
+            if (!canceled) {
+                if (this._state.action) {
+                    if (!wasDragged) {
+                        
+                        const [sectorCoords, localCoords] = pools.vec2.get(2);
+                        const cell = GameUtils.getCell(this._selectedCellCoords, sectorCoords, localCoords);
+                        if (!cell) {
+                            this.createSector(sectorCoords.clone());
+                            this.updateCameraBounds();                    
+                        } else {
+                            const mapCoords = this._selectedCellCoords;
+                            const { radius } = this._tileSelector;
+                            switch (this._state.action) {
+                                case "elevation": {
+                                    onElevation(mapCoords, sectorCoords, localCoords, radius, input.touchButton);
+                                    this._tileSelector.fit(mapCoords);       
+                                }
+                                break;
+        
+                                case "road": {
+                                    console.log("road");
+                                    // onRoad(mapCoords, cell, input.touchButton);
+                                }
+                                break;
+        
+                                case "building": {
+                                    console.log("building");
+                                    // onBuilding(sectorCoords, localCoords, cell, input.touchButton);
+                                }
+                                break;
+        
+                                case "car": {                                    
+                                    if (input.touchButton === 0) {
+                                        if (!cell.unit) {
+                                            const { sectors } = this._state;
+                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;            
+                                            // const car = Entities.create()
+                                            //     .setComponent(Visual, {
+                                            //         root: sector.layers.cars,
+                                            //         node: new THREE.Object3D()
+                                            //     })                                    
+                                            //     .setUpdatableComponent(Car, {
+                                            //         coords: this._selectedCellCoords.clone()
+                                            //     });
+            
+                                            // Sector.updateHighlightTexture(sector, localCoords, new THREE.Color(0xff0000));
+                                            // cell.unit = car;
+                                        }
+        
+                                    } else if (input.touchButton === 2) {
+                                        // const cars = Components.ofType(Car);
+                                        // if (cars) {
+                                        //     const groupMotion: IGroupMotion = {
+                                        //         arrived: false
+                                        //     };                                    
+                                        //     for (const car of cars) {
+                                        //         car.entity.setComponent(GroupMotion, {
+                                        //             motion: groupMotion
+                                        //         });
+                                        //         car.goTo(this._selectedCellCoords);
+                                        //     }
+                                        // }
+                                    } else if (input.touchButton === 1) {
+                                        console.log(cell);
+                                        // console.log(Components.ofType(Car)?.filter(c => c.coords.equals(this._selectedCellCoords)));                                        
+                                    }
+                                }
+                                    break;
+        
+                                case "train": {
+                                    if (input.touchButton === 0) {
+                                        if (cell.rail) {
+                                            const { sectors } = this._state;
+                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                                            const wagonLength = 2;
+                                            const numWagons = 4;
+                                            const gap = .3;
+                                            // Entities.create()
+                                            //     .setComponent(Train, {
+                                            //         sector,
+                                            //         cell,
+                                            //         wagonLength,
+                                            //         numWagons,
+                                            //         gap
+                                            //     });
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        
+                    } else {
+                        onEndDrag(this._touchStartCoords, this._touchHoveredCoords);
+                    }
+                } 
+            }
         }
     }    
 
@@ -138,25 +283,8 @@ export class GameMap extends Component<IComponentProps> {
         }
     }
 
-    private updateCameraPan() {        
+    private checkCameraPan(xNorm: number, yNorm: number) {
         const { width, height } = engine.screenRect;
-        const touchPos = input.touchPos;
-        // [0, s] to [-1, 1]
-        let xNorm = (touchPos.x / width) * 2 - 1;
-        let yNorm = (touchPos.y / height) * 2 - 1;
-
-        // can pan with keyboard too
-        if (this._pressedKeys.has("a")) {
-            xNorm = -1;
-        } else if (this._pressedKeys.has("d")) {
-            xNorm = 1;
-        }
-        if (this._pressedKeys.has("w")) {
-            yNorm = -1;
-        } else if (this._pressedKeys.has("s")) {
-            yNorm = 1;
-        }
-
         const dt = Time.deltaTime;
         const { panMargin, panSpeed } = config.camera;
         const margin = 50;
@@ -215,6 +343,29 @@ export class GameMap extends Component<IComponentProps> {
                     }
                 }
             }
+        }
+    }
+
+    private checkKeyboardCameraPan() {
+        let xNorm = 0;
+        let yNorm = 0;
+        let keyboardPan = false;
+        if (this._pressedKeys.has("a")) {
+            xNorm = -1;
+            keyboardPan = true;
+        } else if (this._pressedKeys.has("d")) {
+            xNorm = 1;
+            keyboardPan = true;
+        }
+        if (this._pressedKeys.has("w")) {
+            yNorm = -1;
+            keyboardPan = true;
+        } else if (this._pressedKeys.has("s")) {
+            yNorm = 1;
+            keyboardPan = true;
+        }
+        if (keyboardPan) {
+            this.checkCameraPan(xNorm, yNorm);
         }
     }
 
@@ -292,10 +443,6 @@ export class GameMap extends Component<IComponentProps> {
         if (this._state.action) {
             this._tileSelector.visible = !over;
         }
-    }
-
-    private onSetAction(action: Action | null) {
-        this._state.action = action;
     }
 }
 

@@ -3,7 +3,7 @@ import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import * as THREE from "three";
 import { Terrain, TerrainUniforms } from "./Terrain";
-import { getMapState } from "./MapState";
+import { gameMapState } from "./components/GameMapState";
 
 export class Sector {
     public static create(coords: Vector2, visualRoot: THREE.Object3D) {
@@ -28,7 +28,7 @@ export class Sector {
         const cars = new THREE.Object3D();
         cars.name = "cars";
 
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         sectors.set(
             `${x},${y}`,
             {

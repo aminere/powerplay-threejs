@@ -2,8 +2,8 @@ import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { Axis, ICell } from "./GameTypes";
 import { Sector } from "./Sector";
-import { getMapState } from "./MapState";
 import { pools } from "../engine/Pools";
+import { gameMapState } from "./components/GameMapState";
 
 const neighborCombinations: {
     [key: string]: number; // tileIndex
@@ -96,7 +96,7 @@ export class Roads {
     }
 
     public static clear(mapCoords: Vector2) {
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         delete cell.roadTile;
@@ -113,7 +113,7 @@ export class Roads {
     }
 
     private static setRoadTile(cell: ICell, sectorCoords: Vector2, localCoords: Vector2, roadTileIndex: number) {
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         const baseRoadTileIndex = 16;
         const tileIndex = baseRoadTileIndex + roadTileIndex;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;

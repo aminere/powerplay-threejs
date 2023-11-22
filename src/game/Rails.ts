@@ -2,8 +2,8 @@ import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { RailFactory } from "./RailFactory";
 import { Axis, ICell } from "./GameTypes";
-import { getMapState } from "./MapState";
 import { pools } from "../engine/Pools";
+import { gameMapState } from "./components/GameMapState";
 
 export class Rails {
     
@@ -207,7 +207,7 @@ export class Rails {
         endCoords?: Vector2,
         endAxis?: Axis
     ) {
-        const { sectors } = getMapState();
+        const { sectors } = gameMapState;
         const [sectorCoords, sectorCoords2] = pools.vec2.get(2);
         const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;

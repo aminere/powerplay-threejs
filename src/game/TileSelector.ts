@@ -2,8 +2,8 @@
 import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, TextureLoader, NearestFilter, Vector2 } from "three";
 import { config } from "./config";
 import { GameUtils } from "./GameUtils";
-import { getMapState } from "./MapState";
 import { pools } from "../engine/Pools";
+import { gameMapState } from "./components/GameMapState";
 
 export class TileSector extends Object3D {
 
@@ -79,7 +79,7 @@ export class TileSector extends Object3D {
             const tileGeometry = (this.children[tileIndex] as Mesh).geometry as BufferGeometry;
             const tilePosition = tileGeometry.getAttribute('position') as BufferAttribute;
             if (cell) {
-                const { sectors } = getMapState();
+                const { sectors } = gameMapState;
                 const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
                 const geometry = (sector?.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
                 const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
