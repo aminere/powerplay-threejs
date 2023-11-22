@@ -13,7 +13,7 @@ class RailFactory {
         curve: BezierPath;
     }>();
 
-    private _railMesh!: Mesh;
+    private _railMesh!: Mesh;    
 
     public async preload() {
         const [rail] = await Meshes.load('/models/rails.glb');

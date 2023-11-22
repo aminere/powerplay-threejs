@@ -13,6 +13,8 @@ import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
 import gsap from "gsap";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onRoad, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
+import { utils } from "../../engine/Utils";
+import { Train } from "./Train";
 
 
 export class GameMap extends Component<IComponentProps> {
@@ -239,19 +241,18 @@ export class GameMap extends Component<IComponentProps> {
                                 case "train": {
                                     if (input.touchButton === 0) {
                                         if (cell.rail) {
-                                            // const { sectors } = this._state;
-                                            // const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                                            // const wagonLength = 2;
-                                            // const numWagons = 4;
-                                            // const gap = .3;
-                                            // Entities.create()
-                                            //     .setComponent(Train, {
-                                            //         sector,
-                                            //         cell,
-                                            //         wagonLength,
-                                            //         numWagons,
-                                            //         gap
-                                            //     });
+                                            const { sectors } = this._state;
+                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                                            const wagonLength = 2;
+                                            const numWagons = 4;
+                                            const gap = .3;                                            
+                                            const train = utils.createObject(sector.layers.trains, "train");
+                                            utils.setComponent(train, new Train({
+                                                cell,
+                                                wagonLength,
+                                                numWagons,
+                                                gap
+                                            }));
                                         }
                                     }
                                 }

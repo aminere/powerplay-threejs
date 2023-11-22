@@ -24,6 +24,21 @@ class Utils {
         return owner.userData.components[ctor.name];
     }
 
+    public setComponent<U extends Component<IComponentProps>>(owner: Object3D, component: U) {
+        if (!("components" in owner.userData)) {
+            owner.userData.components = {};
+        }
+        owner.userData.components[component.constructor.name] = component;
+        component.start(owner);
+    }    
+
+    public createObject(parent: Object3D, name: string) {
+        const obj = new Object3D();
+        obj.name = name;
+        parent.add(obj);
+        return obj;
+    }
+
     public isPointerLocked() {
         return Boolean(document.pointerLockElement);
     }
