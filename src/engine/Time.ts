@@ -1,32 +1,24 @@
+class Time {
+    get time() { return this._time; }
+    get deltaTime() { return this._deltaTime; }
+    get fps() { return this._fps; }
+    get currentFrame() { return this._currentFrame; }
 
-namespace Private {
-    // Cap deltatime for when browser is idle   
-    export const deltaTimeCap = 1 / 10;    
-    export let previousTime = performance.now();
-    export let time = 0;
-    export let deltaTime = 0;    
-    export let frameTimer = 0;
-    export let frameCount = 0;
-    export let fps = 0;
-    export let currentFrame = 0;    
-}
+    private _deltaTimeCap = 1 / 10;    
+    private _previousTime = performance.now();
+    private _time = 0;
+    private _deltaTime = 0;    
+    private _fps = 0;
+    private _currentFrame = 0;
 
-/**
- * @hidden
- */
-export namespace TimeInternal {
-    export function updateDeltaTime() {
+    public updateDeltaTime() {
         const time = performance.now();
-        const deltaTime = Math.min((time - Private.previousTime) / 1000.0, Private.deltaTimeCap);
-        Private.deltaTime = deltaTime;
-        Private.time += deltaTime;
-        Private.previousTime = time;        
+        const deltaTime = Math.min((time - this._previousTime) / 1000.0, this._deltaTimeCap);
+        this._deltaTime = deltaTime;
+        this._time += deltaTime;
+        this._previousTime = time;        
     }
 }
 
-export class Time {
-    static get time() { return Private.time; }
-    static get deltaTime() { return Private.deltaTime; }
-    static get fps() { return Private.fps; }
-    static get currentFrame() { return Private.currentFrame; }
-}
+export const time = new Time();
+

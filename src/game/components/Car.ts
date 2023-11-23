@@ -2,12 +2,12 @@ import { BufferGeometry, Color, Line, LineBasicMaterial, Mesh, MeshBasicMaterial
 import { Component } from "../../engine/Component";
 import { Axis, ICell, ISector } from "../GameTypes";
 import { Meshes } from "../Meshes";
-import { Time } from "../../engine/Time";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { Sector } from "../Sector";
 import { gameMapState } from "./GameMapState";
 import { Pathfinding } from "../Pathfinding";
+import { time } from "../../engine/Time";
 
 enum MotionState {
     None,
@@ -85,7 +85,7 @@ export class Car extends Component<ICarProps> {
     private _breakingForTurn = false;
     private _currentCell?: ICellInfo;
     private _motionState: MotionState = MotionState.None;
-    private _cellWaitTimer = 0;
+    private _cellWaittimer = 0;
     private _owner!: Object3D;
 
     constructor(props?: ICarProps) {
@@ -112,8 +112,8 @@ export class Car extends Component<ICarProps> {
 
         switch (this._motionState) {
             case MotionState.WaitForNextCell: {
-                this._cellWaitTimer -= Time.deltaTime;
-                if (this._cellWaitTimer < 0) {
+                this._cellWaittimer -= time.deltaTime;
+                if (this._cellWaittimer < 0) {
                     this._motionState = MotionState.None;
                     // this.goTo(this._targetCoords);
                 }
@@ -127,7 +127,7 @@ export class Car extends Component<ICarProps> {
                 const minSpeed = 2;
                 const segment = this._motion[this._currentMotionSegment];
                 if (this._canAccelerate) {   
-                    const newSpeed = this._speed + acceleration * Time.deltaTime;         
+                    const newSpeed = this._speed + acceleration * time.deltaTime;         
                     const distanceToStop = newSpeed * newSpeed / (2 * -deceleration);
                     if (this._distanceToTravel < distanceToStop) {
                         this._canAccelerate = false;
@@ -147,18 +147,18 @@ export class Car extends Component<ICarProps> {
 
                 if (this._canAccelerate) {
                     if (this._breakingForTurn) {
-                        this._speed += deceleration * Time.deltaTime;
+                        this._speed += deceleration * time.deltaTime;
                         if (this._speed < minSpeed) {
                             this._speed = minSpeed;
                         }
                     } else {
-                        this._speed += acceleration * Time.deltaTime;
+                        this._speed += acceleration * time.deltaTime;
                         if (this._speed > maxSpeed) {
                             this._speed = maxSpeed;
                         }
                     }            
                 } else {
-                    this._speed += deceleration * Time.deltaTime;
+                    this._speed += deceleration * time.deltaTime;
                     if (this._speed < 0) {
                         this._speed = 0;
                         this._motionState = MotionState.None;
@@ -169,7 +169,7 @@ export class Car extends Component<ICarProps> {
                     }
                 }       
 
-                const stepDistance = this._speed * Time.deltaTime;
+                const stepDistance = this._speed * time.deltaTime;
                 let canStep = true;
                 const [nextMapPos, nextSectorCoords, nextLocalCoords] = pools.vec2.get(3);
                 nextMapPos.set(this.props.coords.x + Math.sign(segment.direction.x), this.props.coords.y + Math.sign(segment.direction.z));
@@ -344,7 +344,7 @@ export class Car extends Component<ICarProps> {
             this._currentMotionSegment = 0;            
             this._breakingForTurn = false;
             alignToSegment(this._motion[0], this._owner);
-            this._cellWaitTimer = 0;
+            this._cellWaittimer = 0;
             const [sectorCoords, localCoords] = pools.vec2.get(2);
             const cell = GameUtils.getCell(this.props.coords, sectorCoords, localCoords)!;
             this._currentCell = {

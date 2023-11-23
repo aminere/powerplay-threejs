@@ -4,7 +4,6 @@ import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { input } from "../../engine/Input";
-import { Time } from "../../engine/Time";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
@@ -16,6 +15,7 @@ import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { Car } from "./Car";
+import { time } from "../../engine/Time";
 
 
 export class GameMap extends Component<IComponentProps> {
@@ -279,7 +279,7 @@ export class GameMap extends Component<IComponentProps> {
 
     private checkCameraPan(xNorm: number, yNorm: number) {
         const { width, height } = engine.screenRect;
-        const dt = Time.deltaTime;
+        const dt = time.deltaTime;
         const { panMargin, panSpeed } = config.camera;
         const margin = 50;
         const [delta, oldPos] = pools.vec3.get(2);

@@ -6,7 +6,7 @@ import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { pools } from "../../engine/Pools";
 import { Component } from "../../engine/Component";
-import { Time } from "../../engine/Time";
+import { time } from "../../engine/Time";
 
 interface IMotionSegment {
     endDist: number;
@@ -212,7 +212,7 @@ export class Wagon extends Component<IWagonProps> {
 
         const { maxSpeed, acceleration, deceleration } = config.train;
         if (this._canAccelerate) {   
-            const newSpeed = this._speed + acceleration * Time.deltaTime;         
+            const newSpeed = this._speed + acceleration * time.deltaTime;         
             const distanceToStop = newSpeed * newSpeed / (2 * -deceleration);
             if (this._distanceToTravel < distanceToStop) {
                 this._canAccelerate = false;
@@ -220,12 +220,12 @@ export class Wagon extends Component<IWagonProps> {
         }
 
         if (this._canAccelerate) {
-            this._speed += acceleration * Time.deltaTime;
+            this._speed += acceleration * time.deltaTime;
             if (this._speed > maxSpeed) {
                 this._speed = maxSpeed;
             }
         } else {
-            this._speed += deceleration * Time.deltaTime;
+            this._speed += deceleration * time.deltaTime;
             if (this._speed < 0) {
                 this._speed = 0;
                 this._isMoving = false;
@@ -234,7 +234,7 @@ export class Wagon extends Component<IWagonProps> {
         }
 
         const segment = this._motion[this._currentMotionSegment];
-        const stepDistance = this._speed * Time.deltaTime;
+        const stepDistance = this._speed * time.deltaTime;
         if (segment.curve) {
             const startDist = this._currentMotionSegment > 0 ? this._motion[this._currentMotionSegment - 1].endDist : 0;
             const localDist = (this._distanceTraveled + stepDistance) - startDist;

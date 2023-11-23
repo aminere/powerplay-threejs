@@ -16,7 +16,7 @@ class Utils {
             orthoCamera.bottom = -orthoSize;
             orthoCamera.updateProjectionMatrix();
         } else if (perspectiveCamera.isPerspectiveCamera) {
-            perspectiveCamera.aspect = width / height;
+            perspectiveCamera.aspect = aspect;
             perspectiveCamera.updateProjectionMatrix();
         }
     }

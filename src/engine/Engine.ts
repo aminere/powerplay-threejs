@@ -2,10 +2,10 @@
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { Serialization } from "./Serialization";
 import { Component, IComponentInstance, IComponentProps } from "./Component";
-import { TimeInternal } from "./Time";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { input } from "./Input";
 import { pools } from "./Pools";
+import { time } from "./Time";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -47,7 +47,7 @@ class Engine {
     }
 
     public update() {
-        TimeInternal.updateDeltaTime();
+        time.updateDeltaTime();
         pools.flush();
         input.update();
         this.updateComponents();
