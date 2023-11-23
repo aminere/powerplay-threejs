@@ -76,7 +76,25 @@ class Engine {
                     }
                 }
 
-                // TODO dispose of 3D resources
+                // dispose of 3d resources
+                // todo dispose of textures?
+                const mesh = obj as THREE.Mesh;
+                const line = obj as THREE.Line;
+                if (mesh.isMesh) {
+                    mesh.geometry.dispose();
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach(m => m.dispose());
+                    } else {
+                        mesh.material.dispose();
+                    }
+                } else if (line.isLine) {
+                    line.geometry.dispose();
+                    if (Array.isArray(line.material)) {
+                        line.material.forEach(m => m.dispose());
+                    } else {
+                        line.material.dispose();
+                    }
+                }
             });
         }
 
