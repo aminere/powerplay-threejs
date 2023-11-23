@@ -19,7 +19,7 @@ import { Car } from "./Car";
 
 
 export class GameMap extends Component<IComponentProps> {
-    private _state: IGameMapState;
+    private _state!: IGameMapState;
 
     private _cameraZoom = 1;
     private _cameraAngleRad = 0;
@@ -44,8 +44,7 @@ export class GameMap extends Component<IComponentProps> {
     private _touchDragged = false;
     private _cursorOverUI = false;
 
-    constructor(props?: IComponentProps) {
-        super(props);
+    override start(owner: Object3D) {
         this._state = {
             sectors: new Map<string, any>(),
             action: null,
@@ -53,9 +52,6 @@ export class GameMap extends Component<IComponentProps> {
             previousRail: [],
             owner: null!
         };
-    }
-
-    override start(owner: Object3D) {
         this._state.owner = owner;
         gameMapState.instance = this._state;
         this.createSector(new Vector2(0, 0));

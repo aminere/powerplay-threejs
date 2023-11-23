@@ -22,7 +22,7 @@ class Utils {
     }
 
     public getComponent<U extends Component<IComponentProps>>(ctor: new () => U, owner: Object3D) {
-        return owner.userData.components[ctor.name];
+        return owner.userData.components?.[ctor.name];
     }
 
     public setComponent<U extends Component<IComponentProps>>(owner: Object3D, component: U) {
@@ -31,7 +31,14 @@ class Utils {
         }
         owner.userData.components[component.constructor.name] = component;
         component.start(owner);
-    }    
+
+        const list = engine.components.get(component.constructor.name);
+        if (list) {
+            list.push({ owner, component });
+        } else {
+            engine.components.set(component.constructor.name, [{ owner, component }]);
+        }
+    }
 
     public getComponents<U extends Component<IComponentProps>>(ctor: new () => U) {
         return engine.components.get(ctor.name) as IComponentInstance<U>[];
@@ -42,6 +49,10 @@ class Utils {
         obj.name = name;
         parent.add(obj);
         return obj;
+    }
+
+    public removeObject(obj: Object3D) {
+        obj.parent!.remove(obj);
     }
 
     public isPointerLocked() {

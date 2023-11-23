@@ -20,12 +20,12 @@ class Engine {
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
-    public get components() { return this._components; }
+    public get components() { return this._componentsMap; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
-    private _components = new Map<string, IComponentInstance<Component<IComponentProps>>[]>();
+    private _componentsMap = new Map<string, IComponentInstance<Component<IComponentProps>>[]>();
     private _runtime: Runtime = "game";
 
     public init(width: number, height: number, runtime: Runtime) {
@@ -67,6 +67,7 @@ class Engine {
 
     public parseScene(data: object, onParsed: (props: ISceneInfo) => void) {
         if (this._scene) {
+            this._componentsMap.clear();          
             this._scene.traverse(obj => {
                 const { components } = obj.userData;
                 if (components) {
@@ -82,13 +83,30 @@ class Engine {
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
         this._sceneStarted = false;
-        const cameras: THREE.Camera[] = [];  
+        const cameras: THREE.Camera[] = [];        
         scene.traverse(obj => {
             Serialization.postDeserialize(obj);
             const camera = obj as THREE.Camera;
             if (camera.isCamera) {
                 cameras.push(camera);
             }
+            const { components } = obj.userData;
+            if (components) {
+                for (const [type, value] of Object.entries(components)) {
+                    const list = this._componentsMap.get(type);
+                    if (list) {
+                        list.push({
+                            owner: obj,
+                            component: value as Component<IComponentProps>
+                        });
+                    } else {
+                        this._componentsMap.set(type, [{
+                            owner: obj,
+                            component: value as Component<IComponentProps>
+                        }]);
+                    }
+                }
+            }            
         });
 
         let mainCamera: Camera | undefined = undefined;
@@ -108,29 +126,8 @@ class Engine {
     }    
 
     private updateComponents() {
-        this._components.clear();
-        this._scene!.traverse(obj => {
-            const { components } = obj.userData;
-            if (components) {
-                for (const [type, value] of Object.entries(components)) {
-                    const list = this._components.get(type);
-                    if (list) {
-                        list.push({
-                            owner: obj,
-                            component: value as Component<IComponentProps>
-                        });
-                    } else {
-                        this._components.set(type, [{
-                            owner: obj,
-                            component: value as Component<IComponentProps>
-                        }]);
-                    }
-                }
-            }
-        });
-
         if (!this._sceneStarted) {
-            for (const [, components] of this._components) {
+            for (const [, components] of this._componentsMap) {
                 for (const instance of components) {
                     instance.component.start(instance.owner);
                 }
@@ -138,7 +135,7 @@ class Engine {
             this._sceneStarted = true;
         }
 
-        for (const [, components] of this._components) {
+        for (const [, components] of this._componentsMap) {
             for (const instance of components) {
                 instance.component.update(instance.owner);
             }
