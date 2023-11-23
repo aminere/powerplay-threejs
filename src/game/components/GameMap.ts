@@ -9,40 +9,16 @@ import { pools } from "../../engine/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
-import gsap from "gsap";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onRoad, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { Car } from "./Car";
 import { time } from "../../engine/Time";
-
+import gsap from "gsap";
 
 export class GameMap extends Component<IComponentProps> {
-    private _state!: IGameMapState;
-
-    private _cameraZoom = 1;
-    private _cameraAngleRad = 0;
-    private _cameraTween: gsap.core.Tween | null = null;
-    private _cameraRoot!: Object3D;
-    private _cameraPivot!: Object3D;
-    private _camera!: Camera;
-    private _light!: DirectionalLight;
-    private _cameraBoundsAccessors = [0, 1, 2, 3];
-    private _cameraBounds = [
-        new Vector3(), // top
-        new Vector3(), // right
-        new Vector3(), // bottom
-        new Vector3() // left
-    ];
-    private _pressedKeys = new Set<string>();
-    private _previousTouchPos = new Vector2();
-    private _tileSelector!: TileSector;
-    private _selectedCellCoords = new Vector2();
-    private _touchStartCoords = new Vector2();
-    private _touchHoveredCoords = new Vector2();
-    private _touchDragged = false;
-    private _cursorOverUI = false;
+    private _state!: IGameMapState;    
 
     override start(owner: Object3D) {
         this._state = {
@@ -50,21 +26,43 @@ export class GameMap extends Component<IComponentProps> {
             action: null,
             previousRoad: [],
             previousRail: [],
-            owner: null!
+            owner,
+            cameraZoom: 1,
+            cameraAngleRad: 0,
+            cameraTween: null,
+            cameraRoot: null!,
+            cameraPivot: null!,
+            camera: null!,
+            light: null!,
+            cameraBoundsAccessors: [0, 1, 2, 3],
+            cameraBounds: [
+                new Vector3(), // top
+                new Vector3(), // right
+                new Vector3(), // bottom
+                new Vector3() // left
+            ],
+            pressedKeys: new Set<string>(),
+            previousTouchPos: new Vector2(),
+            tileSelector: null!,
+            selectedCellCoords: new Vector2(),
+            touchStartCoords: new Vector2(),
+            touchHoveredCoords: new Vector2(),
+            touchDragged: false,
+            cursorOverUI: false            
         };
-        this._state.owner = owner;
+        
         gameMapState.instance = this._state;
         this.createSector(new Vector2(0, 0));
-        this._cameraRoot = engine.scene?.getObjectByName("camera-root")!;
-        this._camera = this._cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
-        this._cameraPivot = this._camera.parent!;
-        this._light = this._cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
+        this._state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
+        this._state.camera = this._state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
+        this._state.cameraPivot = this._state.camera.parent!;
+        this._state.light = this._state.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
         const [, rotationY] = config.camera.rotation;
-        this._cameraAngleRad = MathUtils.degToRad(rotationY);
+        this._state.cameraAngleRad = MathUtils.degToRad(rotationY);
 
-        this._tileSelector = new TileSector();
-        this._tileSelector.visible = false;
-        owner.parent!.add(this._tileSelector);
+        this._state.tileSelector = new TileSector();
+        this._state.tileSelector.visible = false;
+        owner.parent!.add(this._state.tileSelector);
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -84,7 +82,7 @@ export class GameMap extends Component<IComponentProps> {
     }
 
     override update(_owner: Object3D) {
-        if (input.touchInside && !this._cursorOverUI) {
+        if (input.touchInside && !this._state.cursorOverUI) {
             const { width, height } = engine.screenRect;
             const touchPos = input.touchPos;
             // [0, s] to [-1, 1]
@@ -92,14 +90,14 @@ export class GameMap extends Component<IComponentProps> {
             const yNorm = (touchPos.y / height) * 2 - 1;
             this.checkCameraPan(xNorm, yNorm);
 
-            if (!input.touchPos.equals(this._previousTouchPos)) {
-                this._previousTouchPos.copy(input.touchPos);
+            if (!input.touchPos.equals(this._state.previousTouchPos)) {
+                this._state.previousTouchPos.copy(input.touchPos);
 
                 if (this._state.action) {
-                    const cellCoords = raycastOnCells(input.touchPos, this._camera);
-                    if (cellCoords?.equals(this._selectedCellCoords) === false) {
-                        this._tileSelector.setPosition(cellCoords!);
-                        this._selectedCellCoords.copy(cellCoords!);                        
+                    const cellCoords = raycastOnCells(input.touchPos, this._state.camera);
+                    if (cellCoords?.equals(this._state.selectedCellCoords) === false) {
+                        this._state.tileSelector.setPosition(cellCoords!);
+                        this._state.selectedCellCoords.copy(cellCoords!);                        
                         // default rail preview was here                        
                     }
                 }
@@ -111,8 +109,8 @@ export class GameMap extends Component<IComponentProps> {
         if (input.wheelDelta !== 0) {
             const { zoomSpeed, zoomRange, orthoSize } = config.camera;
             const [min, max] = zoomRange;
-            const newZoom = MathUtils.clamp(this._cameraZoom + input.wheelDelta * zoomSpeed, min, max);
-            const deltaZoom = newZoom - this._cameraZoom;
+            const newZoom = MathUtils.clamp(this._state.cameraZoom + input.wheelDelta * zoomSpeed, min, max);
+            const deltaZoom = newZoom - this._state.cameraZoom;
             const { width, height } = engine.screenRect;
             // [0, s] to [-1, 1]
             const touchPos = input.touchPos;
@@ -121,47 +119,47 @@ export class GameMap extends Component<IComponentProps> {
             const offsetX = orthoSize * aspect * xNorm * deltaZoom;
             const offsetY = orthoSize * aspect * yNorm * deltaZoom;
             const deltaPos = pools.vec3.getOne();
-            deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
-            this._cameraRoot.position.add(deltaPos);
-            this._cameraZoom = newZoom;
+            deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, this._state.cameraAngleRad);
+            this._state.cameraRoot.position.add(deltaPos);
+            this._state.cameraZoom = newZoom;
             this.updateCameraSize();
         }
         
         if (input.touchJustPressed) {
-            if (!this._cursorOverUI) {
+            if (!this._state.cursorOverUI) {
                 if (this._state.action !== null) {
                     if (input.touchButton === 0) {
-                        this._touchStartCoords.copy(this._selectedCellCoords);
+                        this._state.touchStartCoords.copy(this._state.selectedCellCoords);
                     }
                 }
             }
         } else if (input.touchPressed) {
             if (input.touchJustMoved) {
-                if (!this._cursorOverUI) {
+                if (!this._state.cursorOverUI) {
                     if (this._state.action) {
-                        if (!this._touchDragged) {
-                            const cellCoords = raycastOnCells(input.touchPos, this._camera);
-                            if (cellCoords?.equals(this._touchStartCoords) === false) {
-                                this._touchDragged = true;
-                                this._touchHoveredCoords.copy(cellCoords!);
-                                onBeginDrag(this._touchStartCoords, this._touchHoveredCoords);
+                        if (!this._state.touchDragged) {
+                            const cellCoords = raycastOnCells(input.touchPos, this._state.camera);
+                            if (cellCoords?.equals(this._state.touchStartCoords) === false) {
+                                this._state.touchDragged = true;
+                                this._state.touchHoveredCoords.copy(cellCoords!);
+                                onBeginDrag(this._state.touchStartCoords, this._state.touchHoveredCoords);
                             }
                         } else {
-                            const cellCoords = raycastOnCells(input.touchPos, this._camera);
-                            if (cellCoords?.equals(this._touchHoveredCoords) === false) {
-                                this._touchHoveredCoords.copy(cellCoords!);
-                                onDrag(this._touchStartCoords, this._touchHoveredCoords);
+                            const cellCoords = raycastOnCells(input.touchPos, this._state.camera);
+                            if (cellCoords?.equals(this._state.touchHoveredCoords) === false) {
+                                this._state.touchHoveredCoords.copy(cellCoords!);
+                                onDrag(this._state.touchStartCoords, this._state.touchHoveredCoords);
                             }
                         }
                     }
                 }
             }
         } else if (input.touchJustReleased) {
-            const wasDragged = this._touchDragged;
-            this._touchDragged = false;
+            const wasDragged = this._state.touchDragged;
+            this._state.touchDragged = false;
             let canceled = false;
 
-            if (this._cursorOverUI) {
+            if (this._state.cursorOverUI) {
                 if (wasDragged) {
                     onCancelDrag();                    
                 }
@@ -173,17 +171,17 @@ export class GameMap extends Component<IComponentProps> {
                     if (!wasDragged) {
                         
                         const [sectorCoords, localCoords] = pools.vec2.get(2);
-                        const cell = GameUtils.getCell(this._selectedCellCoords, sectorCoords, localCoords);
+                        const cell = GameUtils.getCell(this._state.selectedCellCoords, sectorCoords, localCoords);
                         if (!cell) {
                             this.createSector(sectorCoords.clone());
                             this.updateCameraBounds();                    
                         } else {
-                            const mapCoords = this._selectedCellCoords;
-                            const { radius } = this._tileSelector;
+                            const mapCoords = this._state.selectedCellCoords;
+                            const { radius } = this._state.tileSelector;
                             switch (this._state.action) {
                                 case "elevation": {
                                     onElevation(mapCoords, sectorCoords, localCoords, radius, input.touchButton);
-                                    this._tileSelector.fit(mapCoords);       
+                                    this._state.tileSelector.fit(mapCoords);       
                                 }
                                 break;
         
@@ -205,7 +203,7 @@ export class GameMap extends Component<IComponentProps> {
                                             
                                             const car = utils.createObject(sector.layers.cars, "car");
                                             utils.setComponent(car, new Car({
-                                                coords: this._selectedCellCoords.clone()
+                                                coords: this._state.selectedCellCoords.clone()
                                             }));
             
                                             Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
@@ -219,7 +217,7 @@ export class GameMap extends Component<IComponentProps> {
                                                 // car.entity.setComponent(GroupMotion, {
                                                 //     motion: groupMotion
                                                 // });                             
-                                                car.component.goTo(this._selectedCellCoords);
+                                                car.component.goTo(this._state.selectedCellCoords);
                                             }
                                         }
 
@@ -284,27 +282,27 @@ export class GameMap extends Component<IComponentProps> {
         const margin = 50;
         const [delta, oldPos] = pools.vec3.get(2);
         if (Math.abs(xNorm) > 1 - panMargin) {
-            const dx = xNorm * dt * panSpeed * this._cameraZoom;
-            delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
-            oldPos.copy(this._cameraRoot.position);
-            this._cameraRoot.position.add(delta);
+            const dx = xNorm * dt * panSpeed * this._state.cameraZoom;
+            delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, this._state.cameraAngleRad);
+            oldPos.copy(this._state.cameraRoot.position);
+            this._state.cameraRoot.position.add(delta);
             this.updateCameraBounds();
-            const [_, rightAccessor, __, leftAccessor] = this._cameraBoundsAccessors;
-            const rightBound = this._cameraBounds[rightAccessor];
-            const leftBound = this._cameraBounds[leftAccessor];
+            const [_, rightAccessor, __, leftAccessor] = this._state.cameraBoundsAccessors;
+            const rightBound = this._state.cameraBounds[rightAccessor];
+            const leftBound = this._state.cameraBounds[leftAccessor];
             const { x: leftX } = leftBound;
             const { x: rightX } = rightBound;
             if (dx < 0) {
                 if (leftX > 0) {
                     if (rightX > width - margin) {
-                        this._cameraRoot.position.copy(oldPos);
+                        this._state.cameraRoot.position.copy(oldPos);
                         this.updateCameraBounds();
                     }
                 }
             } else {
                 if (rightX < width) {
                     if (leftX < margin) {
-                        this._cameraRoot.position.copy(oldPos);
+                        this._state.cameraRoot.position.copy(oldPos);
                         this.updateCameraBounds();
                     }
                 }
@@ -312,27 +310,27 @@ export class GameMap extends Component<IComponentProps> {
         }
         if (Math.abs(yNorm) > 1 - panMargin) {
             const aspect = width / height;
-            const dy = yNorm * aspect * dt * panSpeed * this._cameraZoom;
-            delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, this._cameraAngleRad);
-            oldPos.copy(this._cameraRoot.position);
-            this._cameraRoot.position.add(delta);
+            const dy = yNorm * aspect * dt * panSpeed * this._state.cameraZoom;
+            delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, this._state.cameraAngleRad);
+            oldPos.copy(this._state.cameraRoot.position);
+            this._state.cameraRoot.position.add(delta);
             this.updateCameraBounds();
-            const [topAcecssor, _, bottomAccessor] = this._cameraBoundsAccessors;
-            const topBound = this._cameraBounds[topAcecssor];
-            const bottomBound = this._cameraBounds[bottomAccessor];
+            const [topAcecssor, _, bottomAccessor] = this._state.cameraBoundsAccessors;
+            const topBound = this._state.cameraBounds[topAcecssor];
+            const bottomBound = this._state.cameraBounds[bottomAccessor];
             const { y: topY } = topBound;
             const { y: bottomY } = bottomBound;
             if (dy < 0) {
                 if (topY > 0) {
                     if (bottomY > height - margin) {
-                        this._cameraRoot.position.copy(oldPos);
+                        this._state.cameraRoot.position.copy(oldPos);
                         this.updateCameraBounds();
                     }
                 }
             } else {
                 if (bottomY < height) {
                     if (topY < margin) {
-                        this._cameraRoot.position.copy(oldPos);
+                        this._state.cameraRoot.position.copy(oldPos);
                         this.updateCameraBounds();
                     }
                 }
@@ -344,17 +342,17 @@ export class GameMap extends Component<IComponentProps> {
         let xNorm = 0;
         let yNorm = 0;
         let keyboardPan = false;
-        if (this._pressedKeys.has("a")) {
+        if (this._state.pressedKeys.has("a")) {
             xNorm = -1;
             keyboardPan = true;
-        } else if (this._pressedKeys.has("d")) {
+        } else if (this._state.pressedKeys.has("d")) {
             xNorm = 1;
             keyboardPan = true;
         }
-        if (this._pressedKeys.has("w")) {
+        if (this._state.pressedKeys.has("w")) {
             yNorm = -1;
             keyboardPan = true;
-        } else if (this._pressedKeys.has("s")) {
+        } else if (this._state.pressedKeys.has("s")) {
             yNorm = 1;
             keyboardPan = true;
         }
@@ -365,16 +363,16 @@ export class GameMap extends Component<IComponentProps> {
 
     private updateCameraBounds() {
         const worldPos = pools.vec3.getOne();
-        const [top, right, bottom, left] = this._cameraBounds;
+        const [top, right, bottom, left] = this._state.cameraBounds;
         const mapBounds = this._state.bounds;
-        GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.min.y), this._camera, top);
-        GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.max.y), this._camera, bottom);
-        GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.max.y), this._camera, left);
-        GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), this._camera, right);
+        GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.min.y), this._state.camera, top);
+        GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.max.y), this._state.camera, bottom);
+        GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.max.y), this._state.camera, left);
+        GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), this._state.camera, right);
     }
 
     private onKeyDown(e: KeyboardEvent) {
-        this._pressedKeys.add(e.key);
+        this._state.pressedKeys.add(e.key);
     }
 
     private onKeyUp(e: KeyboardEvent) {
@@ -383,29 +381,29 @@ export class GameMap extends Component<IComponentProps> {
             case 'q': cameraDirection = -1; break;
             case 'e': cameraDirection = 1; break;
         }
-        if (cameraDirection !== 0 && !this._cameraTween) {
-            this._cameraTween = gsap.to(this,
+        if (cameraDirection !== 0 && !this._state.cameraTween) {
+            this._state.cameraTween = gsap.to(this._state,
                 {
-                    _cameraAngleRad: this._cameraAngleRad + Math.PI / 2 * cameraDirection,
+                    cameraAngleRad: this._state.cameraAngleRad + Math.PI / 2 * cameraDirection,
                     duration: .45,
                     ease: "power2.out",
                     onUpdate: () => {
                         const [rotationX] = config.camera.rotation;
-                        this._cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this._cameraAngleRad, 0, 'YXZ'));
+                        this._state.cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this._state.cameraAngleRad, 0, 'YXZ'));
                     },
                     onComplete: () => {
-                        this._cameraTween = null;
+                        this._state.cameraTween = null;
 
                         // rotate camera bounds
-                        const length = this._cameraBoundsAccessors.length;
-                        this._cameraBoundsAccessors = this._cameraBoundsAccessors.map((_, index) => {
+                        const length = this._state.cameraBoundsAccessors.length;
+                        this._state.cameraBoundsAccessors = this._state.cameraBoundsAccessors.map((_, index) => {
                             if (cameraDirection < 0) {
-                                return this._cameraBoundsAccessors[(index + 1) % length];
+                                return this._state.cameraBoundsAccessors[(index + 1) % length];
                             } else {
                                 if (index === 0) {
-                                    return this._cameraBoundsAccessors[length - 1];
+                                    return this._state.cameraBoundsAccessors[length - 1];
                                 } else {
-                                    return this._cameraBoundsAccessors[index - 1];
+                                    return this._state.cameraBoundsAccessors[index - 1];
                                 }
                             }
                         });
@@ -413,29 +411,29 @@ export class GameMap extends Component<IComponentProps> {
                 });
         }
 
-        this._pressedKeys.delete(e.key);
+        this._state.pressedKeys.delete(e.key);
     }
 
     private updateCameraSize() {
         const { width, height } = engine.screenRect;        
         const aspect = width / height;
         const { orthoSize, shadowRange } = config.camera;
-        (this._camera as OrthographicCamera).zoom = 1 / this._cameraZoom;
-        (this._camera as OrthographicCamera).updateProjectionMatrix();
+        (this._state.camera as OrthographicCamera).zoom = 1 / this._state.cameraZoom;
+        (this._state.camera as OrthographicCamera).updateProjectionMatrix();
         this.updateCameraBounds();
-        const cameraLeft = -orthoSize * this._cameraZoom * aspect;
+        const cameraLeft = -orthoSize * this._state.cameraZoom * aspect;
         const _shadowRange = Math.abs(cameraLeft) * shadowRange;
-        this._light.shadow.camera.left = -_shadowRange;
-        this._light.shadow.camera.right = _shadowRange;
-        this._light.shadow.camera.top = _shadowRange;
-        this._light.shadow.camera.bottom = -_shadowRange;
-        this._light.shadow.camera.updateProjectionMatrix();
+        this._state.light.shadow.camera.left = -_shadowRange;
+        this._state.light.shadow.camera.right = _shadowRange;
+        this._state.light.shadow.camera.top = _shadowRange;
+        this._state.light.shadow.camera.bottom = -_shadowRange;
+        this._state.light.shadow.camera.updateProjectionMatrix();
     }
 
     private onCursorOverUI(over: boolean) {
-        this._cursorOverUI = over;
+        this._state.cursorOverUI = over;
         if (this._state.action) {
-            this._tileSelector.visible = !over;
+            this._state.tileSelector.visible = !over;
         }
     }
 }
