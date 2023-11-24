@@ -39,7 +39,7 @@ export class Roads {
             for (let i = 0; i <= iterations; ++i) {
                 currentPos.copy(_start).addScaledVector(direction, i);
                 const cell = GameUtils.getCell(currentPos);
-                if (!cell || GameUtils.hasStructure(cell)) {
+                if (!cell || !GameUtils.isEmpty(cell)) {
                     continue;
                 }
                 const cellCoords = currentPos.clone();

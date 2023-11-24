@@ -10,6 +10,7 @@ import { ICell } from "../GameTypes";
 import { Roads } from "../Roads";
 import { Rails } from "../Rails";
 import { Buildings } from "../Buildings";
+import { resources } from "../Resources";
 
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
     const { sectors } = gameMapState;
@@ -207,7 +208,7 @@ export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoor
 
 export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
-        if (!GameUtils.hasStructure(cell)) {
+        if (GameUtils.isEmpty(cell)) {
             Roads.create(mapCoords);
         }
     } else if (button === 2) {
@@ -227,12 +228,40 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
-        if (!GameUtils.hasStructure(cell)) {
+        if (GameUtils.isEmpty(cell)) {
             Buildings.create(sector, localCoords, cell);
         }
     } else if (button === 2) {
         if (cell.building) {
             Buildings.clear(sector, cell);
+        }
+    }
+}
+
+export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+    const { sectors } = gameMapState;
+    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    if (button === 0) {
+        if (GameUtils.isEmpty(cell)) {
+            resources.create(sector, localCoords, cell, "minerals");
+        }
+    } else if (button === 2) {
+        if (cell.resource) {
+            resources.clear(sector, cell);
+        }
+    }
+}
+
+export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+    const { sectors } = gameMapState;
+    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    if (button === 0) {
+        if (GameUtils.isEmpty(cell)) {
+            resources.create(sector, localCoords, cell, "trees");
+        }
+    } else if (button === 2) {
+        if (cell.resource) {
+            resources.clear(sector, cell);
         }
     }
 }

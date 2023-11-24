@@ -1,4 +1,4 @@
-import { Camera, Object3D, OrthographicCamera, PerspectiveCamera } from "three";
+import { Camera, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera } from "three";
 import { config } from "../game/config";
 import { Component, IComponentInstance, IComponentProps } from "./Component";
 import { engine } from "./Engine";
@@ -49,6 +49,13 @@ class Utils {
         obj.name = name;
         parent.add(obj);
         return obj;
+    }
+
+    public async loadObject(path: string) {
+        const response = await fetch(path);
+        const data = await response.json();
+        const object = new ObjectLoader().parse(data);
+        return object;
     }
 
     public removeObject(obj: Object3D) {

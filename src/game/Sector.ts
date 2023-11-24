@@ -21,6 +21,8 @@ export class Sector {
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch();
         const buildings = new THREE.Object3D();
         buildings.name = "buildings";
+        const resources = new THREE.Object3D();
+        resources.name = "resources";
         const rails = new THREE.Object3D();
         rails.name = "rails";
         const trains = new THREE.Object3D();
@@ -36,6 +38,7 @@ export class Sector {
                 layers: {
                     terrain,
                     buildings,
+                    resources,
                     rails,
                     trains,
                     cars
@@ -49,6 +52,7 @@ export class Sector {
 
         sectorRoot.add(terrain);
         sectorRoot.add(buildings);
+        sectorRoot.add(resources);
         visualRoot.add(sectorRoot);
         visualRoot.add(rails);
         visualRoot.add(trains);

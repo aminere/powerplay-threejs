@@ -26,6 +26,7 @@ export type RailTip = "start" | "end";
 export interface ICell {
     roadTile?: number;
     building?: THREE.Object3D;
+    resource?: THREE.Object3D;
     rail?: {        
         axis: Axis;        
         tip: RailTip;
@@ -47,6 +48,7 @@ export interface ISector {
     cells: ICell[];
     layers: {
         buildings: Object3D;
+        resources: Object3D;
         terrain: Object3D;
         rails: Object3D;
         trains: Object3D;
@@ -73,7 +75,9 @@ export const Actions = [
     "belt",
     "unit",
     "car",
-    "train"
+    "train",
+    "mineral",
+    "tree"
 ] as const;
 export type Action = typeof Actions[number];
 

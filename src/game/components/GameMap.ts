@@ -9,7 +9,7 @@ import { pools } from "../../engine/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
-import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onRoad, raycastOnCells } from "./GameMapUtils";
+import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
@@ -192,6 +192,16 @@ export class GameMap extends Component<IComponentProps> {
         
                                 case "building": {
                                     onBuilding(sectorCoords, localCoords, cell, input.touchButton);
+                                }
+                                break;
+
+                                case "mineral": {
+                                    onMineral(sectorCoords, localCoords, cell, input.touchButton);
+                                }
+                                break;
+
+                                case "tree": {
+                                    onTree(sectorCoords, localCoords, cell, input.touchButton);
                                 }
                                 break;
         

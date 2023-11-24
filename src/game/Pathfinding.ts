@@ -48,7 +48,7 @@ function checkNeighbor(
     if (!cell) {
         return NeighborCheckStatus.NotWalkable;
     } else {
-        const walkable = options?.isWalkable?.(cell) ?? !GameUtils.hasStructure(cell);
+        const walkable = options?.isWalkable?.(cell) ?? GameUtils.isEmpty(cell);
         if (!walkable) {
             return NeighborCheckStatus.NotWalkable;
         }
