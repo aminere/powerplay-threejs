@@ -50,10 +50,21 @@ export class Sector {
     public static updateCellTexture(sector: ISector, localCoords: Vector2, tileIndex: number) {
         const { mapRes } = config.game;
         const cellIndex = localCoords.y * mapRes + localCoords.x;
-        const tileCount = 32;
+        const { atlasTileCount } = config.terrain;
+        const tileCount = atlasTileCount;
         const lastTileIndex = tileCount - 1;
         const tileIndexNormalized = tileIndex / lastTileIndex;
-        sector.textureData.terrain.set([tileIndexNormalized * 255], cellIndex);
+        const previousTile = sector.textureData.terrain.at(cellIndex);
+        sector.textureData.terrain.set([tileIndexNormalized * 255], cellIndex);        
+        const uniforms = ((sector.layers.terrain as THREE.Mesh).material as THREE.Material).userData.shader.uniforms as TerrainUniforms;
+        uniforms.cellTexture.value.needsUpdate = true;
+        return previousTile;
+    }
+
+    public static updateCellTextureRaw(sector: ISector, localCoords: Vector2, rawTile: number) {
+        const { mapRes } = config.game;
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
+        sector.textureData.terrain.set([rawTile], cellIndex);
         const uniforms = ((sector.layers.terrain as THREE.Mesh).material as THREE.Material).userData.shader.uniforms as TerrainUniforms;
         uniforms.cellTexture.value.needsUpdate = true;
     }

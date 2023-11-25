@@ -99,9 +99,11 @@ export class Roads {
         const { sectors } = gameMapState;
         const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
+        // const previousTile = cell.roadTile!;
         delete cell.roadTile;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         Sector.updateCellTexture(sector, localCoords, 0);
+        // Sector.updateCellTextureRaw(sector, localCoords, previousTile);
         const { neighbors } = Roads.getRoadTile(mapCoords);
         for (const neighbor of neighbors) {
             if (neighbor.cell === null) {
@@ -117,8 +119,8 @@ export class Roads {
         const baseRoadTileIndex = 16;
         const tileIndex = baseRoadTileIndex + roadTileIndex;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-        Sector.updateCellTexture(sector, localCoords, tileIndex);
-        cell.roadTile = tileIndex;
+        const previousTile = Sector.updateCellTexture(sector, localCoords, tileIndex);
+        cell.roadTile = previousTile;        
     }
 
     private static getRoadTile(mapCoords: Vector2) {

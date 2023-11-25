@@ -9,6 +9,9 @@ export const config = {
         panSpeed: 6,
         shadowRange: 2
     },
+    terrain: {
+        atlasTileCount: 35
+    },
     game: {
         cellSize: 1,
         mapRes: 32,

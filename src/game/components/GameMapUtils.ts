@@ -6,17 +6,19 @@ import { config } from "../config";
 import { engine } from "../../engine/Engine";
 import { gameMapState } from "./GameMapState";
 import { Elevation } from "../Elevation";
-import { ICell } from "../GameTypes";
+import { ICell, TileType, TileTypes } from "../GameTypes";
 import { Roads } from "../Roads";
 import { Rails } from "../Rails";
 import { Buildings } from "../Buildings";
 import { resources } from "../Resources";
+import { Sector } from "../Sector";
+import { GameMapProps } from "./GameMapProps";
 
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorX},${sectorY}`);
     let selectedVertexIndex = -1;
-    if (sector) {        
+    if (sector) {
         const plane = pools.plane.getOne();
         const triangle = pools.triangle.getOne();
         const line = pools.line3.getOne();
@@ -31,9 +33,9 @@ export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Cam
         const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
         const position = geometry.getAttribute("position") as THREE.BufferAttribute;
         const indices = geometry.getIndex()!.array;
-        const { elevationStep } = config.game;            
+        const { elevationStep } = config.game;
         const { cellSize, mapRes } = config.game;
-        const mapSize = mapRes * cellSize;    
+        const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
         const sectorOffsetX = sectorX * mapSize + offset;
         const sectorOffsetY = sectorY * mapSize + offset;
@@ -124,7 +126,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera) {
     return cellCoords;
 }
 
-export function onDrag(start: Vector2, current: Vector2) { // map coords
+export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
     switch (gameMapState.action) {
         case "road": {
             for (const cell of gameMapState.instance.previousRoad) {
@@ -139,15 +141,19 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             for (const cell of gameMapState.instance.previousRail) {
                 Rails.clear(cell);
             }
-            gameMapState.instance.previousRail.length = 0;                
+            gameMapState.instance.previousRail.length = 0;
             Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.instance.previousRail);
-            
+
+        } break;
+
+        case "terrain": {
+            onTerrain(current, props.tileType);
         } break;
     }
 }
 
-export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
-        if (start.x === current.x) {
+export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
+    if (start.x === current.x) {
         gameMapState.initialDragAxis = "z";
     } else if (start.y === current.y) {
         gameMapState.initialDragAxis = "x";
@@ -172,7 +178,7 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
         }
     }
 
-    onDrag(start, current);
+    onDrag(start, current, props);
 }
 
 export function onEndDrag() { // map coords
@@ -215,12 +221,6 @@ export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
         if (cell.roadTile !== undefined) {
             Roads.clear(mapCoords);
         }
-    } else if (button === 1) {
-        // TODO temp
-        // Entities.create()
-        //     .setComponent(Car, {
-                
-        //     });
     }
 }
 
@@ -264,5 +264,17 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
             resources.clear(sector, cell);
         }
     }
+}
+
+export function onTerrain(mapCoords: Vector2, tileType: TileType) {
+    const [sectorCoords, localCoords] = pools.vec2.get(2);
+    GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
+    const terrainTileIndex = TileTypes.indexOf(tileType);
+    console.assert(terrainTileIndex >= 0);
+    const baseTerrainTileIndex = 32;
+    const tileIndex = baseTerrainTileIndex + terrainTileIndex;
+    const { sectors } = gameMapState;
+    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    Sector.updateCellTexture(sector, localCoords, tileIndex);
 }
 

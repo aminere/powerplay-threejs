@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { config } from './config';
+import { TileTypes } from './GameTypes';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -69,7 +70,8 @@ export class Terrain {
         const cellTextureData = new Uint8Array(cellCount); // * 4);
         const emptyTileThreshold = .9;
         const tileMapRes = 8;
-        const tileCount = 32;
+        const { atlasTileCount } = config.terrain;
+        const tileCount = atlasTileCount;
         const lastTileIndex = tileCount - 1;
         const lastDirtTileIndex = 15;
         for (let i = 0; i < cellCount; ++i) {
@@ -77,11 +79,13 @@ export class Terrain {
             const stride = i;
             if (Math.random() > emptyTileThreshold) {
                 const dirtIndex = Math.round(Math.random() * lastDirtTileIndex);
-                const indexNormalized = dirtIndex / lastTileIndex;
+                const indexNormalized = dirtIndex / lastTileIndex;                
                 cellTextureData[stride] = indexNormalized * 255;
             } else {
                 cellTextureData[stride] = 0;
             }
+            // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;
+            // cellTextureData[stride] = indexNormalized * 255;
         }
         const cellTexture = new THREE.DataTexture(cellTextureData, mapRes, mapRes, THREE.RedFormat);
         cellTexture.magFilter = THREE.NearestFilter;

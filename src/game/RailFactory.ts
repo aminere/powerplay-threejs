@@ -106,11 +106,6 @@ class RailFactory {
         }
         return container;
     }
-
-    public static async loadRailMesh() {
-        const [rail] = await Meshes.load('/models/rails.glb');
-        return rail;
-    }
 }
 
 export const railFactory = new RailFactory();

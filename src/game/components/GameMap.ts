@@ -1,5 +1,5 @@
 import { Box2, Camera, Color, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
-import { Component, IComponentProps } from "../../engine/Component"
+import { Component } from "../../engine/Component"
 import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
@@ -9,33 +9,14 @@ import { pools } from "../../engine/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
-import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTree, raycastOnCells } from "./GameMapUtils";
+import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { Car } from "./Car";
 import { time } from "../../engine/Time";
 import gsap from "gsap";
-import * as Attributes from "../../engine/Attributes";
-
-const TileTypes = [
-    "sand", 
-    "grass",
-    "rock"
-] as const;
-
-type TileType = typeof TileTypes[number];
-
-export class GameMapProps implements IComponentProps {    
-    constructor(props?: Partial<GameMapProps>) {
-        if (props) {
-            Object.assign(this, props);
-        }
-    }
-
-    @Attributes.enumOptions(TileTypes)
-    tileType: TileType = "sand";
-}
+import { GameMapProps } from "./GameMapProps";
 
 export class GameMap extends Component<GameMapProps> {
     private _state!: IGameMapState;    
@@ -182,13 +163,13 @@ export class GameMap extends Component<GameMapProps> {
                             if (cellCoords?.equals(this._state.touchStartCoords) === false) {
                                 this._state.touchDragged = true;
                                 this._state.touchHoveredCoords.copy(cellCoords!);
-                                onBeginDrag(this._state.touchStartCoords, this._state.touchHoveredCoords);
+                                onBeginDrag(this._state.touchStartCoords, this._state.touchHoveredCoords, this.props);
                             }
                         } else {
                             const cellCoords = raycastOnCells(input.touchPos, this._state.camera);
                             if (cellCoords?.equals(this._state.touchHoveredCoords) === false) {
                                 this._state.touchHoveredCoords.copy(cellCoords!);
-                                onDrag(this._state.touchStartCoords, this._state.touchHoveredCoords);
+                                onDrag(this._state.touchStartCoords, this._state.touchHoveredCoords, this.props);
                             }
                         }
                     }
@@ -222,6 +203,11 @@ export class GameMap extends Component<GameMapProps> {
                                 case "elevation": {
                                     onElevation(mapCoords, sectorCoords, localCoords, radius, input.touchButton);
                                     this._state.tileSelector.fit(mapCoords);       
+                                }
+                                break;
+
+                                case "terrain": {
+                                    onTerrain(mapCoords, this.props.tileType);
                                 }
                                 break;
         

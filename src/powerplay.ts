@@ -10,4 +10,5 @@ export { time } from "./engine/Time";
 
 export { GameUI } from "./game/ui/GameUI";
 export { ThreeStats } from "./debug/ThreeStats";
+export { config } from "./game/config";
 

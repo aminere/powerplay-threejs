@@ -61,3 +61,11 @@ export type Action = typeof Actions[number];
 
 export type UIType = "gamemap";
 
+export const TileTypes = [
+    "sand", 
+    "grass",
+    "rock"
+] as const;
+
+export type TileType = typeof TileTypes[number];
+
