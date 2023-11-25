@@ -1,19 +1,71 @@
-import { Object3D } from "three";
+import { Object3D, ObjectLoader } from "three";
 import { Component, IComponentProps } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 
-export class Serialization {
-    public static postDeserialize(obj: Object3D) {
+class Serialization {
+
+    private _loader = new ObjectLoader();
+
+    public serialize(obj: Object3D, pretty = false) {
+        // TODO this doesn't take into account the children!
+        const liveUserData = obj.userData;
+        const persistentUserData = { ...liveUserData };
+        if (persistentUserData.components) {
+            const entries = Object.entries(persistentUserData.components);
+            persistentUserData.components = {};
+            for (const [type, _component] of entries) {
+                const persistentComponent = { ..._component as Component<IComponentProps>};
+                if ("_state" in persistentComponent) {
+                    delete persistentComponent._state;
+                }
+                persistentUserData.components[type] = persistentComponent;
+            }
+        }        
+        obj.userData = persistentUserData;
+        const data = obj.toJSON();
+        obj.userData = liveUserData;
+
+        if (pretty) {
+            return JSON.stringify(data ?? "{}", null, 2);
+        } else {
+            return JSON.stringify(data ?? {});
+        }
+    }
+
+    public deserialize(serialized: string, target?: Object3D) {
+        const newInstance = this._loader.parse(JSON.parse(serialized));
+        if (target) {
+            const liveUserData = target.userData;
+            target.userData = {};
+            target.copy(newInstance, false);
+            target.userData = liveUserData;            
+            this.postDeserializeObject(target);
+            return target;
+        } else {
+            this.postDeserialize(newInstance);
+            return newInstance;
+        }
+    }
+
+    public postDeserialize(obj: Object3D) {
+        this.postDeserializeObject(obj);
+        this.postDeserializeComponents(obj);
+    }
+
+    private postDeserializeObject(obj: Object3D) {
         if ((obj as THREE.Mesh).isMesh) {
             const geometry = (obj as THREE.Mesh).geometry;
             if (geometry.type === "PlaneGeometry") {
                 geometry.rotateX(-Math.PI / 2);
             }
-        }        
+        }
         const { eulerRotation } = obj.userData;
         if (eulerRotation) {
             obj.rotation.copy(eulerRotation);
         }
+    }
+
+    private postDeserializeComponents(obj: Object3D) {
         const { components } = obj.userData;
         if (components) {
             for (const [key, value] of Object.entries(components)) {
@@ -24,4 +76,6 @@ export class Serialization {
         }
     }
 }
+
+export const serialization = new Serialization();
 

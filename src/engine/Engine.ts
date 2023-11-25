@@ -1,6 +1,6 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
-import { Serialization } from "./Serialization";
+import { serialization } from "./Serialization";
 import { Component, IComponentInstance, IComponentProps } from "./Component";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { input } from "./Input";
@@ -103,7 +103,7 @@ class Engine {
         this._sceneStarted = false;
         const cameras: THREE.Camera[] = [];        
         scene.traverse(obj => {
-            Serialization.postDeserialize(obj);
+            serialization.postDeserialize(obj);
             const camera = obj as THREE.Camera;
             if (camera.isCamera) {
                 cameras.push(camera);
