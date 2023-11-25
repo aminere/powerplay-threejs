@@ -1,25 +1,5 @@
-import { Object3D, Vector2, type WebGLRenderer } from "three";
+import { Object3D, Vector2 } from "three";
 import { BezierPath } from "./BezierPath";
-
-export interface IGameContext {
-    action?: Action;
-}
-
-export interface IGame {
-    onResize: () => void;
-    start: () => void;
-    stop: () => void;
-    setCursorPos: (x: number, y: number) => void;
-    setCursorInsideScreen: (inside: boolean) => void;
-    setCursorOverUI: (over: boolean) => void;
-    get currentContext(): IGameContext;
-    get renderer(): WebGLRenderer;
-}
-
-export enum GameState {
-    Intro,
-    Game  
-}
 
 export type RailTip = "start" | "end";
 
@@ -49,10 +29,7 @@ export interface ISector {
     layers: {
         buildings: Object3D;
         resources: Object3D;
-        terrain: Object3D;
-        rails: Object3D;
-        trains: Object3D;
-        cars: Object3D;
+        terrain: Object3D;        
     }
     textureData: {
         terrain: Uint8Array;

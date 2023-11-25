@@ -21,6 +21,18 @@ export class GameMap extends Component<IComponentProps> {
     private _state!: IGameMapState;    
 
     override start(owner: Object3D) {
+
+        const rails = new Object3D();
+        rails.name = "rails";
+        const trains = new Object3D();
+        trains.name = "trains";
+        const cars = new Object3D();
+        cars.name = "cars";
+        owner.add(rails);
+        owner.add(trains);
+        owner.add(cars);
+
+
         this._state = {
             sectors: new Map<string, any>(),
             action: null,
@@ -48,10 +60,15 @@ export class GameMap extends Component<IComponentProps> {
             touchStartCoords: new Vector2(),
             touchHoveredCoords: new Vector2(),
             touchDragged: false,
-            cursorOverUI: false            
+            cursorOverUI: false,
+            layers: {
+                rails,
+                trains,
+                cars
+            }            
         };
         
-        gameMapState.instance = this._state;
+        gameMapState.instance = this._state;        
         this.createSector(new Vector2(0, 0));
         this._state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this._state.camera = this._state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
@@ -208,10 +225,10 @@ export class GameMap extends Component<IComponentProps> {
                                 case "car": {                                    
                                     if (input.touchButton === 0) {
                                         if (!cell.unit) {
-                                            const { sectors } = this._state;
+                                            const { sectors, layers } = this._state;
                                             const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                                             
-                                            const car = utils.createObject(sector.layers.cars, "car");
+                                            const car = utils.createObject(layers.cars, "car");
                                             utils.setComponent(car, new Car({
                                                 coords: this._state.selectedCellCoords.clone()
                                             }));
@@ -241,12 +258,11 @@ export class GameMap extends Component<IComponentProps> {
                                 case "train": {
                                     if (input.touchButton === 0) {
                                         if (cell.rail) {
-                                            const { sectors } = this._state;
-                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                                            const { layers } = this._state;
                                             const wagonLength = 2;
                                             const numWagons = 4;
                                             const gap = .3;                                            
-                                            const train = utils.createObject(sector.layers.trains, "train");
+                                            const train = utils.createObject(layers.trains, "train");
                                             utils.setComponent(train, new Train({
                                                 cell,
                                                 wagonLength,

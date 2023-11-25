@@ -27,6 +27,11 @@ export interface IGameMapState {
     touchHoveredCoords: Vector2;
     touchDragged: boolean;
     cursorOverUI: boolean;
+    layers: {
+        rails: Object3D;
+        trains: Object3D;
+        cars: Object3D;
+    }
 }
 
 export class GameMapState {
@@ -36,6 +41,7 @@ export class GameMapState {
     public get owner() { return this._instance.owner; }
     public get action() { return this._instance.action; }
     public get initialDragAxis() { return this._instance.initialDragAxis; }
+    public get layers() { return this._instance.layers; }
 
     public set bounds(value: Box2 | undefined) { this._instance.bounds = value; }  
     public set action(value: Action | null) { this._instance.action = value; }    

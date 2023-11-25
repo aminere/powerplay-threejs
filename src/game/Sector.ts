@@ -1,7 +1,6 @@
-import { Vector2 } from "three";
+import { Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
-import * as THREE from "three";
 import { Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
 
@@ -10,7 +9,7 @@ export class Sector {
         const { x, y } = coords;
         const { mapRes, cellSize } = config.game;
 
-        const sectorRoot = new THREE.Object3D();
+        const sectorRoot = new Object3D();
         sectorRoot.name = `sector-${x},${y}`;
         const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
@@ -19,16 +18,10 @@ export class Sector {
 
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch();
-        const buildings = new THREE.Object3D();
+        const buildings = new Object3D();
         buildings.name = "buildings";
-        const resources = new THREE.Object3D();
+        const resources = new Object3D();
         resources.name = "resources";
-        const rails = new THREE.Object3D();
-        rails.name = "rails";
-        const trains = new THREE.Object3D();
-        trains.name = "trains";
-        const cars = new THREE.Object3D();
-        cars.name = "cars";
 
         const { sectors } = gameMapState;
         sectors.set(
@@ -38,10 +31,7 @@ export class Sector {
                 layers: {
                     terrain,
                     buildings,
-                    resources,
-                    rails,
-                    trains,
-                    cars
+                    resources                    
                 },
                 textureData: {
                     terrain: cellTextureData,
@@ -54,9 +44,6 @@ export class Sector {
         sectorRoot.add(buildings);
         sectorRoot.add(resources);
         visualRoot.add(sectorRoot);
-        visualRoot.add(rails);
-        visualRoot.add(trains);
-        visualRoot.add(cars);
         return sectorRoot;       
     }
 

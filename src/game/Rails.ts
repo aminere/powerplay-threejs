@@ -207,14 +207,12 @@ export class Rails {
         endCoords?: Vector2,
         endAxis?: Axis
     ) {
-        const { sectors } = gameMapState;
         const [sectorCoords, sectorCoords2] = pools.vec2.get(2);
         const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
-        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
 
         GameUtils.mapToWorld(startCoords, rail.position);
-        sector.layers.rails.add(rail);
+        gameMapState.layers.rails.add(rail);
         startCell.rail = {
             obj: rail,
             axis: startAxis,
