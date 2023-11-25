@@ -18,7 +18,7 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: ['react', 'react-dom', 'three', 'ts-events', 'gsap'],
+      external: ['react', 'react-dom', 'three', 'ts-events', 'gsap', 'reflect-metadata'],
       output: {
         globals: {
           react: 'React',

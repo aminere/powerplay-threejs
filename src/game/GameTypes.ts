@@ -46,6 +46,7 @@ export type Axis = "x" | "z";
 
 export const Actions = [
     "elevation", 
+    "terrain",
     "road", 
     "building", 
     "rail", 

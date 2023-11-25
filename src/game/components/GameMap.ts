@@ -16,9 +16,33 @@ import { Train } from "./Train";
 import { Car } from "./Car";
 import { time } from "../../engine/Time";
 import gsap from "gsap";
+import * as Attributes from "../../engine/Attributes";
 
-export class GameMap extends Component<IComponentProps> {
+const TileTypes = [
+    "sand", 
+    "grass",
+    "rock"
+] as const;
+
+type TileType = typeof TileTypes[number];
+
+export class GameMapProps implements IComponentProps {    
+    constructor(props?: Partial<GameMapProps>) {
+        if (props) {
+            Object.assign(this, props);
+        }
+    }
+
+    @Attributes.enumOptions(TileTypes)
+    tileType: TileType = "sand";
+}
+
+export class GameMap extends Component<GameMapProps> {
     private _state!: IGameMapState;    
+
+    constructor(props?: GameMapProps) {
+        super(new GameMapProps(props));
+    }
 
     override start(owner: Object3D) {
 
@@ -31,7 +55,6 @@ export class GameMap extends Component<IComponentProps> {
         owner.add(rails);
         owner.add(trains);
         owner.add(cars);
-
 
         this._state = {
             sectors: new Map<string, any>(),
