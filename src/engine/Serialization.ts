@@ -1,6 +1,7 @@
-import { Object3D, ObjectLoader } from "three";
+import { Object3D, ObjectLoader, Vector3 } from "three";
 import { Component, IComponentProps } from "./Component";
 import { componentFactory } from "./ComponentFactory";
+import { utils } from "./Utils";
 
 class Serialization {
 
@@ -36,9 +37,11 @@ class Serialization {
         const newInstance = this._loader.parse(JSON.parse(serialized));
         if (target) {
             const liveUserData = target.userData;
-            target.userData = {};
             target.copy(newInstance, false);
-            target.userData = liveUserData;            
+            target.userData = { 
+                ...liveUserData,
+                ...newInstance.userData
+            };            
             this.postDeserializeObject(target);
             return target;
         } else {
@@ -53,12 +56,17 @@ class Serialization {
     }
 
     private postDeserializeObject(obj: Object3D) {
-        if ((obj as THREE.Mesh).isMesh) {
+        const mesh = obj as THREE.Mesh;
+        const light = obj as THREE.DirectionalLight;
+        if (mesh.isMesh) {
             const geometry = (obj as THREE.Mesh).geometry;
             if (geometry.type === "PlaneGeometry") {
                 geometry.rotateX(-Math.PI / 2);
             }
+        } else if (light.isDirectionalLight) {
+            utils.updateDirectionalLightTarget(light);
         }
+
         const { eulerRotation } = obj.userData;
         if (eulerRotation) {
             obj.rotation.copy(eulerRotation);

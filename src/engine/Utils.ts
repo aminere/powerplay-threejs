@@ -1,4 +1,4 @@
-import { Camera, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera } from "three";
+import { Camera, DirectionalLight, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { config } from "../game/config";
 import { Component, IComponentInstance, IComponentProps } from "./Component";
 import { engine } from "./Engine";
@@ -19,6 +19,13 @@ class Utils {
             perspectiveCamera.aspect = aspect;
             perspectiveCamera.updateProjectionMatrix();
         }
+    }
+
+    private _dummy = new Vector3();
+    public updateDirectionalLightTarget(light: DirectionalLight) {
+        const lightDir = light.getWorldDirection(this._dummy);
+        light.target.position.copy(light.position).sub(lightDir);
+        light.target.updateMatrixWorld();
     }
 
     public getComponent<U extends Component<IComponentProps>>(ctor: new () => U, owner: Object3D) {

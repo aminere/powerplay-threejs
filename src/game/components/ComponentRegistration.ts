@@ -1,9 +1,8 @@
 import { componentFactory } from "../../powerplay";
-import { DirectionalLightComponent, IDirectionalLightProps } from "./DirectionalLightComponent";
-import { GameMap, GameMapProps } from "./GameMap";
+import { GameMap } from "./GameMap";
+import { GameMapProps } from "./GameMapProps";
 
 export function registerComponents() {
     componentFactory.register<GameMapProps>(GameMap);
-    componentFactory.register<IDirectionalLightProps>(DirectionalLightComponent);
 }
 
