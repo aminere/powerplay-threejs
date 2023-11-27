@@ -22,9 +22,10 @@ class Utils {
     }
 
     private _dummy = new Vector3();
+    private _dummy2 = new Vector3();
     public updateDirectionalLightTarget(light: DirectionalLight) {
-        const lightDir = light.getWorldDirection(this._dummy);
-        light.target.position.copy(light.position).sub(lightDir);
+        const lightDir = light.getWorldDirection(this._dummy);        
+        light.target.position.copy(light.getWorldPosition(this._dummy2)).sub(lightDir);
         light.target.updateMatrixWorld();
     }
 

@@ -404,6 +404,7 @@ export class GameMap extends Component<GameMapProps> {
         GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.max.y), this._state.camera, bottom);
         GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.max.y), this._state.camera, left);
         GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), this._state.camera, right);
+        utils.updateDirectionalLightTarget(this._state.light);
     }
 
     private onKeyDown(e: KeyboardEvent) {

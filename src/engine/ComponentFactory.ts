@@ -8,8 +8,8 @@ class ComponentFactory {
     }
 
     public create(typename: string, props?: IComponentProps) {
-        const creator = this._library.get(typename)!;
-        return creator(props);
+        const creator = this._library.get(typename);
+        return creator?.(props);
     }    
 
     public getTypes() {

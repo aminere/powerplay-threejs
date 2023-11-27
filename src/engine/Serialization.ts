@@ -79,7 +79,12 @@ class Serialization {
             for (const [key, value] of Object.entries(components)) {
                 const serializedInstance = value as Component<IComponentProps>;
                 const instance = componentFactory.create(key, serializedInstance.props);
-                components[key] = instance;
+                if (instance) {
+                    components[key] = instance;
+                } else {
+                    console.warn(`Unknown component ${key}`);
+                    delete components[key];
+                }                
             }
         }
     }
