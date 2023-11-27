@@ -80,6 +80,7 @@ export class GameMap extends Component<GameMapProps> {
         this._state.light = this._state.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
         const [, rotationY] = config.camera.rotation;
         this._state.cameraAngleRad = MathUtils.degToRad(rotationY);
+        this.updateCameraSize();
 
         this._state.tileSelector = new TileSector();
         this._state.tileSelector.visible = false;
@@ -458,7 +459,7 @@ export class GameMap extends Component<GameMapProps> {
         (this._state.camera as OrthographicCamera).updateProjectionMatrix();
         this.updateCameraBounds();
         const cameraLeft = -orthoSize * this._state.cameraZoom * aspect;
-        const _shadowRange = Math.abs(cameraLeft) * shadowRange;
+        const _shadowRange = Math.max(Math.abs(cameraLeft) * shadowRange, 10);
         this._state.light.shadow.camera.left = -_shadowRange;
         this._state.light.shadow.camera.right = _shadowRange;
         this._state.light.shadow.camera.top = _shadowRange;
