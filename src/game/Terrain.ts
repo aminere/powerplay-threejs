@@ -1,7 +1,6 @@
 
 import * as THREE from 'three';
 import { config } from './config';
-import { TileTypes } from './GameTypes';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {

@@ -1,4 +1,4 @@
-import { Object3D, ObjectLoader, Vector3 } from "three";
+import { Object3D, ObjectLoader } from "three";
 import { Component, IComponentProps } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 import { utils } from "./Utils";
@@ -39,10 +39,26 @@ class Serialization {
             const liveUserData = target.userData;
             target.copy(newInstance, false);
             target.userData = { 
-                ...liveUserData,
+            ...liveUserData,
                 ...newInstance.userData
             };            
             this.postDeserializeObject(target);
+
+            const { components } = target.userData;
+            if (components && liveUserData.components) {
+                for (const [key, value] of Object.entries(components)) {
+                    const liveComponent = liveUserData.components[key];
+                    if (liveComponent) {
+                        // keep the instance from the live component
+                        // but assign to it fresh props from the serialized component
+                        const serializedInstance = value as Component<IComponentProps>;
+                        const dummy = componentFactory.create(key, serializedInstance.props)!;
+                        liveComponent.props = dummy.props;
+                        components[key] = liveComponent;
+                    }
+                }
+            }
+
             return target;
         } else {
             this.postDeserialize(newInstance);
