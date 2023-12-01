@@ -48,13 +48,15 @@ class Serialization {
             if (components && liveUserData.components) {
                 for (const [key, value] of Object.entries(components)) {
                     const liveComponent = liveUserData.components[key];
+                    const serializedInstance = value as Component<IComponentProps>;
+                    const liveInstance = componentFactory.create(key, serializedInstance.props)!;
                     if (liveComponent) {
                         // keep the instance from the live component
                         // but assign to it fresh props from the serialized component
-                        const serializedInstance = value as Component<IComponentProps>;
-                        const dummy = componentFactory.create(key, serializedInstance.props)!;
-                        liveComponent.props = dummy.props;
+                        liveComponent.props = liveInstance.props;
                         components[key] = liveComponent;
+                    } else {
+                        components[key] = liveInstance
                     }
                 }
             }
