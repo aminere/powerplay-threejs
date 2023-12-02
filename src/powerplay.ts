@@ -1,6 +1,7 @@
 
 export { Component, type IComponentProps as ComponentProps } from "./engine/Component";
 export { serialization } from "./engine/Serialization";
+export { TArray } from "./engine/TArray";
 
 export { componentFactory } from "./engine/ComponentFactory";
 export { engine, type ISceneInfo } from "./engine/Engine";

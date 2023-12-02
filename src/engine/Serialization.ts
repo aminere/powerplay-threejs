@@ -1,7 +1,8 @@
-import { Object3D, ObjectLoader } from "three";
+import { Object3D, ObjectLoader, Vector2 } from "three";
 import { Component, IComponentProps } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 import { utils } from "./Utils";
+import { TArray } from "./TArray";
 
 class Serialization {
 
@@ -65,6 +66,21 @@ class Serialization {
         } else {
             this.postDeserialize(newInstance);
             return newInstance;
+        }
+    }
+
+    public deserializeComponentProps(liveProps: IComponentProps, serializedProps: IComponentProps) {
+        for (const [prop, value] of Object.entries(serializedProps)) {
+            const instance = liveProps[prop as keyof typeof liveProps];
+            const vec2 = instance as Vector2;
+            const array = instance as TArray<any>;
+            if (vec2.isVector2) {
+                vec2.copy(value);
+            } else if (array.isArray) {
+                array.copy(value);
+            } else {
+                Object.assign(liveProps, { [prop]: value });
+            }
         }
     }
 
