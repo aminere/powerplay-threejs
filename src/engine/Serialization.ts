@@ -72,6 +72,9 @@ class Serialization {
     public deserializeComponentProps(liveProps: IComponentProps, serializedProps: IComponentProps) {
         for (const [prop, value] of Object.entries(serializedProps)) {
             const instance = liveProps[prop as keyof typeof liveProps];
+            if (!instance) {
+                continue;
+            }
             const vec2 = instance as Vector2;
             const array = instance as TArray<any>;
             if (vec2.isVector2) {
