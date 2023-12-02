@@ -1,4 +1,4 @@
-import { Vector2 } from "three";
+import { Color, Vector2 } from "three";
 
 export class TArray<T> {
     public get length() { return this._data.length; }
@@ -26,7 +26,11 @@ export class TArray<T> {
                 if (ctor.name.endsWith("Vector2")) {
                     this._data = data.map(v => {
                         return new Vector2().copy(v as Vector2) as T;
-                    });                    
+                    });
+                } else if (ctor.name.endsWith("Color")) {
+                    this._data = data.map(v => {
+                        return new Color().set(v as Color) as T;
+                    });
                 } else {
                     this._data = [...data];
                 }

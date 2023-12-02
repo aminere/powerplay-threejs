@@ -18,8 +18,7 @@ import { time } from "../../engine/Time";
 import gsap from "gsap";
 import { GameMapProps } from "./GameMapProps";
 
-export class GameMap extends Component<GameMapProps> {
-    private _state!: IGameMapState;    
+export class GameMap extends Component<GameMapProps, IGameMapState> {
 
     constructor(props?: GameMapProps) {
         super(new GameMapProps(props));
@@ -37,7 +36,7 @@ export class GameMap extends Component<GameMapProps> {
         owner.add(trains);
         owner.add(cars);
 
-        this._state = {
+        this.setState({
             sectors: new Map<string, any>(),
             action: null,
             previousRoad: [],
@@ -70,7 +69,7 @@ export class GameMap extends Component<GameMapProps> {
                 trains,
                 cars
             }            
-        };
+        });
         
         gameMapState.instance = this._state;        
         this.createSector(new Vector2(0, 0));
