@@ -72,7 +72,7 @@ class Engine {
                 const { components } = obj.userData;
                 if (components) {
                     for (const instance of Object.values(components)) {
-                        (instance as Component<IComponentProps>).dispose();
+                        (instance as Component<IComponentProps>).dispose(obj);
                     }
                 }
 

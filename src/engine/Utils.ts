@@ -48,6 +48,19 @@ class Utils {
         }
     }
 
+    public removeComponent<U extends Component<IComponentProps>>(owner: Object3D, ctor: new () => U) {
+        const componentType = ctor.name;
+        this.removeComponentByType(owner, componentType);
+    }
+
+    public removeComponentByType(owner: Object3D, componentType: string) {
+        const instance = owner.userData.components?.[componentType] as Component<IComponentProps>;
+        if (instance) {
+            instance.dispose(owner);
+            delete owner.userData.components[componentType];
+        }
+    }
+
     public getComponents<U extends Component<IComponentProps>>(ctor: new () => U) {
         return engine.components.get(ctor.name) as IComponentInstance<U>[];
     }
@@ -64,10 +77,6 @@ class Utils {
         const data = await response.json();
         const object = new ObjectLoader().parse(data);
         return object;
-    }
-
-    public removeObject(obj: Object3D) {
-        obj.parent!.remove(obj);
     }
 
     public isPointerLocked() {

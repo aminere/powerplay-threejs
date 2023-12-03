@@ -4,11 +4,11 @@ export class TArray<T> {
     public get length() { return this._data.length; }
     public set length(value: number) { this._data.length = value; }
     public get isArray() { return true; }
-    public get data() { return this._data; }
+    public get data() { return this._data; }    
 
     private _data: T[] = [];
-    private get _createItem(): () => T { return this["_createItem"] as () => T; }
-    private get _copy(): (data: T[]) => void { return this["_copy"] as (data: T[]) => void; }
+    private get createItem() { return (this as any)["_createItem"] as () => T; }    
+    private get copyInternal() { return (this as any)["_copy"] as (data: T[]) => void; }
 
     constructor(ctor: new() => T) {
         Object.defineProperty(this, '_createItem', { 
@@ -39,11 +39,11 @@ export class TArray<T> {
     }
 
     public grow() {
-        this._data.push(this._createItem());
+        this._data.push(this.createItem());
     }
 
     public copy(other: TArray<T>) {
-        this._copy(other._data);
+        this.copyInternal(other._data);
     }
 
     public map(fn: (item: T, index: number) => any) {

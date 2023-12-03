@@ -3,11 +3,11 @@ import { Object3D } from "three";
 export interface IComponentProps { }
 export interface IComponentState { }
 
-export class Component<T extends IComponentProps, S extends IComponentState> {
+export class Component<T extends IComponentProps, S extends IComponentState = {}> {
 
     props: T;
 
-    protected get _state(): S { return this["_state"] as S }
+    protected get state() { return (this as any)["_state"] as S }
 
     constructor(props?: T) {
         this.props = props ?? {} as T;        
@@ -17,7 +17,7 @@ export class Component<T extends IComponentProps, S extends IComponentState> {
 
     update(_owner: Object3D) { }
 
-    dispose() { }
+    dispose(_owner: Object3D) { }
 
     protected setState(state: S) {
         Object.defineProperty(this, '_state', { 

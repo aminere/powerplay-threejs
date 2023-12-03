@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { config } from './config';
+import { Shader } from 'three';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -119,76 +120,80 @@ export class Terrain {
             // vertexColors: true,
             map: terrainTexture,
         });
-        terrainMaterial.onBeforeCompile = (shader) => {
-            const uniforms: TerrainUniforms = {
-                mapRes: { value: mapRes },
-                cellSize: { value: cellSize },
-                cellTexture: { value: cellTexture },
-                highlightTexture: { value: highlightTexture },
-                gridTexture: { value: gridTexture },
-                showGrid: { value: false }
-            };
-            shader.uniforms = {
-                ...shader.uniforms,
-                ...uniforms
-            };            
-            terrainMaterial.userData.shader = shader;
 
-            shader.vertexShader = `
-            varying vec3 vPosition;
-            ${shader.vertexShader}
-            `;
-
-            shader.vertexShader = shader.vertexShader.replace(
-                `#include <begin_vertex>`,
-                `                
-                vec3 transformed = vec3(position);
-                vPosition = position;
-                `
-            );
-
-            shader.fragmentShader = `
-                uniform float mapRes;
-                uniform float cellSize;
-                uniform sampler2D cellTexture;
-                uniform sampler2D highlightTexture;
-                uniform sampler2D gridTexture;
-                uniform bool showGrid;
+        Object.defineProperty(terrainMaterial, "onBeforeCompile", {
+            enumerable: false,
+            value: (shader: Shader) => { 
+                const uniforms: TerrainUniforms = {
+                    mapRes: { value: mapRes },
+                    cellSize: { value: cellSize },
+                    cellTexture: { value: cellTexture },
+                    highlightTexture: { value: highlightTexture },
+                    gridTexture: { value: gridTexture },
+                    showGrid: { value: false }
+                };
+                shader.uniforms = {
+                    ...shader.uniforms,
+                    ...uniforms
+                };            
+                terrainMaterial.userData.shader = shader;
+    
+                shader.vertexShader = `
                 varying vec3 vPosition;
-                ${shader.fragmentShader}
-            `;
-
-            shader.fragmentShader = shader.fragmentShader.replace(
-                `#include <map_fragment>`,
-                `                
-                #ifdef USE_MAP
-                    float localX = vPosition.x / cellSize;
-                    float localY = vPosition.z / cellSize;
-                    float cellX = floor(localX);
-                    float cellY = floor(localY);                    
-                    float cx = (cellX / mapRes); // + (.5 / mapRes);
-                    float cy = (cellY / mapRes); // + (.5 / mapRes);
-                    float normalizedIndex = texture2D(cellTexture, vec2(cx, cy)).r;
-                    float reconstructedIndex = round(normalizedIndex * ${lastTileIndex}.);
-                    float lookUpY = floor(reconstructedIndex / ${tileMapRes}.);
-                    float lookUpX = reconstructedIndex - lookUpY * ${tileMapRes}.;
-                    float localUVx = localX - cellX;
-                    float localUVy = localY - cellY;
-                    vec2 tileUv = vec2(lookUpX + localUVx, lookUpY + localUVy) / ${tileMapRes}.;
-                    vec4 tileColor = texture2D(map, vec2(tileUv.x, 1.0 - tileUv.y)); 
-                    diffuseColor *= tileColor;
-
-                    vec4 highlightColor = texture2D(highlightTexture, vec2(cx, cy));
-                    diffuseColor.rgb *= highlightColor.rgb;
-
-                    if (showGrid) {
-                        vec4 gridColor = texture2D(gridTexture, vec2(localUVx, localUVy));
-                        diffuseColor.rgb += gridColor.rgb;    
-                    }
-                #endif
-                `
-            );
-        };
+                ${shader.vertexShader}
+                `;
+    
+                shader.vertexShader = shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `                
+                    vec3 transformed = vec3(position);
+                    vPosition = position;
+                    `
+                );
+    
+                shader.fragmentShader = `
+                    uniform float mapRes;
+                    uniform float cellSize;
+                    uniform sampler2D cellTexture;
+                    uniform sampler2D highlightTexture;
+                    uniform sampler2D gridTexture;
+                    uniform bool showGrid;
+                    varying vec3 vPosition;
+                    ${shader.fragmentShader}
+                `;
+    
+                shader.fragmentShader = shader.fragmentShader.replace(
+                    `#include <map_fragment>`,
+                    `                
+                    #ifdef USE_MAP
+                        float localX = vPosition.x / cellSize;
+                        float localY = vPosition.z / cellSize;
+                        float cellX = floor(localX);
+                        float cellY = floor(localY);                    
+                        float cx = (cellX / mapRes); // + (.5 / mapRes);
+                        float cy = (cellY / mapRes); // + (.5 / mapRes);
+                        float normalizedIndex = texture2D(cellTexture, vec2(cx, cy)).r;
+                        float reconstructedIndex = round(normalizedIndex * ${lastTileIndex}.);
+                        float lookUpY = floor(reconstructedIndex / ${tileMapRes}.);
+                        float lookUpX = reconstructedIndex - lookUpY * ${tileMapRes}.;
+                        float localUVx = localX - cellX;
+                        float localUVy = localY - cellY;
+                        vec2 tileUv = vec2(lookUpX + localUVx, lookUpY + localUVy) / ${tileMapRes}.;
+                        vec4 tileColor = texture2D(map, vec2(tileUv.x, 1.0 - tileUv.y)); 
+                        diffuseColor *= tileColor;
+    
+                        vec4 highlightColor = texture2D(highlightTexture, vec2(cx, cy));
+                        diffuseColor.rgb *= highlightColor.rgb;
+    
+                        if (showGrid) {
+                            vec4 gridColor = texture2D(gridTexture, vec2(localUVx, localUVy));
+                            diffuseColor.rgb += gridColor.rgb;    
+                        }
+                    #endif
+                    `
+                );
+            }
+        });        
 
         const { elevationStep } = config.game;        
         const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
