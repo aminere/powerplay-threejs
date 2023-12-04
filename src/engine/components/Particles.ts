@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Object3D, Points, PointsMaterial, SRGBColorSpace, TextureLoader, Vector2, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, Color, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { Component, IComponentProps, IComponentState } from "../Component";
 import { serialization } from "../Serialization";
 import { TArray } from "../TArray";
