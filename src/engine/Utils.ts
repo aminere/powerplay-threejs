@@ -38,14 +38,8 @@ class Utils {
             owner.userData.components = {};
         }
         owner.userData.components[component.constructor.name] = component;
+        this.registerComponent(component, owner);
         component.start(owner);
-
-        const list = engine.components.get(component.constructor.name);
-        if (list) {
-            list.push({ owner, component });
-        } else {
-            engine.components.set(component.constructor.name, [{ owner, component }]);
-        }
     }
 
     public removeComponent<U extends Component<IComponentProps>>(owner: Object3D, ctor: new () => U) {
@@ -58,6 +52,7 @@ class Utils {
         if (instance) {
             instance.dispose(owner);
             delete owner.userData.components[componentType];
+            this.unregisterComponent(instance, owner);
         }
     }
 
@@ -70,6 +65,25 @@ class Utils {
         obj.name = name;
         parent.add(obj);
         return obj;
+    }
+
+    public registerComponent(component: Component<IComponentProps>, owner: Object3D) {
+        const list = engine.components.get(component.constructor.name);
+        if (list) {
+            list.push({ owner, component });
+        } else {
+            engine.components.set(component.constructor.name, [{ owner, component }]);
+        }
+    }
+
+    public unregisterComponent(component: Component<IComponentProps>, owner: Object3D) {
+        const list = engine.components.get(component.constructor.name);
+        if (list) {
+            const index = list.findIndex(i => i.owner === owner);
+            if (index >= 0) {
+                list.splice(index, 1);
+            }
+        }
     }
 
     public async loadObject(path: string) {

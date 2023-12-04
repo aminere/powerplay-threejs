@@ -1,7 +1,8 @@
-import { BufferAttribute, BufferGeometry, Color, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
+import { BufferAttribute, Color, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { Component, IComponentProps, IComponentState } from "../Component";
 import { serialization } from "../Serialization";
 import { TArray } from "../TArray";
+import * as Attributes from "../../engine/Attributes";
 
 export class ParticlesProps implements IComponentProps {
     constructor(props?: ParticlesProps) {
@@ -59,13 +60,9 @@ function getDataOffset(name: DataOffset, particleIndex: number, localOffset: num
 
 class ParticleState implements IComponentState {
 
-    public get particles() { return this._particles; }
-
-    private _particles: Points;
     private _data: number[];
 
-    constructor(particles: Points, maxParticles: number) {
-        this._particles = particles;
+    constructor(maxParticles: number) {
         this._data = new Array(maxParticles * dataOffsets.MAX).fill(0);
     }
 
@@ -100,7 +97,7 @@ class ParticleState implements IComponentState {
     setColor(particleIndex: number, value: Color) {
         this.setData("color", particleIndex, value.r, 0);
         this.setData("color", particleIndex, value.g, 1);
-        this.setData("color", particleIndex, value.b, 2);        
+        this.setData("color", particleIndex, value.b, 2);
     }
 
     getColor(particleIndex: number, result: Color) {
@@ -110,31 +107,31 @@ class ParticleState implements IComponentState {
     }
 }
 
-export class Particles extends Component<ParticlesProps, ParticleState> {    
+@Attributes.componentRequires(obj => {
+    return obj instanceof Points && (obj as Points).material instanceof PointsMaterial;
+})
+export class Particles extends Component<ParticlesProps, ParticleState> {
 
     constructor(props?: ParticlesProps) {
         super(new ParticlesProps(props));
     }
 
-    override start(_owner: Object3D) { 
-        const geometry = new BufferGeometry();
-
+    override start(_owner: Points) {
+        const geometry = _owner.geometry;
         const vertices = new Float32Array([...Array(this.props.maxParticles)].flatMap(_ => [0, 0, 0]));
+        const colors = new Float32Array([...Array(this.props.maxParticles)].flatMap(_ => [1, 0, 0, .5]));
         geometry.setAttribute('position', new BufferAttribute(vertices, 3));
-        geometry.setDrawRange(0, 1);        
-        const material = new PointsMaterial({ color: 0xffffff, size: 10 });
-        const particles = new Points(geometry, material);
-        _owner.add(particles);
-
-        this.setState(new ParticleState(particles, this.props.maxParticles));
+        geometry.setAttribute('color', new BufferAttribute(colors, 4));
+        geometry.setDrawRange(0, 1);
+        this.setState(new ParticleState(this.props.maxParticles));
     }
 
-    override update(_owner: Object3D) { 
+    override update(_owner: Object3D) {
 
     }
 
-    override dispose(_owner: Object3D) { 
-        _owner.remove(this.state.particles);
+    override dispose(_owner: Object3D) {
+
     }
 }
 
