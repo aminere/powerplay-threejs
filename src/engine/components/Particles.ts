@@ -364,6 +364,7 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
         }
         
         geometry.setDrawRange(0, index);
+        geometry.computeBoundingSphere();        
         positions.needsUpdate = true;
         colors.needsUpdate = true;
         sizes.needsUpdate = true;

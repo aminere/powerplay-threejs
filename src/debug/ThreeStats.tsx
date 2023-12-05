@@ -1,10 +1,10 @@
-import { WebGLRenderer, WebGLProgram } from "three";
+import { WebGLProgram, WebGLInfo } from "three";
 
 import styles from "./three-stats.module.css";
-import { useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 
 interface IProps {
-    renderer: WebGLRenderer;
+    renderInfo: MutableRefObject<WebGLInfo | undefined>;
 }
 
 type WebGLProgramPatch = WebGLProgram & { type: string };    
@@ -16,11 +16,13 @@ export function ThreeStats(props: IProps) {
     const [triangles, setTriangles] = useState<number>(0);
 
     const tick = () => {
-        const { info } = props.renderer;
-        const names = info.programs?.map(p => `${(p as WebGLProgramPatch).type} (${p.usedTimes})`);
-        setShaders(names ?? []);        
-        setCalls(info.render.calls);
-        setTriangles(info.render.triangles);        
+        const renderInfo = props.renderInfo.current;
+        if (renderInfo) {
+            const names = renderInfo.programs?.map(p => `${(p as WebGLProgramPatch).type} (${p.usedTimes})`);
+            setShaders(names ?? []);        
+            setCalls(renderInfo.render.calls);
+            setTriangles(renderInfo.render.triangles);        
+        }
         requestId.current = requestAnimationFrame(tick);
     };
 
