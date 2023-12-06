@@ -67,6 +67,18 @@ class Utils {
         return obj;
     }
 
+    public removeObject(obj: Object3D) {
+        const components = obj.userData.components;
+        if (components) {
+            for (const value of Object.values(components)) {
+                const instance = value as Component<IComponentProps>;
+                instance.dispose(obj);
+                this.unregisterComponent(instance, obj);                
+            }
+        }
+        obj.removeFromParent();
+    }
+
     public registerComponent(component: Component<IComponentProps>, owner: Object3D) {
         const list = engine.components.get(component.constructor.name);
         if (list) {

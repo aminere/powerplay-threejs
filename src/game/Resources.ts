@@ -2,7 +2,8 @@ import { MathUtils, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
-import { Meshes } from "./Meshes";
+import { meshes } from "../engine/Meshes";
+import { objects } from "../engine/Objects";
 
 class Resources {
 
@@ -26,15 +27,14 @@ class Resources {
         const index = MathUtils.randInt(0, list.length - 1);
         const name = list[index];
         if (name.endsWith(".json")) {
-            // this is a prefab
-            utils.loadObject(`/models/${type}/${name}`)
+            objects.load(`/models/${type}/${name}`)
                 .then((obj) => {
                     resource.add(obj);
-                });
+                });            
         } else {
-            Meshes.load(`/models/${type}/${name}.glb`)
-                .then((meshes) => {
-                    for (const mesh of meshes) {
+            meshes.load(`/models/${type}/${name}.glb`)
+                .then((_meshes) => {
+                    for (const mesh of _meshes) {
                         mesh.castShadow = true;
                         resource.add(mesh);
                     }

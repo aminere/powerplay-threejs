@@ -3,7 +3,7 @@ import { Mesh, Object3D, Vector3 } from "three";
 import { config } from "./config";
 import { BezierPath } from "./BezierPath";
 import { IRail } from "./GameTypes";
-import { Meshes } from "./Meshes";
+import { meshes } from "../engine/Meshes";
 import { pools } from "../engine/Pools";
 
 class RailFactory {
@@ -16,7 +16,7 @@ class RailFactory {
     private _railMesh!: Mesh;    
 
     public async preload() {
-        const [rail] = await Meshes.load('/models/rails.glb');
+        const [rail] = await meshes.load('/models/rails.glb');
         this._railMesh = rail;
     }
 

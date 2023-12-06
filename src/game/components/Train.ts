@@ -1,7 +1,7 @@
 
 import { Component, IComponentProps } from "../../engine/Component";
 import { ICell } from "../GameTypes";
-import { Meshes } from "../Meshes";
+import { meshes } from "../../engine/Meshes";
 import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";
 import { Object3D } from "three";
@@ -27,7 +27,7 @@ export class Train extends Component<ITrainProps> {
         const { numWagons, gap, wagonLength, cell } = this.props;
         for (let i = 0; i < numWagons; ++i) {
             const wagon = utils.createObject(owner, "wagon");
-            Meshes.load("/models/train.glb").then(([mesh]) => {
+            meshes.load("/models/train.glb").then(([mesh]) => {
                 mesh.castShadow = true;
                 wagon.add(mesh);
             });

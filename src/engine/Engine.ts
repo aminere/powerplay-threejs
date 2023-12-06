@@ -6,6 +6,7 @@ import { registerComponents } from "../game/components/ComponentRegistration";
 import { input } from "./Input";
 import { pools } from "./Pools";
 import { time } from "./Time";
+import { utils } from "./Utils";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -110,19 +111,8 @@ class Engine {
             }
             const { components } = obj.userData;
             if (components) {
-                for (const [type, value] of Object.entries(components)) {
-                    const list = this._componentsMap.get(type);
-                    if (list) {
-                        list.push({
-                            owner: obj,
-                            component: value as Component<IComponentProps>
-                        });
-                    } else {
-                        this._componentsMap.set(type, [{
-                            owner: obj,
-                            component: value as Component<IComponentProps>
-                        }]);
-                    }
+                for (const value of Object.values(components)) {
+                    utils.registerComponent(value as Component<IComponentProps>, obj);                    
                 }
             }            
         });

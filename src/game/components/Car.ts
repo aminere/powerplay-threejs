@@ -1,7 +1,7 @@
 import { BufferGeometry, Color, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { Axis, ICell, ISector } from "../GameTypes";
-import { Meshes } from "../Meshes";
+import { meshes } from "../../engine/Meshes";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { Sector } from "../Sector";
@@ -97,8 +97,8 @@ export class Car extends Component<ICarProps> {
     override start(owner: Object3D) {
         this._owner = owner;
         GameUtils.mapToWorld(this.props.coords, owner.position);
-        Meshes.load("/models/car.glb").then(meshes => {
-            for (const mesh of meshes) {
+        meshes.load("/models/car.glb").then(_meshes => {
+            for (const mesh of _meshes) {
                 mesh.castShadow = true;
                 owner.add(mesh);
             }
