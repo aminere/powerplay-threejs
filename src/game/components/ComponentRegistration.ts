@@ -1,12 +1,17 @@
-import { Particles, ParticlesProps } from "../../engine/components/Particles";
-import { componentFactory } from "../../powerplay";
+import { componentFactory } from "../../engine/ComponentFactory";
+import { Animator, AnimatorProps } from "../../engine/components/Animator";
+import { Particles } from "../../engine/components/Particles";
+import { ParticlesProps } from "../../engine/components/ParticlesProps";
+
 import { GameMap } from "./GameMap";
 import { GameMapProps } from "./GameMapProps";
-import { ITreeProps, Tree } from "./Tree";
+import { TreeProps, Tree } from "./Tree";
 
 export function registerComponents() {
-    componentFactory.register<GameMapProps>(GameMap);
+    componentFactory.register<AnimatorProps>(Animator);
     componentFactory.register<ParticlesProps>(Particles);
-    componentFactory.register<ITreeProps>(Tree);
+
+    componentFactory.register<GameMapProps>(GameMap);    
+    componentFactory.register<TreeProps>(Tree);    
 }
 

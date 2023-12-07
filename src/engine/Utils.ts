@@ -1,7 +1,8 @@
 import { Camera, DirectionalLight, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { config } from "../game/config";
-import { Component, IComponentInstance, IComponentProps } from "./Component";
+import { Component, IComponentInstance } from "./Component";
 import { engine } from "./Engine";
+import { ComponentProps } from "./ComponentProps";
 
 class Utils {
     public updateCameraAspect(camera: Camera, width: number, height: number) {
@@ -29,11 +30,11 @@ class Utils {
         light.target.updateMatrixWorld();
     }
 
-    public getComponent<U extends Component<IComponentProps>>(ctor: new () => U, owner: Object3D) {
+    public getComponent<U extends Component<ComponentProps>>(ctor: new () => U, owner: Object3D) {
         return owner.userData.components?.[ctor.name];
     }
 
-    public setComponent<U extends Component<IComponentProps>>(owner: Object3D, component: U) {
+    public setComponent<U extends Component<ComponentProps>>(owner: Object3D, component: U) {
         if (!("components" in owner.userData)) {
             owner.userData.components = {};
         }
@@ -42,13 +43,13 @@ class Utils {
         component.start(owner);
     }
 
-    public removeComponent<U extends Component<IComponentProps>>(owner: Object3D, ctor: new () => U) {
+    public removeComponent<U extends Component<ComponentProps>>(owner: Object3D, ctor: new () => U) {
         const componentType = ctor.name;
         this.removeComponentByType(owner, componentType);
     }
 
     public removeComponentByType(owner: Object3D, componentType: string) {
-        const instance = owner.userData.components?.[componentType] as Component<IComponentProps>;
+        const instance = owner.userData.components?.[componentType] as Component<ComponentProps>;
         if (instance) {
             instance.dispose(owner);
             delete owner.userData.components[componentType];
@@ -56,7 +57,7 @@ class Utils {
         }
     }
 
-    public getComponents<U extends Component<IComponentProps>>(ctor: new () => U) {
+    public getComponents<U extends Component<ComponentProps>>(ctor: new () => U) {
         return engine.components.get(ctor.name) as IComponentInstance<U>[];
     }
 
@@ -71,7 +72,7 @@ class Utils {
         const components = obj.userData.components;
         if (components) {
             for (const value of Object.values(components)) {
-                const instance = value as Component<IComponentProps>;
+                const instance = value as Component<ComponentProps>;
                 instance.dispose(obj);
                 this.unregisterComponent(instance, obj);                
             }
@@ -79,7 +80,7 @@ class Utils {
         obj.removeFromParent();
     }
 
-    public registerComponent(component: Component<IComponentProps>, owner: Object3D) {
+    public registerComponent(component: Component<ComponentProps>, owner: Object3D) {
         const list = engine.components.get(component.constructor.name);
         if (list) {
             list.push({ owner, component });
@@ -88,7 +89,7 @@ class Utils {
         }
     }
 
-    public unregisterComponent(component: Component<IComponentProps>, owner: Object3D) {
+    public unregisterComponent(component: Component<ComponentProps>, owner: Object3D) {
         const list = engine.components.get(component.constructor.name);
         if (list) {
             const index = list.findIndex(i => i.owner === owner);

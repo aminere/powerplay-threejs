@@ -1,12 +1,13 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { serialization } from "./Serialization";
-import { Component, IComponentInstance, IComponentProps } from "./Component";
-import { registerComponents } from "../game/components/ComponentRegistration";
+import { Component, IComponentInstance } from "./Component";
 import { input } from "./Input";
 import { pools } from "./Pools";
 import { time } from "./Time";
 import { utils } from "./Utils";
+import { ComponentProps } from "./ComponentProps";
+import { registerComponents } from "../game/components/ComponentRegistration";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -26,7 +27,7 @@ class Engine {
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
-    private _componentsMap = new Map<string, IComponentInstance<Component<IComponentProps>>[]>();
+    private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
     private _runtime: Runtime = "game";
 
     public init(width: number, height: number, runtime: Runtime) {
@@ -73,7 +74,7 @@ class Engine {
                 const { components } = obj.userData;
                 if (components) {
                     for (const instance of Object.values(components)) {
-                        (instance as Component<IComponentProps>).dispose(obj);
+                        (instance as Component<ComponentProps>).dispose(obj);
                     }
                 }
 
@@ -112,7 +113,7 @@ class Engine {
             const { components } = obj.userData;
             if (components) {
                 for (const value of Object.values(components)) {
-                    utils.registerComponent(value as Component<IComponentProps>, obj);                    
+                    utils.registerComponent(value as Component<ComponentProps>, obj);                    
                 }
             }            
         });

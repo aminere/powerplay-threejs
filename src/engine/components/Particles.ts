@@ -1,45 +1,11 @@
 import { BufferAttribute, Color, DynamicDrawUsage, MathUtils, Object3D, Points, ShaderMaterial, Vector2 } from "three";
-import { Component, IComponentProps } from "../Component";
-import { serialization } from "../Serialization";
+import { Component } from "../Component";
 import { TArray } from "../TArray";
 import { time } from "../Time";
 import { pools } from "../Pools";
 import { ParticleState } from "./ParticlesState";
+import { ParticlesProps } from "./ParticlesProps";
 import * as Attributes from "../../engine/Attributes";
-
-export const ParticleDirections = [
-    "static",
-    "awayFromCenter"    
-] as const;
-
-export type ParticleDirection = typeof ParticleDirections[number];
-
-export class ParticlesProps implements IComponentProps {
-    constructor(props?: ParticlesProps) {
-        if (props) {
-            serialization.deserializeComponentProps(this, props);
-        }
-    }
-
-    duration = 6;
-    isLooping = false;
-    maxParticles = 128;
-    particlesPerSecond = 30;
-    life = new Vector2(1, 2);
-    gravity = -10;
-    initialSpeed = new Vector2(1, 2);
-    initialSize = new Vector2(1, 2);
-    initialColor = new Color(0xffffff);
-    initialAlpha = 1;
-    radius = 1;
-
-    @Attributes.enumOptions(ParticleDirections)
-    direction: ParticleDirection = "static";
-
-    sizeOverLife = new TArray(Number);
-    colorOverLife = new TArray(Color);
-    alphaOverLife = new TArray(Number);
-}
 
 function randomRange(range: Vector2) {
     return MathUtils.randFloat(range.x, range.y);
@@ -77,7 +43,7 @@ function evaluateColorOverLife(data: TArray<Color>, lifeNormalized: number) {
 })
 export class Particles extends Component<ParticlesProps, ParticleState> {
 
-    constructor(props?: ParticlesProps) {
+    constructor(props?: Partial<ParticlesProps>) {
         super(new ParticlesProps(props));
     }
 

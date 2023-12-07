@@ -7,6 +7,7 @@ import { config } from "../config";
 import { pools } from "../../engine/Pools";
 import { Component } from "../../engine/Component";
 import { time } from "../../engine/Time";
+import { ComponentProps } from "../../powerplay";
 
 interface IMotionSegment {
     endDist: number;
@@ -149,13 +150,18 @@ function alignToTrack(segment: IMotionSegment, localDist: number, node: Object3D
     }
 }
 
-interface IWagonProps {
-    startingCell: ICell;
-    startingDist: number;
-    trackLimit: number;
+class WagonProps extends ComponentProps {
+    constructor(props?: Partial<WagonProps>) {
+        super();
+        this.deserialize(props);
+    }
+
+    startingCell: ICell = null!;
+    startingDist = 0;
+    trackLimit = 0;
 }
 
-export class Wagon extends Component<IWagonProps> {   
+export class Wagon extends Component<WagonProps> {   
 
     private _speed = 0;
     private _distanceToTravel!: number;
@@ -165,12 +171,8 @@ export class Wagon extends Component<IWagonProps> {
     private _currentMotionSegment = 0;
     private _isMoving = false;
 
-    constructor(props?: IWagonProps) {
-        super(props ?? {
-            startingCell: null!,
-            startingDist: 0,
-            trackLimit: 0
-        })
+    constructor(props?: Partial<WagonProps>) {
+        super(new WagonProps(props));
     }
 
     override start(owner: Object3D) {

@@ -1,8 +1,8 @@
-import { Color, Object3D, ObjectLoader, Vector2 } from "three";
-import { Component, IComponentProps, IComponentState } from "./Component";
+import { Object3D, ObjectLoader } from "three";
+import { Component, IComponentState } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 import { utils } from "./Utils";
-import { TArray } from "./TArray";
+import { ComponentProps } from "./ComponentProps";
 
 class Serialization {
 
@@ -32,7 +32,7 @@ class Serialization {
             if (components && liveUserData.components) {
                 for (const [key, value] of Object.entries(components)) {
                     const liveComponent = liveUserData.components[key];
-                    const serializedInstance = value as Component<IComponentProps, IComponentState>;
+                    const serializedInstance = value as Component<ComponentProps, IComponentState>;
                     const liveInstance = componentFactory.create(key, serializedInstance.props)!;
                     if (liveComponent) {
                         // keep the instance from the live component
@@ -50,28 +50,7 @@ class Serialization {
             this.postDeserialize(newInstance);
             return newInstance;
         }
-    }
-
-    public deserializeComponentProps(liveProps: IComponentProps, serializedProps: IComponentProps) {
-        for (const [prop, value] of Object.entries(serializedProps)) {
-            const instance = liveProps[prop as keyof typeof liveProps];
-            if (instance === undefined) {
-                continue;
-            }
-            const vec2 = instance as Vector2;
-            const color = instance as Color;
-            const array = instance as TArray<any>;            
-            if (vec2.isVector2) {
-                vec2.copy(value);
-            } else if (color.isColor) {
-                color.set(value);
-            } else if (array.isArray) {
-                array.copy(value);
-            } else {
-                Object.assign(liveProps, { [prop]: value });
-            }
-        }
-    }
+    }    
 
     public postDeserialize(obj: Object3D) {
         this.postDeserializeObject(obj);
@@ -100,7 +79,7 @@ class Serialization {
         const { components } = obj.userData;
         if (components) {
             for (const [key, value] of Object.entries(components)) {
-                const serializedInstance = value as Component<IComponentProps, IComponentState>;
+                const serializedInstance = value as Component<ComponentProps, IComponentState>;
                 const instance = componentFactory.create(key, serializedInstance.props);
                 if (instance) {
                     components[key] = instance;

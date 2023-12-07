@@ -1,16 +1,15 @@
-import { IComponentProps } from "../../engine/Component";
 import { type TileType, TileTypes } from "../GameTypes";
+import { ComponentProps } from "../../engine/ComponentProps";
 import * as Attributes from "../../engine/Attributes";
-import { serialization } from "../../engine/Serialization";
 
-export class GameMapProps implements IComponentProps {    
-    constructor(props?: GameMapProps) {
-        if (props) {
-            serialization.deserializeComponentProps(this, props);
-        }
+export class GameMapProps extends ComponentProps {
+
+    constructor(props?: Partial<GameMapProps>) {
+        super();
+        this.deserialize(props);
     }
 
     @Attributes.enumOptions(TileTypes)
-    tileType: TileType = "sand";
+    tileType: TileType = "sand";    
 }
 

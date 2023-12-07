@@ -20,7 +20,7 @@ import { GameMapProps } from "./GameMapProps";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
-    constructor(props?: GameMapProps) {
+    constructor(props?: Partial<GameMapProps>) {
         super(new GameMapProps(props));
     }
 

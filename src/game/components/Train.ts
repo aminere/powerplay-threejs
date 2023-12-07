@@ -1,26 +1,27 @@
 
-import { Component, IComponentProps } from "../../engine/Component";
+import { Component } from "../../engine/Component";
 import { ICell } from "../GameTypes";
 import { meshes } from "../../engine/Meshes";
 import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";
 import { Object3D } from "three";
+import { ComponentProps } from "../../engine/ComponentProps";
 
-export interface ITrainProps extends IComponentProps {
-    numWagons: number;
-    gap: number;
-    wagonLength: number;
-    cell: ICell;
+export class TrainProps extends ComponentProps {
+    constructor(props?: Partial<TrainProps>) {
+        super();
+        this.deserialize(props);
+    }
+
+    numWagons = 1;
+    gap = .1;
+    wagonLength = 1;
+    cell: ICell = null!;
 }
 
-export class Train extends Component<ITrainProps> {
-    constructor(props?: ITrainProps) {
-        super(props ?? {
-            numWagons: 1,
-            gap: .1,
-            wagonLength: 1,
-            cell: null!
-        });
+export class Train extends Component<TrainProps> {
+    constructor(props?: Partial<TrainProps>) {
+        super(new TrainProps(props));
     }
 
     override start(owner: Object3D) {

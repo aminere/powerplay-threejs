@@ -1,13 +1,14 @@
-import { type Component, IComponentProps } from "./Component";
+import { Component } from "./Component";
+import { ComponentProps } from "./ComponentProps";
 
 class ComponentFactory {
-    private _library = new Map<string, (props?: IComponentProps) => Component<IComponentProps>>();    
+    private _library = new Map<string, (props?: ComponentProps) => Component<ComponentProps>>();    
 
-    public register<T extends IComponentProps>(ctor: new (p?: T) => Component<T>) {
-        this._library.set(ctor.name, (p?: IComponentProps) => new ctor(p as T));
+    public register<T extends ComponentProps>(ctor: new (p?: T) => Component<T>) {
+        this._library.set(ctor.name, (p?: ComponentProps) => new ctor(p as T));
     }
 
-    public create(typename: string, props?: IComponentProps) {
+    public create(typename: string, props?: ComponentProps) {
         const creator = this._library.get(typename);
         return creator?.(props);
     }    

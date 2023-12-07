@@ -8,6 +8,7 @@ import { Sector } from "../Sector";
 import { gameMapState } from "./GameMapState";
 import { Pathfinding } from "../Pathfinding";
 import { time } from "../../engine/Time";
+import { ComponentProps } from "../../engine/ComponentProps";
 
 enum MotionState {
     None,
@@ -28,8 +29,13 @@ interface IMotionSegment {
     endDist: number;
 }
 
-interface ICarProps {
-    coords: Vector2;
+class CarProps extends ComponentProps {
+    coords = new Vector2();
+
+    constructor(props?: Partial<CarProps>) {
+        super();
+        this.deserialize(props);
+    }
 }
 
 // const rotationTweenKey = "rotationTween";
@@ -72,7 +78,7 @@ function alignToSegment(segment: IMotionSegment, node: Object3D) {
     // node.userData[rotationTweenKey] = rotationTween;
 }
 
-export class Car extends Component<ICarProps> {
+export class Car extends Component<CarProps> {
 
     private get isMoving() { return this._motionState !== MotionState.None; }
 
@@ -88,10 +94,8 @@ export class Car extends Component<ICarProps> {
     private _cellWaittimer = 0;
     private _owner!: Object3D;
 
-    constructor(props?: ICarProps) {
-        super(props ?? {
-            coords: new Vector2()
-        });
+    constructor(props?: Partial<CarProps>) {
+        super(new CarProps(props));
     }
 
     override start(owner: Object3D) {

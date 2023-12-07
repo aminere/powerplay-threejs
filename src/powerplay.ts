@@ -1,5 +1,6 @@
 
-export { Component, type IComponentProps } from "./engine/Component";
+export { Component } from "./engine/Component";
+export { ComponentProps }  from "./engine/ComponentProps";
 export { serialization } from "./engine/Serialization";
 export { TArray } from "./engine/TArray";
 

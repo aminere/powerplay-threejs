@@ -1,9 +1,9 @@
 import { Object3D } from "three";
+import { ComponentProps } from "./ComponentProps";
 
-export interface IComponentProps { }
 export interface IComponentState { }
 
-export class Component<T extends IComponentProps, S extends IComponentState = {}> {
+export class Component<T extends ComponentProps, S extends IComponentState = {}> {
 
     props: T;
 
@@ -27,7 +27,7 @@ export class Component<T extends IComponentProps, S extends IComponentState = {}
     }
 }
 
-export interface IComponentInstance<T extends Component<IComponentProps, IComponentState>> {
+export interface IComponentInstance<T extends Component<ComponentProps, IComponentState>> {
     owner: Object3D;
     component: T;
 }
