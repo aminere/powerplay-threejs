@@ -12,12 +12,12 @@ class Serialization {
     public serialize(obj: Object3D, pretty = false) {         
        
         const data = (() => {
-            const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh");
-            if (skinnedMeshes.length > 0) {
-                return SkeletonUtils.clone(obj).toJSON();
-            } else {
+            // const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh");
+            // if (skinnedMeshes.length > 0) {
+            //     return SkeletonUtils.clone(obj).toJSON();
+            // } else {
                 return obj.toJSON();
-            }
+            // }
         })();
         
         if (pretty) {
