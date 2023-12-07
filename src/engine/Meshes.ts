@@ -1,7 +1,6 @@
 
 import * as THREE from 'three';
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+import { GLTFLoader, FBXLoader } from "three/examples/jsm/Addons.js";
 
 class Meshes {
     private _gltfLoader = new GLTFLoader();

@@ -3,13 +3,23 @@ import { Component, IComponentState } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 import { utils } from "./Utils";
 import { ComponentProps } from "./ComponentProps";
+import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
 class Serialization {
 
     private _loader = new ObjectLoader();
 
-    public serialize(obj: Object3D, pretty = false) {        
-        const data = obj.toJSON();
+    public serialize(obj: Object3D, pretty = false) {         
+       
+        const data = (() => {
+            const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh");
+            if (skinnedMeshes.length > 0) {
+                return SkeletonUtils.clone(obj).toJSON();
+            } else {
+                return obj.toJSON();
+            }
+        })();
+        
         if (pretty) {
             return JSON.stringify(data ?? "{}", null, 2);
         } else {
