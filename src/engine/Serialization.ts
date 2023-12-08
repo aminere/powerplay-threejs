@@ -81,18 +81,11 @@ class Serialization {
         });
     }    
 
-    private postDeserializeObject(obj: Object3D) {
-        const mesh = obj as THREE.Mesh;
+    private postDeserializeObject(obj: Object3D) {        
         const light = obj as THREE.DirectionalLight;
-        if (mesh.isMesh) {
-            const geometry = (obj as THREE.Mesh).geometry;
-            if (geometry.type === "PlaneGeometry") {
-                geometry.rotateX(-Math.PI / 2);
-            }
-        } else if (light.isDirectionalLight) {
+        if (light.isDirectionalLight) {
             utils.updateDirectionalLightTarget(light);
         }
-
         const { eulerRotation } = obj.userData;
         if (eulerRotation) {
             obj.rotation.copy(eulerRotation);

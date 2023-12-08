@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, AnimationClip, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { serialization } from "./Serialization";
 import { Component, IComponentInstance } from "./Component";
 import { input } from "./Input";
@@ -23,12 +23,14 @@ class Engine {
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
     public get components() { return this._componentsMap; }
+    public get animations() { return this._animations; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
     private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
     private _runtime: Runtime = "game";
+    private _animations: AnimationClip[] = [];
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -69,7 +71,6 @@ class Engine {
 
     public parseScene(data: object, onParsed: (props: ISceneInfo) => void) {
         if (this._scene) {
-            this._componentsMap.clear();          
             this._scene.traverse(obj => {
                 const { components } = obj.userData;
                 if (components) {
@@ -84,19 +85,26 @@ class Engine {
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
         this._sceneStarted = false;
-        const cameras: THREE.Camera[] = [];        
+        const cameras: THREE.Camera[] = [];
+        this._animations.length = 0;
+        this._componentsMap.clear();
         scene.traverse(obj => {
             serialization.postDeserialize(obj);
             const camera = obj as THREE.Camera;
             if (camera.isCamera) {
                 cameras.push(camera);
             }
+
+            if (obj.animations) {
+                this._animations.push(...obj.animations);
+            }
+
             const { components } = obj.userData;
             if (components) {
                 for (const value of Object.values(components)) {
                     utils.registerComponent(value as Component<ComponentProps>, obj);                    
                 }
-            }            
+            }
         });
 
         let mainCamera: Camera | undefined = undefined;
