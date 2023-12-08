@@ -1,4 +1,4 @@
-import { Object3D, ObjectLoader } from "three";
+import { Mesh, Object3D, ObjectLoader, SkinnedMesh } from "three";
 import { Component, IComponentState } from "./Component";
 import { componentFactory } from "./ComponentFactory";
 import { utils } from "./Utils";
@@ -7,17 +7,22 @@ import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
 class Serialization {
 
-    private _loader = new ObjectLoader();
+    private _loader = new ObjectLoader();   
 
-    public serialize(obj: Object3D, pretty = false) {         
-       
-        const data = (() => {
-            // const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh");
-            // if (skinnedMeshes.length > 0) {
-            //     return SkeletonUtils.clone(obj).toJSON();
-            // } else {
+    public serialize(obj: Object3D, pretty = false) {       
+        const data = (() => {   
+            const skinnedMesh = obj as SkinnedMesh;
+            if (skinnedMesh.isSkinnedMesh) {
+                console.assert(false, "TODO: serialize skinned mesh");
                 return obj.toJSON();
-            // }
+            }
+            const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh")
+            const cloneUsingSkeletonUtils = skinnedMeshes.length > 0;            
+            if (cloneUsingSkeletonUtils) {
+                return SkeletonUtils.clone(obj).toJSON();
+            } else {                
+                return obj.toJSON();
+            }
         })();
         
         if (pretty) {
@@ -29,32 +34,39 @@ class Serialization {
 
     public deserialize(serialized: string, target?: Object3D) {
         const newInstance = this._loader.parse(JSON.parse(serialized));
-        if (target) {
-            const liveUserData = target.userData;
-            target.copy(newInstance, false);
-            target.userData = { 
-            ...liveUserData,
-                ...newInstance.userData
-            };            
-            this.postDeserializeObject(target);
+        if (target) {            
+            this.parallelTraverse(target, newInstance, (_target, _newInstance) => {                
 
-            const { components } = target.userData;
-            if (components && liveUserData.components) {
-                for (const [key, value] of Object.entries(components)) {
-                    const liveComponent = liveUserData.components[key];
-                    const serializedInstance = value as Component<ComponentProps, IComponentState>;
-                    const liveInstance = componentFactory.create(key, serializedInstance.props)!;
-                    if (liveComponent) {
-                        // keep the instance from the live component
-                        // but assign to it fresh props from the serialized component
-                        liveComponent.props = liveInstance.props;
-                        components[key] = liveComponent;
-                    } else {
-                        components[key] = liveInstance
+                const liveUserData = _target.userData;
+                if ((_target as SkinnedMesh).isSkinnedMesh) {
+                    // Avoid affecting the existing skeleton
+                    Mesh.prototype.copy.call(_target, _newInstance as Mesh, false);
+                } else {
+                    _target.copy(_newInstance, false);
+                }                
+                _target.userData = {
+                    ...liveUserData,
+                    ..._newInstance.userData
+                };
+                this.postDeserializeObject(_target);
+    
+                const { components } = _target.userData;
+                if (components && liveUserData.components) {
+                    for (const [key, value] of Object.entries(components)) {
+                        const liveComponent = liveUserData.components[key];
+                        const serializedInstance = value as Component<ComponentProps, IComponentState>;
+                        const liveInstance = componentFactory.create(key, serializedInstance.props)!;
+                        if (liveComponent) {
+                            // keep the instance from the live component
+                            // but assign to it fresh props from the serialized component
+                            liveComponent.props = liveInstance.props;
+                            components[key] = liveComponent;
+                        } else {
+                            components[key] = liveInstance
+                        }
                     }
                 }
-            }
-
+            });
             return target;
         } else {
             this.postDeserialize(newInstance);
@@ -63,8 +75,10 @@ class Serialization {
     }    
 
     public postDeserialize(obj: Object3D) {
-        this.postDeserializeObject(obj);
-        this.postDeserializeComponents(obj);
+        obj.traverse(o => {
+            this.postDeserializeObject(o);
+            this.postDeserializeComponents(o);
+        });
     }    
 
     private postDeserializeObject(obj: Object3D) {
@@ -100,6 +114,13 @@ class Serialization {
             }
         }
     }
+
+    private parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
+        callback(a, b);
+        for (let i = 0; i < a.children.length; i++) {
+            this.parallelTraverse(a.children[i], b.children[i], callback);
+        }
+    }    
 }
 
 export const serialization = new Serialization();

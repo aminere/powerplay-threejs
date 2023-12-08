@@ -69,15 +69,38 @@ class Utils {
     }
 
     public removeObject(obj: Object3D) {
-        const components = obj.userData.components;
-        if (components) {
-            for (const value of Object.values(components)) {
-                const instance = value as Component<ComponentProps>;
-                instance.dispose(obj);
-                this.unregisterComponent(instance, obj);                
+        const unregisterComponents = (_obj: Object3D) => {
+            const components = _obj.userData.components;
+            if (components) {
+                for (const value of Object.values(components)) {
+                    const instance = value as Component<ComponentProps>;
+                    instance.dispose(_obj);
+                    this.unregisterComponent(instance, _obj);
+                }
             }
         }
+        obj.traverse(o => unregisterComponents(o));        
         obj.removeFromParent();
+    }
+
+    public disposeObject(obj: Object3D) {       
+        const mesh = obj as THREE.Mesh;
+        const line = obj as THREE.Line;
+        if (mesh.isMesh) {
+            mesh.geometry.dispose();
+            if (Array.isArray(mesh.material)) {
+                mesh.material.forEach(m => m.dispose());
+            } else {
+                mesh.material.dispose();
+            }
+        } else if (line.isLine) {
+            line.geometry.dispose();
+            if (Array.isArray(line.material)) {
+                line.material.forEach(m => m.dispose());
+            } else {
+                line.material.dispose();
+            }
+        }
     }
 
     public registerComponent(component: Component<ComponentProps>, owner: Object3D) {

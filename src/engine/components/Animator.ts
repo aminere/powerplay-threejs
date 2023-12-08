@@ -4,6 +4,9 @@ import { ComponentProps } from "../ComponentProps";
 import { time } from "../Time";
 
 export class AnimatorProps extends ComponentProps {
+
+    autoStart = true;    
+
     constructor(props?: Partial<AnimatorProps>) {
         super();
         this.deserialize(props);
