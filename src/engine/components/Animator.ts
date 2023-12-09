@@ -28,9 +28,9 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
         this.setState({ mixer });
 
         if (this.props.autoStart) {
-            const animation = engine.animations.find(a => a.name === this.props.animation);
-            if (animation) {
-                mixer.clipAction(animation).play();
+            const info = engine.animations.get(this.props.animation);
+            if (info) {
+                mixer.clipAction(info.clip).play();
             } else {
                 console.warn(`Animation '${this.props.animation}' not found`);
             }            

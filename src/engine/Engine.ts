@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, AnimationClip, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, AnimationClip, Camera, Object3D, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { serialization } from "./Serialization";
 import { Component, IComponentInstance } from "./Component";
 import { input } from "./Input";
@@ -30,7 +30,10 @@ class Engine {
     private _sceneStarted = false;
     private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
     private _runtime: Runtime = "game";
-    private _animations: AnimationClip[] = [];
+    private _animations = new Map<string, {
+        owner: Object3D;
+        clip: AnimationClip;
+    }>();
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -86,7 +89,7 @@ class Engine {
         this._scene = scene;
         this._sceneStarted = false;
         const cameras: THREE.Camera[] = [];
-        this._animations.length = 0;
+        this._animations.clear();
         this._componentsMap.clear();
         scene.traverse(obj => {
             serialization.postDeserialize(obj);
@@ -96,7 +99,14 @@ class Engine {
             }
 
             if (obj.animations) {
-                this._animations.push(...obj.animations);
+                for (const anim of obj.animations) {
+                    const existing = this._animations.get(anim.name);
+                    if (!existing) {
+                        this._animations.set(anim.name, { owner: obj, clip: anim });
+                    } else {
+                        console.assert(false, `Anim '${anim.name}' (${obj.name}) ignored because it name-clashes with an existing anim.`);
+                    }
+                }
             }
 
             const { components } = obj.userData;
