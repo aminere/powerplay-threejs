@@ -7,6 +7,7 @@ import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTar
 import { GameMap } from "./GameMap";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
+import { Water, WaterProps } from "./Water";
 
 export function registerComponents() {
     componentFactory.register<AnimatorProps>(Animator);
@@ -15,5 +16,6 @@ export function registerComponents() {
     componentFactory.register<GameMapProps>(GameMap);    
     componentFactory.register<GrassProps>(Grass);
     componentFactory.register<AnimateMorphTargetsProps>(AnimateMorphTargets);
+    componentFactory.register<WaterProps>(Water);
 }
 

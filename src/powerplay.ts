@@ -15,4 +15,5 @@ export { EngineStats } from "./debug/EngineStats";
 export { config } from "./game/config";
 
 export { meshes } from "./engine/Meshes";
+export { perlin } from "./engine/Perlin";
 
