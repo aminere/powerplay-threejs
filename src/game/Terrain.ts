@@ -197,7 +197,9 @@ export class Terrain {
 
         const { elevationStep } = config.game;        
         const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+        terrain.name = "terrain";
         terrain.scale.set(1, elevationStep, 1);
+        terrain.userData.unserializable = true;
         // terrain.castShadow = true;
         terrain.receiveShadow = true;        
         return { terrain, cellTextureData, highlightTextureData };

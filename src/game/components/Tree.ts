@@ -23,8 +23,6 @@ export class Tree extends Component<TreeProps, ITreeState> {
 
     override update(owner: Object3D) {
         const mesh = owner as Mesh;
-        console.assert(mesh.isMesh);
-        console.assert(mesh.morphTargetInfluences);
         const influences = mesh.morphTargetInfluences!;
         for (let i = 0; i < influences.length; i++) {
             this.state.angles[i] += time.deltaTime;

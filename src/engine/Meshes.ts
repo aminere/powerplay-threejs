@@ -1,11 +1,11 @@
 
-import * as THREE from 'three';
+import { Mesh, Object3D } from "three";
 import { GLTFLoader, FBXLoader } from "three/examples/jsm/Addons.js";
 
 class Meshes {
     private _gltfLoader = new GLTFLoader();
     private _fbxLoader = new FBXLoader();
-    private _cache = new Map<string, THREE.Mesh[]>();
+    private _cache = new Map<string, Mesh[]>();
 
     public async load(path: string) {
         const cached = this._cache.get(path);
@@ -13,7 +13,7 @@ class Meshes {
             console.log(`returning cached meshes for ${path}`);
             return cached.map(mesh => mesh.clone());
         }
-        return new Promise<THREE.Mesh[]>((resolve, reject) => {     
+        return new Promise<Mesh[]>((resolve, reject) => {     
             const ext = path.split(".").pop()?.toLowerCase();
             if (ext === "fbx") {
                 this._fbxLoader.load(
@@ -38,15 +38,15 @@ class Meshes {
         })
     }
 
-    private extractMeshes(path: string, root: THREE.Object3D) {
-        const meshes = new Array<THREE.Mesh>();
+    private extractMeshes(path: string, root: Object3D) {
+        const list: Mesh[] = [];
         root.traverse(child => {
-            if ((child as THREE.Mesh).isMesh) {
-                meshes.push(child as THREE.Mesh);
+            if ((child as Mesh).isMesh) {
+                list.push(child as Mesh);
             }
         });
-        this._cache.set(path, meshes);
-        return meshes.map(mesh => mesh.clone());
+        this._cache.set(path, list);
+        return list.map(mesh => mesh.clone() as Mesh);
     }
 }
 

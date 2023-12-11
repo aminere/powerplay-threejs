@@ -35,7 +35,11 @@ class Serialization {
     public deserialize(serialized: string, target?: Object3D) {
         const newInstance = this._loader.parse(JSON.parse(serialized));
         if (target) {            
-            this.parallelTraverse(target, newInstance, (_target, _newInstance) => {                
+            this.parallelTraverse(target, newInstance, (_target, _newInstance) => {
+                if (_target.userData.unserializable) {
+                    console.log(`skipping deserialization of ${_target.name}`);
+                    return;
+                }
 
                 const liveUserData = _target.userData;
                 if ((_target as SkinnedMesh).isSkinnedMesh) {

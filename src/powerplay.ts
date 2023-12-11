@@ -14,3 +14,5 @@ export { GameUI } from "./game/ui/GameUI";
 export { EngineStats } from "./debug/EngineStats";
 export { config } from "./game/config";
 
+export { meshes } from "./engine/Meshes";
+
