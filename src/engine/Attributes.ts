@@ -10,3 +10,7 @@ export function componentRequires(requires: (obj: Object3D) => boolean) {
     return Reflect.metadata("componentRequires", requires);
 }
 
+export function range(minMax: [number, number]) {
+    return Reflect.metadata("range", minMax);
+}
+

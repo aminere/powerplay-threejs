@@ -2,9 +2,12 @@ import { Color, Vector2 } from "three";
 import { TArray } from "./TArray";
 
 export class ComponentProps {
+    public active = true;
+
     protected deserialize(props?: Partial<ComponentProps>) {
         if (props) {
-            for (const [prop, value] of Object.entries(props)) {
+            for (const [prop, _value] of Object.entries(props)) {
+                const value = _value as any;
                 const instance = this[prop as keyof typeof this];
                 if (instance === undefined) {
                     continue;

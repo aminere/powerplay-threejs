@@ -145,7 +145,9 @@ class Engine {
 
         for (const [, components] of this._componentsMap) {
             for (const instance of components) {
-                instance.component.update(instance.owner);
+                if (instance.component.props.active) {
+                    instance.component.update(instance.owner);
+                }
             }
         }
     }
