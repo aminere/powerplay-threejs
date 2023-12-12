@@ -14,3 +14,6 @@ export function range(minMax: [number, number]) {
     return Reflect.metadata("range", minMax);
 }
 
+export function command(name: string) {
+    return Reflect.metadata("command", name);
+}

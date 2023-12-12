@@ -137,7 +137,9 @@ class Engine {
         if (!this._sceneStarted) {
             for (const [, components] of this._componentsMap) {
                 for (const instance of components) {
-                    instance.component.start(instance.owner);
+                    if (instance.component.props.active) {
+                        instance.component.start(instance.owner);
+                    }
                 }
             }
             this._sceneStarted = true;

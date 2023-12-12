@@ -120,7 +120,7 @@ export class Roads {
         const tileIndex = baseRoadTileIndex + roadTileIndex;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         const previousTile = Sector.updateCellTexture(sector, localCoords, tileIndex);
-        cell.roadTile = previousTile;        
+        cell.roadTile = previousTile;
     }
 
     private static getRoadTile(mapCoords: Vector2) {

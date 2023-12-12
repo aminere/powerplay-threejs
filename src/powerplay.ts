@@ -16,4 +16,7 @@ export { config } from "./game/config";
 
 export { meshes } from "./engine/Meshes";
 export { perlin } from "./engine/Perlin";
+export { GameMap } from "./game/components/GameMap";
+
+export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation } from "./game/GameTypes";
 

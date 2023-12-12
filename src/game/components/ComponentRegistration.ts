@@ -5,6 +5,7 @@ import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
 
 import { GameMap } from "./GameMap";
+import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
 import { Water, WaterProps } from "./Water";
@@ -17,5 +18,6 @@ export function registerComponents() {
     componentFactory.register<GrassProps>(Grass);
     componentFactory.register<AnimateMorphTargetsProps>(AnimateMorphTargets);
     componentFactory.register<WaterProps>(Water);
+    componentFactory.register<GameMapLoaderProps>(GameMapLoader);
 }
 

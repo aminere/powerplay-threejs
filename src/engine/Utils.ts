@@ -31,7 +31,7 @@ class Utils {
     }
 
     public getComponent<U extends Component<ComponentProps>>(ctor: new () => U, owner: Object3D) {
-        return owner.userData.components?.[ctor.name];
+        return owner.userData.components?.[ctor.name] as U | undefined;
     }
 
     public setComponent<U extends Component<ComponentProps>>(owner: Object3D, component: U) {
@@ -41,6 +41,7 @@ class Utils {
         owner.userData.components[component.constructor.name] = component;
         this.registerComponent(component, owner);
         component.start(owner);
+        return component;
     }
 
     public removeComponent<U extends Component<ComponentProps>>(owner: Object3D, ctor: new () => U) {

@@ -10,6 +10,9 @@ export class GameMapProps extends ComponentProps {
     }
 
     @Attributes.enumOptions(TileTypes)
-    tileType: TileType = "sand";    
+    tileType: TileType = "sand";
+
+    @Attributes.command("save")
+    saveCommand = true;
 }
 

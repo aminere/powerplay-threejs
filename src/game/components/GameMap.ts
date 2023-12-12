@@ -292,7 +292,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         }
     }    
 
-    private createSector(coords: Vector2) {
+    public createSector(coords: Vector2) {
         const sectorRoot = Sector.create(coords, this.state.owner);
 
         // update bounds
