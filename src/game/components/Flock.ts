@@ -7,11 +7,14 @@ import { pools } from "../../engine/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
+import { objects } from "../../engine/Objects";
+import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
 export class FlockProps extends ComponentProps {
 
+    radius = 20;
     count = 50;
     separation = 2;
     speed = 2;
@@ -31,7 +34,7 @@ interface IFlockState extends IComponentState {
         initialToTarget: Vector3;
         motion: MotionState;
         desiredPos: Vector3;
-        desiredPosValid: boolean;        
+        desiredPosValid: boolean;
     }[];
     target?: Vector3;    
 }
@@ -59,6 +62,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 unit.motion = "moving";
                 unit.desiredPosValid = false;
                 unit.initialToTarget.subVectors(this.state.target, unit.unit.position).setY(0).normalize();
+                // const material = ((unit.unit as Mesh).material as MeshBasicMaterial);
+                // material.opacity = 1;
             }
         }
 
@@ -98,21 +103,43 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     }
                 })();
 
-                const dist = otherDesiredPos.distanceTo(desiredPos);
+                const dist = otherDesiredPos.distanceTo(desiredPos);                
                 if (dist < separationDist) {
-                    // move away from each other
-                    const moveAmount = (separationDist - dist) / 2;
-                    toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                    desiredPos.add(toTarget);
-                    otherDesiredPos.sub(toTarget);
+                    if (units[j].motion === "idle") {
+                        if (units[i].motion === "moving") {
+                            const moveAmount = (separationDist - dist);
+                            toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                            otherDesiredPos.add(toTarget);
+                        } else {
+                            // move away from each other
+                            const moveAmount = (separationDist - dist) / 2;
+                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                            desiredPos.add(toTarget);
+                            otherDesiredPos.sub(toTarget);
+                        }
+                    } else if (units[i].motion === "idle") {
+                        const moveAmount = (separationDist - dist);
+                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        desiredPos.add(toTarget);
+                    } else {
+                        // move away from each other
+                        const moveAmount = (separationDist - dist) / 2;
+                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        desiredPos.add(toTarget);
+                        otherDesiredPos.sub(toTarget);
+                    }
                 }
             }
 
             unit.position.copy(desiredPos);
-            toTarget.subVectors(this.state.target, desiredPos).setY(0).normalize();
-            const pastTarget = toTarget.dot(units[i].initialToTarget) < 0;
-            if (pastTarget) {
-                units[i].motion = "idle";
+            if (units[i].motion === "moving") {
+                toTarget.subVectors(this.state.target, unit.position).setY(0).normalize();
+                const pastTarget = toTarget.dot(units[i].initialToTarget) < 0;
+                if (pastTarget) {
+                    units[i].motion = "idle";
+                    // const material = ((units[i].unit as Mesh).material as MeshBasicMaterial);
+                    // material.opacity = 0.5;
+                }
             }
             
             // lookAt.lookAt(GameUtils.vec3.zero, lookDir.copy(direction).negate(), GameUtils.vec3.up);
@@ -125,14 +152,19 @@ export class Flock extends Component<FlockProps, IFlockState> {
     }
 
     private async load(owner: Object3D) {
-        const radius = 5;
+        const radius = this.props.radius;
         const units: Object3D[] = [];
-        // const mesh = await objects.load("/test/Worker.json");
-        const loader = new TextureLoader();
-        const cube = new Mesh(new BoxGeometry(.5, 2, .5), new MeshBasicMaterial({ color: 0xffffff, map: loader.load("/images/tile-selected.png") }));
+        const mesh = await objects.load("/test/Worker.json");
+        // const loader = new TextureLoader();
+        // const geometry = new BoxGeometry(.5, 2, .5);
+        // const material = new MeshBasicMaterial({ 
+        //     color: 0xffffff,
+        //     map: loader.load("/images/grid.png"),
+        //     transparent: true
+        // });
         for (let i = 0; i < this.props.count; i++) {
-            // const unit = SkeletonUtils.clone(mesh);
-            const unit = cube.clone();
+            const unit = SkeletonUtils.clone(mesh);
+            // const unit = new Mesh(geometry, material.clone());
             owner.add(unit);
             unit.position.x = Math.random() * radius * 2 - radius;
             unit.position.z = Math.random() * radius * 2 - radius;
