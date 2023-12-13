@@ -102,7 +102,8 @@ export class Car extends Component<CarProps> {
         this._owner = owner;
         GameUtils.mapToWorld(this.props.coords, owner.position);
         meshes.load("/models/car.glb").then(_meshes => {
-            for (const mesh of _meshes) {
+            for (const _mesh of _meshes) {
+                const mesh = _mesh.clone();
                 mesh.castShadow = true;
                 owner.add(mesh);
             }

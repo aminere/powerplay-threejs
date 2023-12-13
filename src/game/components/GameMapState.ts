@@ -42,6 +42,7 @@ export class GameMapState {
     public get action() { return this._instance.action; }
     public get initialDragAxis() { return this._instance.initialDragAxis; }
     public get layers() { return this._instance.layers; }
+    public get camera() { return this._instance.camera; }
 
     public set bounds(value: Box2 | undefined) { this._instance.bounds = value; }  
     public set action(value: Action | null) { this._instance.action = value; }    

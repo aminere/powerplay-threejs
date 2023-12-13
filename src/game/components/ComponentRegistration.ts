@@ -3,6 +3,7 @@ import { Animator, AnimatorProps } from "../../engine/components/Animator";
 import { Particles } from "../../engine/components/Particles";
 import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
+import { Flock, FlockProps } from "./Flock";
 
 import { GameMap } from "./GameMap";
 import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
@@ -19,5 +20,6 @@ export function registerComponents() {
     componentFactory.register<AnimateMorphTargetsProps>(AnimateMorphTargets);
     componentFactory.register<WaterProps>(Water);
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
+    componentFactory.register<FlockProps>(Flock);
 }
 

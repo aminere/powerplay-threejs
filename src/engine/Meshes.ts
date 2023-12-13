@@ -11,7 +11,7 @@ class Meshes {
         const cached = this._cache.get(path);
         if (cached) {
             console.log(`returning cached meshes for ${path}`);
-            return cached.map(mesh => mesh.clone());
+            return cached;
         }
         return new Promise<Mesh[]>((resolve, reject) => {     
             const ext = path.split(".").pop()?.toLowerCase();
@@ -46,7 +46,7 @@ class Meshes {
             }
         });
         this._cache.set(path, list);
-        return list.map(mesh => mesh.clone() as Mesh);
+        return list;
     }
 }
 

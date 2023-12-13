@@ -28,7 +28,8 @@ export class Train extends Component<TrainProps> {
         const { numWagons, gap, wagonLength, cell } = this.props;
         for (let i = 0; i < numWagons; ++i) {
             const wagon = utils.createObject(owner, "wagon");
-            meshes.load("/models/train.glb").then(([mesh]) => {
+            meshes.load("/models/train.glb").then(([_mesh]) => {
+                const mesh = _mesh.clone();
                 mesh.castShadow = true;
                 wagon.add(mesh);
             });

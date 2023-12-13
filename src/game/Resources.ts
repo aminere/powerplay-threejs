@@ -34,7 +34,8 @@ class Resources {
         } else {
             meshes.load(`/models/${type}/${name}.glb`)
                 .then((_meshes) => {
-                    for (const mesh of _meshes) {
+                    for (const _mesh of _meshes) {
+                        const mesh = _mesh.clone();
                         mesh.castShadow = true;
                         resource.add(mesh);
                     }

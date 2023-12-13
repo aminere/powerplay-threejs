@@ -8,11 +8,11 @@ class Objects {
         const cached = this._cache.get(path);
         if (cached) {
             console.log(`returning cached object for ${path}`);
-            return cached.clone();
+            return cached;
         }
         const obj = await this._loader.loadAsync(path);
         this._cache.set(path, obj);
-        return obj.clone();
+        return obj;
     }
 }
 

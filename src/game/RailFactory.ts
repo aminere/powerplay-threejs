@@ -17,7 +17,7 @@ class RailFactory {
 
     public async preload() {
         const [rail] = await meshes.load('/models/rails.glb');
-        this._railMesh = rail;
+        this._railMesh = rail.clone();
     }
 
     public makeRail(length: number, rotation: number) {
