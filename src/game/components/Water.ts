@@ -1,5 +1,5 @@
 
-import { Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, Vector3 } from "three";
+import { Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
