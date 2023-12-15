@@ -1,5 +1,5 @@
 
-import { Object3D, Vector3 } from "three";
+import { Matrix4, Object3D, SkinnedMesh, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -9,6 +9,9 @@ import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { objects } from "../../engine/Objects";
+import { engine } from "../../engine/Engine";
+import { engineState } from "../../powerplay";
+import { Animator } from "../../engine/components/Animator";
 
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
@@ -173,8 +176,25 @@ export class Flock extends Component<FlockProps, IFlockState> {
         //     map: loader.load("/images/grid.png"),
         //     transparent: true
         // });
+
+        // shared skeleton
+        const identity = new Matrix4();
+        const sharedModel = SkeletonUtils.clone(mesh);
+        const shareSkinnedMesh = sharedModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
+        const sharedSkeleton = shareSkinnedMesh.skeleton;
+        const sharedRootBone = sharedSkeleton.bones[0];
+
+        // individual skeletons        
         for (let i = 0; i < this.props.count; i++) {
-            const unit = SkeletonUtils.clone(mesh);
+            // const unit = SkeletonUtils.clone(mesh);            
+            // engineState.setComponent(unit, new Animator({ animation: "walking" }));
+
+            const unit = shareSkinnedMesh.clone();
+            unit.bindMode = "detached";
+            unit.bind(sharedSkeleton, identity);
+            unit.quaternion.copy(sharedRootBone.parent!.quaternion);
+            unit.userData.unserializable = true;
+
             // const unit = new Mesh(geometry, material.clone());
             owner.add(unit);
             unit.position.x = Math.random() * radius * 2 - radius;
@@ -191,6 +211,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 movedLaterally: false                
             }))
         });
+
+        engine.scene!.add(sharedRootBone);
+        engineState.setComponent(sharedRootBone, new Animator({ animation: "walking" }))
+
     }
 }
 

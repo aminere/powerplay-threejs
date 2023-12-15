@@ -9,14 +9,18 @@ class Serialization {
 
     private _loader = new ObjectLoader();   
 
-    public serialize(obj: Object3D, pretty = false) {       
+    public serialize(obj: Object3D, pretty = false) {
+        if (obj.userData.unserializable) {
+            console.log(`skipping serialization of ${obj.name}`);
+            return null;
+        }
         const data = (() => {   
             const skinnedMesh = obj as SkinnedMesh;
             if (skinnedMesh.isSkinnedMesh) {
                 console.assert(false, "TODO: serialize skinned mesh");
                 return obj.toJSON();
             }
-            const skinnedMeshes = obj.getObjectsByProperty("type", "SkinnedMesh")
+            const skinnedMeshes = obj.getObjectsByProperty("isSkinnedMesh", true).filter(o => !o.userData.unserializable);
             const cloneUsingSkeletonUtils = skinnedMeshes.length > 0;            
             if (cloneUsingSkeletonUtils) {
                 return SkeletonUtils.clone(obj).toJSON();

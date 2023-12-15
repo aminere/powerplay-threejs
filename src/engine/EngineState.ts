@@ -57,7 +57,10 @@ class EngineState {
                 }
             }
         }
-        obj.traverse(o => unregisterComponents(o));        
+        obj.traverse(o => {
+            unregisterComponents(o);
+            this.unregisterAnimations(o);
+        });        
         obj.removeFromParent();
     }
 
@@ -88,6 +91,12 @@ class EngineState {
             } else {
                 console.assert(false, `Anim '${anim.name}' (${obj.name}) ignored because it name-clashes with an existing anim.`);
             }
+        }
+    }
+
+    private unregisterAnimations(obj: Object3D) {
+        for (const anim of obj.animations) {
+            this._animations.delete(anim.name);
         }
     }
 }
