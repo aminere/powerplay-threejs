@@ -1,5 +1,5 @@
 
-import { BoxGeometry, MathUtils, Mesh, MeshBasicMaterial, Object3D, TextureLoader, Vector3 } from "three";
+import { BoxGeometry, Mesh, MeshBasicMaterial, Object3D, TextureLoader, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -7,8 +7,7 @@ import { pools } from "../../engine/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
-import { objects } from "../../engine/Objects";
-import { SkeletonUtils } from "three/examples/jsm/Addons.js";
+
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
@@ -17,9 +16,11 @@ export class FlockProps extends ComponentProps {
     radius = 20;
     count = 50;
     separation = 1;
-    maxSpeed = 6;
+    maxSpeed = 10;
     speed = 4;   
     lookSpeed = 2;
+    repulsion = .2;
+    positionDamp = .4;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -37,7 +38,7 @@ interface IFlockState extends IComponentState {
         desiredPos: Vector3;
         desiredPosValid: boolean;        
     }[];
-    target?: Vector3;    
+    target?: Vector3;
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -74,7 +75,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { units } = this.state;
-        const [toTarget, toTarget2] = pools.vec3.get(2);
+        const [toTarget] = pools.vec3.get(1);
 
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
@@ -105,22 +106,23 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     }
                 })();
 
-                const dist = otherDesiredPos.distanceTo(desiredPos);                
+                const dist = otherDesiredPos.distanceTo(desiredPos);
+                const { repulsion } = this.props;             
                 if (dist < separationDist) {
                     if (units[j].motion === "idle") {
                         if (units[i].motion === "moving") {
-                            const moveAmount = Math.min((separationDist - dist), maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) + repulsion , maxSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             otherDesiredPos.add(toTarget);                            
                         } else {
                             // move away from each other
-                            const moveAmount = Math.min((separationDist - dist) / 2, maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) / 2 + repulsion, maxSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                             otherDesiredPos.sub(toTarget);
                         }
                     } else if (units[i].motion === "idle") {
-                        const moveAmount = Math.min((separationDist - dist), maxSteerAmount);
+                        const moveAmount = Math.min((separationDist - dist) + repulsion, maxSteerAmount);
                         toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                         desiredPos.add(toTarget);
                     } else {
@@ -147,8 +149,14 @@ export class Flock extends Component<FlockProps, IFlockState> {
             // unit.quaternion.setFromRotationMatrix(lookAt);
         }
 
+        const { positionDamp } = this.props;
         for (let i = 0; i < units.length; ++i) {
             units[i].unit.position.copy(units[i].desiredPos);
+            if (units[i].motion === "moving") {
+                units[i].unit.position.copy(units[i].desiredPos);
+            } else {
+                units[i].unit.position.lerp(units[i].desiredPos, positionDamp);
+            }            
             units[i].desiredPosValid = false;
         }
     }
@@ -179,7 +187,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 desiredPos: new Vector3(),
                 desiredPosValid: false,
                 motion: "idle",
-                movedLaterally: false
+                movedLaterally: false                
             }))
         });
     }
