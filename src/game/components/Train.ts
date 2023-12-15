@@ -6,6 +6,7 @@ import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";
 import { Object3D } from "three";
 import { ComponentProps } from "../../engine/ComponentProps";
+import { engineState } from "../../engine/EngineState";
 
 export class TrainProps extends ComponentProps {
     constructor(props?: Partial<TrainProps>) {
@@ -37,7 +38,7 @@ export class Train extends Component<TrainProps> {
             // mesh.position.set(0, .25, 0);
             // container.add(mesh);
             const halfLength = wagonLength / 2;
-            utils.setComponent(wagon, new Wagon({
+            engineState.setComponent(wagon, new Wagon({
                 startingCell: cell,
                 startingDist: -halfLength + wagonLength * (i + 1) + gap * i,
                 trackLimit: (numWagons - 1 - i) * (wagonLength + gap) + halfLength

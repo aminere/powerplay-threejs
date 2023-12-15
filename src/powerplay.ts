@@ -6,6 +6,7 @@ export { TArray } from "./engine/TArray";
 
 export { componentFactory } from "./engine/ComponentFactory";
 export { engine, type ISceneInfo } from "./engine/Engine";
+export { engineState } from "./engine/EngineState";
 export { input } from "./engine/Input";
 export { utils } from "./engine/Utils";
 export { time } from "./engine/Time";

@@ -1,5 +1,5 @@
 
-import { BoxGeometry, Mesh, MeshBasicMaterial, Object3D, TextureLoader, Vector3 } from "three";
+import { Object3D, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -7,6 +7,8 @@ import { pools } from "../../engine/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
+import { SkeletonUtils } from "three/examples/jsm/Addons.js";
+import { objects } from "../../engine/Objects";
 
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
@@ -163,17 +165,17 @@ export class Flock extends Component<FlockProps, IFlockState> {
     private async load(owner: Object3D) {
         const radius = this.props.radius;
         const units: Object3D[] = [];
-        // const mesh = await objects.load("/test/Worker.json");
-        const loader = new TextureLoader();
-        const geometry = new BoxGeometry(.5, 2, .5);
-        const material = new MeshBasicMaterial({ 
-            color: 0xffffff,
-            map: loader.load("/images/grid.png"),
-            transparent: true
-        });
+        const mesh = await objects.load("/test/Worker.json");
+        // const loader = new TextureLoader();
+        // const geometry = new BoxGeometry(.5, 2, .5);
+        // const material = new MeshBasicMaterial({ 
+        //     color: 0xffffff,
+        //     map: loader.load("/images/grid.png"),
+        //     transparent: true
+        // });
         for (let i = 0; i < this.props.count; i++) {
-            // const unit = SkeletonUtils.clone(mesh);
-            const unit = new Mesh(geometry, material.clone());
+            const unit = SkeletonUtils.clone(mesh);
+            // const unit = new Mesh(geometry, material.clone());
             owner.add(unit);
             unit.position.x = Math.random() * radius * 2 - radius;
             unit.position.z = Math.random() * radius * 2 - radius;

@@ -17,6 +17,7 @@ import { Car } from "./Car";
 import { time } from "../../engine/Time";
 import gsap from "gsap";
 import { GameMapProps } from "./GameMapProps";
+import { engineState } from "../../engine/EngineState";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -238,7 +239,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                             const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                                             
                                             const car = utils.createObject(layers.cars, "car");
-                                            utils.setComponent(car, new Car({
+                                            engineState.setComponent(car, new Car({
                                                 coords: this.state.selectedCellCoords.clone()
                                             }));
             
@@ -247,7 +248,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         }
         
                                     } else if (input.touchButton === 2) {
-                                        const cars = utils.getComponents(Car);
+                                        const cars = engineState.getComponents(Car);
                                         if (cars) {
                                             for (const car of cars) {
                                                 // car.entity.setComponent(GroupMotion, {
@@ -272,7 +273,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                             const numWagons = 4;
                                             const gap = .3;                                            
                                             const train = utils.createObject(layers.trains, "train");
-                                            utils.setComponent(train, new Train({
+                                            engineState.setComponent(train, new Train({
                                                 cell,
                                                 wagonLength,
                                                 numWagons,

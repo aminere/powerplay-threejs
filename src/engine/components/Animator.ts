@@ -2,7 +2,7 @@ import { AnimationMixer, Object3D } from "three";
 import { Component } from "../Component";
 import { ComponentProps } from "../ComponentProps";
 import { time } from "../Time";
-import { engine } from "../Engine";
+import { engineState } from "../EngineState";
 
 export class AnimatorProps extends ComponentProps {    
     animation = "";
@@ -28,7 +28,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
         this.setState({ mixer });
 
         if (this.props.autoStart) {
-            const info = engine.animations.get(this.props.animation);
+            const info = engineState.animations.get(this.props.animation);
             if (info) {
                 mixer.clipAction(info.clip).play();
             } else {

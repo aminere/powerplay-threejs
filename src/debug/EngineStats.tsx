@@ -2,7 +2,7 @@ import { WebGLProgram, WebGLInfo } from "three";
 
 import styles from "./engine-stats.module.css";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { engine } from "../engine/Engine";
+import { engineState } from "../engine/EngineState";
 
 interface IProps {
     renderInfo: MutableRefObject<WebGLInfo | undefined>;
@@ -45,19 +45,19 @@ export function EngineStats(props: IProps) {
         </div>
         {shadersExpanded && shaders.map((s, i) => <div key={i}>{s}</div>)}
         {
-            engine.animations.size > 0
+            engineState.animations.size > 0
             &&
             <div
                 className={`clickable ${styles.header}`}
                 onClick={() => setAnimsExpanded(!animsExpanded)}
             >
-                {animsExpanded ? "-" : "+"} Anims: {engine.animations.size}
+                {animsExpanded ? "-" : "+"} Anims: {engineState.animations.size}
             </div>
         }
         {
             animsExpanded
             &&
-            Array.from(engine.animations.values()).map((a, i) => {
+            Array.from(engineState.animations.values()).map((a, i) => {
                 return <div key={i}>{`${a.clip.name} (${a.owner.name})`}</div>
             })
         }

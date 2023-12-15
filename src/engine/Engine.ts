@@ -1,13 +1,14 @@
 
-import { ACESFilmicToneMapping, AnimationClip, Camera, Object3D, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { serialization } from "./Serialization";
-import { Component, IComponentInstance } from "./Component";
+import { Component } from "./Component";
 import { input } from "./Input";
 import { pools } from "./Pools";
 import { time } from "./Time";
 import { utils } from "./Utils";
 import { ComponentProps } from "./ComponentProps";
 import { registerComponents } from "../game/components/ComponentRegistration";
+import { engineState } from "./EngineState";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -22,18 +23,11 @@ class Engine {
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
-    public get components() { return this._componentsMap; }
-    public get animations() { return this._animations; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
-    private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
     private _runtime: Runtime = "game";
-    private _animations = new Map<string, {
-        owner: Object3D;
-        clip: AnimationClip;
-    }>();
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -89,8 +83,7 @@ class Engine {
         this._scene = scene;
         this._sceneStarted = false;
         const cameras: THREE.Camera[] = [];
-        this._animations.clear();
-        this._componentsMap.clear();
+        engineState.clear();        
         scene.traverse(obj => {
             serialization.postDeserialize(obj);
             const camera = obj as THREE.Camera;
@@ -98,21 +91,12 @@ class Engine {
                 cameras.push(camera);
             }
 
-            if (obj.animations) {
-                for (const anim of obj.animations) {
-                    const existing = this._animations.get(anim.name);
-                    if (!existing) {
-                        this._animations.set(anim.name, { owner: obj, clip: anim });
-                    } else {
-                        console.assert(false, `Anim '${anim.name}' (${obj.name}) ignored because it name-clashes with an existing anim.`);
-                    }
-                }
-            }
+            engineState.registerAnimations(obj);
 
             const { components } = obj.userData;
             if (components) {
                 for (const value of Object.values(components)) {
-                    utils.registerComponent(value as Component<ComponentProps>, obj);                    
+                    engineState.registerComponent(value as Component<ComponentProps>, obj);                    
                 }
             }
         });
@@ -131,11 +115,12 @@ class Engine {
             console.error("No camera found in scene");
         }        
         onParsed({ mainCamera: mainCamera!, cameras });       
-    }    
+    }
 
     private updateComponents() {
+        const componentsMap = engineState.components;
         if (!this._sceneStarted) {
-            for (const [, components] of this._componentsMap) {
+            for (const [, components] of componentsMap) {
                 for (const instance of components) {
                     if (instance.component.props.active) {
                         instance.component.start(instance.owner);
@@ -145,7 +130,7 @@ class Engine {
             this._sceneStarted = true;
         }
 
-        for (const [, components] of this._componentsMap) {
+        for (const [, components] of componentsMap) {
             for (const instance of components) {
                 if (instance.component.props.active) {
                     instance.component.update(instance.owner);

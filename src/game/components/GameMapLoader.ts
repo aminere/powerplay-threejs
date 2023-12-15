@@ -5,6 +5,7 @@ import { ComponentProps } from "../../engine/ComponentProps";
 import { ISerializedGameMap } from "../GameTypes";
 import { utils } from "../../engine/Utils";
 import { GameMap } from "./GameMap";
+import { engineState } from "../../engine/EngineState";
 
 export class GameMapLoaderProps extends ComponentProps {
 
@@ -32,7 +33,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
         const data = await response.json() as ISerializedGameMap;
 
         const gameMap = utils.createObject(owner.parent!, this.props.path);
-        const component = utils.setComponent(gameMap, new GameMap());
+        const component = engineState.setComponent(gameMap, new GameMap());
 
         for (const sector of data.sectors) {
             const sectorInstance = (() => {
