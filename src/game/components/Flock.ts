@@ -1,5 +1,5 @@
 
-import { Matrix4, Object3D, SkinnedMesh, Vector3 } from "three";
+import { Matrix4, Object3D, Quaternion, SkinnedMesh, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -41,7 +41,9 @@ interface IFlockState extends IComponentState {
         initialToTarget: Vector3;
         motion: MotionState;
         desiredPos: Vector3;
-        desiredPosValid: boolean;        
+        desiredPosValid: boolean;
+        lookDir: Vector3;
+        originalQuaternion: Quaternion;
     }[];
     target?: Vector3;
 }
@@ -86,6 +88,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const steerAmount = this.props.speed * time.deltaTime;
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
 
+        const lookAt = pools.mat4.getOne();
+        const quat = pools.quat.getOne();
         for (let i = 0; i < units.length; ++i) {
             const { unit, motion, desiredPos } = units[i];            
             
@@ -140,8 +144,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
 
+            toTarget.subVectors(this.state.target, unit.position).setY(0).normalize();
+
             if (units[i].motion === "moving") {
-                toTarget.subVectors(this.state.target, unit.position).setY(0).normalize();
                 const pastTarget = toTarget.dot(units[i].initialToTarget) < 0;
                 if (pastTarget) {
                     units[i].motion = "idle";
@@ -150,8 +155,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
             
-            // lookAt.lookAt(GameUtils.vec3.zero, lookDir.copy(direction).negate(), GameUtils.vec3.up);
-            // unit.quaternion.setFromRotationMatrix(lookAt);
+            units[i].lookDir.lerp(toTarget.negate(), .3).normalize();
+            lookAt.lookAt(GameUtils.vec3.zero, units[i].lookDir, GameUtils.vec3.up);
+            quat.setFromRotationMatrix(lookAt);
+            unit.quaternion.multiplyQuaternions(quat, units[i].originalQuaternion);
         }
 
         const { positionDamp } = this.props;
@@ -186,16 +193,15 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         // individual skeletons        
         for (let i = 0; i < this.props.count; i++) {
-            // const unit = SkeletonUtils.clone(mesh);            
+            // const unit = new Mesh(geometry, material.clone());
+            // const unit = SkeletonUtils.clone(mesh);
             // engineState.setComponent(unit, new Animator({ animation: "walking" }));
-
             const unit = shareSkinnedMesh.clone();
             unit.bindMode = "detached";
             unit.bind(sharedSkeleton, identity);
             unit.quaternion.copy(sharedRootBone.parent!.quaternion);
             unit.userData.unserializable = true;
-
-            // const unit = new Mesh(geometry, material.clone());
+            
             owner.add(unit);
             unit.position.x = Math.random() * radius * 2 - radius;
             unit.position.z = Math.random() * radius * 2 - radius;
@@ -204,11 +210,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
         this.setState({
             units: units.map((unit) => ({
                 unit,
-                initialToTarget: new Vector3(0, 0, 1),
+                initialToTarget: new Vector3(),
                 desiredPos: new Vector3(),
                 desiredPosValid: false,
                 motion: "idle",
-                movedLaterally: false                
+                movedLaterally: false,
+                lookDir: new Vector3(0, 0, 1),
+                originalQuaternion: unit.quaternion.clone()
             }))
         });
 
