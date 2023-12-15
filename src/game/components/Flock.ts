@@ -151,7 +151,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         const { positionDamp } = this.props;
         for (let i = 0; i < units.length; ++i) {
-            units[i].unit.position.copy(units[i].desiredPos);
             if (units[i].motion === "moving") {
                 units[i].unit.position.copy(units[i].desiredPos);
             } else {
