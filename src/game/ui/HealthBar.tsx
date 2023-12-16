@@ -1,5 +1,9 @@
 
-import { Color, Vector3 } from "three";
+import { useEffect, useRef } from "react";
+import { Color, Object3D, Vector3 } from "three";
+import { cmdUpdateUI } from "../../Events";
+import { gameMapState } from "../components/GameMapState";
+import { GameUtils } from "../GameUtils";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -20,15 +24,34 @@ function Square({ color }: { color: string; }) {
         }}
     />
 }
-export function HealthBar({ progress, screenPos }: { progress: number; screenPos: Vector3 }) {
+
+const worldPos = new Vector3();
+const screenPos = new Vector3();
+export function HealthBar({ progress, obj }: { progress: number; obj: Object3D }) {
     color.copy(empty).lerpHSL(full, progress);
-    return <div style={{
-        position: "absolute",
-        left: `${screenPos.x - totalWidth / 2}px`,
-        top: `${screenPos.y}px`,
-        display: "flex",
-        backgroundColor: "rgba(0, 0, 0, 0.3)",
-    }}>
+    const root = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const updateUI = () => {
+            const camera = gameMapState.camera;
+            worldPos.copy(obj.position).addScaledVector(obj.up, 1.7);
+            GameUtils.worldToScreen(worldPos, camera, screenPos);
+            root.current!.style.left = `${screenPos.x - totalWidth / 2}px`;
+            root.current!.style.top = `${screenPos.y}px`;
+        };
+        cmdUpdateUI.attach(updateUI);
+        return () => {
+            cmdUpdateUI.detach(updateUI);
+        }
+    }, []);
+    
+    return <div
+        ref={root}
+        style={{
+            position: "absolute",
+            display: "flex",
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+        }}
+    >
         {[...Array(parts)].map((_, i) => {
             const section = Math.floor(progress * parts);
             const opacity = (() => {

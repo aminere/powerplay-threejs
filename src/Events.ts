@@ -1,4 +1,4 @@
-import { AsyncEvent } from "ts-events";
+import { AsyncEvent, SyncEvent } from "ts-events";
 import { UIType } from "./game/GameTypes";
 import { Object3D } from "three";
 
@@ -12,4 +12,4 @@ export interface ISelectedUnit {
 } 
 
 export const cmdSetSeletedUnits = new AsyncEvent<ISelectedUnit[]>();
-
+export const cmdUpdateUI = new SyncEvent<void>();

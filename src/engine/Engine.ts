@@ -1,14 +1,15 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
-import { serialization } from "./Serialization";
+import { registerComponents } from "../game/components/ComponentRegistration";
 import { Component } from "./Component";
+import { ComponentProps } from "./ComponentProps";
+import { engineState } from "./EngineState";
 import { input } from "./Input";
 import { pools } from "./Pools";
+import { serialization } from "./Serialization";
 import { time } from "./Time";
 import { utils } from "./Utils";
-import { ComponentProps } from "./ComponentProps";
-import { registerComponents } from "../game/components/ComponentRegistration";
-import { engineState } from "./EngineState";
+import { cmdUpdateUI } from "../Events";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -58,6 +59,7 @@ class Engine {
     public render(camera: Camera) {
         this._renderer!.clear();
         this._renderer!.render(this._scene!, camera);
+        cmdUpdateUI.post();
     }
 
     public async loadScene(path: string, onLoaded: (props: ISceneInfo) => void) {

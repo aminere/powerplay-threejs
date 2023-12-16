@@ -29,8 +29,8 @@ class Resources {
         if (name.endsWith(".json")) {
             objects.load(`/models/${type}/${name}`)
                 .then((obj) => {
-                    resource.add(obj);
-                });            
+                    resource.add(obj.clone());
+                });
         } else {
             meshes.load(`/models/${type}/${name}.glb`)
                 .then((_meshes) => {
