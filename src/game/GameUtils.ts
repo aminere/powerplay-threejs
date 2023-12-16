@@ -124,10 +124,7 @@ export class GameUtils {
         const ground = pools.plane.getOne();
         const line = pools.line3.getOne();
         const rayEnd = pools.vec3.getOne();
-        normalizedPos.set(
-            (screenPos.x / width) * 2 - 1,
-            -(screenPos.y / height) * 2 + 1
-        );
+        normalizedPos.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
         GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
         const { ray } = GameUtils.rayCaster;
         ground.set(up, -yHeight);

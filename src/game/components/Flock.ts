@@ -1,5 +1,5 @@
 
-import { Matrix4, Object3D, Quaternion, SkinnedMesh, Vector3 } from "three";
+import { Box3, Box3Helper, LineBasicMaterial, Matrix4, Object3D, OrthographicCamera, Quaternion, Ray, SkinnedMesh, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -12,6 +12,7 @@ import { objects } from "../../engine/Objects";
 import { engine } from "../../engine/Engine";
 import { engineState } from "../../powerplay";
 import { Animator } from "../../engine/components/Animator";
+import { cmdSetSeletedUnits } from "../../Events";
 
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
@@ -44,8 +45,9 @@ interface IFlockState extends IComponentState {
         desiredPosValid: boolean;
         lookDir: Vector3;
         originalQuaternion: Quaternion;
+        target: Vector3;
     }[];
-    target?: Vector3;
+    selectedUnits: number[];    
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -57,28 +59,70 @@ export class Flock extends Component<FlockProps, IFlockState> {
         this.load(owner);
     }
 
-    override update() {
+    private _localRay = new Ray();
+    private _inverseMatrix = new Matrix4();
+    override update(_owner: Object3D) {
         if (!this.state) {
             return;
         }
 
         if (input.touchJustReleased) {
-            const intersection = pools.vec3.getOne();
-            const camera = gameMapState.camera;
-            GameUtils.screenCastOnPlane(camera, input.touchPos, 0, intersection);
-            this.state.target = new Vector3().copy(intersection);
-            for (const unit of this.state.units) {
-                unit.motion = "moving";
-                unit.desiredPosValid = false;
-                unit.initialToTarget.subVectors(this.state.target, unit.unit.position).setY(0).normalize();
-                // const material = ((unit.unit as Mesh).material as MeshBasicMaterial);
-                // material.opacity = 1;
-                // material.wireframe = false;
-            }
-        }
+            const camera = gameMapState.camera as OrthographicCamera;
+            if (input.touchButton === 0) {
+                const { width, height } = engine.screenRect;
+                const normalizedPos = pools.vec2.getOne();
+                normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                const { rayCaster } = GameUtils;
+                rayCaster.setFromCamera(normalizedPos, camera);
 
-        if (!this.state.target) {
-            return;
+                let selectedUnit: number | null = null;
+                const { units } = this.state;
+                for (let i = 0; i < units.length; ++i) {
+                    const { unit } = units[i];
+                    // convert ray to local space of skinned mesh
+                    this._inverseMatrix.copy(unit.matrixWorld).invert();
+                    this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
+                    const boundingBox = (unit as SkinnedMesh).boundingBox;
+                    if (this._localRay.intersectsBox(boundingBox)) {
+                        selectedUnit = i;
+                        break;
+                    }
+                }
+                for (const selected of this.state.selectedUnits) {
+                    const { unit } = units[selected];
+                    const box3Helper = unit.children[0] as Box3Helper;
+                    (box3Helper.material as LineBasicMaterial).color.setHex(0xff0000);
+                }
+                if (selectedUnit !== null) {
+                    const { unit } = units[selectedUnit];
+                    const box3Helper = unit.children[0] as Box3Helper;
+                    (box3Helper.material as LineBasicMaterial).color.setHex(0xffff00);
+                    this.state.selectedUnits = [selectedUnit];                    
+                } else {
+                    this.state.selectedUnits.length = 0;
+                }
+
+                cmdSetSeletedUnits.post(this.state.selectedUnits.map(i => {
+                    const selectedUnit = this.state.units[i];
+                    return {
+                        obj: selectedUnit.unit,
+                        health: 1
+                    }
+                }));
+
+            } else if (input.touchButton === 2) {
+                if (this.state.selectedUnits.length > 0) {
+                    const intersection = pools.vec3.getOne();
+                    GameUtils.screenCastOnPlane(camera, input.touchPos, 0, intersection);
+                    for (const selected of this.state.selectedUnits) {
+                        const unit = this.state.units[selected];
+                        unit.motion = "moving";
+                        unit.desiredPosValid = false;
+                        unit.target.copy(intersection);
+                        unit.initialToTarget.subVectors(unit.target, unit.unit.position).setY(0).normalize();
+                    }
+                }
+            }
         }
 
         const { units } = this.state;
@@ -89,6 +133,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
 
         const lookAt = pools.mat4.getOne();
+        const lookDir = pools.vec3.getOne();
         const quat = pools.quat.getOne();
         for (let i = 0; i < units.length; ++i) {
             const { unit, motion, desiredPos } = units[i];            
@@ -96,7 +141,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             if (motion === "idle") {
                 desiredPos.copy(unit.position);
             } else if (!units[i].desiredPosValid) {
-                toTarget.subVectors(this.state.target, unit.position).setY(0).normalize();
+                toTarget.subVectors(units[i].target, unit.position).setY(0).normalize();
                 desiredPos.addVectors(unit.position, toTarget.multiplyScalar(steerAmount));                    
             }
             units[i].desiredPosValid = true;
@@ -110,7 +155,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         return units[j].desiredPos;
                     } else {
                         units[j].desiredPosValid = true;
-                        toTarget.subVectors(this.state.target, units[j].unit.position).setY(0).normalize();
+                        toTarget.subVectors(units[j].target, units[j].unit.position).setY(0).normalize();
                         return units[j].desiredPos.addVectors(units[j].unit.position, toTarget.multiplyScalar(steerAmount));
                     }
                 })();
@@ -144,7 +189,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
 
-            toTarget.subVectors(this.state.target, unit.position).setY(0).normalize();
+            toTarget.subVectors(units[i].target, unit.position).setY(0).normalize();
 
             if (units[i].motion === "moving") {
                 const pastTarget = toTarget.dot(units[i].initialToTarget) < 0;
@@ -153,12 +198,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     // const material = ((units[i].unit as Mesh).material as MeshBasicMaterial);
                     // material.opacity = 0.5;
                 }
+
+                units[i].lookDir.lerp(toTarget, .3).normalize();
+                lookDir.copy(units[i].lookDir).negate();
+                lookAt.lookAt(GameUtils.vec3.zero, lookDir, GameUtils.vec3.up);
+                quat.setFromRotationMatrix(lookAt);
+                unit.quaternion.multiplyQuaternions(quat, units[i].originalQuaternion);
             }
-            
-            units[i].lookDir.lerp(toTarget.negate(), .3).normalize();
-            lookAt.lookAt(GameUtils.vec3.zero, units[i].lookDir, GameUtils.vec3.up);
-            quat.setFromRotationMatrix(lookAt);
-            unit.quaternion.multiplyQuaternions(quat, units[i].originalQuaternion);
         }
 
         const { positionDamp } = this.props;
@@ -175,14 +221,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
     private async load(owner: Object3D) {
         const radius = this.props.radius;
         const units: Object3D[] = [];
-        const mesh = await objects.load("/test/Worker.json");
-        // const loader = new TextureLoader();
-        // const geometry = new BoxGeometry(.5, 2, .5);
-        // const material = new MeshBasicMaterial({ 
-        //     color: 0xffffff,
-        //     map: loader.load("/images/grid.png"),
-        //     transparent: true
-        // });
+        const mesh = await objects.load("/test/Worker.json");        
 
         // shared skeleton
         const identity = new Matrix4();
@@ -191,16 +230,20 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const sharedSkeleton = shareSkinnedMesh.skeleton;
         const sharedRootBone = sharedSkeleton.bones[0];
 
-        // individual skeletons        
+        // individual skeletons  
+        const headOffset = new Vector3();   
         for (let i = 0; i < this.props.count; i++) {
-            // const unit = new Mesh(geometry, material.clone());
-            // const unit = SkeletonUtils.clone(mesh);
-            // engineState.setComponent(unit, new Animator({ animation: "walking" }));
             const unit = shareSkinnedMesh.clone();
             unit.bindMode = "detached";
             unit.bind(sharedSkeleton, identity);
             unit.quaternion.copy(sharedRootBone.parent!.quaternion);
             unit.userData.unserializable = true;
+            headOffset.copy(unit.position).setZ(1.8);
+            unit.boundingBox = new Box3().setFromObject(unit).expandByPoint(headOffset);
+
+            const box3Helper = new Box3Helper(unit.boundingBox, 0xff0000);
+            box3Helper.visible = false;
+            unit.add(box3Helper);
             
             owner.add(unit);
             unit.position.x = Math.random() * radius * 2 - radius;
@@ -216,13 +259,14 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 motion: "idle",
                 movedLaterally: false,
                 lookDir: new Vector3(0, 0, 1),
-                originalQuaternion: unit.quaternion.clone()
-            }))
+                originalQuaternion: unit.quaternion.clone(),
+                target: new Vector3().copy(unit.position)
+            })),
+            selectedUnits: []
         });
 
         engine.scene!.add(sharedRootBone);
-        engineState.setComponent(sharedRootBone, new Animator({ animation: "walking" }))
-
+        engineState.setComponent(sharedRootBone, new Animator({ animation: "walking" }));
     }
 }
 

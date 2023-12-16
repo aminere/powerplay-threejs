@@ -6,13 +6,15 @@ import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
 import { evtCursorOverUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
+import { HealthBar } from "./HealthBar";
+import { HealthBars } from "./HealthBars";
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
     return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
 }
 
 export function GameMapUI(props: IGameUIProps) {
-    const root = useRef<HTMLDivElement>(null);
+    const actionsElem = useRef<HTMLDivElement>(null);
     const hoveredElement = useRef<HTMLElement | null>(null);
     const hoveredElementOnDown = useRef<HTMLElement | null>(null);
     const cursorOverUI = useRef(false);
@@ -33,11 +35,11 @@ export function GameMapUI(props: IGameUIProps) {
     }, [selectedAction]);
 
     useEffect(() => {
-        if (!root.current) {
+        if (!actionsElem.current) {
             return;
         }
         const onGamePointerMove = () => {
-            const rect = root.current!.getBoundingClientRect();
+            const rect = actionsElem.current!.getBoundingClientRect();
             const { rawPointerPos } = props;
             const _cursorOverUI = isPointInRect(rawPointerPos.x, rawPointerPos.y, rect);
             if (cursorOverUI.current !== _cursorOverUI) {
@@ -93,25 +95,28 @@ export function GameMapUI(props: IGameUIProps) {
         };
     }, [setAction]);
 
-    return <div ref={root} className={styles.root}>
-        {Actions.map(action => {            
-            const selected = selectedAction === action;            
-            return <div
-                id={action}
-                key={action}
-                className={`${styles.action} clickable ${selected ? styles.selected : ''}`}
-                ref={e => actions.current[action] = e as HTMLElement}
-                onClick={() => {
-                    if (!utils.isPointerLocked()) {
-                        setAction(action);
-                    }
-                }}
-            >
-                <div>
-                    {action}
+    return <div className={styles.root}>
+        <div ref={actionsElem} className={styles.actions}>
+            {Actions.map(action => {
+                const selected = selectedAction === action;
+                return <div
+                    id={action}
+                    key={action}
+                    className={`${styles.action} clickable ${selected ? styles.selected : ''}`}
+                    ref={e => actions.current[action] = e as HTMLElement}
+                    onClick={() => {
+                        if (!utils.isPointerLocked()) {
+                            setAction(action);
+                        }
+                    }}
+                >
+                    <div>
+                        {action}
+                    </div>
                 </div>
-            </div>
-        })}
+            })}
+        </div>
+        <HealthBars />
     </div>
 }
 
