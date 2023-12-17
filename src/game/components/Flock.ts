@@ -1,5 +1,5 @@
 
-import { Box3, Box3Helper, LineBasicMaterial, Matrix4, Object3D, OrthographicCamera, Quaternion, Ray, SkinnedMesh, Vector3 } from "three";
+import { Box3, Box3Helper, LineBasicMaterial, Matrix4, Object3D, OrthographicCamera, Quaternion, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -12,7 +12,7 @@ import { objects } from "../../engine/Objects";
 import { engine } from "../../engine/Engine";
 import { engineState } from "../../powerplay";
 import { Animator } from "../../engine/components/Animator";
-import { cmdSetSeletedUnits } from "../../Events";
+import { cmdStartSelection, cmdEndSelection, cmdSetSeletedUnits } from "../../Events";
 
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
@@ -47,7 +47,9 @@ interface IFlockState extends IComponentState {
         originalQuaternion: Quaternion;
         target: Vector3;
     }[];
-    selectedUnits: number[];    
+    selectedUnits: number[];
+    selectionStart: Vector2;
+    selectionInProgress: boolean;
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -66,49 +68,62 @@ export class Flock extends Component<FlockProps, IFlockState> {
             return;
         }
 
-        if (input.touchJustReleased) {
+        if (input.touchJustPressed) {        
+            this.state.selectionInProgress = true;
+            this.state.selectionStart.copy(input.touchPos);
+            cmdStartSelection.post(input.touchPos);
+
+        } else if (input.touchJustReleased) {
             const camera = gameMapState.camera as OrthographicCamera;
             if (input.touchButton === 0) {
-                const { width, height } = engine.screenRect;
-                const normalizedPos = pools.vec2.getOne();
-                normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                const { rayCaster } = GameUtils;
-                rayCaster.setFromCamera(normalizedPos, camera);
 
-                let selectedUnit: number | null = null;
-                const { units } = this.state;
-                for (let i = 0; i < units.length; ++i) {
-                    const { unit } = units[i];
-                    // convert ray to local space of skinned mesh
-                    this._inverseMatrix.copy(unit.matrixWorld).invert();
-                    this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
-                    const boundingBox = (unit as SkinnedMesh).boundingBox;
-                    if (this._localRay.intersectsBox(boundingBox)) {
-                        selectedUnit = i;
-                        break;
-                    }
-                }
-                for (const selected of this.state.selectedUnits) {
-                    const { unit } = units[selected];
-                    const box3Helper = unit.children[0] as Box3Helper;
-                    (box3Helper.material as LineBasicMaterial).color.setHex(0xff0000);
-                }
-                if (selectedUnit !== null) {
-                    const { unit } = units[selectedUnit];
-                    const box3Helper = unit.children[0] as Box3Helper;
-                    (box3Helper.material as LineBasicMaterial).color.setHex(0xffff00);
-                    this.state.selectedUnits = [selectedUnit];                    
+                if (this.state.selectionInProgress) {
+                    cmdEndSelection.post();
+                    this.state.selectionInProgress = false;
+                    
                 } else {
-                    this.state.selectedUnits.length = 0;
-                }
-
-                cmdSetSeletedUnits.post(this.state.selectedUnits.map(i => {
-                    const selectedUnit = this.state.units[i];
-                    return {
-                        obj: selectedUnit.unit,
-                        health: 1
+                    const { width, height } = engine.screenRect;
+                    const normalizedPos = pools.vec2.getOne();
+                    normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                    const { rayCaster } = GameUtils;
+                    rayCaster.setFromCamera(normalizedPos, camera);
+    
+                    let selectedUnit: number | null = null;
+                    const { units } = this.state;
+                    for (let i = 0; i < units.length; ++i) {
+                        const { unit } = units[i];
+                        // convert ray to local space of skinned mesh
+                        this._inverseMatrix.copy(unit.matrixWorld).invert();
+                        this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
+                        const boundingBox = (unit as SkinnedMesh).boundingBox;
+                        if (this._localRay.intersectsBox(boundingBox)) {
+                            selectedUnit = i;
+                            break;
+                        }
                     }
-                }));
+                    for (const selected of this.state.selectedUnits) {
+                        const { unit } = units[selected];
+                        const box3Helper = unit.children[0] as Box3Helper;
+                        (box3Helper.material as LineBasicMaterial).color.setHex(0xff0000);
+                    }
+                    if (selectedUnit !== null) {
+                        const { unit } = units[selectedUnit];
+                        const box3Helper = unit.children[0] as Box3Helper;
+                        (box3Helper.material as LineBasicMaterial).color.setHex(0xffff00);
+                        this.state.selectedUnits = [selectedUnit];                    
+                    } else {
+                        this.state.selectedUnits.length = 0;
+                    }
+    
+                    cmdSetSeletedUnits.post(this.state.selectedUnits.map(i => {
+                        const selectedUnit = this.state.units[i];
+                        return {
+                            obj: selectedUnit.unit,
+                            health: 1
+                        }
+                    }));
+                }
+                
 
             } else if (input.touchButton === 2) {
                 if (this.state.selectedUnits.length > 0) {
@@ -122,6 +137,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         unit.initialToTarget.subVectors(unit.target, unit.unit.position).setY(0).normalize();
                     }
                 }
+            }
+        }
+
+        if (input.touchJustMoved) {
+            if (this.state.selectionInProgress) {
+                // TODO update selected units
             }
         }
 
@@ -262,7 +283,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 originalQuaternion: unit.quaternion.clone(),
                 target: new Vector3().copy(unit.position)
             })),
-            selectedUnits: []
+            selectedUnits: [],
+            selectionStart: new Vector2(),
+            selectionInProgress: false
         });
 
         engine.scene!.add(sharedRootBone);

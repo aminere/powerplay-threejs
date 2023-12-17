@@ -6,8 +6,8 @@ import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
 import { evtCursorOverUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
-import { HealthBar } from "./HealthBar";
 import { HealthBars } from "./HealthBars";
+import { SelectionRect } from "./SelectionRect";
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
     return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
@@ -117,6 +117,7 @@ export function GameMapUI(props: IGameUIProps) {
             })}
         </div>
         <HealthBars />
+        <SelectionRect />
     </div>
 }
 
