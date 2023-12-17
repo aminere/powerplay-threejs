@@ -177,24 +177,23 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
         }
 
+        const { repulsion } = this.props;
         const { units } = this.state;
-        const [toTarget] = pools.vec3.get(1);
-
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
-
         const lookAt = pools.mat4.getOne();
         const lookDir = pools.vec3.getOne();
         const quat = pools.quat.getOne();
+        const toTarget = pools.vec3.getOne();
         for (let i = 0; i < units.length; ++i) {
-            const { obj: unit, motion, desiredPos } = units[i];            
+            const { obj, motion, desiredPos } = units[i];            
             
             if (motion === "idle") {
-                desiredPos.copy(unit.position);
+                desiredPos.copy(obj.position);
             } else if (!units[i].desiredPosValid) {
-                toTarget.subVectors(units[i].target, unit.position).setY(0).normalize();
-                desiredPos.addVectors(unit.position, toTarget.multiplyScalar(steerAmount));                    
+                toTarget.subVectors(units[i].target, obj.position).setY(0).normalize();
+                desiredPos.addVectors(obj.position, toTarget.multiplyScalar(steerAmount));                    
             }
             units[i].desiredPosValid = true;
 
@@ -213,7 +212,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 })();
 
                 const dist = otherDesiredPos.distanceTo(desiredPos);
-                const { repulsion } = this.props;             
                 if (dist < separationDist) {
                     if (units[j].motion === "idle") {
                         if (units[i].motion === "moving") {
@@ -241,7 +239,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
 
-            toTarget.subVectors(units[i].target, unit.position).setY(0).normalize();
+            toTarget.subVectors(units[i].target, obj.position).setY(0).normalize();
 
             if (units[i].motion === "moving") {
                 const pastTarget = toTarget.dot(units[i].initialToTarget) < 0;
@@ -250,12 +248,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     // const material = ((units[i].unit as Mesh).material as MeshBasicMaterial);
                     // material.opacity = 0.5;
                 }
-
                 units[i].lookDir.lerp(toTarget, .3).normalize();
                 lookDir.copy(units[i].lookDir).negate();
                 lookAt.lookAt(GameUtils.vec3.zero, lookDir, GameUtils.vec3.up);
                 quat.setFromRotationMatrix(lookAt);
-                unit.quaternion.multiplyQuaternions(quat, this.state.baseRotation);
+                obj.quaternion.multiplyQuaternions(quat, this.state.baseRotation);
             }
         }
 
@@ -281,8 +278,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const shareSkinnedMesh = sharedModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
         const sharedSkeleton = shareSkinnedMesh.skeleton;
         const sharedRootBone = sharedSkeleton.bones[0];
-
-        // individual skeletons  
         const headOffset = new Vector3();   
         for (let i = 0; i < this.props.count; i++) {
             const obj = shareSkinnedMesh.clone();
