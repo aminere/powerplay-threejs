@@ -7,39 +7,44 @@ export function SelectionRect() {
 
     const rect = useRef<HTMLDivElement>(null);
     const selectionStart = useRef<Vector2>(new Vector2());
+    const selectionInProgress = useRef(false);
 
     useEffect(() => {
         const updateUI = () => {
             if (input.touchJustMoved) {
-                const startX = Math.min(input.touchPos.x, selectionStart.current.x);
-                const startY = Math.min(input.touchPos.y, selectionStart.current.y);
-                const width = Math.abs(input.touchPos.x - selectionStart.current.x);
-                const height = Math.abs(input.touchPos.y - selectionStart.current.y);
-                rect.current!.style.left = `${startX}px`;
-                rect.current!.style.top = `${startY}px`;
-                rect.current!.style.width = `${width}px`;
-                rect.current!.style.height = `${height}px`;
+                if (selectionInProgress.current) {
+                    const startX = Math.min(input.touchPos.x, selectionStart.current.x);
+                    const startY = Math.min(input.touchPos.y, selectionStart.current.y);
+                    const width = Math.abs(input.touchPos.x - selectionStart.current.x);
+                    const height = Math.abs(input.touchPos.y - selectionStart.current.y);
+                    rect.current!.style.left = `${startX}px`;
+                    rect.current!.style.top = `${startY}px`;
+                    rect.current!.style.width = `${width}px`;
+                    rect.current!.style.height = `${height}px`;
+                }
             }
         };
 
-        const onStartElection = (pos: Vector2) => {            
+        const onStartSelection = (pos: Vector2) => {            
             rect.current!.style.left = `${pos.x}px`;
             rect.current!.style.top = `${pos.y}px`;
             rect.current!.style.width = "0px";
             rect.current!.style.height = "0px";
             rect.current!.style.display = "block";
             selectionStart.current.copy(pos);
+            selectionInProgress.current = true;
         };
 
         const onEndSelection = () => {
             rect.current!.style.display = "none";
+            selectionInProgress.current = false;
         }
 
-        cmdStartSelection.attach(onStartElection);
+        cmdStartSelection.attach(onStartSelection);
         cmdEndSelection.attach(onEndSelection);
         cmdUpdateUI.attach(updateUI);
         return () => {            
-            cmdStartSelection.detach(onStartElection);
+            cmdStartSelection.detach(onStartSelection);
             cmdEndSelection.detach(onEndSelection);
             cmdUpdateUI.detach(updateUI);
         }
@@ -49,7 +54,7 @@ export function SelectionRect() {
         ref={rect}
         style={{
             position: "absolute",
-            border: "1px solid #7ac987",
+            border: "2px solid #7ac987",
             display: "none"
         }}
     />

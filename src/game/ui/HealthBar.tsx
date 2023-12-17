@@ -30,13 +30,17 @@ const screenPos = new Vector3();
 export function HealthBar({ progress, obj }: { progress: number; obj: Object3D }) {
     color.copy(empty).lerpHSL(full, progress);
     const root = useRef<HTMLDivElement>(null);
-    useEffect(() => {
+    useEffect(() => {        
         const updateUI = () => {
+            if (!root.current) {
+                return;
+            }
             const camera = gameMapState.camera;
             worldPos.copy(obj.position).addScaledVector(obj.up, 1.7);
             GameUtils.worldToScreen(worldPos, camera, screenPos);
             root.current!.style.left = `${screenPos.x - totalWidth / 2}px`;
             root.current!.style.top = `${screenPos.y}px`;
+            root.current!.style.display = `flex`;
         };
         cmdUpdateUI.attach(updateUI);
         return () => {
@@ -48,7 +52,7 @@ export function HealthBar({ progress, obj }: { progress: number; obj: Object3D }
         ref={root}
         style={{
             position: "absolute",
-            display: "flex",
+            display: "none",
             backgroundColor: "rgba(0, 0, 0, 0.3)",
         }}
     >
