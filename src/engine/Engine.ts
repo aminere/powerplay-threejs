@@ -23,12 +23,13 @@ class Engine {
     public set scene(value: Scene | null) { this._scene = value; }
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
-    public get screenRect() { return this._renderer!.domElement.getBoundingClientRect(); }
+    public get screenRect() { return this._screenRect; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
     private _runtime: Runtime = "game";
+    private _screenRect = { left: 0, top: 0, width: 0, height: 0 };
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -38,14 +39,19 @@ class Engine {
         renderer.toneMappingExposure = .8;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = PCFSoftShadowMap;
-        renderer.autoClear = false;
-        renderer!.setSize(width, height, false);
+        renderer.autoClear = false;        
         this._renderer = renderer;        
         this._runtime = runtime;
+        this.setScreenSize(width, height);
         registerComponents();
     }
 
     public dispose() {        
+    }
+
+    public setScreenSize(width: number, height: number) {
+        this._renderer!.setSize(width, height, false);
+        this._screenRect = this._renderer!.domElement.getBoundingClientRect();
     }
 
     public update() {
