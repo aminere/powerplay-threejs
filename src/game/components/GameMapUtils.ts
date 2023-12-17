@@ -65,12 +65,12 @@ export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Cam
     return selectedVertexIndex;
 }
 
-export function raycastOnCells(screenPos: Vector2, camera: Camera) {
+export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoords: Vector2) {
     const intersection = pools.vec3.getOne();
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
-        return;
+        return null;
     }
-    const [cellCoords, sectorCoords] = pools.vec2.get(2);
+    const sectorCoords = pools.vec2.getOne();
     GameUtils.worldToMap(intersection, cellCoords);
     const cell = GameUtils.getCell(cellCoords, sectorCoords);
     let sectorX = sectorCoords.x;

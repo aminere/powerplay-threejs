@@ -9,7 +9,7 @@ import { pools } from "./Pools";
 import { serialization } from "./Serialization";
 import { time } from "./Time";
 import { utils } from "./Utils";
-import { cmdUpdateUI } from "../Events";
+import { cmdUpdateUI, evtScreenResized } from "../Events";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -52,6 +52,7 @@ class Engine {
     public setScreenSize(width: number, height: number) {
         this._renderer!.setSize(width, height, false);
         this._screenRect = this._renderer!.domElement.getBoundingClientRect();
+        evtScreenResized.post();
     }
 
     public update() {

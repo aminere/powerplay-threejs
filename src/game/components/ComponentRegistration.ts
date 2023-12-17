@@ -3,7 +3,6 @@ import { Animator, AnimatorProps } from "../../engine/components/Animator";
 import { Particles } from "../../engine/components/Particles";
 import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
-import { Test, TestProps } from "./Test";
 import { Flock, FlockProps } from "./Flock";
 
 import { GameMap } from "./GameMap";
@@ -11,6 +10,7 @@ import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
 import { Water, WaterProps } from "./Water";
+import { Pathfinder, PathfinderProps } from "./Pathfinder";
 
 export function registerComponents() {
     componentFactory.register<AnimatorProps>(Animator);
@@ -22,6 +22,6 @@ export function registerComponents() {
     componentFactory.register<WaterProps>(Water);
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
     componentFactory.register<FlockProps>(Flock);
-    componentFactory.register<TestProps>(Test);
+    componentFactory.register<PathfinderProps>(Pathfinder);
 }
 

@@ -29,9 +29,6 @@ export function GameMapUI(props: IGameUIProps) {
             gameMapState.action = newAction;
             setSelectedAction(newAction);
         }
-
-        
-
     }, [selectedAction]);
 
     useEffect(() => {

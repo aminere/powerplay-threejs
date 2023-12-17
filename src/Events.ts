@@ -3,6 +3,7 @@ import { UIType } from "./game/GameTypes";
 import { Object3D, Vector2 } from "three";
 
 export const evtCursorOverUI = new AsyncEvent<boolean>();
+export const evtScreenResized = new AsyncEvent<void>();
 export const cmdShowUI = new AsyncEvent<UIType>();
 export const cmdHideUI = new AsyncEvent<UIType>();
 

@@ -30,11 +30,11 @@ export interface ISector {
         buildings: Object3D;
         resources: Object3D;
         terrain: Object3D;        
-    }
+    };
     textureData: {
         terrain: Uint8Array;
         highlight: Uint8Array;
-    }
+    };
 }
 
 export interface IRail {    

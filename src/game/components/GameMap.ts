@@ -116,7 +116,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 this.state.previousTouchPos.copy(input.touchPos);
 
                 if (this.state.action) {
-                    const cellCoords = raycastOnCells(input.touchPos, this.state.camera);
+                    const cellCoords = pools.vec2.getOne();
+                    raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                     if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
                         this.state.tileSelector.setPosition(cellCoords!);
                         this.state.selectedCellCoords.copy(cellCoords!);                        
@@ -159,15 +160,16 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             if (input.touchJustMoved) {
                 if (!this.state.cursorOverUI) {
                     if (this.state.action) {
-                        if (!this.state.touchDragged) {
-                            const cellCoords = raycastOnCells(input.touchPos, this.state.camera);
+                        const cellCoords = pools.vec2.getOne();
+                        if (!this.state.touchDragged) {                            
+                            raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                             if (cellCoords?.equals(this.state.touchStartCoords) === false) {
                                 this.state.touchDragged = true;
                                 this.state.touchHoveredCoords.copy(cellCoords!);
                                 onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
                             }
                         } else {
-                            const cellCoords = raycastOnCells(input.touchPos, this.state.camera);
+                            raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                             if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
                                 this.state.touchHoveredCoords.copy(cellCoords!);
                                 onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
