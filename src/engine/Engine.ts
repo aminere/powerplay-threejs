@@ -110,16 +110,19 @@ class Engine {
             }
         });
 
-        let mainCamera: Camera | undefined = undefined;
-        if (scene.userData.mainCamera) {
-            mainCamera = cameras.find(c => c.uuid === scene.userData.mainCamera);
-            if (!mainCamera && cameras.length > 0) {
-                console.warn("No main camera found in scene, using first camera found");
-                mainCamera = cameras[0];
+        const mainCamera = (() => {
+            if (scene.userData.mainCamera) {
+                const camera = cameras.find(c => c.uuid === scene.userData.mainCamera);
+                if (camera) {
+                    return camera;
+                } else if (cameras.length > 0) {
+                    console.warn("No main camera found in scene, using first camera found");
+                    return cameras[0];
+                }
+            } else if (cameras.length > 0) {
+                return cameras[0];
             }
-        } else if (cameras.length > 0) {
-            mainCamera = cameras[0];
-        }
+        })();        
         if (!mainCamera) {
             console.error("No camera found in scene");
         }        

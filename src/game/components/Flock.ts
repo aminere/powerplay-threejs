@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Object3D, OrthographicCamera, Quaternion, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Object3D, Quaternion, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
