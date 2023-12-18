@@ -1,7 +1,7 @@
 
 import { Vector2 } from "three";
-import { GameUtils } from "./GameUtils";
-import { ICell } from "./GameTypes";
+import { GameUtils } from "../GameUtils";
+import { ICell } from "../GameTypes";
 
 interface Node {
     coords: Vector2;

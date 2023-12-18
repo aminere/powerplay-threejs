@@ -6,7 +6,7 @@ import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { Sector } from "../Sector";
 import { gameMapState } from "./GameMapState";
-import { Pathfinding } from "../Pathfinding";
+import { Pathfinding } from "../pathfinding/Pathfinding";
 import { time } from "../../engine/Time";
 import { ComponentProps } from "../../engine/ComponentProps";
 

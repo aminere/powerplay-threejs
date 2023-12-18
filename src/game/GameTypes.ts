@@ -24,6 +24,12 @@ export interface ICell {
     unit?: THREE.Object3D;
 }
 
+export interface IFlowField {
+    costs: number[];
+    integrations: number[];
+    directions: [Vector2, boolean][];
+}
+
 export interface ISector {
     cells: ICell[];
     layers: {
@@ -35,6 +41,7 @@ export interface ISector {
         terrain: Uint8Array;
         highlight: Uint8Array;
     };
+    flowField: IFlowField;
 }
 
 export interface IRail {    

@@ -36,6 +36,11 @@ export class Sector {
                 textureData: {
                     terrain: cellTextureData,
                     highlight: highlightTextureData
+                },
+                flowField: {
+                    costs: cells.map(() => 1),
+                    integrations: cells.map(() => 0xffff),
+                    directions: cells.map(() => [new Vector2(), false])
                 }
             }
         );

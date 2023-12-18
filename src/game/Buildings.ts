@@ -121,6 +121,10 @@ export class Buildings {
         building.position.set(localCoords.x * cellSize, 0, localCoords.y * cellSize);
         sector.layers.buildings.add(building);
         cell.building = building;
+
+        // update cost field
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
+        sector.flowField.costs[cellIndex] = 0xffff;
     }
 
     public static clear(sector: ISector, cell: ICell) {

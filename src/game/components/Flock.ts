@@ -13,6 +13,9 @@ import { engine } from "../../engine/Engine";
 import { engineState } from "../../powerplay";
 import { Animator } from "../../engine/components/Animator";
 import { cmdStartSelection, cmdEndSelection, cmdSetSeletedUnits } from "../../Events";
+import { flowField } from "../pathfinding/Flowfield";
+import { raycastOnCells } from "./GameMapUtils";
+import { FlowfieldViewer } from "../pathfinding/FlowfieldViewer";
 
 // import { objects } from "../../engine/Objects";
 // import { SkeletonUtils } from "three/examples/jsm/Addons.js";
@@ -53,6 +56,7 @@ interface IFlockState extends IComponentState {
     touchPressed: boolean;
     selectionInProgress: boolean;
     baseRotation: Quaternion;
+    flowfieldViewer: FlowfieldViewer;
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -121,16 +125,25 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }                
 
             } else if (input.touchButton === 2) {
-                if (this.state.selectedUnits.length > 0) {
-                    const intersection = pools.vec3.getOne();
-                    GameUtils.screenCastOnPlane(gameMapState.camera, input.touchPos, 0, intersection);
-                    for (const selected of this.state.selectedUnits) {
-                        const unit = this.state.units[selected];
-                        unit.motion = "moving";
-                        unit.desiredPosValid = false;
-                        unit.target.copy(intersection);
-                        unit.initialToTarget.subVectors(unit.target, unit.obj.position).setY(0).normalize();
-                    }
+                if (this.state.selectedUnits.length > 0) {                    
+                    const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
+                    raycastOnCells(input.touchPos, gameMapState.camera, cellCoords);
+                    flowField.compute(cellCoords);
+                    
+                    GameUtils.getCell(cellCoords, sectorCoords, localCoords);
+                    const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                    this.state.flowfieldViewer.update(sector, localCoords);
+
+                    // const intersection = pools.vec3.getOne();
+                    // GameUtils.screenCastOnPlane(gameMapState.camera, input.touchPos, 0, intersection);
+                    // for (const selected of this.state.selectedUnits) {
+                    //     const unit = this.state.units[selected];
+                    //     unit.motion = "moving";
+                    //     unit.desiredPosValid = false;
+                    //     unit.target.copy(intersection);
+                    //     unit.initialToTarget.subVectors(unit.target, unit.obj.position).setY(0).normalize();
+                    // }
+
                 }
             }
         }
@@ -292,6 +305,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
             obj.position.z = Math.random() * radius * 2 - radius;
             units.push(obj);
         }
+
+        const flowfieldViewer = new FlowfieldViewer();
+        engine.scene!.add(flowfieldViewer);
+
         this.setState({
             units: units.map(obj => {
                 const unit: IUnit = {
@@ -309,10 +326,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
             selectionStart: new Vector2(),
             selectionInProgress: false,
             touchPressed: false,
-            baseRotation: sharedRootBone.parent!.quaternion.clone()
+            baseRotation: sharedRootBone.parent!.quaternion.clone(),
+            flowfieldViewer
         });
 
-        engine.scene!.add(sharedRootBone);
+        engine.scene!.add(sharedRootBone);        
         engineState.setComponent(sharedRootBone, new Animator({ animation: "walking" }));
     }
 }

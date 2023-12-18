@@ -10,7 +10,6 @@ import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
 import { Water, WaterProps } from "./Water";
-import { Pathfinder, PathfinderProps } from "./Pathfinder";
 
 export function registerComponents() {
     componentFactory.register<AnimatorProps>(Animator);
@@ -22,6 +21,5 @@ export function registerComponents() {
     componentFactory.register<WaterProps>(Water);
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
     componentFactory.register<FlockProps>(Flock);
-    componentFactory.register<PathfinderProps>(Pathfinder);
 }
 
