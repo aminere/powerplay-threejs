@@ -6,6 +6,7 @@ import { pools } from "../engine/Pools";
 import { engine } from "../powerplay";
 import { gameMapState } from "./components/GameMapState";
 
+const { mapRes, cellSize } = config.game;
 export class GameUtils {
 
     public static vec3 = {
@@ -27,7 +28,6 @@ export class GameUtils {
     }
 
     public static mapToWorld(mapCoords: Vector2, worldPos: Vector3) {
-        const { mapRes, cellSize } = config.game;
         const { x, y } = mapCoords;
         const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
@@ -36,7 +36,6 @@ export class GameUtils {
     }
 
     public static worldToMap(worldPos: Vector3, out: Vector2) {
-        const { mapRes, cellSize } = config.game;
         const halfRes = mapRes / 2;
         out.set(Math.floor(worldPos.x / cellSize) + halfRes, Math.floor(worldPos.z / cellSize) + halfRes);
         return out;
@@ -44,7 +43,6 @@ export class GameUtils {
 
     public static getCell(mapCoords: Vector2, sectorCoordsOut?: Vector2, localCoordsOut?: Vector2) {
         const { sectors } = gameMapState;
-        const { mapRes } = config.game;
         const sectorX = Math.floor(mapCoords.x / mapRes);
         const sectorY = Math.floor(mapCoords.y / mapRes);
         sectorCoordsOut?.set(sectorX, sectorY);
@@ -61,7 +59,7 @@ export class GameUtils {
     }
 
     public static isEmpty(cell: ICell) {
-        return Object.keys(cell).length === 0 && !cell.unit;
+        return Object.keys(cell).length === 1 && !cell.unit;
     }
 
     // public static canPlaceRoad(mapCoords: Vector2) {

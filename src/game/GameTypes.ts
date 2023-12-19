@@ -3,6 +3,11 @@ import { BezierPath } from "./BezierPath";
 
 export type RailTip = "start" | "end";
 
+export interface IFlowField {
+    integrations: number[];
+    directions: [Vector2, boolean][];
+}
+
 export interface ICell {
     roadTile?: number;
     building?: THREE.Object3D;
@@ -22,12 +27,7 @@ export interface ICell {
     };
     
     unit?: THREE.Object3D;
-}
-
-export interface IFlowField {
-    costs: number[];
-    integrations: number[];
-    directions: [Vector2, boolean][];
+    flowField: IFlowField;
 }
 
 export interface ISector {
@@ -40,8 +40,8 @@ export interface ISector {
     textureData: {
         terrain: Uint8Array;
         highlight: Uint8Array;
-    };
-    flowField: IFlowField;
+    };    
+    flowFieldCosts: number[];
 }
 
 export interface IRail {    

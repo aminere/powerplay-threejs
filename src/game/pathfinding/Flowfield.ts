@@ -1,9 +1,8 @@
 import { Vector2 } from "three";
 import { IFlowField } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
-import { pools } from "../../engine/Pools";
-import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
+import { gameMapState } from "../components/GameMapState";
 
 function resetField(field: IFlowField) {
     const { integrations, directions } = field;
@@ -20,21 +19,20 @@ function shiftSet(set: Set<number>) {
     }
 }
 
+const { mapRes } = config.game;
 class FlowField {
-    public compute(targetCoords: Vector2, localCoordsOut: Vector2) {
-        const sectorCoords = pools.vec2.getOne();
-        const cell = GameUtils.getCell(targetCoords, sectorCoords, localCoordsOut);
+    public compute(targetCoords: Vector2, sectorCoordsOut: Vector2, localCoordsOut: Vector2) {
+        const cell = GameUtils.getCell(targetCoords, sectorCoordsOut, localCoordsOut);
         if (cell && GameUtils.isEmpty(cell)) {
-            const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-
-            resetField(sector.flowField);
-            const { mapRes } = config.game;
-            const { costs, integrations } = sector.flowField;
+            resetField(cell.flowField);
+            const { integrations } = cell.flowField;
             const cellIndex = localCoordsOut.y * mapRes + localCoordsOut.x;
             integrations[cellIndex] = 0;
             const openList = new Set<number>();
             openList.add(cellIndex);
 
+            const sector = gameMapState.sectors.get(`${sectorCoordsOut.x},${sectorCoordsOut.y}`)!;
+            const costs = sector.flowFieldCosts;
             const checkNeighbor = (neighborX: number, neighborY: number, currentIndex: number, diagonalCost: number) => {
                 const neighborIndex = neighborY * mapRes + neighborX;
                 const endNodeCost = integrations[currentIndex] + costs[neighborIndex] + diagonalCost;
@@ -83,14 +81,13 @@ class FlowField {
                     checkNeighbor(rightNeighborX, bottomNeightborY, currentIndex, 1);
                 }
             }
-            return sector;
+            return true;
         }
-        return null;
+        return false;
     }
 
-    public computeDirection(flowField: IFlowField, cellIndex: number, directionOut: Vector2) {
-        const { costs, integrations } = flowField;
-        const { mapRes } = config.game;
+    public computeDirection(flowField: IFlowField, costs: number[], cellIndex: number, directionOut: Vector2) {
+        const { integrations } = flowField;
         let minCost = 0xffff;
         let minIndex = -1;
         const considerNeighbor = (neighborX: number, neighborY: number) => {

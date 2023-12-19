@@ -14,7 +14,17 @@ export class Sector {
         const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
         sectorRoot.position.set(x * mapSize + offset, 0, y * mapSize + offset);
-        const cells = [...Array(mapRes * mapRes)].map(() => ({} as ICell));
+
+        const grid = [...Array(mapRes * mapRes)];
+        const cells = grid.map(() => {
+            const cell: ICell = {
+                flowField: {
+                    integrations: grid.map(() => 0xffff),
+                    directions: grid.map(() => [new Vector2(), false])
+                }
+            };
+            return cell;
+        })
 
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch();
@@ -37,11 +47,7 @@ export class Sector {
                     terrain: cellTextureData,
                     highlight: highlightTextureData
                 },
-                flowField: {
-                    costs: cells.map(() => 1),
-                    integrations: cells.map(() => 0xffff),
-                    directions: cells.map(() => [new Vector2(), false])
-                }
+                flowFieldCosts: grid.map(() => 1)
             }
         );
 
