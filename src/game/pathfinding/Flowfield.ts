@@ -18,20 +18,19 @@ function shiftSet(set: Set<number>) {
         set.delete(value);
         return value;
     }
-}  
+}
 
 class FlowField {
-    public compute(targetCoords: Vector2) {
+    public compute(targetCoords: Vector2, localCoordsOut: Vector2) {
         const sectorCoords = pools.vec2.getOne();
-        // const [worldPos1, worldPos2, direction] = pools.vec3.get(3);
-        const cell = GameUtils.getCell(targetCoords, sectorCoords);
+        const cell = GameUtils.getCell(targetCoords, sectorCoords, localCoordsOut);
         if (cell && GameUtils.isEmpty(cell)) {
             const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
 
             resetField(sector.flowField);
             const { mapRes } = config.game;
             const { costs, integrations } = sector.flowField;
-            const cellIndex = targetCoords.y * mapRes + targetCoords.x;
+            const cellIndex = localCoordsOut.y * mapRes + localCoordsOut.x;
             integrations[cellIndex] = 0;
             const openList = new Set<number>();
             openList.add(cellIndex);
@@ -84,7 +83,68 @@ class FlowField {
                     checkNeighbor(rightNeighborX, bottomNeightborY, currentIndex, 1);
                 }
             }
+            return sector;
         }
+        return null;
+    }
+
+    public computeDirection(flowField: IFlowField, cellIndex: number, directionOut: Vector2) {
+        const { costs, integrations } = flowField;
+        const { mapRes } = config.game;
+        let minCost = 0xffff;
+        let minIndex = -1;
+        const considerNeighbor = (neighborX: number, neighborY: number) => {
+            const neighborIndex = neighborY * mapRes + neighborX;
+            const cost = integrations[neighborIndex];
+            if (cost < minCost) {
+                minCost = cost;
+                minIndex = neighborIndex;
+            }
+        }
+
+        const cellY = Math.floor(cellIndex / mapRes);
+        const cellX = cellIndex - cellY * mapRes;
+        for (const [x, y] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            const neighborX = cellX + x;
+            const neighborY = cellY + y;
+            if (neighborX < 0 || neighborX >= mapRes || neighborY < 0 || neighborY >= mapRes) {
+                continue;
+            }
+            considerNeighbor(neighborX, neighborY);
+        }
+
+        // check diagonal neighbors
+        const leftNeighborX = cellX - 1;
+        const leftNeightborY = cellY;
+        const leftNeighborIndex = leftNeightborY * mapRes + leftNeighborX;
+        const rightNeighborX = cellX + 1;
+        const rightNeightborY = cellY;
+        const rightNeighborIndex = rightNeightborY * mapRes + rightNeighborX;
+        const topNeighborX = cellX;
+        const topNeightborY = cellY - 1;
+        const topNeighborIndex = topNeightborY * mapRes + topNeighborX;
+        const bottomNeighborX = cellX;
+        const bottomNeightborY = cellY + 1;
+        const bottomNeighborIndex = bottomNeightborY * mapRes + bottomNeighborX;
+        if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+            considerNeighbor(leftNeighborX, topNeightborY);
+        }
+        if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+            considerNeighbor(rightNeighborX, topNeightborY);
+        }
+        if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+            considerNeighbor(leftNeighborX, bottomNeightborY);
+        }
+        if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+            considerNeighbor(rightNeighborX, bottomNeightborY);
+        }
+        if (minIndex >= 0) {
+            const neighborY = Math.floor(minIndex / mapRes);
+            const neighborX = minIndex - neighborY * mapRes;
+            directionOut.set(neighborX - cellX, neighborY - cellY).normalize();
+            return true;
+        }
+        return false;
     }
 }
 
