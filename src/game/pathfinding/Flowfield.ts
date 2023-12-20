@@ -68,16 +68,16 @@ class FlowField {
                 const bottomNeighborX = currentX;
                 const bottomNeightborY = currentY + 1;
                 const bottomNeighborIndex = bottomNeightborY * mapRes + bottomNeighborX;
-                if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+                if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
                     checkNeighbor(leftNeighborX, topNeightborY, currentIndex, 1);
                 }
-                if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+                if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
                     checkNeighbor(rightNeighborX, topNeightborY, currentIndex, 1);
                 }
-                if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+                if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
                     checkNeighbor(leftNeighborX, bottomNeightborY, currentIndex, 1);
                 }
-                if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+                if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
                     checkNeighbor(rightNeighborX, bottomNeightborY, currentIndex, 1);
                 }
             }
@@ -123,16 +123,16 @@ class FlowField {
         const bottomNeighborX = cellX;
         const bottomNeightborY = cellY + 1;
         const bottomNeighborIndex = bottomNeightborY * mapRes + bottomNeighborX;
-        if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+        if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
             considerNeighbor(leftNeighborX, topNeightborY);
         }
-        if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff || costs[topNeighborIndex] < 0xffff)) {
+        if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
             considerNeighbor(rightNeighborX, topNeightborY);
         }
-        if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+        if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
             considerNeighbor(leftNeighborX, bottomNeightborY);
         }
-        if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff || costs[bottomNeighborIndex] < 0xffff)) {
+        if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
             considerNeighbor(rightNeighborX, bottomNeightborY);
         }
         if (minIndex >= 0) {
@@ -141,6 +141,7 @@ class FlowField {
             directionOut.set(neighborX - cellX, neighborY - cellY).normalize();
             return true;
         }
+        directionOut.set(0, 0);
         return false;
     }
 }

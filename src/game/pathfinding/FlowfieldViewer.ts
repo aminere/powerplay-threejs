@@ -37,7 +37,8 @@ export class FlowfieldViewer extends Object3D {
             if (cost === 0xffff) {
                 continue;
             }
-            if (flowField.computeDirection(cell.flowField, costs, i, cellDirection)) {
+            const computed = flowField.computeDirection(cell.flowField, costs, i, cellDirection);
+            if (computed) {
                 currentCoords.set(cellX, cellY);
                 GameUtils.mapToWorld(currentCoords, worldPos1);
                 linePoints.push(worldPos1.clone());

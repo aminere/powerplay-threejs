@@ -276,10 +276,29 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { positionDamp } = this.props;
-        for (let i = 0; i < units.length; ++i) {            
+        const awayDirection = pools.vec2.getOne();        
+        for (let i = 0; i < units.length; ++i) {
+            units[i].desiredPosValid = false;
+            GameUtils.worldToMap(units[i].desiredPos, mapCoords);
+            const newCell = GameUtils.getCell(mapCoords);
+            const emptyCell = newCell && GameUtils.isEmpty(newCell);
+            if (!emptyCell) {
+                const currentCellCoords = units[i].coords.mapCoords;
+                if (!currentCellCoords.equals(mapCoords)) {
+                    // move away from blocked cell
+                    awayDirection.subVectors(currentCellCoords, mapCoords).normalize();
+                    units[i].desiredPos.copy(units[i].obj.position);
+                    units[i].desiredPos.x += awayDirection.x * steerAmount;
+                    units[i].desiredPos.z += awayDirection.y * steerAmount;
+                }
+            }
 
             if (units[i].motion === "moving") {
-                units[i].obj.position.copy(units[i].desiredPos);
+                if (!emptyCell) {
+                    units[i].obj.position.lerp(units[i].desiredPos, positionDamp);
+                } else {
+                    units[i].obj.position.copy(units[i].desiredPos);
+                }                
                 GameUtils.worldToMap(units[i].obj.position, mapCoords);
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
@@ -319,8 +338,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                 }
             }
-
-            units[i].desiredPosValid = false;
         }
     }
 
