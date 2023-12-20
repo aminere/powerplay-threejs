@@ -1,4 +1,4 @@
-import { type TileType, TileTypes } from "../GameTypes";
+import { type TileType, TileTypes, ResourceTypes, type MineralType, MineralTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ComponentProps";
 import * as Attributes from "../../engine/Attributes";
 
@@ -11,6 +11,9 @@ export class GameMapProps extends ComponentProps {
 
     @Attributes.enumOptions(TileTypes)
     tileType: TileType = "sand";
+
+    @Attributes.enumOptions(MineralTypes)
+    mineralType: MineralType = "aluminium";
 
     @Attributes.command("save")
     saveCommand = true;

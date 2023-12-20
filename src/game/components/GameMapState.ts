@@ -1,6 +1,7 @@
 import { Box2, Camera, DirectionalLight, Object3D, Vector2, Vector3 } from "three";
-import { Action, ICell, ISector } from "../GameTypes";
+import { ICell, ISector } from "../GameTypes";
 import { TileSector } from "../TileSelector";
+import { Action } from "../GameDefinitions";
 
 export interface IGameMapState {
     sectors: Map<string, ISector>;

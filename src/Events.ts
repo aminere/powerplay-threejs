@@ -1,5 +1,5 @@
 import { AsyncEvent, SyncEvent } from "ts-events";
-import { UIType } from "./game/GameTypes";
+import { UIType } from "./game/GameDefinitions";
 import { Object3D, Vector2 } from "three";
 
 export const evtCursorOverUI = new AsyncEvent<boolean>();

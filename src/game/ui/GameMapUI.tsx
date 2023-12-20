@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Action, Actions } from "../GameTypes";
+import { Action, Actions } from "../GameDefinitions";
 
 import styles from './GameMapUI.module.css';
 import { utils } from "../../engine/Utils";

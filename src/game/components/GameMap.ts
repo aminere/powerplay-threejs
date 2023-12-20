@@ -225,7 +225,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                 break;
 
                                 case "mineral": {
-                                    onMineral(sectorCoords, localCoords, cell, input.touchButton);
+                                    onMineral(sectorCoords, localCoords, cell, input.touchButton, this.props.mineralType);
                                 }
                                 break;
 

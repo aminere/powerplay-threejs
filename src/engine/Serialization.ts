@@ -44,12 +44,14 @@ class Serialization {
                     console.log(`skipping deserialization of ${_target.name}`);
                     return;
                 }
-
                 const liveUserData = _target.userData;
                 if ((_target as SkinnedMesh).isSkinnedMesh) {
                     // Avoid affecting the existing skeleton
                     Mesh.prototype.copy.call(_target, _newInstance as Mesh, false);
                 } else {
+                    if (!_newInstance?.name) {
+                        debugger;
+                    }
                     _target.copy(_newInstance, false);
                 }                
                 _target.userData = {
@@ -119,6 +121,9 @@ class Serialization {
     private parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
         callback(a, b);
         for (let i = 0; i < a.children.length; i++) {
+            if (i >= b.children.length) {
+                break;
+            }
             this.parallelTraverse(a.children[i], b.children[i], callback);
         }
     }    

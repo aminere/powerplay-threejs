@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UIType } from "../GameTypes";
+import { UIType } from "../GameDefinitions";
 import { cmdHideUI, cmdShowUI } from "../../Events";
 import { IGameUIProps } from "./GameUIProps";
 import { GameMapUI } from "./GameMapUI";

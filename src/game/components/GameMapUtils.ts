@@ -6,7 +6,8 @@ import { config } from "../config";
 import { engine } from "../../engine/Engine";
 import { gameMapState } from "./GameMapState";
 import { Elevation } from "../Elevation";
-import { ICell, TileType, TileTypes } from "../GameTypes";
+import { MineralType, TileType, TileTypes } from "../GameDefinitions";
+import { ICell } from "../GameTypes";
 import { Roads } from "../Roads";
 import { Rails } from "../Rails";
 import { Buildings } from "../Buildings";
@@ -238,12 +239,12 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
     }
 }
 
-export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: MineralType) {
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         if (GameUtils.isEmpty(cell)) {
-            resources.create(sector, localCoords, cell, "minerals");
+            resources.create(sector, localCoords, cell, type);
         }
     } else if (button === 2) {
         if (cell.resource) {
@@ -257,7 +258,7 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         if (GameUtils.isEmpty(cell)) {
-            resources.create(sector, localCoords, cell, "trees");
+            resources.create(sector, localCoords, cell, "tree");
         }
     } else if (button === 2) {
         if (cell.resource) {

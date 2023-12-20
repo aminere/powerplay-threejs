@@ -16,7 +16,7 @@ export class FlowfieldViewer extends Object3D {
         const lineSegments = new LineSegments(new BufferGeometry(), new LineBasicMaterial({ color: 0xff0000 }));
         lineSegments.position.y = 0.05;
         this.add(lineSegments);
-        const points = new Points(new BufferGeometry(), new PointsMaterial({ color: 0xff0000, size: 5 }));
+        const points = new Points(new BufferGeometry(), new PointsMaterial({ color: 0xff0000, size: 5, sizeAttenuation: false }));
         points.position.y = 0.05;
         this.add(points);
     }

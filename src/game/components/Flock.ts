@@ -277,8 +277,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         const { positionDamp } = this.props;
         const awayDirection = pools.vec2.getOne();        
-        for (let i = 0; i < units.length; ++i) {
-            units[i].desiredPosValid = false;
+        for (let i = 0; i < units.length; ++i) {            
             GameUtils.worldToMap(units[i].desiredPos, mapCoords);
             const newCell = GameUtils.getCell(mapCoords);
             const emptyCell = newCell && GameUtils.isEmpty(newCell);
@@ -294,6 +293,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             if (units[i].motion === "moving") {
+                units[i].desiredPosValid = false;
                 if (!emptyCell) {
                     units[i].obj.position.lerp(units[i].desiredPos, positionDamp);
                 } else {
@@ -303,21 +303,22 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
                     units[i].motion = "idle";
+                } else {
+                    const { sector } = units[i].targetCell;
+                    const targetCellIndex = units[i].targetCell.cellIndex;
+                    const currentCellIndex = units[i].coords.cellIndex;
+                    const flowField = sector?.cells[targetCellIndex].flowField!;
+                    const { directions } = flowField;
+                    console.assert(directions[currentCellIndex][1]);
+                    const direction = directions[currentCellIndex][0];
+                    cellDirection3.set(direction.x, 0, direction.y);
+                    units[i].lookDir.lerp(cellDirection3, .5).normalize();
+                    lookDir.copy(units[i].lookDir).negate();
+                    lookAt.lookAt(GameUtils.vec3.zero, lookDir, GameUtils.vec3.up);
+                    quat.setFromRotationMatrix(lookAt);
+                    units[i].obj.quaternion.multiplyQuaternions(quat, this.state.baseRotation);
                 }
-
-                const { sector } = units[i].targetCell;
-                const targetCellIndex = units[i].targetCell.cellIndex;
-                const currentCellIndex = units[i].coords.cellIndex;
-                const flowField = sector?.cells[targetCellIndex].flowField!;
-                const { directions } = flowField;
-                console.assert(directions[currentCellIndex][1]);
-                const direction = directions[currentCellIndex][0];
-                cellDirection3.set(direction.x, 0, direction.y);
-                units[i].lookDir.lerp(cellDirection3, .3).normalize();
-                lookDir.copy(units[i].lookDir).negate();
-                lookAt.lookAt(GameUtils.vec3.zero, lookDir, GameUtils.vec3.up);
-                quat.setFromRotationMatrix(lookAt);
-                units[i].obj.quaternion.multiplyQuaternions(quat, this.state.baseRotation);
+                
             } else {
                 units[i].obj.position.lerp(units[i].desiredPos, positionDamp);
                 GameUtils.worldToMap(units[i].obj.position, mapCoords);
