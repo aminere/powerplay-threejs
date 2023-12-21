@@ -22,10 +22,10 @@ export class FlockProps extends ComponentProps {
     count = 50;
     separation = 1;
     maxSpeed = 10;
-    speed = 4;   
-    lookSpeed = 2;
+    speed = 4;       
     repulsion = .2;
     positionDamp = .4;
+    rotationDamp = .4;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -41,7 +41,8 @@ interface IUnit {
     motion: MotionState;
     desiredPos: Vector3;
     desiredPosValid: boolean;
-    lookDir: Vector3;
+    lookAt: Quaternion;
+    rotation: Quaternion;
     targetCell: ICellAddr;
     coords: ICellAddr;
 }
@@ -312,12 +313,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     const { directions } = flowField;
                     console.assert(directions[currentCellIndex][1]);
                     const direction = directions[currentCellIndex][0];
-                    cellDirection3.set(direction.x, 0, direction.y);
-                    units[i].lookDir.lerp(cellDirection3, .5).normalize();
-                    lookDir.copy(units[i].lookDir).negate();
-                    lookAt.lookAt(GameUtils.vec3.zero, lookDir, GameUtils.vec3.up);
-                    quat.setFromRotationMatrix(lookAt);
-                    units[i].obj.quaternion.multiplyQuaternions(quat, this.state.baseRotation);
+                    cellDirection3.set(direction.x, 0, direction.y);                    
+                    units[i].lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+                    units[i].rotation.slerp(units[i].lookAt, this.props.rotationDamp);
+                    units[i].obj.quaternion.multiplyQuaternions(units[i].rotation, this.state.baseRotation);
                 }
                 
             } else {
@@ -380,7 +379,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     desiredPos: new Vector3(),
                     desiredPosValid: false,
                     motion: "idle",
-                    lookDir: new Vector3(0, 0, 1),
+                    lookAt: new Quaternion(),
+                    rotation: new Quaternion(),
                     targetCell: {
                         mapCoords: new Vector2(),
                         localCoords: new Vector2(),
