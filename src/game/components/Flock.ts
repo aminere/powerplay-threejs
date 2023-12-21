@@ -7,17 +7,14 @@ import { pools } from "../../engine/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
-import { SkeletonUtils } from "three/examples/jsm/Addons.js";
-import { objects } from "../../engine/Objects";
 import { engine } from "../../engine/Engine";
-import { engineState } from "../../powerplay";
-import { Animator } from "../../engine/components/Animator";
 import { cmdStartSelection, cmdEndSelection, cmdSetSeletedUnits } from "../../Events";
 import { flowField } from "../pathfinding/Flowfield";
 import { raycastOnCells } from "./GameMapUtils";
 import { FlowfieldViewer } from "../pathfinding/FlowfieldViewer";
 import { config} from "../../game/config";
 import { ICellAddr, computeCellAddr } from "../CellCoords";
+import { SkeletonManager } from "../animation/SkeletonManager";
 
 export class FlockProps extends ComponentProps {
 
@@ -57,6 +54,7 @@ interface IFlockState extends IComponentState {
     selectionInProgress: boolean;
     baseRotation: Quaternion;
     flowfieldViewer: FlowfieldViewer;
+    skeletonManager: SkeletonManager;
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -135,6 +133,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             unit.motion = "moving";
                             unit.desiredPosValid = false;
                             computeCellAddr(cellCoords, unit.targetCell);
+                            this.state.skeletonManager.applySkeleton("walk", unit.obj as SkinnedMesh);
                         }
                         const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                         this.state.flowfieldViewer.update(sector, localCoords);
@@ -197,6 +196,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const mapCoords = pools.vec2.getOne();
         const cellDirection3 = pools.vec3.getOne();
         const { mapRes } = config.game;
+
         for (let i = 0; i < units.length; ++i) {
             const { obj, motion, desiredPos } = units[i];            
             
@@ -276,7 +276,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { positionDamp } = this.props;
-        const awayDirection = pools.vec2.getOne();        
+        const awayDirection = pools.vec2.getOne();
         for (let i = 0; i < units.length; ++i) {            
             GameUtils.worldToMap(units[i].desiredPos, mapCoords);
             const newCell = GameUtils.getCell(mapCoords);
@@ -303,6 +303,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
                     units[i].motion = "idle";
+                    this.state.skeletonManager.applySkeleton("idle", units[i].obj as SkinnedMesh);
                 } else {
                     const { sector } = units[i].targetCell;
                     const targetCellIndex = units[i].targetCell.cellIndex;
@@ -345,20 +346,20 @@ export class Flock extends Component<FlockProps, IFlockState> {
     private async load(owner: Object3D) {
         const radius = this.props.radius;
         const units: Object3D[] = [];
-        const mesh = await objects.load("/test/Worker.json");        
 
-        // shared skeleton
-        const identity = new Matrix4();
-        const sharedModel = SkeletonUtils.clone(mesh);
-        const shareSkinnedMesh = sharedModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
-        const sharedSkeleton = shareSkinnedMesh.skeleton;
-        const sharedRootBone = sharedSkeleton.bones[0];
+        const skeletonManager = new SkeletonManager();
+        const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
+            skin: "/test/Worker.json",
+            animations: ["idle", "walk"],
+            currentAnim: "idle"
+        });
+
         const headOffset = new Vector3();   
         for (let i = 0; i < this.props.count; i++) {
-            const obj = shareSkinnedMesh.clone();
+            const obj = sharedSkinnedMesh.clone();
             obj.bindMode = "detached";
-            obj.bind(sharedSkeleton, identity);
-            obj.quaternion.copy(sharedRootBone.parent!.quaternion);
+            skeletonManager.applySkeleton("idle", obj as SkinnedMesh);
+            obj.quaternion.copy(baseRotation);
             obj.userData.unserializable = true;
             headOffset.copy(obj.position).setZ(1.8);
             obj.boundingBox = new Box3().setFromObject(obj).expandByPoint(headOffset);            
@@ -401,12 +402,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
             selectionStart: new Vector2(),
             selectionInProgress: false,
             touchPressed: false,
-            baseRotation: sharedRootBone.parent!.quaternion.clone(),
-            flowfieldViewer
+            baseRotation,
+            flowfieldViewer,
+            skeletonManager
         });
-
-        engine.scene!.add(sharedRootBone);        
-        engineState.setComponent(sharedRootBone, new Animator({ animation: "walking" }));
     }
 }
 
