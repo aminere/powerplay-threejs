@@ -37,7 +37,7 @@ export class FlockProps extends ComponentProps {
 type MotionState = "idle" | "moving";
 
 interface IUnit {
-    obj: Object3D;
+    obj: SkinnedMesh;
     initialToTarget: Vector3;
     motion: MotionState;
     desiredPos: Vector3;
@@ -103,7 +103,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         const { obj } = units[i];
                         this._inverseMatrix.copy(obj.matrixWorld).invert();
                         this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
-                        const boundingBox = (obj as SkinnedMesh).boundingBox;
+                        const boundingBox = obj.boundingBox;
                         if (this._localRay.intersectBox(boundingBox, intersection)) {
                             intersections.push({ unitIndex: i, distance: this._localRay.origin.distanceTo(intersection) });
                         }
@@ -137,10 +137,16 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             unit.motion = "moving";
                             unit.desiredPosValid = false;
                             computeCellAddr(cellCoords, unit.targetCell);
-                            this.state.skeletonManager.applySkeleton("walk", unit.obj as SkinnedMesh);
+                            this.state.skeletonManager.applySkeleton("walk", unit.obj);
                         }
                         const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                         this.state.flowfieldViewer.update(sector, localCoords);
+                    } else {
+                        // TODO
+                        for (const selected of this.state.selectedUnits) {
+                            const unit = this.state.units[selected];
+                            this.state.skeletonManager.applySkeleton("pick", unit.obj);
+                        }
                     }
                 }
             }
@@ -194,8 +200,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const steerAmount = this.props.speed * time.deltaTime;
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
         const lookAt = pools.mat4.getOne();
-        const lookDir = pools.vec3.getOne();
-        const quat = pools.quat.getOne();
         const toTarget = pools.vec3.getOne();
         const mapCoords = pools.vec2.getOne();
         const cellDirection3 = pools.vec3.getOne();
@@ -317,7 +321,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
                     units[i].motion = "idle";
-                    this.state.skeletonManager.applySkeleton("idle", units[i].obj as SkinnedMesh);
+                    this.state.skeletonManager.applySkeleton("idle", units[i].obj);
                 }         
             } else {
                 mathUtils.smoothDampVec3(
@@ -366,12 +370,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
     private async load(owner: Object3D) {
         const radius = this.props.radius;
-        const units: Object3D[] = [];
+        const units: SkinnedMesh[] = [];
 
         const skeletonManager = new SkeletonManager();
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
             skin: "/test/Worker.json",
-            animations: ["idle", "walk"],
+            animations: ["idle", "walk", "pick"],
             currentAnim: "idle"
         });
 
@@ -379,7 +383,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         for (let i = 0; i < this.props.count; i++) {
             const obj = sharedSkinnedMesh.clone();
             obj.bindMode = "detached";
-            skeletonManager.applySkeleton("idle", obj as SkinnedMesh);
+            skeletonManager.applySkeleton("idle", obj);
             obj.quaternion.copy(baseRotation);
             obj.userData.unserializable = true;
             headOffset.copy(obj.position).setZ(1.8);

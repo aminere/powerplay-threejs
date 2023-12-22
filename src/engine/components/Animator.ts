@@ -22,6 +22,9 @@ interface IAnimatorState {
 }
 
 export class Animator extends Component<AnimatorProps, IAnimatorState> {
+
+    public get currentAction() { return this.state.actions[this.state.currentAnim]; }
+
     constructor(props?: Partial<AnimatorProps>) {
         super(new AnimatorProps(props));
     }
