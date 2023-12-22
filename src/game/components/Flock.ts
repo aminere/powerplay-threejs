@@ -15,6 +15,7 @@ import { FlowfieldViewer } from "../pathfinding/FlowfieldViewer";
 import { config} from "../../game/config";
 import { ICellAddr, computeCellAddr } from "../CellCoords";
 import { SkeletonManager } from "../animation/SkeletonManager";
+import { mathUtils } from "../MathUtils";
 
 export class FlockProps extends ComponentProps {
 
@@ -45,6 +46,8 @@ interface IUnit {
     rotation: Quaternion;
     targetCell: ICellAddr;
     coords: ICellAddr;
+    velocity: Vector3;
+    rotationVelocity: number;
 }
 
 interface IFlockState extends IComponentState {
@@ -278,10 +281,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         const { positionDamp } = this.props;
         const awayDirection = pools.vec2.getOne();
+        const deltaPos = pools.vec3.getOne();
         for (let i = 0; i < units.length; ++i) {            
             GameUtils.worldToMap(units[i].desiredPos, mapCoords);
             const newCell = GameUtils.getCell(mapCoords);
             const emptyCell = newCell && GameUtils.isEmpty(newCell);
+
             if (!emptyCell) {
                 const currentCellCoords = units[i].coords.mapCoords;
                 if (!currentCellCoords.equals(mapCoords)) {
@@ -293,35 +298,52 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
 
+            deltaPos.subVectors(units[i].desiredPos, units[i].obj.position);
             if (units[i].motion === "moving") {
-                units[i].desiredPosValid = false;
-                if (!emptyCell) {
-                    units[i].obj.position.lerp(units[i].desiredPos, positionDamp);
+                units[i].desiredPosValid = false;                
+                if (emptyCell) {
+                    units[i].obj.position.copy(units[i].desiredPos);                    
                 } else {
-                    units[i].obj.position.copy(units[i].desiredPos);
-                }                
+                    mathUtils.smoothDampVec3(
+                        units[i].obj.position, 
+                        units[i].desiredPos, 
+                        units[i].velocity,
+                        positionDamp,
+                        this.props.maxSpeed, 
+                        time.deltaTime
+                    );
+                }
                 GameUtils.worldToMap(units[i].obj.position, mapCoords);
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
                     units[i].motion = "idle";
                     this.state.skeletonManager.applySkeleton("idle", units[i].obj as SkinnedMesh);
-                } else {
-                    const { sector } = units[i].targetCell;
-                    const targetCellIndex = units[i].targetCell.cellIndex;
-                    const currentCellIndex = units[i].coords.cellIndex;
-                    const flowField = sector?.cells[targetCellIndex].flowField!;
-                    const { directions } = flowField;
-                    console.assert(directions[currentCellIndex][1]);
-                    const direction = directions[currentCellIndex][0];
-                    cellDirection3.set(direction.x, 0, direction.y);                    
-                    units[i].lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-                    units[i].rotation.slerp(units[i].lookAt, this.props.rotationDamp);
-                    units[i].obj.quaternion.multiplyQuaternions(units[i].rotation, this.state.baseRotation);
-                }
-                
+                }         
             } else {
-                units[i].obj.position.lerp(units[i].desiredPos, positionDamp);
+                mathUtils.smoothDampVec3(
+                    units[i].obj.position, 
+                    units[i].desiredPos, 
+                    units[i].velocity,
+                    positionDamp,
+                    this.props.maxSpeed, 
+                    time.deltaTime
+                );
                 GameUtils.worldToMap(units[i].obj.position, mapCoords);
+            }
+
+            const deltaPosLen = deltaPos.length();
+            if (deltaPosLen > 0) {
+                cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
+                units[i].lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+                units[i].rotationVelocity = mathUtils.smoothDampQuat(
+                    units[i].rotation,
+                    units[i].lookAt,
+                    units[i].rotationVelocity,
+                    this.props.rotationDamp,
+                    this.props.maxSpeed,
+                    time.deltaTime
+                );
+                units[i].obj.quaternion.multiplyQuaternions(units[i].rotation, this.state.baseRotation);
             }
 
             const { coords } = units[i];
@@ -381,6 +403,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     motion: "idle",
                     lookAt: new Quaternion(),
                     rotation: new Quaternion(),
+                    velocity: new Vector3(),
+                    rotationVelocity: 0,
                     targetCell: {
                         mapCoords: new Vector2(),
                         localCoords: new Vector2(),
