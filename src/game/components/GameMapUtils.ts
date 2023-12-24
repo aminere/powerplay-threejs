@@ -15,49 +15,49 @@ import { resources } from "../Resources";
 import { Sector } from "../Sector";
 import { GameMapProps } from "./GameMapProps";
 
+const { elevationStep, cellSize, mapRes } = config.game;
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorX},${sectorY}`);
+    if (!sector) {
+        return -1;
+    }
     let selectedVertexIndex = -1;
-    if (sector) {
-        const plane = pools.plane.getOne();
-        const triangle = pools.triangle.getOne();
-        const line = pools.line3.getOne();
-        const [rayEnd, v1, v2, v3, intersection] = pools.vec3.get(5);
-        const normalizedPos = pools.vec2.getOne();
-        const { width, height } = engine.screenRect;
-        normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-        GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
-        const { ray } = GameUtils.rayCaster;
-        rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
-        line.set(ray.origin, rayEnd);
-        const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const position = geometry.getAttribute("position") as THREE.BufferAttribute;
-        const indices = geometry.getIndex()!.array;
-        const { elevationStep } = config.game;
-        const { cellSize, mapRes } = config.game;
-        const mapSize = mapRes * cellSize;
-        const offset = -mapSize / 2;
-        const sectorOffsetX = sectorX * mapSize + offset;
-        const sectorOffsetY = sectorY * mapSize + offset;
-        let distToClosestIntersection = Infinity;
-        for (let i = 0; i < indices.length; i += 3) {
-            const i1 = indices[i];
-            const i2 = indices[i + 1];
-            const i3 = indices[i + 2];
-            v1.set(sectorOffsetX + position.getX(i1), position.getY(i1) * elevationStep, sectorOffsetY + position.getZ(i1));
-            v2.set(sectorOffsetX + position.getX(i2), position.getY(i2) * elevationStep, sectorOffsetY + position.getZ(i2));
-            v3.set(sectorOffsetX + position.getX(i3), position.getY(i3) * elevationStep, sectorOffsetY + position.getZ(i3));
-            plane.setFromCoplanarPoints(v1, v2, v3);
-            if (plane.normal.dot(ray.direction) < 0) {
-                if (plane.intersectLine(line, intersection)) {
-                    triangle.set(v1, v2, v3);
-                    if (triangle.containsPoint(intersection)) {
-                        const dist = intersection.distanceTo(ray.origin);
-                        if (dist < distToClosestIntersection) {
-                            distToClosestIntersection = dist;
-                            selectedVertexIndex = i;
-                        }
+    const plane = pools.plane.getOne();
+    const triangle = pools.triangle.getOne();
+    const line = pools.line3.getOne();
+    const [rayEnd, v1, v2, v3, intersection] = pools.vec3.get(5);
+    const normalizedPos = pools.vec2.getOne();
+    const { width, height } = engine.screenRect;
+    normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+    GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
+    const { ray } = GameUtils.rayCaster;
+    rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
+    line.set(ray.origin, rayEnd);
+    const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
+    const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+    const indices = geometry.getIndex()!.array;
+    const mapSize = mapRes * cellSize;
+    const offset = -mapSize / 2;
+    const sectorOffsetX = sectorX * mapSize + offset;
+    const sectorOffsetY = sectorY * mapSize + offset;
+    let distToClosestIntersection = Infinity;
+    for (let i = 0; i < indices.length; i += 3) {
+        const i1 = indices[i];
+        const i2 = indices[i + 1];
+        const i3 = indices[i + 2];
+        v1.set(sectorOffsetX + position.getX(i1), position.getY(i1) * elevationStep, sectorOffsetY + position.getZ(i1));
+        v2.set(sectorOffsetX + position.getX(i2), position.getY(i2) * elevationStep, sectorOffsetY + position.getZ(i2));
+        v3.set(sectorOffsetX + position.getX(i3), position.getY(i3) * elevationStep, sectorOffsetY + position.getZ(i3));
+        plane.setFromCoplanarPoints(v1, v2, v3);
+        if (plane.normal.dot(ray.direction) < 0) {
+            if (plane.intersectLine(line, intersection)) {
+                triangle.set(v1, v2, v3);
+                if (triangle.containsPoint(intersection)) {
+                    const dist = intersection.distanceTo(ray.origin);
+                    if (dist < distToClosestIntersection) {
+                        distToClosestIntersection = dist;
+                        selectedVertexIndex = i;
                     }
                 }
             }
@@ -66,14 +66,14 @@ export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Cam
     return selectedVertexIndex;
 }
 
-export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoords: Vector2) {
+export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2) {
     const intersection = pools.vec3.getOne();
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
     const sectorCoords = pools.vec2.getOne();
-    GameUtils.worldToMap(intersection, cellCoords);
-    const cell = GameUtils.getCell(cellCoords, sectorCoords);
+    GameUtils.worldToMap(intersection, cellCoordsOut);
+    let cell = GameUtils.getCell(cellCoordsOut, sectorCoords);
     let sectorX = sectorCoords.x;
     let sectorY = sectorCoords.y;
     let selectedVertexIndex = cell ? pickSectorTriangle(sectorX, sectorY, camera) : -1;
@@ -94,15 +94,14 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoords: V
                 }
             }
         }
-        const { mapRes } = config.game;
         const halfRes = mapRes / 2;
         neighborSectors.sort((a, b) => {
             const aCenterX = a[0] * mapRes + halfRes;
             const aCenterY = a[1] * mapRes + halfRes;
-            const cellToSectorDistA = Math.abs(aCenterX - cellCoords.x) + Math.abs(aCenterY - cellCoords.y);
+            const cellToSectorDistA = Math.abs(aCenterX - cellCoordsOut.x) + Math.abs(aCenterY - cellCoordsOut.y);
             const bCenterX = b[0] * mapRes + halfRes;
             const bCenterY = b[1] * mapRes + halfRes;
-            const cellToSectorDistB = Math.abs(bCenterX - cellCoords.x) + Math.abs(bCenterY - cellCoords.y);
+            const cellToSectorDistB = Math.abs(bCenterX - cellCoordsOut.x) + Math.abs(bCenterY - cellCoordsOut.y);
             return cellToSectorDistA - cellToSectorDistB;
         });
         for (const [x, y] of neighborSectors) {
@@ -115,16 +114,16 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoords: V
         }
     }
 
-    const { mapRes } = config.game;
     if (selectedVertexIndex >= 0) {
         const selectedCell = Math.floor(selectedVertexIndex / 6);
-        cellCoords.set(
+        cellCoordsOut.set(
             sectorX * mapRes + selectedCell % mapRes,
             sectorY * mapRes + Math.floor(selectedCell / mapRes)
         );
+        cell = gameMapState.sectors.get(`${sectorX},${sectorY}`)!.cells[selectedCell];
     }
 
-    return cellCoords;
+    return cell;
 }
 
 export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords

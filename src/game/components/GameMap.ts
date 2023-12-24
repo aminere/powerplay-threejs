@@ -117,11 +117,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
                 if (this.state.action) {
                     const cellCoords = pools.vec2.getOne();
-                    raycastOnCells(input.touchPos, this.state.camera, cellCoords);
-                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
-                        this.state.tileSelector.setPosition(cellCoords!);
-                        this.state.selectedCellCoords.copy(cellCoords!);                        
-                        // default rail preview was here                        
+                    if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                        if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
+                            this.state.tileSelector.setPosition(cellCoords!);
+                            this.state.selectedCellCoords.copy(cellCoords!);                        
+                            // default rail preview was here                        
+                        }
                     }
                 }
             }
@@ -162,17 +163,19 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                     if (this.state.action) {
                         const cellCoords = pools.vec2.getOne();
                         if (!this.state.touchDragged) {                            
-                            raycastOnCells(input.touchPos, this.state.camera, cellCoords);
-                            if (cellCoords?.equals(this.state.touchStartCoords) === false) {
-                                this.state.touchDragged = true;
-                                this.state.touchHoveredCoords.copy(cellCoords!);
-                                onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                            if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                if (cellCoords?.equals(this.state.touchStartCoords) === false) {
+                                    this.state.touchDragged = true;
+                                    this.state.touchHoveredCoords.copy(cellCoords!);
+                                    onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                }
                             }
                         } else {
-                            raycastOnCells(input.touchPos, this.state.camera, cellCoords);
-                            if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
-                                this.state.touchHoveredCoords.copy(cellCoords!);
-                                onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                            if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
+                                    this.state.touchHoveredCoords.copy(cellCoords!);
+                                    onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                }
                             }
                         }
                     }

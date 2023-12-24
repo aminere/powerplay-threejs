@@ -23,7 +23,7 @@ const { mapRes } = config.game;
 class FlowField {
     public compute(targetCoords: Vector2, sectorCoordsOut: Vector2, localCoordsOut: Vector2) {
         const cell = GameUtils.getCell(targetCoords, sectorCoordsOut, localCoordsOut);
-        if (cell && GameUtils.isEmpty(cell)) {
+        if (cell) {
             resetField(cell.flowField);
             const { integrations } = cell.flowField;
             const cellIndex = localCoordsOut.y * mapRes + localCoordsOut.x;

@@ -115,25 +115,31 @@ export class Flock extends Component<FlockProps, IFlockState> {
             } else if (input.touchButton === 2) {
                 if (this.state.selectedUnits.length > 0) {                    
                     const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
-                    raycastOnCells(input.touchPos, gameMapState.camera, cellCoords);
-                    const computed = flowField.compute(cellCoords, sectorCoords, localCoords);
-                    if (computed) {                        
-                        const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                        this.state.flowfieldViewer.update(sector, localCoords);
-
-                        for (const selected of this.state.selectedUnits) {
-                            const unit = this.state.units[selected];
-                            unit.isMoving = true;
-                            unit.desiredPosValid = false;                            
-                            computeCellAddr(cellCoords, unit.targetCell);
-                            this.state.skeletonManager.applySkeleton("walk", unit.obj);
-                        }
-
-                    } else {
-                        
-                        for (const selected of this.state.selectedUnits) {
-                            const unit = this.state.units[selected];
-                            unit.fsm.switchState(MiningState);
+                    const cell = raycastOnCells(input.touchPos, gameMapState.camera, cellCoords);
+                    if (cell) {
+                        const computed = flowField.compute(cellCoords, sectorCoords, localCoords);
+                        if (computed) {                        
+                            const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                            this.state.flowfieldViewer.update(sector, localCoords);
+    
+                            for (const selected of this.state.selectedUnits) {
+                                const unit = this.state.units[selected];
+                                unit.isMoving = true;
+                                unit.desiredPosValid = false;                            
+                                computeCellAddr(cellCoords, unit.targetCell);
+                                this.state.skeletonManager.applySkeleton("walk", unit.obj);
+                            }
+    
+                        } else {                            
+                            const resource = cell.resource?.name;
+                            if (resource) {
+                                for (const selected of this.state.selectedUnits) {
+                                    const unit = this.state.units[selected];
+                                    const mining = unit.fsm.getState(MiningState);
+                                    computeCellAddr(cellCoords, mining.targetCell);
+                                    unit.fsm.switchState(MiningState);
+                                }
+                            }
                         }
                     }
                 }
