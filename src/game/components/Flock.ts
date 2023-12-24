@@ -13,9 +13,11 @@ import { flowField } from "../pathfinding/Flowfield";
 import { raycastOnCells } from "./GameMapUtils";
 import { FlowfieldViewer } from "../pathfinding/FlowfieldViewer";
 import { config} from "../../game/config";
-import { ICellAddr, computeCellAddr } from "../CellCoords";
+import { computeCellAddr } from "../CellCoords";
 import { SkeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
+import { Unit } from "../Unit";
+import { MiningState } from "../unit/MiningState";
 
 export class FlockProps extends ComponentProps {
 
@@ -34,24 +36,8 @@ export class FlockProps extends ComponentProps {
     }
 }
 
-type MotionState = "idle" | "moving";
-
-interface IUnit {
-    obj: SkinnedMesh;
-    initialToTarget: Vector3;
-    motion: MotionState;
-    desiredPos: Vector3;
-    desiredPosValid: boolean;
-    lookAt: Quaternion;
-    rotation: Quaternion;
-    targetCell: ICellAddr;
-    coords: ICellAddr;
-    velocity: Vector3;
-    rotationVelocity: number;
-}
-
 interface IFlockState extends IComponentState {
-    units: IUnit[];
+    units: Unit[];
     selectedUnits: number[];
     selectionStart: Vector2;
     touchPressed: boolean;
@@ -131,21 +117,23 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
                     raycastOnCells(input.touchPos, gameMapState.camera, cellCoords);
                     const computed = flowField.compute(cellCoords, sectorCoords, localCoords);
-                    if (computed) {
+                    if (computed) {                        
+                        const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+                        this.state.flowfieldViewer.update(sector, localCoords);
+
                         for (const selected of this.state.selectedUnits) {
                             const unit = this.state.units[selected];
-                            unit.motion = "moving";
-                            unit.desiredPosValid = false;
+                            unit.isMoving = true;
+                            unit.desiredPosValid = false;                            
                             computeCellAddr(cellCoords, unit.targetCell);
                             this.state.skeletonManager.applySkeleton("walk", unit.obj);
                         }
-                        const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                        this.state.flowfieldViewer.update(sector, localCoords);
+
                     } else {
-                        // TODO
+                        
                         for (const selected of this.state.selectedUnits) {
                             const unit = this.state.units[selected];
-                            this.state.skeletonManager.applySkeleton("pick", unit.obj);
+                            unit.fsm.switchState(MiningState);
                         }
                     }
                 }
@@ -206,23 +194,24 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { mapRes } = config.game;
 
         for (let i = 0; i < units.length; ++i) {
-            const { obj, motion, desiredPos } = units[i];            
-            
-            if (motion === "idle") {
-                desiredPos.copy(obj.position);
-            } else if (!units[i].desiredPosValid) {                
-                const { sector } = units[i].targetCell;
-                const targetCellIndex = units[i].targetCell.cellIndex;
-                const currentCellIndex = units[i].coords.cellIndex;
-                const _flowField = sector!.cells[targetCellIndex].flowField!;
-                const { directions } = _flowField;                
-                const [cellDirection, cellDirectionValid] = directions[currentCellIndex];
-                if (!cellDirectionValid)  {
-                    flowField.computeDirection(_flowField, sector!.flowFieldCosts, currentCellIndex, cellDirection);
-                    directions[currentCellIndex][1] = true;
+            const { obj, desiredPos, isMoving } = units[i];            
+            if (isMoving) {
+                if (!units[i].desiredPosValid) {                
+                    const { sector } = units[i].targetCell;
+                    const targetCellIndex = units[i].targetCell.cellIndex;
+                    const currentCellIndex = units[i].coords.cellIndex;
+                    const _flowField = sector!.cells[targetCellIndex].flowField!;
+                    const { directions } = _flowField;                
+                    const [cellDirection, cellDirectionValid] = directions[currentCellIndex];
+                    if (!cellDirectionValid)  {
+                        flowField.computeDirection(_flowField, sector!.flowFieldCosts, currentCellIndex, cellDirection);
+                        directions[currentCellIndex][1] = true;
+                    }
+                    cellDirection3.set(cellDirection.x, 0, cellDirection.y);
+                    desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
                 }
-                cellDirection3.set(cellDirection.x, 0, cellDirection.y);
-                desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
+            } else {
+                desiredPos.copy(obj.position);
             }
             units[i].desiredPosValid = true;
 
@@ -235,9 +224,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         return units[j].desiredPos;
                     } else {
                         units[j].desiredPosValid = true;
-                        if (units[j].motion === "idle") {
-                            return units[j].desiredPos.copy(units[j].obj.position);
-                        } else {
+                        if (units[j].isMoving) {
                             const { sector } = units[j].targetCell;
                             const targetCellIndex = units[j].targetCell.cellIndex;
                             const currentCellIndex = units[j].coords.cellIndex;
@@ -250,14 +237,28 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             }
                             cellDirection3.set(cellDirection.x, 0, cellDirection.y);
                             return units[j].desiredPos.addVectors(units[j].obj.position, cellDirection3.multiplyScalar(steerAmount));
+                        } else {
+                            return units[j].desiredPos.copy(units[j].obj.position);                            
                         }                        
                     }
                 })();
 
                 const dist = otherDesiredPos.distanceTo(desiredPos);
                 if (dist < separationDist) {
-                    if (units[j].motion === "idle") {
-                        if (units[i].motion === "moving") {
+                    if (units[j].isMoving) {
+                        if (units[i].isMoving) {
+                            // move away from each other
+                            const moveAmount = Math.min((separationDist - dist) / 2, maxSteerAmount);
+                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                            desiredPos.add(toTarget);
+                            otherDesiredPos.sub(toTarget);
+                        } else {
+                            const moveAmount = Math.min((separationDist - dist) + repulsion, maxSteerAmount);
+                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                            desiredPos.add(toTarget);
+                        }
+                    } else {
+                        if (units[i].isMoving) {
                             const moveAmount = Math.min((separationDist - dist) + repulsion , maxSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             otherDesiredPos.add(toTarget);                            
@@ -268,16 +269,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             desiredPos.add(toTarget);
                             otherDesiredPos.sub(toTarget);
                         }
-                    } else if (units[i].motion === "idle") {
-                        const moveAmount = Math.min((separationDist - dist) + repulsion, maxSteerAmount);
-                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                        desiredPos.add(toTarget);
-                    } else {
-                        // move away from each other
-                        const moveAmount = Math.min((separationDist - dist) / 2, maxSteerAmount);
-                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                        desiredPos.add(toTarget);
-                        otherDesiredPos.sub(toTarget);
                     }
                 }
             }
@@ -303,7 +294,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             deltaPos.subVectors(units[i].desiredPos, units[i].obj.position);
-            if (units[i].motion === "moving") {
+            if (units[i].isMoving) {
                 units[i].desiredPosValid = false;                
                 if (emptyCell) {
                     units[i].obj.position.copy(units[i].desiredPos);                    
@@ -320,7 +311,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 GameUtils.worldToMap(units[i].obj.position, mapCoords);
                 const arrived = units[i].targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
-                    units[i].motion = "idle";
+                    units[i].isMoving = false;
                     this.state.skeletonManager.applySkeleton("idle", units[i].obj);
                 }         
             } else {
@@ -398,34 +389,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         engine.scene!.add(flowfieldViewer);
 
         this.setState({
-            units: units.map(obj => {
-                const unit: IUnit = {
-                    obj,
-                    initialToTarget: new Vector3(),
-                    desiredPos: new Vector3(),
-                    desiredPosValid: false,
-                    motion: "idle",
-                    lookAt: new Quaternion(),
-                    rotation: new Quaternion(),
-                    velocity: new Vector3(),
-                    rotationVelocity: 0,
-                    targetCell: {
-                        mapCoords: new Vector2(),
-                        localCoords: new Vector2(),
-                        sectorCoords: new Vector2(),
-                        cellIndex: 0
-                    },
-                    coords: {
-                        mapCoords: new Vector2(),
-                        localCoords: new Vector2(),
-                        sectorCoords: new Vector2(),
-                        cellIndex: 0
-                    }
-                }
-                GameUtils.worldToMap(obj.position, unit.coords.mapCoords);
-                computeCellAddr(unit.coords.mapCoords, unit.coords);
-                return unit;
-            }),
+            units: units.map(obj => new Unit(obj)),
             selectedUnits: [],
             selectionStart: new Vector2(),
             selectionInProgress: false,
