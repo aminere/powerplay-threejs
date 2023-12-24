@@ -1,5 +1,5 @@
 import { SkinnedMesh, Vector3 } from "three";
-import { ICellAddr } from "../CellCoords";
+import { ICellAddr } from "./UnitUtils";
 
 export interface IUnit {
     desiredPosValid: boolean;
@@ -7,5 +7,7 @@ export interface IUnit {
     targetCell: ICellAddr;
     obj: SkinnedMesh;
     coords: ICellAddr;
+    isMoving: boolean;
+    isColliding: boolean;
 }
 

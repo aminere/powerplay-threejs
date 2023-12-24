@@ -1,18 +1,17 @@
-import { Vector2 } from "three";
-import { ICellAddr } from "../CellCoords";
+
+import { Constructor } from "../../engine/Types";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
+import { unitUtils } from "./UnitUtils";
 
 export class MiningState extends State<IUnit> {
-    targetCell: ICellAddr = {
-        mapCoords: new Vector2(),
-        localCoords: new Vector2(),
-        sectorCoords: new Vector2(),
-        cellIndex: 0
-    };
-
-    override enter(_owner: IUnit) {
-        console.log('enter mining state');
-    }    
+    override enter(unit: IUnit) {        
+        unitUtils.moveTo(unit, unit.targetCell.mapCoords);
+    }   
+    
+    override update(unit: IUnit, _switchState: (state: Constructor<State<IUnit>>) => void): void {
+        if (unit.targetCell.mapCoords.equals(unit.coords.mapCoords)) {
+        }        
+    }
 }
 
