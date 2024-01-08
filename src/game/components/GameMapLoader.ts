@@ -10,7 +10,6 @@ import { resources } from "../Resources";
 import { config } from "../config";
 import { pools } from "../../engine/Pools";
 import { ResourceType } from "../GameDefinitions";
-import { GameUtils } from "../GameUtils";
 
 export class GameMapLoaderProps extends ComponentProps {
 

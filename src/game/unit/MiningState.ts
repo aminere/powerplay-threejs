@@ -11,7 +11,8 @@ export class MiningState extends State<IUnit> {
     
     override update(unit: IUnit, _switchState: (state: Constructor<State<IUnit>>) => void): void {
         if (unit.targetCell.mapCoords.equals(unit.coords.mapCoords)) {
-        }        
+            console.log("mining update");            
+        }
     }
 }
 

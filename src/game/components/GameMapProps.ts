@@ -1,4 +1,4 @@
-import { type TileType, TileTypes, ResourceTypes, type MineralType, MineralTypes } from "../GameDefinitions";
+import { type TileType, TileTypes, type MineralType, MineralTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ComponentProps";
 import * as Attributes from "../../engine/Attributes";
 

@@ -1,8 +1,7 @@
 
 import { Matrix4, Object3D, Quaternion, Vector3 } from "three";
-import { Component, IComponentState } from "../../engine/Component";
+import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
-import { input } from "../../engine/Input";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { mathUtils } from "../MathUtils";

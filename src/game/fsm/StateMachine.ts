@@ -15,6 +15,7 @@ interface IStateMachineProps<T> {
 export class StateMachine<T> {
 
     public get owner() { return this._owner; }
+    public get currentState() { return this._currentState; }
 
     private _states: Record<string, State<T>>;
     private _currentState?: State<T>;
@@ -36,8 +37,8 @@ export class StateMachine<T> {
         newState.enter(this._owner);
     }
 
-    public getState<U>(state: Constructor<U>) {
-        return this._states[state.name] as U;
+    public isInState<U>(state: Constructor<U>) {
+        return this._currentState?.constructor.name === state.name;
     }
 }
 

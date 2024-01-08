@@ -262,14 +262,37 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 if (emptyCell) {
                     unit.obj.position.copy(unit.desiredPos);                    
                 } else {
-                    unit.obj.position.lerp(unit.desiredPos, positionDamp);                    
+                    mathUtils.smoothDampVec3(
+                        unit.obj.position, 
+                        unit.desiredPos, 
+                        unit.velocity,
+                        positionDamp,
+                        this.props.maxSpeed, 
+                        time.deltaTime
+                    );                    
                 }
                 GameUtils.worldToMap(unit.obj.position, mapCoords);
                 const arrived = unit.targetCell.mapCoords.equals(mapCoords);
                 if (arrived) {
                     unit.isMoving = false;
                     this.state.skeletonManager.applySkeleton("idle", unit.obj);
-                }         
+                } else {
+                    const deltaPosLen = deltaPos.length();
+                    if (deltaPosLen > 0) {
+                        cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
+                        unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+                        unit.rotationVelocity = mathUtils.smoothDampQuat(
+                            unit.rotation,
+                            unit.lookAt,
+                            unit.rotationVelocity,
+                            this.props.rotationDamp,
+                            10,
+                            time.deltaTime
+                        );
+                        unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
+                    }
+                }
+
             } else if (unit.isColliding) {
                 mathUtils.smoothDampVec3(
                     unit.obj.position, 
@@ -281,22 +304,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 );
                 GameUtils.worldToMap(unit.obj.position, mapCoords);
                 unit.isColliding = false;
-            }
-
-            const deltaPosLen = deltaPos.length();
-            if (deltaPosLen > 0) {
-                cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
-                unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-                unit.rotationVelocity = mathUtils.smoothDampQuat(
-                    unit.rotation,
-                    unit.lookAt,
-                    unit.rotationVelocity,
-                    this.props.rotationDamp,
-                    this.props.maxSpeed,
-                    time.deltaTime
-                );
-                unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
-            }
+            }            
 
             const { coords } = unit;
             if (!mapCoords.equals(coords.mapCoords)) {
