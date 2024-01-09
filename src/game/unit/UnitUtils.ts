@@ -6,7 +6,7 @@ import { config } from "../config";
 import { IUnit } from "./IUnit";
 import { flowField } from "../pathfinding/Flowfield";
 import { SkeletonManager } from "../animation/SkeletonManager";
-import { WalkAnim } from "../components/WalkAnim";
+import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
 
 export interface ICellAddr {
@@ -22,6 +22,7 @@ const cellDirection3 = new Vector3();
 class UnitUtils {
 
     public set skeletonManager(value: SkeletonManager) { this._skeletonManager = value; }
+    public get skeletonManager() { return this._skeletonManager; }
 
     private _skeletonManager!: SkeletonManager;
 
@@ -64,7 +65,7 @@ class UnitUtils {
         unit.desiredPosValid = false;
         unit.isColliding = false;
         this.computeCellAddr(mapCoords, unit.targetCell);
-        engineState.removeComponent(unit.obj, WalkAnim);
+        engineState.removeComponent(unit.obj, UnitCollisionAnim);
         this._skeletonManager.applySkeleton("walk", unit.obj);
     }
 }

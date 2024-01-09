@@ -1,39 +1,38 @@
 import { Object3D, SkinnedMesh } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
-import { SkeletonManager } from "../animation/SkeletonManager";
 import { time } from "../../engine/Time";
 import { engineState } from "../../engine/EngineState";
+import { unitUtils } from "../unit/UnitUtils";
 
-export class WalkAnimProps extends ComponentProps {
-    skeletonManager: SkeletonManager | null = null;
+export class UnitCollisionAnimProps extends ComponentProps {
     duration = .25;
 
-    constructor(props?: Partial<WalkAnimProps>) {
+    constructor(props?: Partial<UnitCollisionAnimProps>) {
         super();
         this.deserialize(props);
     }
 }
 
-interface IWalkAnimState {
+interface IUnitCollisionAnimState {
     timer: number;
 }
 
-export class WalkAnim extends Component<WalkAnimProps, IWalkAnimState> {
-    constructor(props?: Partial<WalkAnimProps>) {
-        super(new WalkAnimProps(props));
+export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCollisionAnimState> {
+    constructor(props?: Partial<UnitCollisionAnimProps>) {
+        super(new UnitCollisionAnimProps(props));
     }
 
     override start(owner: Object3D) {
-        this.props.skeletonManager?.applySkeleton("walk", owner as SkinnedMesh);
+        unitUtils.skeletonManager.applySkeleton("walk", owner as SkinnedMesh);
         this.setState({ timer: this.props.duration });
     }
 
     override update(owner: Object3D) {
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
-            this.props.skeletonManager?.applySkeleton("idle", owner as SkinnedMesh);
-            engineState.removeComponent(owner, WalkAnim);
+            unitUtils.skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
+            engineState.removeComponent(owner, UnitCollisionAnim);
         }
     }
 

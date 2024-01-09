@@ -19,7 +19,7 @@ import { mathUtils } from "../MathUtils";
 import { Unit } from "../unit/Unit";
 import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
-import { WalkAnim } from "./WalkAnim";
+import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
 
 export class FlockProps extends ComponentProps {
@@ -289,7 +289,18 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     this.state.skeletonManager.applySkeleton("idle", unit.obj);
                 }
 
-            } else if (unit.isColliding) {
+            } else if (unit.isColliding) {            
+                unit.isColliding = false;
+                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                if (collisionAnim) {
+                    collisionAnim.reset();
+                } else {
+                    engineState.setComponent(unit.obj, new UnitCollisionAnim());
+                }
+            }        
+            
+            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+            if (collisionAnim) {
                 mathUtils.smoothDampVec3(
                     unit.obj.position, 
                     unit.desiredPos, 
@@ -298,18 +309,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     999, 
                     time.deltaTime
                 );
-                GameUtils.worldToMap(unit.obj.position, mapCoords);                
-                unit.isColliding = false;
-
-                const walkAnim = utils.getComponent(WalkAnim, unit.obj);
-                if (walkAnim) {
-                    walkAnim.reset();
-                } else {
-                    engineState.setComponent(unit.obj, new WalkAnim({
-                        skeletonManager: this.state.skeletonManager
-                    }));
-                }
-            }           
+                GameUtils.worldToMap(unit.obj.position, mapCoords);
+            }
 
             const deltaPosLen = deltaPos.length();
             if (deltaPosLen > 0) {
