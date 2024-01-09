@@ -10,6 +10,7 @@ import { resources } from "../Resources";
 import { config } from "../config";
 import { pools } from "../../engine/Pools";
 import { ResourceType } from "../GameDefinitions";
+import { Buildings } from "../Buildings";
 
 export class GameMapLoaderProps extends ComponentProps {
 
@@ -19,6 +20,13 @@ export class GameMapLoaderProps extends ComponentProps {
         super();
         this.deserialize(props);
     }
+}
+
+const { mapRes } = config.game;
+function calcLocalCoords(cellIndex: number, localCoordsOut: Vector2) {
+    const cellY = Math.floor(cellIndex / mapRes);
+    const cellX = cellIndex - cellY * mapRes;
+    localCoordsOut.set(cellX, cellY);
 }
 
 export class GameMapLoader extends Component<GameMapLoaderProps> {
@@ -38,7 +46,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
 
         const obj = utils.createObject(owner.parent!, this.props.path);
         const gameMap = engineState.setComponent(obj, new GameMap());
-        const { mapRes } = config.game;
         const localCoords = pools.vec2.getOne();
         for (const sector of data.sectors) {
             const sectorInstance = (() => {
@@ -56,11 +63,15 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                     cellInstance.roadTile = cell.roadTile;
                     sectorInstance.textureData.terrain.set([cell.roadTile!], cell.index);
                 }
+
                 if (cell.resource) {
-                    const cellY = Math.floor(cell.index / mapRes);
-                    const cellX = cell.index - cellY * mapRes;
-                    localCoords.set(cellX, cellY);
+                    calcLocalCoords(cell.index, localCoords);
                     resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
+                }
+
+                if (cell.building !== undefined) {
+                    calcLocalCoords(cell.index, localCoords);
+                    Buildings.create(sectorInstance, localCoords, cellInstance);
                 }
             }
 

@@ -3,7 +3,7 @@ export interface ISerializedCell {
     index: number;
     roadTile?: number;
     resource?: string;
-    // building?: string;
+    building?: string;
     // rail TODO
 }
 

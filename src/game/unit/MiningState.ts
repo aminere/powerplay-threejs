@@ -1,51 +1,75 @@
-
-import { Constructor } from "../../engine/Types";
+import { time } from "../../engine/Time";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
-import gsap from "gsap";
+import { Object3D, Vector2, Vector3 } from "three";
+import { GameUtils } from "../GameUtils";
+import { pools } from "../../engine/Pools";
 
 enum MiningStep {
-    MoveToTarget,
+    GoToResource,
     Mine,
-    MoveToBase,
-    DropOff,
+    GoToBase,
 }
 
 export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
+    private _miningTimer!: number;
+    private _targetResource!: Vector2;
+    private _targetBuilding!: Vector2;
 
-    override enter(unit: IUnit) {  
-        this._step = MiningStep.MoveToTarget;      
-        unitUtils.moveTo(unit, unit.targetCell.mapCoords);
+    override enter(_unit: IUnit) {
+        this._step = MiningStep.GoToResource;
+        this._targetResource = _unit.targetCell.mapCoords.clone();
     }
-    
-    override update(unit: IUnit, _switchState: (state: Constructor<State<IUnit>>) => void): void {
+
+    override update(unit: IUnit): void {
         switch (this._step) {
-            case MiningStep.MoveToTarget:
-                if (unit.targetCell.mapCoords.equals(unit.coords.mapCoords)) {
-                    this._step = MiningStep.Mine;
-                    unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
+
+            case MiningStep.Mine:
+                this._miningTimer -= time.deltaTime;
+                if (this._miningTimer < 0) {
+                    if (this._targetBuilding === undefined) {
+                        const sector = unit.coords.sector!;
+                        let distToClosestBuilding = 999999;
+                        let closestBuilding: Vector3 | null = null;
+                        const worldPos = pools.vec3.getOne();
+                        for (const building of sector.layers.buildings.children) {
+                            building.getWorldPosition(worldPos);
+                            const dist = worldPos.distanceTo(unit.obj.position);
+                            if (dist < distToClosestBuilding) {
+                                distToClosestBuilding = dist;
+                                closestBuilding = worldPos;
+                            }
+                        }
+                        if (!closestBuilding) {
+                            console.assert(false, "No building found");
+                            // TODO scan other sectors
+                        }
+                        this._targetBuilding = GameUtils.worldToMap(closestBuilding!, new Vector2());
+                    }
+                    unitUtils.moveTo(unit, this._targetBuilding);
+                    this._step = MiningStep.GoToBase;
                 }
                 break;
-            case MiningStep.Mine:
-                
-                break;
-            case MiningStep.MoveToBase:
-                
-                break;
-            case MiningStep.DropOff:
-                
-                break;
-        }        
+
+        }
     }
 
-    public startMining(unit: IUnit) {
-        console.log("startMining");
-        this._step = MiningStep.Mine;
-        unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
+    public onArrivedAtTarget(unit: IUnit) {
+        switch (this._step) {
+            case MiningStep.GoToResource:
+                this._step = MiningStep.Mine;
+                this._miningTimer = 1;
+                unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
+                break;
+
+            case MiningStep.GoToBase:
+                this._step = MiningStep.GoToResource;
+                unitUtils.moveTo(unit, this._targetResource);
+                break;
+        }
     }
 }
-
 

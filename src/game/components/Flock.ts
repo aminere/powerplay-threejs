@@ -124,17 +124,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         if (computed) {                        
                             const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                             this.state.flowfieldViewer.update(sector, localCoords);
-    
                             const resource = cell.resource?.name;
+                            const nextState = resource ? MiningState : null;
                             for (const selected of this.state.selectedUnits) {
                                 const unit = this.state.units[selected];
-                                if (resource) {
-                                    unit.targetCell.mapCoords.copy(cellCoords);
-                                    unit.fsm.switchState(MiningState);
-                                } else {
-                                    unit.fsm.switchState(null);
-                                    unitUtils.moveTo(unit, cellCoords);
-                                }
+                                unitUtils.moveTo(unit, cellCoords);
+                                unit.fsm.switchState(nextState);
                             }
                         }
                     }
@@ -237,31 +232,31 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { positionDamp } = this.props;
         const awayDirection = pools.vec2.getOne();
         const deltaPos = pools.vec3.getOne();
-        const [desiredMapCoords, nextMapCoords] = pools.vec2.get(2);
+        const nextMapCoords = pools.vec2.getOne();
         for (let i = 0; i < units.length; ++i) {  
             const unit = units[i];
             unit.fsm.update();
 
             unit.desiredPosValid = false;
-            GameUtils.worldToMap(unit.desiredPos, desiredMapCoords);
-            const newCell = GameUtils.getCell(desiredMapCoords);
+            GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+            const newCell = GameUtils.getCell(nextMapCoords);
             const emptyCell = newCell && GameUtils.isEmpty(newCell);
             const currentCellCoords = unit.coords.mapCoords;
 
             if (!emptyCell) {
-                if (!currentCellCoords.equals(desiredMapCoords)) {
+                if (!currentCellCoords.equals(nextMapCoords)) {
                     const miningState = unit.fsm.getState(MiningState);
-                    const isTarget = unit.targetCell.mapCoords.equals(desiredMapCoords);
+                    const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                     if (miningState && isTarget) {
                         unit.desiredPos.copy(unit.obj.position);
                         nextMapCoords.copy(currentCellCoords);
                         unit.isMoving = false;
                         unit.isColliding = false;
                         engineState.removeComponent(unit.obj, UnitCollisionAnim);
-                        miningState.startMining(unit);
+                        miningState.onArrivedAtTarget(unit);
                     } else {
                         // move away from blocked cell
-                        awayDirection.subVectors(currentCellCoords, desiredMapCoords).normalize();
+                        awayDirection.subVectors(currentCellCoords, nextMapCoords).normalize();
                         unit.desiredPos.copy(unit.obj.position);
                         unit.desiredPos.x += awayDirection.x * steerAmount;
                         unit.desiredPos.z += awayDirection.y * steerAmount;
