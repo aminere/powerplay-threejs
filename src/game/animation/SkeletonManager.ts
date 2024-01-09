@@ -31,10 +31,11 @@ export class SkeletonManager {
         const rootBone = skinnedMeshes[0].skeleton.bones[0];
         const baseRotation = new Quaternion().copy(rootBone.parent!.quaternion);
 
-        for (const skinnedMesh of skinnedMeshes) {
+        skinnedMeshes.forEach((skinnedMesh, i) => {
             const rootBone = skinnedMesh.skeleton.bones[0];
+            rootBone.name = `${rootBone.name}-${props.animations[i]}`;
             engine.scene!.add(rootBone);
-        }
+        });
 
         return {
             sharedSkinnedMesh: skinnedMeshes[0],

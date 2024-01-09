@@ -191,7 +191,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
         const lookAt = pools.mat4.getOne();
         const toTarget = pools.vec3.getOne();
-        const mapCoords = pools.vec2.getOne();
         const cellDirection3 = pools.vec3.getOne();
         const { mapRes } = config.game;
 
@@ -238,28 +237,31 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { positionDamp } = this.props;
         const awayDirection = pools.vec2.getOne();
         const deltaPos = pools.vec3.getOne();
+        const [desiredMapCoords, nextMapCoords] = pools.vec2.get(2);
         for (let i = 0; i < units.length; ++i) {  
             const unit = units[i];
             unit.fsm.update();
 
-            GameUtils.worldToMap(unit.desiredPos, mapCoords);
-            const newCell = GameUtils.getCell(mapCoords);
+            unit.desiredPosValid = false;
+            GameUtils.worldToMap(unit.desiredPos, desiredMapCoords);
+            const newCell = GameUtils.getCell(desiredMapCoords);
             const emptyCell = newCell && GameUtils.isEmpty(newCell);
+            const currentCellCoords = unit.coords.mapCoords;
 
             if (!emptyCell) {
-                const currentCellCoords = unit.coords.mapCoords;
-                if (!currentCellCoords.equals(mapCoords)) {
-                    const resource = newCell?.resource?.name;
-                    const isMining = resource && unit.fsm.isInState(MiningState);
-                    const isTarget = unit.targetCell.mapCoords.equals(mapCoords);
-                    if (isMining && isTarget) {
-                        console.log("arrived at resource");
-                        unit.obj.position.copy(unit.desiredPos);
+                if (!currentCellCoords.equals(desiredMapCoords)) {
+                    const miningState = unit.fsm.getState(MiningState);
+                    const isTarget = unit.targetCell.mapCoords.equals(desiredMapCoords);
+                    if (miningState && isTarget) {
+                        unit.desiredPos.copy(unit.obj.position);
+                        nextMapCoords.copy(currentCellCoords);
                         unit.isMoving = false;
-                        this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                        unit.isColliding = false;
+                        engineState.removeComponent(unit.obj, UnitCollisionAnim);
+                        miningState.startMining(unit);
                     } else {
                         // move away from blocked cell
-                        awayDirection.subVectors(currentCellCoords, mapCoords).normalize();
+                        awayDirection.subVectors(currentCellCoords, desiredMapCoords).normalize();
                         unit.desiredPos.copy(unit.obj.position);
                         unit.desiredPos.x += awayDirection.x * steerAmount;
                         unit.desiredPos.z += awayDirection.y * steerAmount;
@@ -269,7 +271,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
             deltaPos.subVectors(unit.desiredPos, unit.obj.position);
             if (unit.isMoving) {
-                unit.desiredPosValid = false;                
                 if (emptyCell) {
                     unit.obj.position.copy(unit.desiredPos);                    
                 } else {
@@ -282,8 +283,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         time.deltaTime
                     );                    
                 }
-                GameUtils.worldToMap(unit.obj.position, mapCoords);
-                const arrived = unit.targetCell.mapCoords.equals(mapCoords);
+                GameUtils.worldToMap(unit.obj.position, nextMapCoords);
+                const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                 if (arrived) {
                     unit.isMoving = false;
                     this.state.skeletonManager.applySkeleton("idle", unit.obj);
@@ -309,37 +310,37 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     999, 
                     time.deltaTime
                 );
-                GameUtils.worldToMap(unit.obj.position, mapCoords);
+                GameUtils.worldToMap(unit.obj.position, nextMapCoords);
             }
 
             const deltaPosLen = deltaPos.length();
-            if (deltaPosLen > 0) {
+            if (deltaPosLen > 0.01) {
                 cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
                 unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+                const rotationFactor = collisionAnim ? 4 : 1;
                 unit.rotationVelocity = mathUtils.smoothDampQuat(
                     unit.rotation,
                     unit.lookAt,
                     unit.rotationVelocity,
-                    this.props.rotationDamp,
+                    this.props.rotationDamp * rotationFactor,
                     999,
                     time.deltaTime
                 );
                 unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
             }
 
-            const { coords } = unit;
-            if (!mapCoords.equals(coords.mapCoords)) {
-                const dx = mapCoords.x - coords.mapCoords.x;
-                const dy = mapCoords.y - coords.mapCoords.y;
-                const { localCoords } = coords;
+            if (!nextMapCoords.equals(currentCellCoords)) {
+                const dx = nextMapCoords.x - currentCellCoords.x;
+                const dy = nextMapCoords.y - currentCellCoords.y;
+                const { localCoords } = unit.coords;
                 localCoords.x += dx;
                 localCoords.y += dy;
                 if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                     // entered a new sector
-                    unitUtils.computeCellAddr(mapCoords, coords);
+                    unitUtils.computeCellAddr(nextMapCoords, unit.coords);
                 } else {
-                    coords.mapCoords.copy(mapCoords);
-                    coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                    unit.coords.mapCoords.copy(nextMapCoords);
+                    unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                 }
             }
         }

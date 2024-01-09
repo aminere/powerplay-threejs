@@ -37,8 +37,12 @@ export class StateMachine<T> {
         newState?.enter(this._owner);
     }
 
-    public isInState<U>(state: Constructor<U>) {
-        return this._currentState?.constructor.name === state.name;
+    public getState<U>(state: Constructor<U>) {
+        if (this._currentState?.constructor.name === state.name) {
+            return this._currentState as U;
+        } else {
+            return null;
+        }
     }
 }
 
