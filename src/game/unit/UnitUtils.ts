@@ -6,6 +6,8 @@ import { config } from "../config";
 import { IUnit } from "./IUnit";
 import { flowField } from "../pathfinding/Flowfield";
 import { SkeletonManager } from "../animation/SkeletonManager";
+import { WalkAnim } from "../components/WalkAnim";
+import { engineState } from "../../engine/EngineState";
 
 export interface ICellAddr {
     mapCoords: Vector2;
@@ -62,6 +64,7 @@ class UnitUtils {
         unit.desiredPosValid = false;
         unit.isColliding = false;
         this.computeCellAddr(mapCoords, unit.targetCell);
+        engineState.removeComponent(unit.obj, WalkAnim);
         this._skeletonManager.applySkeleton("walk", unit.obj);
     }
 }

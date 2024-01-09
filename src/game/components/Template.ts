@@ -1,17 +1,20 @@
 
-import { Component } from "../../engine/Component";
+import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 
-export class TemplateProps extends ComponentProps {
-    constructor(props?: Partial<TemplateProps>) {
+export class Props extends ComponentProps {
+    constructor(props?: Partial<Props>) {
         super();
         this.deserialize(props);
     }
 }
 
-export class Template extends Component<TemplateProps> {
-    constructor(props?: Partial<TemplateProps>) {
-        super(new TemplateProps(props));
+interface IState extends IComponentState {    
+}
+
+export class Template extends Component<Props, IState> {
+    constructor(props?: Partial<Props>) {
+        super(new Props(props));
     }
 }
 

@@ -43,9 +43,11 @@ export class SkeletonManager {
     }
 
     public applySkeleton(animation: string, target: SkinnedMesh) {
-        console.assert(target.isSkinnedMesh);
         const skeleton = this._skeletons.get(animation);
-        if (skeleton) {
+        if (!skeleton) {
+            return;
+        }
+        if (target.skeleton !== skeleton) {
             target.bind(skeleton, identity);
         }
     }

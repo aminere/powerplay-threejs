@@ -18,6 +18,9 @@ import { SkeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
 import { Unit } from "../unit/Unit";
 import { MiningState } from "../unit/MiningState";
+import { engineState } from "../../engine/EngineState";
+import { WalkAnim } from "./WalkAnim";
+import { utils } from "../../engine/Utils";
 
 export class FlockProps extends ComponentProps {
 
@@ -27,8 +30,8 @@ export class FlockProps extends ComponentProps {
     maxSpeed = 10;
     speed = 4;       
     repulsion = .2;
-    positionDamp = .4;
-    rotationDamp = .4;
+    positionDamp = .2;
+    rotationDamp = .2;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -123,15 +126,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             this.state.flowfieldViewer.update(sector, localCoords);
     
                             const resource = cell.resource?.name;
-                            if (resource) {
-                                for (const selected of this.state.selectedUnits) {
-                                    const unit = this.state.units[selected];
+                            for (const selected of this.state.selectedUnits) {
+                                const unit = this.state.units[selected];
+                                if (resource) {
                                     unit.targetCell.mapCoords.copy(cellCoords);
                                     unit.fsm.switchState(MiningState);
-                                }
-                            } else {
-                                for (const selected of this.state.selectedUnits) {
-                                    const unit = this.state.units[selected];
+                                } else {
+                                    unit.fsm.switchState(null);
                                     unitUtils.moveTo(unit, cellCoords);
                                 }
                             }
@@ -248,11 +249,21 @@ export class Flock extends Component<FlockProps, IFlockState> {
             if (!emptyCell) {
                 const currentCellCoords = unit.coords.mapCoords;
                 if (!currentCellCoords.equals(mapCoords)) {
-                    // move away from blocked cell
-                    awayDirection.subVectors(currentCellCoords, mapCoords).normalize();
-                    unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * steerAmount;
-                    unit.desiredPos.z += awayDirection.y * steerAmount;
+                    const resource = newCell?.resource?.name;
+                    const isMining = resource && unit.fsm.isInState(MiningState);
+                    const isTarget = unit.targetCell.mapCoords.equals(mapCoords);
+                    if (isMining && isTarget) {
+                        console.log("arrived at resource");
+                        unit.obj.position.copy(unit.desiredPos);
+                        unit.isMoving = false;
+                        this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                    } else {
+                        // move away from blocked cell
+                        awayDirection.subVectors(currentCellCoords, mapCoords).normalize();
+                        unit.desiredPos.copy(unit.obj.position);
+                        unit.desiredPos.x += awayDirection.x * steerAmount;
+                        unit.desiredPos.z += awayDirection.y * steerAmount;
+                    }                    
                 }
             }
 
@@ -267,7 +278,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         unit.desiredPos, 
                         unit.velocity,
                         positionDamp,
-                        this.props.maxSpeed, 
+                        999, 
                         time.deltaTime
                     );                    
                 }
@@ -276,21 +287,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 if (arrived) {
                     unit.isMoving = false;
                     this.state.skeletonManager.applySkeleton("idle", unit.obj);
-                } else {
-                    const deltaPosLen = deltaPos.length();
-                    if (deltaPosLen > 0) {
-                        cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
-                        unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-                        unit.rotationVelocity = mathUtils.smoothDampQuat(
-                            unit.rotation,
-                            unit.lookAt,
-                            unit.rotationVelocity,
-                            this.props.rotationDamp,
-                            10,
-                            time.deltaTime
-                        );
-                        unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
-                    }
                 }
 
             } else if (unit.isColliding) {
@@ -299,12 +295,36 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     unit.desiredPos, 
                     unit.velocity,
                     positionDamp,
-                    this.props.maxSpeed, 
+                    999, 
                     time.deltaTime
                 );
-                GameUtils.worldToMap(unit.obj.position, mapCoords);
+                GameUtils.worldToMap(unit.obj.position, mapCoords);                
                 unit.isColliding = false;
-            }            
+
+                const walkAnim = utils.getComponent(WalkAnim, unit.obj);
+                if (walkAnim) {
+                    walkAnim.reset();
+                } else {
+                    engineState.setComponent(unit.obj, new WalkAnim({
+                        skeletonManager: this.state.skeletonManager
+                    }));
+                }
+            }           
+
+            const deltaPosLen = deltaPos.length();
+            if (deltaPosLen > 0) {
+                cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
+                unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+                unit.rotationVelocity = mathUtils.smoothDampQuat(
+                    unit.rotation,
+                    unit.lookAt,
+                    unit.rotationVelocity,
+                    this.props.rotationDamp,
+                    999,
+                    time.deltaTime
+                );
+                unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
+            }
 
             const { coords } = unit;
             if (!mapCoords.equals(coords.mapCoords)) {

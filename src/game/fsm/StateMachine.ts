@@ -18,7 +18,7 @@ export class StateMachine<T> {
     public get currentState() { return this._currentState; }
 
     private _states: Record<string, State<T>>;
-    private _currentState?: State<T>;
+    private _currentState: State<T> | null = null;
     private _owner: T;
 
     constructor(props: IStateMachineProps<T>) {
@@ -30,11 +30,11 @@ export class StateMachine<T> {
         this._currentState?.update(this._owner, state => this.switchState(state));
     }
 
-    public switchState(state: Constructor<State<T>>) {
-        const newState = this._states[state.name];
+    public switchState(state: Constructor<State<T>> | null) {
+        const newState = state ? this._states[state.name] : null;
         this._currentState?.exit(this._owner);
         this._currentState = newState;
-        newState.enter(this._owner);
+        newState?.enter(this._owner);
     }
 
     public isInState<U>(state: Constructor<U>) {
