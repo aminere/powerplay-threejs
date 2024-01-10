@@ -121,6 +121,7 @@ export class Buildings {
         building.position.set(localCoords.x * cellSize, 0, localCoords.y * cellSize);
         sector.layers.buildings.add(building);
         cell.building = building;
+        cell.isEmpty = false;
 
         // update cost field
         const cellIndex = localCoords.y * mapRes + localCoords.x;
@@ -130,6 +131,9 @@ export class Buildings {
     public static clear(sector: ISector, cell: ICell) {
         sector.layers.buildings.remove(cell.building!);
         delete cell.building;
+        if (!cell.resource) {
+            cell.isEmpty = true;
+        }
     }
 }
 

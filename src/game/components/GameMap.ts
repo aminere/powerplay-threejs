@@ -117,12 +117,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
                 if (this.state.action) {
                     const cellCoords = pools.vec2.getOne();
-                    if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
-                        if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
-                            this.state.tileSelector.setPosition(cellCoords!);
-                            this.state.selectedCellCoords.copy(cellCoords!);                        
-                            // default rail preview was here                        
-                        }
+                    raycastOnCells(input.touchPos, this.state.camera, cellCoords)
+                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
+                        this.state.tileSelector.setPosition(cellCoords!);
+                        this.state.selectedCellCoords.copy(cellCoords!);                        
+                        // default rail preview was here                        
                     }
                 }
             }

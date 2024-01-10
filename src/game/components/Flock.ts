@@ -166,14 +166,18 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         }));
 
                     } else {
-                        const dx = input.touchPos.x - this.state.selectionStart.x;
-                        const dy = input.touchPos.y - this.state.selectionStart.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        const threshold = 5;
-                        if (dist > threshold) {
-                            this.state.selectionInProgress = true;
-                            cmdStartSelection.post(this.state.selectionStart);
+
+                        if (!gameMapState.action) {
+                            const dx = input.touchPos.x - this.state.selectionStart.x;
+                            const dy = input.touchPos.y - this.state.selectionStart.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            const threshold = 5;
+                            if (dist > threshold) {
+                                this.state.selectionInProgress = true;
+                                cmdStartSelection.post(this.state.selectionStart);
+                            }
                         }
+                        
                     }
                 }
             }
@@ -240,12 +244,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
             unit.desiredPosValid = false;
             GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
             const newCell = GameUtils.getCell(nextMapCoords);
-            const emptyCell = newCell && GameUtils.isEmpty(newCell);
+            const emptyCell = newCell && newCell.isEmpty;
             const currentCellCoords = unit.coords.mapCoords;
+            const miningState = unit.fsm.getState(MiningState);
 
             if (!emptyCell) {
                 if (!currentCellCoords.equals(nextMapCoords)) {
-                    const miningState = unit.fsm.getState(MiningState);
                     const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                     if (miningState && isTarget) {
                         unit.desiredPos.copy(unit.obj.position);
@@ -285,14 +289,16 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     this.state.skeletonManager.applySkeleton("idle", unit.obj);
                 }
 
-            } else if (unit.isColliding) {            
+            } else if (unit.isColliding) {    
                 unit.isColliding = false;
-                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                if (collisionAnim) {
-                    collisionAnim.reset();
-                } else {
-                    engineState.setComponent(unit.obj, new UnitCollisionAnim());
-                }
+                if (!miningState) {
+                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                    if (collisionAnim) {
+                        collisionAnim.reset();
+                    } else {
+                        engineState.setComponent(unit.obj, new UnitCollisionAnim());
+                    }
+                }                
             }        
             
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);

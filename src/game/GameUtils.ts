@@ -58,10 +58,6 @@ export class GameUtils {
         return sector.cells[localY * mapRes + localX];
     }
 
-    public static isEmpty(cell: ICell) {
-        return Object.keys(cell).length === 1 && !cell.unit;
-    }
-
     // public static canPlaceRoad(mapCoords: Vector2) {
         // const cell = GameUtils.getCell(mapCoords);
         // if (cell && GameUtils.hasStructure(cell)) {

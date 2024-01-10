@@ -220,7 +220,7 @@ export class Rails {
             worldPos: rail.position.clone(),
             tip: "start",
             mapCoords: startCoords.clone()
-        };
+        };        
         if (endCoords) {
             console.assert(endAxis);
             const endPos = pools.vec3.getOne();

@@ -17,6 +17,12 @@ export interface ICellAddr {
     cellIndex: number;
 }
 
+export interface ICellPtr {
+    sectorCoords: Vector2;
+    mapCoords: Vector2;
+    cellIndex: number;
+}
+
 const { mapRes } = config.game;
 const cellDirection3 = new Vector3();
 class UnitUtils {
@@ -25,6 +31,24 @@ class UnitUtils {
     public get skeletonManager() { return this._skeletonManager; }
 
     private _skeletonManager!: SkeletonManager;
+
+    public makeCellPtr(cellAddr: ICellAddr) {
+        return {
+            sectorCoords: cellAddr.sectorCoords.clone(),
+            mapCoords: cellAddr.mapCoords.clone(),
+            cellIndex: cellAddr.cellIndex
+        };
+    }
+
+    public getCell(cellPtr: ICellPtr) {
+        const { sectors } = gameMapState;
+        const { sectorCoords, cellIndex } = cellPtr;
+        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
+        if (!sector) {
+            return null;
+        }
+        return sector.cells[cellIndex];
+    }
 
     public computeCellAddr(mapCoords: Vector2, addrOut: ICellAddr) {
         addrOut.mapCoords.copy(mapCoords);

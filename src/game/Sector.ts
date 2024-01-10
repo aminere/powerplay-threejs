@@ -21,7 +21,8 @@ export class Sector {
                 flowField: {
                     integrations: grid.map(() => 0xffff),
                     directions: grid.map(() => [new Vector2(), false])
-                }
+                },
+                isEmpty: true
             };
             return cell;
         })

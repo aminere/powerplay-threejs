@@ -1,10 +1,11 @@
 import { time } from "../../engine/Time";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { unitUtils } from "./UnitUtils";
-import { Object3D, Vector2, Vector3 } from "three";
+import { ICellPtr, unitUtils } from "./UnitUtils";
+import { Object3D, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
+import { flowField } from "../pathfinding/Flowfield";
 
 enum MiningStep {
     GoToResource,
@@ -16,12 +17,11 @@ export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
     private _miningTimer!: number;
-    private _targetResource!: Vector2;
-    private _targetBuilding!: Vector2;
+    private _targetResource!: ICellPtr;
 
     override enter(_unit: IUnit) {
         this._step = MiningStep.GoToResource;
-        this._targetResource = _unit.targetCell.mapCoords.clone();
+        this._targetResource = unitUtils.makeCellPtr(_unit.targetCell);
     }
 
     override update(unit: IUnit): void {
@@ -30,27 +30,32 @@ export class MiningState extends State<IUnit> {
             case MiningStep.Mine:
                 this._miningTimer -= time.deltaTime;
                 if (this._miningTimer < 0) {
-                    if (this._targetBuilding === undefined) {
-                        const sector = unit.coords.sector!;
-                        let distToClosestBuilding = 999999;
-                        let closestBuilding: Vector3 | null = null;
-                        const worldPos = pools.vec3.getOne();
-                        for (const building of sector.layers.buildings.children) {
-                            building.getWorldPosition(worldPos);
-                            const dist = worldPos.distanceTo(unit.obj.position);
-                            if (dist < distToClosestBuilding) {
-                                distToClosestBuilding = dist;
-                                closestBuilding = worldPos;
-                            }
+                    const sector = unit.coords.sector!;
+                    let distToClosestBuilding = 999999;
+                    let closestBuilding: Object3D | null = null;
+                    const worldPos = pools.vec3.getOne();
+                    for (const building of sector.layers.buildings.children) {
+                        building.getWorldPosition(worldPos);
+                        const dist = worldPos.distanceTo(unit.obj.position);
+                        if (dist < distToClosestBuilding) {
+                            distToClosestBuilding = dist;
+                            closestBuilding = building;
                         }
-                        if (!closestBuilding) {
-                            console.assert(false, "No building found");
-                            // TODO scan other sectors
-                        }
-                        this._targetBuilding = GameUtils.worldToMap(closestBuilding!, new Vector2());
                     }
-                    unitUtils.moveTo(unit, this._targetBuilding);
-                    this._step = MiningStep.GoToBase;
+                    if (!closestBuilding) {
+                        // TODO scan other sectors
+                        console.assert(false, "No building found");
+                    } else {
+                        closestBuilding.getWorldPosition(worldPos);
+                        const targetBuilding = GameUtils.worldToMap(worldPos, new Vector2());
+                        const [sectorCoords, localCoords] = pools.vec2.get(2);
+                        if (flowField.compute(targetBuilding, sectorCoords, localCoords)) {
+                            unitUtils.moveTo(unit, targetBuilding);
+                        } else {
+                            console.assert(false, "No path found");
+                        }                        
+                    }
+                    this._step = MiningStep.GoToBase;                
                 }
                 break;
 
@@ -66,8 +71,10 @@ export class MiningState extends State<IUnit> {
                 break;
 
             case MiningStep.GoToBase:
+                const cell = unitUtils.getCell(this._targetResource)!;
+                console.log("collected resource ", cell.resource!.name);
                 this._step = MiningStep.GoToResource;
-                unitUtils.moveTo(unit, this._targetResource);
+                unitUtils.moveTo(unit, this._targetResource.mapCoords);
                 break;
         }
     }

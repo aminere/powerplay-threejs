@@ -11,6 +11,7 @@ export interface IFlowField {
 
 export interface ICell {
     roadTile?: number;
+
     building?: THREE.Object3D;
     resource?: THREE.Object3D;
     rail?: {        
@@ -29,6 +30,7 @@ export interface ICell {
     
     unit?: THREE.Object3D;
     flowField: IFlowField;
+    isEmpty: boolean;
 }
 
 export interface ISector {

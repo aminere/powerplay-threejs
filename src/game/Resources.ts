@@ -42,6 +42,7 @@ class Resources {
         const { cellSize, mapRes } = config.game;
         resource.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
         cell.resource = resource;
+        cell.isEmpty = false;
 
         // update cost field
         const cellIndex = localCoords.y * mapRes + localCoords.x;
@@ -51,6 +52,9 @@ class Resources {
     public clear(sector: ISector, cell: ICell) {
         sector.layers.resources.remove(cell.resource!);
         delete cell.resource;
+        if (!cell.building) {
+            cell.isEmpty = true;
+        }
     }
 }
 
