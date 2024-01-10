@@ -3,10 +3,11 @@ import { Component } from "../Component";
 import { ComponentProps } from "../ComponentProps";
 import { time } from "../Time";
 import { engineState } from "../EngineState";
+import { TArray } from "../TArray";
 
 export class AnimatorProps extends ComponentProps {
     currentAnim = "";
-    animations = new Array<string>();    
+    animations = new TArray(String);    
     autoStart = true;
 
     constructor(props?: Partial<AnimatorProps>) {
@@ -32,7 +33,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
     override start(owner: Object3D) {
         const mixer = new AnimationMixer(owner);
         const actions = this.props.animations.map(animation => {
-            const info = engineState.animations.get(animation);
+            const info = engineState.animations.get(animation.valueOf());
             if (info) {
                 return mixer.clipAction(info.clip);
             } else {

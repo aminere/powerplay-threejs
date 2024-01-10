@@ -7,17 +7,19 @@ export class TArray<T> {
     public get data() { return this._data; }    
 
     private _data: T[] = [];
-    private get createItem() { return (this as any)["_createItem"] as () => T; }    
+    private get createItem() { return (this as any)["_createItem"] as (value?: T) => T; }    
     private get copyInternal() { return (this as any)["_copy"] as (data: T[]) => void; }
 
-    constructor(ctor: new() => T) {
+    constructor(ctor: new(value?: T) => T) {
         Object.defineProperty(this, '_createItem', { 
             enumerable: false, 
-            value: () => {
+            value: (value?: T) => {
                 if (ctor.name === "Number") {
-                    return 0;
+                    return value ?? 0;
+                } else if (ctor.name === "String") {
+                    return value ?? "";
                 }
-                return new ctor();
+                return new ctor(value);
             }
         });
         Object.defineProperty(this, '_copy', { 
@@ -38,8 +40,8 @@ export class TArray<T> {
         });
     }
 
-    public grow() {
-        this._data.push(this.createItem());
+    public grow(value?: T) {
+        this._data.push(this.createItem(value));
     }
 
     public copy(other: TArray<T>) {

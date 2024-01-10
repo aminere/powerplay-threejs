@@ -94,7 +94,7 @@ class EngineState {
         }
     }
 
-    private unregisterAnimations(obj: Object3D) {
+    public unregisterAnimations(obj: Object3D) {
         for (const anim of obj.animations) {
             this._animations.delete(anim.name);
         }

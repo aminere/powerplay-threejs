@@ -71,8 +71,8 @@ export class MiningState extends State<IUnit> {
                 break;
 
             case MiningStep.GoToBase:
-                const cell = unitUtils.getCell(this._targetResource)!;
-                console.log("collected resource ", cell.resource!.name);
+                // const cell = unitUtils.getCell(this._targetResource)!;
+                // console.log("collected resource ", cell.resource!.name);
                 this._step = MiningStep.GoToResource;
                 unitUtils.moveTo(unit, this._targetResource.mapCoords);
                 break;

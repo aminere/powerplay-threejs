@@ -354,7 +354,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const skeletonManager = new SkeletonManager();
         unitUtils.skeletonManager = skeletonManager;
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
-            skin: "/test/Worker.json",
+            skin: "/test/characters/Worker.json",
             animations: ["idle", "walk", "pick"],
             currentAnim: "idle"
         });
