@@ -79,19 +79,15 @@ class Serialization {
             });
             return target;
         } else {
-            this.postDeserialize(newInstance);
+            newInstance.traverse(o => {
+                this.postDeserializeObject(o);
+                this.postDeserializeComponents(o);
+            });
             return newInstance;
         }
-    }    
+    }
 
-    public postDeserialize(obj: Object3D) {
-        obj.traverse(o => {
-            this.postDeserializeObject(o);
-            this.postDeserializeComponents(o);
-        });
-    }    
-
-    private postDeserializeObject(obj: Object3D) {        
+    public postDeserializeObject(obj: Object3D) {        
         const light = obj as THREE.DirectionalLight;
         if (light.isDirectionalLight) {
             utils.updateDirectionalLightTarget(light);
@@ -102,7 +98,7 @@ class Serialization {
         }
     }
 
-    private postDeserializeComponents(obj: Object3D) {
+    public postDeserializeComponents(obj: Object3D) {
         const { components } = obj.userData;
         if (components) {
             for (const [key, value] of Object.entries(components)) {

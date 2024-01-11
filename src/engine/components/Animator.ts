@@ -6,12 +6,20 @@ import { engineState } from "../EngineState";
 import { TArray } from "../TArray";
 
 export class AnimatorProps extends ComponentProps {
-    currentAnim = "";
+    currentAnim = 0;
     animations = new TArray(String);    
     autoStart = true;
 
     constructor(props?: Partial<AnimatorProps>) {
         super();
+
+        if (props?.currentAnim) {
+            if (typeof props.currentAnim === "string") {
+                console.warn("Upgrading from old AnimatorProps");
+                props.currentAnim = 0;
+            }
+        }
+
         this.deserialize(props);
     }
 }
@@ -32,7 +40,9 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
     
     override start(owner: Object3D) {
         const mixer = new AnimationMixer(owner);
-        const actions = this.props.animations.map(animation => {
+
+        const { animations, currentAnim } = this.props;
+        const actions = animations.map(animation => {
             const info = engineState.animations.get(animation.valueOf());
             if (info) {
                 return mixer.clipAction(info.clip);
@@ -44,10 +54,11 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             .filter(Boolean)
             .reduce((prev, cur) => ({ ...prev, [cur!.getClip().name]: cur! }), {} as Record<string, AnimationAction>);
 
-        this.setState({ mixer, actions, currentAnim: this.props.currentAnim });
+        const currentAnimName = animations.at(currentAnim).valueOf();
+        this.setState({ mixer, actions, currentAnim: currentAnimName });
 
         if (this.props.autoStart) {
-            actions[this.props.currentAnim]?.play();
+            actions[currentAnimName]?.play();
         }        
     }
     

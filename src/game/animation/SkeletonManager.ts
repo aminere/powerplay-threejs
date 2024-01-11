@@ -9,7 +9,6 @@ import { TArray } from "../../powerplay";
 interface ISkeletonManagerProps {
     skin: string;
     animations: string[];
-    currentAnim: string;
 }
 
 const identity = new Matrix4();
@@ -26,7 +25,7 @@ export class SkeletonManager {
             const rootBone = skeleton.bones[0];
             const animations = new TArray(String);
             animations.grow(animation);
-            engineState.setComponent(rootBone, new Animator({ animations, currentAnim: animation }));
+            engineState.setComponent(rootBone, new Animator({ animations, currentAnim: 0 }));
             this._skeletons.set(animation, skeleton);
             return skinnedMesh;
         });

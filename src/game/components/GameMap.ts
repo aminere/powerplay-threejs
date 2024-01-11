@@ -18,6 +18,7 @@ import { time } from "../../engine/Time";
 import gsap from "gsap";
 import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";
+import { Flock } from "./Flock";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -94,6 +95,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         evtCursorOverUI.attach(this.onCursorOverUI);
         cmdShowUI.post("gamemap");
         railFactory.preload();
+
+        const flocks = engineState.getComponents(Flock);
+        for (const flock of flocks) {
+            const { owner, component } = flock;
+            component.load(owner);
+        }
     }
 
     override dispose() {
@@ -101,6 +108,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         document.removeEventListener("keydown", this.onKeyDown);
         evtCursorOverUI.detach(this.onCursorOverUI);
         cmdHideUI.post("gamemap");
+        gameMapState.instance = null;
     }
 
     override update(_owner: Object3D) {

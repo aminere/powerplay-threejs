@@ -55,10 +55,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         super(new FlockProps(props));
     }
 
-    override start(owner: Object3D) {
-        this.load(owner);
-    }
-
     private _localRay = new Ray();
     private _inverseMatrix = new Matrix4();
     override update(_owner: Object3D) {
@@ -189,8 +185,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const steerAmount = this.props.speed * time.deltaTime;
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
         const lookAt = pools.mat4.getOne();
-        const toTarget = pools.vec3.getOne();
-        const cellDirection3 = pools.vec3.getOne();
+        const [toTarget, cellDirection3, lateralMove] = pools.vec3.get(3);
         const { mapRes } = config.game;
 
         // steering and collision avoidance
@@ -211,6 +206,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                             otherDesiredPos.sub(toTarget);
+
+                            // move laterally
+                            lateralMove.crossVectors(toTarget, GameUtils.vec3.up).normalize().multiplyScalar(moveAmount);
+                            desiredPos.add(lateralMove);
+                            otherDesiredPos.sub(lateralMove);
+
                         } else {
                             const moveAmount = Math.min((separationDist - dist) + repulsion, maxSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
@@ -347,7 +348,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
     }
 
-    private async load(owner: Object3D) {
+    public async load(owner: Object3D) {
         const radius = this.props.radius;
         const units: SkinnedMesh[] = [];
 
@@ -356,7 +357,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
             skin: "/test/characters/Worker.json",
             animations: ["idle", "walk", "pick"],
-            currentAnim: "idle"
         });
 
         const headOffset = new Vector3();   

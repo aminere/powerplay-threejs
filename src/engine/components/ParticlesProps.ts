@@ -33,7 +33,7 @@ export class ParticlesProps extends ComponentProps {
     direction: ParticleDirection = "static";
 
     sizeOverLife = new TArray(Number);
-    colorOverLife = new TArray(Color);
+    colorOverLife = new TArray<Color>(Color);
     alphaOverLife = new TArray(Number);
 }
 

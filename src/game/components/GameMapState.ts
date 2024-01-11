@@ -35,21 +35,21 @@ export interface IGameMapState {
     }
 }
 
-export class GameMapState {
-    public set instance(value: IGameMapState) { this._instance = value; }
-    public get instance() { return this._instance; }
-    public get sectors() { return this._instance.sectors; }
-    public get owner() { return this._instance.owner; }
-    public get action() { return this._instance.action; }
-    public get initialDragAxis() { return this._instance.initialDragAxis; }
-    public get layers() { return this._instance.layers; }
-    public get camera() { return this._instance.camera; }
+export class GameMapState {   
+    public set instance(value: IGameMapState | null) { this._instance = value; }
+    public get instance() { return this._instance!; }
+    public get sectors() { return this._instance!.sectors; }
+    public get owner() { return this._instance!.owner; }
+    public get action() { return this._instance!.action; }
+    public get initialDragAxis() { return this._instance!.initialDragAxis; }
+    public get layers() { return this._instance!.layers; }
+    public get camera() { return this._instance!.camera; }
 
-    public set bounds(value: Box2 | undefined) { this._instance.bounds = value; }  
-    public set action(value: Action | null) { this._instance.action = value; }    
-    public set initialDragAxis(value: "x" | "z" | undefined) { this._instance.initialDragAxis = value; }
+    public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
+    public set action(value: Action | null) { this._instance!.action = value; }    
+    public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
     
-    private _instance!: IGameMapState;
+    private _instance: IGameMapState | null = null;
 }
 
 export const gameMapState = new GameMapState();
