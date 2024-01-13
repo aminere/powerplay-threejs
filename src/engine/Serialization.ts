@@ -44,16 +44,15 @@ class Serialization {
                     console.log(`skipping deserialization of ${_target.name}`);
                     return;
                 }
-                const liveUserData = _target.userData;
+
                 if ((_target as SkinnedMesh).isSkinnedMesh) {
                     // Avoid affecting the existing skeleton
                     Mesh.prototype.copy.call(_target, _newInstance as Mesh, false);
                 } else {
-                    if (!_newInstance?.name) {
-                        debugger;
-                    }
                     _target.copy(_newInstance, false);
-                }                
+                }
+
+                const liveUserData = _target.userData;
                 _target.userData = {
                     ...liveUserData,
                     ..._newInstance.userData

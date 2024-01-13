@@ -21,6 +21,9 @@ import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
+import { UnitType } from "../unit/IUnit";
+import { objects } from "../../engine/Objects";
+import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
 export class FlockProps extends ComponentProps {
 
@@ -350,7 +353,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
     public async load(owner: Object3D) {
         const radius = this.props.radius;
-        const units: SkinnedMesh[] = [];
+        const workerMeshes: SkinnedMesh[] = [];
 
         const skeletonManager = new SkeletonManager();
         unitUtils.skeletonManager = skeletonManager;
@@ -367,18 +370,37 @@ export class Flock extends Component<FlockProps, IFlockState> {
             obj.quaternion.copy(baseRotation);
             obj.userData.unserializable = true;
             headOffset.copy(obj.position).setZ(1.8);
-            obj.boundingBox = new Box3().setFromObject(obj).expandByPoint(headOffset);            
+            obj.boundingBox = new Box3().setFromObject(obj).expandByPoint(headOffset);
             owner.add(obj);
             obj.position.x = Math.random() * radius * 2 - radius;
             obj.position.z = Math.random() * radius * 2 - radius;
-            units.push(obj);
+            workerMeshes.push(obj);
         }
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);
 
+        const units = workerMeshes.map(obj => new Unit({ obj, type: UnitType.Worker }));
+
+        const npcObj = await objects.load("/test/characters/NPC.json");
+        const npcModel = SkeletonUtils.clone(npcObj);
+        const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
+        npcMesh.bindMode = "detached";
+        skeletonManager.applySkeleton("idle", npcMesh);
+        npcMesh.quaternion.copy(baseRotation);
+        npcMesh.userData.unserializable = true;
+        headOffset.copy(npcMesh.position).setZ(1.8);
+        npcMesh.boundingBox = new Box3().setFromObject(npcMesh).expandByPoint(headOffset);
+        owner.add(npcMesh);
+        npcMesh.position.x = 4;
+        npcMesh.position.z = 0;
+        units.push(new Unit({
+            type: UnitType.NPC,
+            obj: npcMesh
+        }));
+
         this.setState({
-            units: units.map(obj => new Unit(obj)),
+            units,
             selectedUnits: [],
             selectionStart: new Vector2(),
             selectionInProgress: false,

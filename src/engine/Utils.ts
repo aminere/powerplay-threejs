@@ -2,6 +2,7 @@ import { Camera, DirectionalLight, Object3D, ObjectLoader, OrthographicCamera, P
 import { config } from "../game/config";
 import { Component } from "./Component";
 import { ComponentProps } from "./ComponentProps";
+import { TArray } from "./TArray";
 
 class Utils {
     public updateCameraAspect(camera: Camera, width: number, height: number) {
@@ -69,6 +70,14 @@ class Utils {
 
     public isPointerLocked() {
         return Boolean(document.pointerLockElement);
+    }
+
+    public MakeStrArray(values: string[]) {
+        const array = new TArray(String);
+        for (const value of values) {
+            array.grow(value);
+        }
+        return array;
     }
 }
 

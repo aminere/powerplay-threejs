@@ -4,7 +4,7 @@ import { Matrix4, Quaternion, Skeleton, SkinnedMesh } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
-import { TArray } from "../../powerplay";
+import { utils } from "../../engine/Utils";
 
 interface ISkeletonManagerProps {
     skin: string;
@@ -23,8 +23,7 @@ export class SkeletonManager {
             const skinnedMesh = model.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
             const skeleton = skinnedMesh.skeleton;
             const rootBone = skeleton.bones[0];
-            const animations = new TArray(String);
-            animations.grow(animation);
+            const animations = utils.MakeStrArray([animation]);
             engineState.setComponent(rootBone, new Animator({ animations, currentAnim: 0 }));
             this._skeletons.set(animation, skeleton);
             return skinnedMesh;
