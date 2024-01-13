@@ -44,6 +44,8 @@ export class GameMapState {
     public get initialDragAxis() { return this._instance!.initialDragAxis; }
     public get layers() { return this._instance!.layers; }
     public get camera() { return this._instance!.camera; }
+    public get previousRoad() { return this._instance!.previousRoad; }
+    public get previousRail() { return this._instance!.previousRail; }
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
     public set action(value: Action | null) { this._instance!.action = value; }    

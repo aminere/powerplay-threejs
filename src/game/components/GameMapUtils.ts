@@ -129,20 +129,20 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
 export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
     switch (gameMapState.action) {
         case "road": {
-            for (const cell of gameMapState.instance.previousRoad) {
+            for (const cell of gameMapState.previousRoad) {
                 Roads.clear(cell);
             }
-            gameMapState.instance.previousRoad.length = 0;
-            Roads.onDrag(start, current, gameMapState.instance.previousRoad, gameMapState.initialDragAxis!);
+            gameMapState.previousRoad.length = 0;
+            Roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
         }
             break;
 
         case "rail": {
-            for (const cell of gameMapState.instance.previousRail) {
+            for (const cell of gameMapState.previousRail) {
                 Rails.clear(cell);
             }
-            gameMapState.instance.previousRail.length = 0;
-            Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.instance.previousRail);
+            gameMapState.previousRail.length = 0;
+            Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousRail);
 
         } break;
 
@@ -182,26 +182,26 @@ export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProp
 }
 
 export function onEndDrag() { // map coords
-    gameMapState.instance.previousRoad.length = 0;
+    gameMapState.previousRoad.length = 0;
 
-    if (gameMapState.instance.previousRail.length > 0) {
+    if (gameMapState.previousRail.length > 0) {
         console.assert(gameMapState.action === "rail");
-        Rails.onEndDrag(gameMapState.instance.previousRail);
+        Rails.onEndDrag(gameMapState.previousRail);
     }
 
-    gameMapState.instance.previousRail.length = 0;
+    gameMapState.previousRail.length = 0;
 }
 
 export function onCancelDrag() {
-    for (const cell of gameMapState.instance.previousRoad) {
+    for (const cell of gameMapState.previousRoad) {
         Roads.clear(cell);
     }
-    gameMapState.instance.previousRoad.length = 0;
+    gameMapState.previousRoad.length = 0;
 
-    for (const cell of gameMapState.instance.previousRail) {
+    for (const cell of gameMapState.previousRail) {
         Rails.clear(cell);
     }
-    gameMapState.instance.previousRail.length = 0;
+    gameMapState.previousRail.length = 0;
 }
 
 export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: number, button: number) {
