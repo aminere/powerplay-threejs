@@ -21,9 +21,11 @@ import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
-import { UnitType } from "../unit/IUnit";
+import { IUnit, UnitType } from "../unit/IUnit";
 import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
+import { NPCState } from "../unit/NPCState";
+import { State } from "../fsm/StateMachine";
 
 export class FlockProps extends ComponentProps {
 
@@ -35,6 +37,7 @@ export class FlockProps extends ComponentProps {
     repulsion = .2;
     positionDamp = .2;
     rotationDamp = .2;
+    npcVision = 5;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -88,7 +91,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     const intersections: Array<{ unitIndex: number; distance: number; }> = [];
                     const intersection = pools.vec3.getOne();
                     for (let i = 0; i < units.length; ++i) {
-                        const { obj } = units[i];
+                        const { obj, type } = units[i];
+                        if (type === UnitType.NPC) {
+                            continue;
+                        }
                         this._inverseMatrix.copy(obj.matrixWorld).invert();
                         this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
                         const boundingBox = obj.boundingBox;
@@ -145,7 +151,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         const { units } = this.state;
                         const screenPos = pools.vec3.getOne();
                         for (let i = 0; i < units.length; ++i) {
-                            const { obj } = units[i];
+                            const { obj, type } = units[i];
+                            if (type === UnitType.NPC) {
+                                continue;
+                            }
                             GameUtils.worldToScreen(obj.position, gameMapState.camera, screenPos);
                             const rectX = Math.min(this.state.selectionStart.x, input.touchPos.x);
                             const rectY = Math.min(this.state.selectionStart.y, input.touchPos.y);
@@ -191,13 +200,17 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const [toTarget, cellDirection3, lateralMove] = pools.vec3.get(3);
         const { mapRes } = config.game;
 
-        // steering and collision avoidance
+        // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
             const unit = units[i];
             const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount);
             for (let j = i + 1; j < units.length; ++j) {
                 const otherUnit = units[j];
-                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount);                
+                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount);
+
+                if (!(unit.collidable && otherUnit.collidable)) {
+                    continue;
+                }
                 const dist = otherDesiredPos.distanceTo(desiredPos);
                 if (dist < separationDist) {
                     unit.isColliding = true;
@@ -245,32 +258,22 @@ export class Flock extends Component<FlockProps, IFlockState> {
             const unit = units[i];
             unit.fsm.update();
 
-            unit.desiredPosValid = false;
-            GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-            const newCell = GameUtils.getCell(nextMapCoords);
-            const emptyCell = newCell && newCell.isEmpty;
-            const currentCellCoords = unit.coords.mapCoords;
-            const miningState = unit.fsm.getState(MiningState);
-
-            if (!emptyCell) {
-                if (!currentCellCoords.equals(nextMapCoords)) {
-                    const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                    if (miningState && isTarget) {
-                        unit.desiredPos.copy(unit.obj.position);
-                        nextMapCoords.copy(currentCellCoords);
-                        unit.isMoving = false;
-                        unit.isColliding = false;
-                        engineState.removeComponent(unit.obj, UnitCollisionAnim);
-                        miningState.onArrivedAtTarget(unit);
-                    } else {
+            let emptyCell = true;
+            if (!unit.fsm.currentState) {
+                unit.desiredPosValid = false;
+                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+                const newCell = GameUtils.getCell(nextMapCoords);
+                emptyCell = newCell !== null && newCell.isEmpty;    
+                if (!emptyCell) {
+                    if (!unit.coords.mapCoords.equals(nextMapCoords)) {
                         // move away from blocked cell
-                        awayDirection.subVectors(currentCellCoords, nextMapCoords).normalize();
+                        awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
                         unit.desiredPos.copy(unit.obj.position);
                         unit.desiredPos.x += awayDirection.x * steerAmount;
                         unit.desiredPos.z += awayDirection.y * steerAmount;
-                    }                    
+                    }
                 }
-            }
+            }            
 
             deltaPos.subVectors(unit.desiredPos, unit.obj.position);
             if (unit.isMoving) {
@@ -295,14 +298,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
             } else if (unit.isColliding) {    
                 unit.isColliding = false;
-                if (!miningState) {
-                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                    if (collisionAnim) {
-                        collisionAnim.reset();
-                    } else {
-                        engineState.setComponent(unit.obj, new UnitCollisionAnim());
-                    }
-                }                
+                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                if (collisionAnim) {
+                    collisionAnim.reset();
+                } else {
+                    engineState.setComponent(unit.obj, new UnitCollisionAnim());
+                }
             }        
             
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
@@ -334,9 +335,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
             }
 
-            if (!nextMapCoords.equals(currentCellCoords)) {
-                const dx = nextMapCoords.x - currentCellCoords.x;
-                const dy = nextMapCoords.y - currentCellCoords.y;
+            if (!nextMapCoords.equals(unit.coords.mapCoords)) {
+                const dx = nextMapCoords.x - unit.coords.mapCoords.x;
+                const dy = nextMapCoords.y - unit.coords.mapCoords.y;
                 const { localCoords } = unit.coords;
                 localCoords.x += dx;
                 localCoords.y += dy;
@@ -352,9 +353,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
     }
 
     public async load(owner: Object3D) {
-        const radius = this.props.radius;
-        const workerMeshes: SkinnedMesh[] = [];
-
         const skeletonManager = new SkeletonManager();
         unitUtils.skeletonManager = skeletonManager;
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
@@ -362,42 +360,42 @@ export class Flock extends Component<FlockProps, IFlockState> {
             animations: ["idle", "walk", "pick"],
         });
 
-        const headOffset = new Vector3();   
-        for (let i = 0; i < this.props.count; i++) {
-            const obj = sharedSkinnedMesh.clone();
-            obj.bindMode = "detached";
-            skeletonManager.applySkeleton("idle", obj);
-            obj.quaternion.copy(baseRotation);
-            obj.userData.unserializable = true;
-            headOffset.copy(obj.position).setZ(1.8);
-            obj.boundingBox = new Box3().setFromObject(obj).expandByPoint(headOffset);
-            owner.add(obj);
-            obj.position.x = Math.random() * radius * 2 - radius;
-            obj.position.z = Math.random() * radius * 2 - radius;
-            workerMeshes.push(obj);
+        const units: Unit[] = [];
+
+        const createUnit = (id: number, mesh: SkinnedMesh, type: UnitType, states: State<IUnit>[]) => {
+            mesh.bindMode = "detached";
+            skeletonManager.applySkeleton("idle", mesh);
+            mesh.quaternion.copy(baseRotation);
+            mesh.userData.unserializable = true;
+            owner.add(mesh);
+            const unit = new Unit({ id, type, obj: mesh, states });
+            units.push(unit);
+            return unit;
+        };
+
+        const headOffset = new Vector3();
+        const radius = this.props.radius;
+        for (let i = 0; i < this.props.count; i++) {            
+            const mesh = sharedSkinnedMesh.clone();
+            createUnit(i, mesh, UnitType.Worker, [new MiningState()]);
+            headOffset.copy(mesh.position).setZ(1.8);
+            mesh.boundingBox = new Box3().setFromObject(mesh).expandByPoint(headOffset);
+            mesh.position.set(
+                Math.random() * radius * 2 - radius,                
+                0,
+                Math.random() * radius * 2 - radius,
+            );
         }
-
-        const flowfieldViewer = new FlowfieldViewer();
-        engine.scene!.add(flowfieldViewer);
-
-        const units = workerMeshes.map(obj => new Unit({ obj, type: UnitType.Worker }));
 
         const npcObj = await objects.load("/test/characters/NPC.json");
         const npcModel = SkeletonUtils.clone(npcObj);
         const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
-        npcMesh.bindMode = "detached";
-        skeletonManager.applySkeleton("idle", npcMesh);
-        npcMesh.quaternion.copy(baseRotation);
-        npcMesh.userData.unserializable = true;
-        headOffset.copy(npcMesh.position).setZ(1.8);
-        npcMesh.boundingBox = new Box3().setFromObject(npcMesh).expandByPoint(headOffset);
-        owner.add(npcMesh);
-        npcMesh.position.x = 4;
-        npcMesh.position.z = 0;
-        units.push(new Unit({
-            type: UnitType.NPC,
-            obj: npcMesh
-        }));
+        const npc = createUnit(0, npcMesh, UnitType.NPC, [new NPCState()]);
+        npc.fsm.switchState(NPCState);
+        npcMesh.position.set(4, 0, 4);
+
+        const flowfieldViewer = new FlowfieldViewer();
+        engine.scene!.add(flowfieldViewer);
 
         this.setState({
             units,

@@ -9,7 +9,6 @@ import { GameMap } from "./GameMap";
 import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
-import { NPC, NpcProps } from "./NPC";
 import { Test, TestProps } from "./Test";
 import { Water, WaterProps } from "./Water";
 
@@ -23,7 +22,6 @@ export function registerComponents() {
     componentFactory.register<WaterProps>(Water);
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
     componentFactory.register<FlockProps>(Flock);
-    componentFactory.register<NpcProps>(NPC);
     componentFactory.register<TestProps>(Test);
 }
 

@@ -13,6 +13,7 @@ enum MiningStep {
     GoToBase,
 }
 
+const nextMapCoords = new Vector2();
 export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
@@ -26,6 +27,32 @@ export class MiningState extends State<IUnit> {
 
     override update(unit: IUnit): void {
         switch (this._step) {
+
+            case MiningStep.GoToResource: {
+                unit.desiredPosValid = false;
+                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                if (isTarget) {
+                    unitUtils.endMove(unit);
+                    unit.collidable = false;
+                    this._step = MiningStep.Mine;
+                    this._miningTimer = 1;
+                    unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
+                }
+            }
+                break;
+
+            case MiningStep.GoToBase: {
+                unit.desiredPosValid = false;
+                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                if (isTarget) {
+                    unitUtils.endMove(unit);
+                    this._step = MiningStep.GoToResource;
+                    unitUtils.moveTo(unit, this._targetResource.mapCoords);
+                }
+            }
+                break;
 
             case MiningStep.Mine:
                 this._miningTimer -= time.deltaTime;
@@ -53,29 +80,13 @@ export class MiningState extends State<IUnit> {
                             unitUtils.moveTo(unit, targetBuilding);
                         } else {
                             console.assert(false, "No path found");
-                        }                        
+                        }
                     }
-                    this._step = MiningStep.GoToBase;                
+                    this._step = MiningStep.GoToBase;
+                    unit.collidable = true;
                 }
                 break;
 
-        }
-    }
-
-    public onArrivedAtTarget(unit: IUnit) {
-        switch (this._step) {
-            case MiningStep.GoToResource:
-                this._step = MiningStep.Mine;
-                this._miningTimer = 1;
-                unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
-                break;
-
-            case MiningStep.GoToBase:
-                // const cell = unitUtils.getCell(this._targetResource)!;
-                // console.log("collected resource ", cell.resource!.name);
-                this._step = MiningStep.GoToResource;
-                unitUtils.moveTo(unit, this._targetResource.mapCoords);
-                break;
         }
     }
 }

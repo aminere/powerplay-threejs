@@ -92,6 +92,13 @@ class UnitUtils {
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
         this._skeletonManager.applySkeleton("walk", unit.obj);
     }
+
+    public endMove(unit: IUnit) {
+        unit.desiredPos.copy(unit.obj.position);
+        unit.isMoving = false;
+        unit.isColliding = false;
+        engineState.removeComponent(unit.obj, UnitCollisionAnim);
+    }
 }
 
 export const unitUtils = new UnitUtils();

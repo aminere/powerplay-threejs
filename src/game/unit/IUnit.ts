@@ -7,6 +7,7 @@ export enum UnitType {
 }
 
 export interface IUnit {
+    id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
     targetCell: ICellAddr;
@@ -14,6 +15,7 @@ export interface IUnit {
     coords: ICellAddr;
     isMoving: boolean;
     isColliding: boolean;
+    collidable: boolean;
     type: UnitType;
 }
 
