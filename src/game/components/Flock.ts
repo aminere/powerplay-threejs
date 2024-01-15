@@ -253,7 +253,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { positionDamp } = this.props;
         const awayDirection = pools.vec2.getOne();
         const deltaPos = pools.vec3.getOne();
-        const nextMapCoords = pools.vec2.getOne();
         for (let i = 0; i < units.length; ++i) {  
             const unit = units[i];
             unit.fsm.update();
@@ -261,21 +260,23 @@ export class Flock extends Component<FlockProps, IFlockState> {
             let emptyCell = true;
             if (!unit.fsm.currentState) {
                 unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                const newCell = GameUtils.getCell(nextMapCoords);
+                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
+                const newCell = GameUtils.getCell(unit.nextMapCoords);
                 emptyCell = newCell !== null && newCell.isEmpty;    
                 if (!emptyCell) {
-                    if (!unit.coords.mapCoords.equals(nextMapCoords)) {
+                    if (!unit.coords.mapCoords.equals(unit.nextMapCoords)) {
                         // move away from blocked cell
-                        awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
+                        awayDirection.subVectors(unit.coords.mapCoords, unit.nextMapCoords).normalize();
                         unit.desiredPos.copy(unit.obj.position);
                         unit.desiredPos.x += awayDirection.x * steerAmount;
                         unit.desiredPos.z += awayDirection.y * steerAmount;
                     }
                 }
-            }            
+            }          
 
             deltaPos.subVectors(unit.desiredPos, unit.obj.position);
+            let arrived = false;
+            let hasMoved = false;
             if (unit.isMoving) {
                 if (emptyCell) {
                     unit.obj.position.copy(unit.desiredPos);                    
@@ -289,14 +290,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         time.deltaTime
                     );                    
                 }
-                GameUtils.worldToMap(unit.obj.position, nextMapCoords);
-                const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
-                if (arrived) {
-                    unit.isMoving = false;
-                    this.state.skeletonManager.applySkeleton("idle", unit.obj);
-                }
+                GameUtils.worldToMap(unit.obj.position, unit.nextMapCoords);
+                arrived = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
+                hasMoved = true;
 
-            } else if (unit.isColliding) {    
+            } else if (unit.isColliding) {                    
                 unit.isColliding = false;
                 const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
                 if (collisionAnim) {
@@ -304,7 +302,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 } else {
                     engineState.setComponent(unit.obj, new UnitCollisionAnim());
                 }
-            }        
+            }
             
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
             if (collisionAnim) {
@@ -316,7 +314,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     999, 
                     time.deltaTime
                 );
-                GameUtils.worldToMap(unit.obj.position, nextMapCoords);
+                GameUtils.worldToMap(unit.obj.position, unit.nextMapCoords);
+                hasMoved = true;
             }
 
             const deltaPosLen = deltaPos.length();
@@ -335,20 +334,28 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
             }
 
-            if (!nextMapCoords.equals(unit.coords.mapCoords)) {
-                const dx = nextMapCoords.x - unit.coords.mapCoords.x;
-                const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                const { localCoords } = unit.coords;
-                localCoords.x += dx;
-                localCoords.y += dy;
-                if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
-                    // entered a new sector
-                    unitUtils.computeCellAddr(nextMapCoords, unit.coords);
-                } else {
-                    unit.coords.mapCoords.copy(nextMapCoords);
-                    unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+            if (hasMoved) {
+                if (!unit.nextMapCoords.equals(unit.coords.mapCoords)) {
+                    const dx = unit.nextMapCoords.x - unit.coords.mapCoords.x;
+                    const dy = unit.nextMapCoords.y - unit.coords.mapCoords.y;
+                    const { localCoords } = unit.coords;
+                    localCoords.x += dx;
+                    localCoords.y += dy;
+                    if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
+                        // entered a new sector
+                        unitUtils.computeCellAddr(unit.nextMapCoords, unit.coords);
+                    } else {
+                        console.log(`unit ${unit.id} moved to ${unit.nextMapCoords.x},${unit.nextMapCoords.y}`);
+                        unit.coords.mapCoords.copy(unit.nextMapCoords);
+                        unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                    }
                 }
-            }
+
+                if (unit.isMoving && arrived) {
+                    unit.isMoving = false;
+                    this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                }
+            }            
         }
     }
 
@@ -377,22 +384,22 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const radius = this.props.radius;
         for (let i = 0; i < this.props.count; i++) {            
             const mesh = sharedSkinnedMesh.clone();
-            createUnit(i, mesh, UnitType.Worker, [new MiningState()]);
-            headOffset.copy(mesh.position).setZ(1.8);
-            mesh.boundingBox = new Box3().setFromObject(mesh).expandByPoint(headOffset);
             mesh.position.set(
                 Math.random() * radius * 2 - radius,                
                 0,
                 Math.random() * radius * 2 - radius,
             );
+            createUnit(i, mesh, UnitType.Worker, [new MiningState()]);
+            headOffset.copy(mesh.position).setZ(1.8);
+            mesh.boundingBox = new Box3().setFromObject(mesh).expandByPoint(headOffset);            
         }
 
         const npcObj = await objects.load("/test/characters/NPC.json");
         const npcModel = SkeletonUtils.clone(npcObj);
         const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
-        const npc = createUnit(0, npcMesh, UnitType.NPC, [new NPCState()]);
-        npc.fsm.switchState(NPCState);
         npcMesh.position.set(4, 0, 4);
+        const npc = createUnit(units.length, npcMesh, UnitType.NPC, [new NPCState()]);
+        npc.fsm.switchState(NPCState);
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);

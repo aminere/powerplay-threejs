@@ -1,4 +1,4 @@
-import { SkinnedMesh, Vector3 } from "three";
+import { SkinnedMesh, Vector2, Vector3 } from "three";
 import { ICellAddr } from "./UnitUtils";
 
 export enum UnitType {
@@ -10,6 +10,7 @@ export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
+    nextMapCoords: Vector2;
     targetCell: ICellAddr;
     obj: SkinnedMesh;
     coords: ICellAddr;

@@ -88,6 +88,7 @@ class UnitUtils {
         unit.isMoving = true;
         unit.desiredPosValid = false;
         unit.isColliding = false;
+        unit.collidable = true;
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
         this._skeletonManager.applySkeleton("walk", unit.obj);

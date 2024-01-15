@@ -1,10 +1,11 @@
-import { Vector2 } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
 import { GameUtils } from "../GameUtils";
+import { flowField } from "../pathfinding/Flowfield";
+import { pools } from "../../engine/Pools";
 
 enum NpcStep {
     Idle,
@@ -12,7 +13,7 @@ enum NpcStep {
     Attack
 }
 
-const nextMapCoords = new Vector2();
+
 export class NPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
@@ -36,7 +37,10 @@ export class NPCState extends State<IUnit> {
                     if (dist < vision) {
                         this._target = unit;
                         this._step = NpcStep.Follow;
-                        unitUtils.moveTo(owner, unit.coords.mapCoords);
+                        const [sectorCoords, localCoords] = pools.vec2.get(2);
+                        if (flowField.compute(unit.coords.mapCoords, sectorCoords, localCoords)) {
+                            unitUtils.moveTo(owner, unit.coords.mapCoords);
+                        }
                         break;
                     }
                 }        
@@ -45,8 +49,8 @@ export class NPCState extends State<IUnit> {
 
             case NpcStep.Follow: {
                 owner.desiredPosValid = false;
-                GameUtils.worldToMap(owner.desiredPos, nextMapCoords);
-                const isTarget = owner.targetCell.mapCoords.equals(nextMapCoords);
+                GameUtils.worldToMap(owner.desiredPos, owner.nextMapCoords);
+                const isTarget = owner.targetCell.mapCoords.equals(owner.nextMapCoords);
                 if (isTarget) {
                     unitUtils.endMove(owner);                    
                     // TODO attack anim

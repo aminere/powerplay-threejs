@@ -13,7 +13,6 @@ enum MiningStep {
     GoToBase,
 }
 
-const nextMapCoords = new Vector2();
 export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
@@ -30,8 +29,8 @@ export class MiningState extends State<IUnit> {
 
             case MiningStep.GoToResource: {
                 unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
                 if (isTarget) {
                     unitUtils.endMove(unit);
                     unit.collidable = false;
@@ -44,8 +43,8 @@ export class MiningState extends State<IUnit> {
 
             case MiningStep.GoToBase: {
                 unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                const isTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
                 if (isTarget) {
                     unitUtils.endMove(unit);
                     this._step = MiningStep.GoToResource;
@@ -83,7 +82,6 @@ export class MiningState extends State<IUnit> {
                         }
                     }
                     this._step = MiningStep.GoToBase;
-                    unit.collidable = true;
                 }
                 break;
 

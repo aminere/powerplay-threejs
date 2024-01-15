@@ -14,6 +14,7 @@ interface IUnitProps {
 export class Unit implements IUnit {
     public get desiredPosValid() { return this._desiredPosValid; }
     public get desiredPos() { return this._desiredPos; }
+    public get nextMapCoords() { return this._nextMapCoords; }
     public get targetCell() { return this._targetCell; }
     public get obj() { return this._obj; }    
     public get coords() { return this._coords; }
@@ -36,7 +37,8 @@ export class Unit implements IUnit {
     public set collidable(value: boolean) { this._collidable = value; }
 
     private _desiredPosValid = false;
-    private _desiredPos = new Vector3();    
+    private _desiredPos = new Vector3();   
+    private _nextMapCoords = new Vector2(); 
     private _targetCell: ICellAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
@@ -70,6 +72,7 @@ export class Unit implements IUnit {
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);
+        console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
     }
 }
 
