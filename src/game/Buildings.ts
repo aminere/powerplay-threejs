@@ -3,10 +3,10 @@ import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import * as THREE from "three";
 
+const { cellSize, mapRes, elevationStep } = config.game;
 export class Buildings {
     public static create(sector: ISector, localCoords: Vector2, cell: ICell) {
 
-        const { cellSize, mapRes, elevationStep } = config.game;
         const verticesPerRow = mapRes + 1;
         const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
         const terrain = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
@@ -128,12 +128,14 @@ export class Buildings {
         sector.flowFieldCosts[cellIndex] = 0xffff;
     }
 
-    public static clear(sector: ISector, cell: ICell) {
+    public static clear(sector: ISector, localCoords: Vector2, cell: ICell) {
         sector.layers.buildings.remove(cell.building!);
         delete cell.building;
         if (!cell.resource) {
             cell.isEmpty = true;
         }
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
+        sector.flowFieldCosts[cellIndex] = 1;
     }
 }
 

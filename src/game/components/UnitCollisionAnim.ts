@@ -4,9 +4,11 @@ import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
 import { engineState } from "../../engine/EngineState";
 import { unitUtils } from "../unit/UnitUtils";
+import { IUnit } from "../unit/IUnit";
 
 export class UnitCollisionAnimProps extends ComponentProps {
     duration = .25;
+    unit: IUnit = null!;
 
     constructor(props?: Partial<UnitCollisionAnimProps>) {
         super();
@@ -24,14 +26,18 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
     }
 
     override start(owner: Object3D) {
-        unitUtils.skeletonManager.applySkeleton("walk", owner as SkinnedMesh);
+        if (!this.props.unit.fsm.currentState) {
+            unitUtils.skeletonManager.applySkeleton("walk", owner as SkinnedMesh);            
+        }
         this.setState({ timer: this.props.duration });
     }
 
     override update(owner: Object3D) {
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
-            unitUtils.skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
+            if (!this.props.unit.fsm.currentState) {
+                unitUtils.skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
+            }
             engineState.removeComponent(owner, UnitCollisionAnim);
         }
     }

@@ -86,20 +86,11 @@ class UnitUtils {
 
     public moveTo(unit: IUnit, mapCoords: Vector2) {
         unit.isMoving = true;
-        unit.desiredPosValid = false;
-        unit.isColliding = false;
         unit.collidable = true;
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
-        this._skeletonManager.applySkeleton("walk", unit.obj);
-    }
-
-    public endMove(unit: IUnit) {
-        unit.desiredPos.copy(unit.obj.position);
-        unit.isMoving = false;
-        unit.isColliding = false;
-        engineState.removeComponent(unit.obj, UnitCollisionAnim);
-    }
+        this._skeletonManager.applySkeleton("run", unit.obj);
+    }    
 }
 
 export const unitUtils = new UnitUtils();

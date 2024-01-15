@@ -1,5 +1,6 @@
 import { SkinnedMesh, Vector2, Vector3 } from "three";
 import { ICellAddr } from "./UnitUtils";
+import { StateMachine } from "../fsm/StateMachine";
 
 export enum UnitType {
     Worker,
@@ -18,5 +19,6 @@ export interface IUnit {
     isColliding: boolean;
     collidable: boolean;
     type: UnitType;
+    fsm: StateMachine<IUnit>;
 }
 

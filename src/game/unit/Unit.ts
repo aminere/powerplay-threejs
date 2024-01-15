@@ -4,10 +4,11 @@ import { ICellAddr, unitUtils } from "./UnitUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { IUnit, UnitType } from "./IUnit";
 
-interface IUnitProps {
+export interface IUnitProps {
     obj: SkinnedMesh;
     type: UnitType;
     id: number;
+    speed?: number;
     states: State<IUnit>[];
 }
 
@@ -29,6 +30,7 @@ export class Unit implements IUnit {
     public get rotation() { return this._rotation; }    
     public get rotationVelocity() { return this._rotationVelocity; }
     public get fsm() { return this._fsm; }   
+    public get speed() { return this._speed; }
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set rotationVelocity(value: number) { this._rotationVelocity = value; }
@@ -63,12 +65,14 @@ export class Unit implements IUnit {
     private _rotationVelocity = 0;    
     private _fsm: StateMachine<IUnit>;
     private _id: number;    
+    private _speed: number;
 
     constructor(props: IUnitProps) {
         this._obj = props.obj;
         this._type = props.type;
         this._id = props.id;
         this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
+        this._speed = props.speed ?? 1;
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);

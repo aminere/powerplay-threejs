@@ -15,24 +15,25 @@ enum MiningStep {
 
 export class MiningState extends State<IUnit> {
 
+    public set potentialTarget(value: Vector2) { this._potentialTarget.copy(value); }
+
     private _step!: MiningStep;
     private _miningTimer!: number;
     private _targetResource!: ICellPtr;
+    private _potentialTarget = new Vector2(-1, -1);
 
-    override enter(_unit: IUnit) {
+    override enter(unit: IUnit) {
         this._step = MiningStep.GoToResource;
-        this._targetResource = unitUtils.makeCellPtr(_unit.targetCell);
+        this._targetResource = unitUtils.makeCellPtr(unit.targetCell);
     }
 
     override update(unit: IUnit): void {
         switch (this._step) {
 
             case MiningStep.GoToResource: {
-                unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
-                const isTarget = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unitUtils.endMove(unit);
+                    unit.isMoving = false;
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
                     this._miningTimer = 1;
@@ -42,11 +43,9 @@ export class MiningState extends State<IUnit> {
                 break;
 
             case MiningStep.GoToBase: {
-                unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
-                const isTarget = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
+                const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unitUtils.endMove(unit);
+                    unit.isMoving = false;
                     this._step = MiningStep.GoToResource;
                     unitUtils.moveTo(unit, this._targetResource.mapCoords);
                 }

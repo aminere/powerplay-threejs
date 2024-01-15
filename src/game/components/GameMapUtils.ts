@@ -233,7 +233,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
         }
     } else if (button === 2) {
         if (cell.building) {
-            Buildings.clear(sector, cell);
+            Buildings.clear(sector, localCoords, cell);
         }
     }
 }

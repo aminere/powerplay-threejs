@@ -6,6 +6,7 @@ import { unitUtils } from "./UnitUtils";
 import { GameUtils } from "../GameUtils";
 import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
+import { time } from "../../engine/Time";
 
 enum NpcStep {
     Idle,
@@ -18,29 +19,27 @@ export class NPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
     private _target?: IUnit;
+    private _attackTimer = -1;
+    private _attackStarted = false;
 
     override enter(_unit: IUnit) {
     }
 
-    override update(owner: IUnit): void {
+    override update(unit: IUnit): void {
 
         switch (this._step) {
             case NpcStep.Idle: {
                 const flock = engineState.getComponents(Flock)[0];   
                 const vision = flock.component.props.npcVision;
                 const units = flock.component.state!.units;
-                for (const unit of units) {
-                    if (unit.type === owner.type) {
+                for (const target of units) {
+                    if (target.type === unit.type) {
                         continue;
                     }
-                    const dist = unit.obj.position.distanceTo(owner.obj.position);
+                    const dist = target.obj.position.distanceTo(unit.obj.position);
                     if (dist < vision) {
-                        this._target = unit;
-                        this._step = NpcStep.Follow;
-                        const [sectorCoords, localCoords] = pools.vec2.get(2);
-                        if (flowField.compute(unit.coords.mapCoords, sectorCoords, localCoords)) {
-                            unitUtils.moveTo(owner, unit.coords.mapCoords);
-                        }
+                        this._target = target;
+                        this.follow(unit, target);
                         break;
                     }
                 }        
@@ -48,22 +47,48 @@ export class NPCState extends State<IUnit> {
             break;
 
             case NpcStep.Follow: {
-                owner.desiredPosValid = false;
-                GameUtils.worldToMap(owner.desiredPos, owner.nextMapCoords);
-                const isTarget = owner.targetCell.mapCoords.equals(owner.nextMapCoords);
-                if (isTarget) {
-                    unitUtils.endMove(owner);                    
-                    // TODO attack anim
-                    unitUtils.skeletonManager.applySkeleton("idle", owner.obj);
-                    this._step = NpcStep.Attack;
+                if (!this._target!.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
+                    this.follow(unit, this._target!);
+                } else {
+                    const dist = this._target!.obj.position.distanceTo(unit.obj.position);                
+                    if (dist < 1) {
+                        unit.isMoving = false;
+                        this._attackTimer = 0.2;
+                        this._attackStarted = false;
+                        // unitUtils.skeletonManager.applySkeleton("idle", unit.obj);
+                        this._step = NpcStep.Attack;
+                    }
                 }
             }
             break;
 
             case NpcStep.Attack: {
-                // TODO
-                console.log("attack");
+                const dist = this._target!.obj.position.distanceTo(unit.obj.position);
+                const inRange = dist < 2;
+                if (inRange) {
+                    if (!this._attackStarted) {
+                        this._attackTimer -= time.deltaTime;
+                        if (this._attackTimer < 0) {
+                            this._attackStarted = true;
+                            unitUtils.skeletonManager.applySkeleton("attack", unit.obj);
+                        }
+                    } else {
+                        // keep attacking
+                        console.log("attack");
+                    }
+                    
+                } else {
+                    this.follow(unit, this._target!);
+                }
             }
+        }
+    }
+
+    private follow(unit: IUnit, target: IUnit) {
+        this._step = NpcStep.Follow;
+        const [sectorCoords, localCoords] = pools.vec2.get(2);
+        if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
+            unitUtils.moveTo(unit, target.coords.mapCoords);
         }
     }
 }

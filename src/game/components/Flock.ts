@@ -16,16 +16,15 @@ import { config} from "../../game/config";
 import { unitUtils } from "../unit/UnitUtils";
 import { SkeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
-import { Unit } from "../unit/Unit";
+import { IUnitProps, Unit } from "../unit/Unit";
 import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
-import { IUnit, UnitType } from "../unit/IUnit";
+import { UnitType } from "../unit/IUnit";
 import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
-import { State } from "../fsm/StateMachine";
 
 export class FlockProps extends ComponentProps {
 
@@ -203,10 +202,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
             const unit = units[i];
-            const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount);
+            const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount * unit.speed);
             for (let j = i + 1; j < units.length; ++j) {
                 const otherUnit = units[j];
-                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount);
+                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount * otherUnit.speed);
 
                 if (!(unit.collidable && otherUnit.collidable)) {
                     continue;
@@ -251,78 +250,16 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { positionDamp } = this.props;
-        const awayDirection = pools.vec2.getOne();
-        const deltaPos = pools.vec3.getOne();
-        for (let i = 0; i < units.length; ++i) {  
-            const unit = units[i];
-            unit.fsm.update();
+        const [awayDirection, avoidedCellCoords] = pools.vec2.get(2);
+        const [nextPos, deltaPos] = pools.vec3.get(2);
 
-            let emptyCell = true;
-            if (!unit.fsm.currentState) {
-                unit.desiredPosValid = false;
-                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
-                const newCell = GameUtils.getCell(unit.nextMapCoords);
-                emptyCell = newCell !== null && newCell.isEmpty;    
-                if (!emptyCell) {
-                    if (!unit.coords.mapCoords.equals(unit.nextMapCoords)) {
-                        // move away from blocked cell
-                        awayDirection.subVectors(unit.coords.mapCoords, unit.nextMapCoords).normalize();
-                        unit.desiredPos.copy(unit.obj.position);
-                        unit.desiredPos.x += awayDirection.x * steerAmount;
-                        unit.desiredPos.z += awayDirection.y * steerAmount;
-                    }
-                }
-            }          
-
-            deltaPos.subVectors(unit.desiredPos, unit.obj.position);
-            let arrived = false;
-            let hasMoved = false;
-            if (unit.isMoving) {
-                if (emptyCell) {
-                    unit.obj.position.copy(unit.desiredPos);                    
-                } else {
-                    mathUtils.smoothDampVec3(
-                        unit.obj.position, 
-                        unit.desiredPos, 
-                        unit.velocity,
-                        positionDamp,
-                        999, 
-                        time.deltaTime
-                    );                    
-                }
-                GameUtils.worldToMap(unit.obj.position, unit.nextMapCoords);
-                arrived = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
-                hasMoved = true;
-
-            } else if (unit.isColliding) {                    
-                unit.isColliding = false;
-                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                if (collisionAnim) {
-                    collisionAnim.reset();
-                } else {
-                    engineState.setComponent(unit.obj, new UnitCollisionAnim());
-                }
-            }
-            
-            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-            if (collisionAnim) {
-                mathUtils.smoothDampVec3(
-                    unit.obj.position, 
-                    unit.desiredPos, 
-                    unit.velocity,
-                    positionDamp,
-                    999, 
-                    time.deltaTime
-                );
-                GameUtils.worldToMap(unit.obj.position, unit.nextMapCoords);
-                hasMoved = true;
-            }
-
+        const updateRotation = (unit: Unit, fromPos: Vector3, toPos: Vector3) => {
+            deltaPos.subVectors(toPos, fromPos);
             const deltaPosLen = deltaPos.length();
             if (deltaPosLen > 0.01) {
                 cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
                 unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-                const rotationFactor = collisionAnim ? 4 : 1;
+                const rotationFactor = 1; //collisionAnim ? 4 : 1;
                 unit.rotationVelocity = mathUtils.smoothDampQuat(
                     unit.rotation,
                     unit.lookAt,
@@ -333,29 +270,108 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 );
                 unit.obj.quaternion.multiplyQuaternions(unit.rotation, this.state.baseRotation);
             }
+        };
+
+        for (let i = 0; i < units.length; ++i) {  
+            const unit = units[i];
+            unit.desiredPosValid = false;
+
+            let needsMotion = unit.isMoving || unit.isColliding;
+            let hasMoved = false;
+            let avoidedCell = false;
+
+            if (needsMotion) {
+                GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
+                const newCell = GameUtils.getCell(unit.nextMapCoords);
+                const emptyCell = newCell !== null && newCell.isEmpty;
+                if (!emptyCell) {
+                    avoidedCell = true;
+                    avoidedCellCoords.copy(unit.nextMapCoords);
+
+                    // move away from blocked cell                    
+                    awayDirection.subVectors(unit.coords.mapCoords, unit.nextMapCoords).normalize();
+                    unit.desiredPos.copy(unit.obj.position);
+                    unit.desiredPos.x += awayDirection.x * steerAmount;
+                    unit.desiredPos.z += awayDirection.y * steerAmount;
+                    GameUtils.worldToMap(unit.desiredPos, unit.nextMapCoords);
+                }
+            }
+            
+            if (avoidedCell) {
+                const miningState = unit.fsm.getState(MiningState);
+                if (miningState) {
+                    miningState.potentialTarget = avoidedCellCoords;
+                }
+            }
+
+            unit.fsm.update();
+
+            if (needsMotion) {
+                if (unit.isMoving) {
+                    if (avoidedCell) {
+                        nextPos.copy(unit.obj.position);
+                        mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
+                    } else {
+                        nextPos.copy(unit.desiredPos); 
+                    }
+                    hasMoved = true; 
+                } else if (unit.isColliding) {
+                    unit.isColliding = false;
+                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                    if (collisionAnim) {
+                        collisionAnim.reset();
+                    } else {
+                        engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
+                    }
+                }                
+            }
+
+            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+            if (collisionAnim) {
+                console.assert(!unit.isMoving);
+                nextPos.copy(unit.obj.position);
+                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
+                hasMoved = true;               
+            }
 
             if (hasMoved) {
+                GameUtils.worldToMap(nextPos, unit.nextMapCoords);
                 if (!unit.nextMapCoords.equals(unit.coords.mapCoords)) {
-                    const dx = unit.nextMapCoords.x - unit.coords.mapCoords.x;
-                    const dy = unit.nextMapCoords.y - unit.coords.mapCoords.y;
-                    const { localCoords } = unit.coords;
-                    localCoords.x += dx;
-                    localCoords.y += dy;
-                    if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
-                        // entered a new sector
-                        unitUtils.computeCellAddr(unit.nextMapCoords, unit.coords);
-                    } else {
-                        console.log(`unit ${unit.id} moved to ${unit.nextMapCoords.x},${unit.nextMapCoords.y}`);
-                        unit.coords.mapCoords.copy(unit.nextMapCoords);
-                        unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                    }
-                }
+                    const nextCell = GameUtils.getCell(unit.nextMapCoords);
+                    const emptyCell = nextCell !== null && nextCell.isEmpty;
+                    if (emptyCell) {
+                        updateRotation(unit, unit.obj.position, nextPos);
+                        unit.obj.position.copy(nextPos);
 
-                if (unit.isMoving && arrived) {
-                    unit.isMoving = false;
-                    this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                        const dx = unit.nextMapCoords.x - unit.coords.mapCoords.x;
+                        const dy = unit.nextMapCoords.y - unit.coords.mapCoords.y;
+                        const { localCoords } = unit.coords;
+                        localCoords.x += dx;
+                        localCoords.y += dy;
+                        if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
+                            // entered a new sector
+                            unitUtils.computeCellAddr(unit.nextMapCoords, unit.coords);
+                        } else {
+                            unit.coords.mapCoords.copy(unit.nextMapCoords);
+                            unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                        }
+
+                        if (unit.isMoving) {
+                            const arrived = unit.targetCell.mapCoords.equals(unit.nextMapCoords);
+                            if (arrived) {
+                                unit.isMoving = false;
+                                this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                            }
+                        }
+                    }
+
+                } else {
+                    updateRotation(unit, unit.obj.position, nextPos);
+                    unit.obj.position.copy(nextPos);
                 }
-            }            
+            }
+
+            // unit.fsm.update();
         }
     }
 
@@ -363,42 +379,54 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const skeletonManager = new SkeletonManager();
         unitUtils.skeletonManager = skeletonManager;
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
-            skin: "/test/characters/Worker.json",
-            animations: ["idle", "walk", "pick"],
+            skin: "/models/characters/Worker.json",
+            animations: ["idle", "walk", "pick", "run", "attack"],
         });
 
         const units: Unit[] = [];
 
-        const createUnit = (id: number, mesh: SkinnedMesh, type: UnitType, states: State<IUnit>[]) => {
-            mesh.bindMode = "detached";
-            skeletonManager.applySkeleton("idle", mesh);
-            mesh.quaternion.copy(baseRotation);
-            mesh.userData.unserializable = true;
-            owner.add(mesh);
-            const unit = new Unit({ id, type, obj: mesh, states });
+        const createUnit = (props: IUnitProps) => {
+            const { obj } = props;
+            obj.bindMode = "detached";
+            skeletonManager.applySkeleton("idle", obj);
+            obj.quaternion.copy(baseRotation);
+            obj.userData.unserializable = true;
+            owner.add(obj);
+            const unit = new Unit(props);
             units.push(unit);
             return unit;
         };
 
-        const headOffset = new Vector3();
+        const headOffset = new Vector3(0, 0, 1.8);
+        const boundingBox = new Box3().setFromObject(sharedSkinnedMesh).expandByPoint(headOffset);
         const radius = this.props.radius;
-        for (let i = 0; i < this.props.count; i++) {            
+        for (let i = 0; i < this.props.count; i++) {
             const mesh = sharedSkinnedMesh.clone();
+            mesh.boundingBox = boundingBox;
             mesh.position.set(
                 Math.random() * radius * 2 - radius,                
                 0,
                 Math.random() * radius * 2 - radius,
             );
-            createUnit(i, mesh, UnitType.Worker, [new MiningState()]);
-            headOffset.copy(mesh.position).setZ(1.8);
-            mesh.boundingBox = new Box3().setFromObject(mesh).expandByPoint(headOffset);            
+            createUnit({
+                id: i, 
+                obj: mesh, 
+                type: UnitType.Worker, 
+                states: [new MiningState()]
+            });
         }
 
-        const npcObj = await objects.load("/test/characters/NPC.json");
+        const npcObj = await objects.load("/models/characters/NPC.json");
         const npcModel = SkeletonUtils.clone(npcObj);
         const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
         npcMesh.position.set(4, 0, 4);
-        const npc = createUnit(units.length, npcMesh, UnitType.NPC, [new NPCState()]);
+        const npc = createUnit({
+            id: units.length, 
+            obj: npcMesh, 
+            type: UnitType.NPC, 
+            states: [new NPCState()],
+            speed: .7
+        });
         npc.fsm.switchState(NPCState);
 
         const flowfieldViewer = new FlowfieldViewer();
