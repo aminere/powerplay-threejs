@@ -1,4 +1,4 @@
-import { SkinnedMesh, Vector2, Vector3 } from "three";
+import { Quaternion, SkinnedMesh, Vector3 } from "three";
 import { ICellAddr } from "./UnitUtils";
 import { StateMachine } from "../fsm/StateMachine";
 
@@ -11,7 +11,6 @@ export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
-    nextMapCoords: Vector2;
     targetCell: ICellAddr;
     obj: SkinnedMesh;
     coords: ICellAddr;
@@ -20,5 +19,8 @@ export interface IUnit {
     collidable: boolean;
     type: UnitType;
     fsm: StateMachine<IUnit>;
+    lookAt: Quaternion;
+    rotationVelocity: number;
+    rotation: Quaternion;
 }
 

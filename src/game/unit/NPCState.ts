@@ -51,11 +51,10 @@ export class NPCState extends State<IUnit> {
                     this.follow(unit, this._target!);
                 } else {
                     const dist = this._target!.obj.position.distanceTo(unit.obj.position);                
-                    if (dist < 1) {
+                    if (dist < 1.2) {
                         unit.isMoving = false;
                         this._attackTimer = 0.2;
                         this._attackStarted = false;
-                        // unitUtils.skeletonManager.applySkeleton("idle", unit.obj);
                         this._step = NpcStep.Attack;
                     }
                 }
@@ -64,17 +63,18 @@ export class NPCState extends State<IUnit> {
 
             case NpcStep.Attack: {
                 const dist = this._target!.obj.position.distanceTo(unit.obj.position);
-                const inRange = dist < 2;
+                const inRange = dist < 1.4;
                 if (inRange) {
                     if (!this._attackStarted) {
                         this._attackTimer -= time.deltaTime;
                         if (this._attackTimer < 0) {
                             this._attackStarted = true;
                             unitUtils.skeletonManager.applySkeleton("attack", unit.obj);
+                            // unitUtils.skeletonManager.applySkeleton("hurt", this._target!.obj);
                         }
                     } else {
-                        // keep attacking
-                        console.log("attack");
+                        unitUtils.updateRotation(unit, unit.obj.position, this._target!.obj.position);                        
+                        // TODO attack
                     }
                     
                 } else {

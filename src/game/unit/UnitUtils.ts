@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { ISector } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "../components/GameMapState";
@@ -8,6 +8,8 @@ import { flowField } from "../pathfinding/Flowfield";
 import { SkeletonManager } from "../animation/SkeletonManager";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
+import { mathUtils } from "../MathUtils";
+import { time } from "../../engine/Time";
 
 export interface ICellAddr {
     mapCoords: Vector2;
@@ -25,12 +27,17 @@ export interface ICellPtr {
 
 const { mapRes } = config.game;
 const cellDirection3 = new Vector3();
+const deltaPos = new Vector3();
+const lookAt = new Matrix4();
 class UnitUtils {
 
     public set skeletonManager(value: SkeletonManager) { this._skeletonManager = value; }
     public get skeletonManager() { return this._skeletonManager; }
 
+    public set baseRotation(value: Quaternion) { this._baseRotation.copy(value); }
+
     private _skeletonManager!: SkeletonManager;
+    private _baseRotation = new Quaternion();
 
     public makeCellPtr(cellAddr: ICellAddr) {
         return {
@@ -91,6 +98,18 @@ class UnitUtils {
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
         this._skeletonManager.applySkeleton("run", unit.obj);
     }    
+
+    public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
+        deltaPos.subVectors(toPos, fromPos);
+        const deltaPosLen = deltaPos.length();
+        if (deltaPosLen > 0.01) {
+            cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
+            unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+            const rotationDamp = 0.2;
+            unit.rotationVelocity = mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, unit.rotationVelocity, rotationDamp, 999, time.deltaTime);
+            unit.obj.quaternion.multiplyQuaternions(unit.rotation, this._baseRotation);
+        }
+    }
 }
 
 export const unitUtils = new UnitUtils();
