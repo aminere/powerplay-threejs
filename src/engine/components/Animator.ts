@@ -101,5 +101,12 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             this.state.currentAnim = animation;
         }
     }
+
+    public reset() {
+        const currentAction = this.state.actions[this.state.currentAnim];
+        currentAction
+            .reset()
+            .play();
+    }
 }
 

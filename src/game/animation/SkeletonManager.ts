@@ -1,6 +1,6 @@
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { objects } from "../../engine/Objects";
-import { Matrix4, Skeleton, SkinnedMesh } from "three";
+import { Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
@@ -19,7 +19,10 @@ interface ISkeletonManagerProps {
 const identity = new Matrix4();
 export class SkeletonManager {
 
-    private _skeletons = new Map<string, Skeleton>();
+    private _skeletons = new Map<string, {
+        skeleton: Skeleton;
+        armature: Object3D;
+    }>();
 
     public async load(props: ISkeletonManagerProps) {
         const mesh = await objects.load(props.skin);
@@ -35,7 +38,7 @@ export class SkeletonManager {
                 currentAnim: 0,
                 loopMode: animation.isLooping === false ? "Once" : "Repeat",
             }));
-            this._skeletons.set(animation.name, skeleton);
+            this._skeletons.set(animation.name, { skeleton, armature });
             return skinnedMesh;
         });
 
@@ -54,8 +57,12 @@ export class SkeletonManager {
         if (!skeleton) {
             return;
         }
-        if (target.skeleton !== skeleton) {
-            target.bind(skeleton, identity);
+        if (target.skeleton !== skeleton.skeleton) {
+            target.bind(skeleton.skeleton, identity);
+            if (animation === "death") {
+                const animator = utils.getComponent(Animator, skeleton.armature);
+                animator?.reset();
+            }
         }
     }
 }

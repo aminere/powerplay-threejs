@@ -46,9 +46,12 @@ export class Unit implements IUnit {
     public set health(value: number) { 
         this._health = value; 
         if (value <= 0) {
-            this._isAlive = false;
-            this._collidable = false;
+            this._fsm.switchState(null);
             engineState.removeComponent(this._obj, UnitCollisionAnim);
+            this._isAlive = false;            
+            this._collidable = false;
+            this._isMoving = false;
+            this._isColliding = false;
             unitUtils.skeletonManager.applySkeleton("death", this._obj);
         }
     }
