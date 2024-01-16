@@ -21,19 +21,23 @@ export class NPCState extends State<IUnit> {
     private _target?: IUnit;
     private _attackTimer = -1;
     private _attackStarted = false;
+    private _hitTimer = 1;
 
     override enter(_unit: IUnit) {
     }
 
     override update(unit: IUnit): void {
 
+        const flock = engineState.getComponents(Flock)[0];
         switch (this._step) {
-            case NpcStep.Idle: {
-                const flock = engineState.getComponents(Flock)[0];   
+            case NpcStep.Idle: {                   
                 const vision = flock.component.props.npcVision;
                 const units = flock.component.state!.units;
                 for (const target of units) {
                     if (target.type === unit.type) {
+                        continue;
+                    }
+                    if (!target.isAlive) {
                         continue;
                     }
                     const dist = target.obj.position.distanceTo(unit.obj.position);
@@ -51,7 +55,7 @@ export class NPCState extends State<IUnit> {
                     this.follow(unit, this._target!);
                 } else {
                     const dist = this._target!.obj.position.distanceTo(unit.obj.position);                
-                    if (dist < 1.2) {
+                    if (dist < flock.component.props.separation + .2) {
                         unit.isMoving = false;
                         this._attackTimer = 0.2;
                         this._attackStarted = false;
@@ -63,18 +67,27 @@ export class NPCState extends State<IUnit> {
 
             case NpcStep.Attack: {
                 const dist = this._target!.obj.position.distanceTo(unit.obj.position);
-                const inRange = dist < 1.4;
+                const inRange = dist < flock.component.props.separation + .4;
                 if (inRange) {
                     if (!this._attackStarted) {
                         this._attackTimer -= time.deltaTime;
                         if (this._attackTimer < 0) {
                             this._attackStarted = true;
+                            this._hitTimer = 1 - .2;
                             unitUtils.skeletonManager.applySkeleton("attack", unit.obj);
-                            // unitUtils.skeletonManager.applySkeleton("hurt", this._target!.obj);
                         }
                     } else {
                         unitUtils.updateRotation(unit, unit.obj.position, this._target!.obj.position);                        
-                        // TODO attack
+                        this._hitTimer -= time.deltaTime;
+                        if (this._hitTimer < 0) {       
+                            // TODO hit feedback                     
+                            this._hitTimer = 1;
+                            this._target!.health -= 0.2;
+                            if (!this._target!.isAlive) {
+                                this._step = NpcStep.Idle;
+                                unitUtils.skeletonManager.applySkeleton("idle", unit.obj);
+                            }
+                        }
                     }
                     
                 } else {

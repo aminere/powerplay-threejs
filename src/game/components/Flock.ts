@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Object3D, Quaternion, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -46,13 +46,15 @@ export class FlockProps extends ComponentProps {
 
 interface IFlockState extends IComponentState {
     units: Unit[];
-    selectedUnits: number[];
+    selectedUnits: Unit[];
     selectionStart: Vector2;
     touchPressed: boolean;
     selectionInProgress: boolean;
     flowfieldViewer: FlowfieldViewer;
     skeletonManager: SkeletonManager;
 }
+
+const { mapRes } = config.game;
 
 export class Flock extends Component<FlockProps, IFlockState> {
     constructor(props?: Partial<FlockProps>) {
@@ -86,36 +88,33 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
     
                     const { units } = this.state;
-                    const intersections: Array<{ unitIndex: number; distance: number; }> = [];
+                    const intersections: Array<{ unit: Unit; distance: number; }> = [];
                     const intersection = pools.vec3.getOne();
                     for (let i = 0; i < units.length; ++i) {
-                        const { obj, type } = units[i];
+                        const unit = units[i];
+                        const { obj, type } = unit;
                         if (type === UnitType.NPC) {
+                            continue;
+                        }
+                        if (!unit.isAlive) {
                             continue;
                         }
                         this._inverseMatrix.copy(obj.matrixWorld).invert();
                         this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
                         const boundingBox = obj.boundingBox;
                         if (this._localRay.intersectBox(boundingBox, intersection)) {
-                            intersections.push({ unitIndex: i, distance: this._localRay.origin.distanceTo(intersection) });
+                            intersections.push({ unit, distance: this._localRay.origin.distanceTo(intersection) });
                         }
                     }
                     
                     if (intersections.length > 0) {
                         intersections.sort((a, b) => a.distance - b.distance);
-                        const selectedUnit = intersections[0].unitIndex;
-                        this.state.selectedUnits = [selectedUnit];
+                        this.state.selectedUnits = [intersections[0].unit];
                     } else {
                         this.state.selectedUnits.length = 0;
                     }
     
-                    cmdSetSeletedUnits.post(this.state.selectedUnits.map(i => {
-                        const selectedUnit = this.state.units[i];
-                        return {
-                            obj: selectedUnit.obj,
-                            health: 1
-                        }
-                    }));
+                    cmdSetSeletedUnits.post(this.state.selectedUnits);
                 }                
 
             } else if (input.touchButton === 2) {
@@ -129,8 +128,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             this.state.flowfieldViewer.update(sector, localCoords);
                             const resource = cell.resource?.name;
                             const nextState = resource ? MiningState : null;
-                            for (const selected of this.state.selectedUnits) {
-                                const unit = this.state.units[selected];
+                            for (const unit of this.state.selectedUnits) {
                                 unitUtils.moveTo(unit, cellCoords);
                                 unit.fsm.switchState(nextState);
                             }
@@ -149,8 +147,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         const { units } = this.state;
                         const screenPos = pools.vec3.getOne();
                         for (let i = 0; i < units.length; ++i) {
-                            const { obj, type } = units[i];
+                            const unit = units[i];
+                            const { obj, type } = unit;
                             if (type === UnitType.NPC) {
+                                continue;
+                            }
+                            if (!unit.isAlive) {
                                 continue;
                             }
                             GameUtils.worldToScreen(obj.position, gameMapState.camera, screenPos);
@@ -159,17 +161,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             const rectWidth = Math.abs(input.touchPos.x - this.state.selectionStart.x);
                             const rectHeight = Math.abs(input.touchPos.y - this.state.selectionStart.y);
                             if (screenPos.x >= rectX && screenPos.x <= rectX + rectWidth && screenPos.y >= rectY && screenPos.y <= rectY + rectHeight) {
-                                selectedUnits.push(i);
+                                selectedUnits.push(unit);
                             }
                         }
 
-                        cmdSetSeletedUnits.post(selectedUnits.map(i => {
-                            const selectedUnit = this.state.units[i];
-                            return {
-                                obj: selectedUnit.obj,
-                                health: 1
-                            }
-                        }));
+                        cmdSetSeletedUnits.post(selectedUnits);
 
                     } else {
 
@@ -194,9 +190,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
-        const lookAt = pools.mat4.getOne();
-        const [toTarget, cellDirection3, lateralMove] = pools.vec3.get(3);
-        const { mapRes } = config.game;
+        const [toTarget, lateralMove] = pools.vec3.get(2);
 
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
@@ -297,18 +291,21 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     hasMoved = true; 
                 } else if (unit.isColliding) {
                     unit.isColliding = false;
-                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                    if (collisionAnim) {
-                        collisionAnim.reset();
-                    } else {
-                        engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
-                    }
-                }                
+                    if (unit.isIdle) {
+                        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                        if (collisionAnim) {
+                            collisionAnim.reset();
+                        } else {
+                            engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
+                        }
+                    }                    
+                }
             }
 
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
             if (collisionAnim) {
                 console.assert(!unit.isMoving);
+                console.assert(unit.isIdle);
                 nextPos.copy(unit.obj.position);
                 mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
                 hasMoved = true;               
@@ -357,20 +354,26 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
     public async load(owner: Object3D) {
         const skeletonManager = new SkeletonManager();        
-        const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
+        const sharedSkinnedMesh = await skeletonManager.load({
             skin: "/models/characters/Worker.json",
-            animations: ["idle", "walk", "pick", "run", "attack", "hurt", "death"],
+            animations: [
+                { name: "idle" },
+                { name: "walk" }, 
+                { name: "pick" }, 
+                { name: "run" }, 
+                { name: "attack" }, 
+                { name: "hurt" }, 
+                { name: "death", isLooping: false }
+            ],
         });
 
         unitUtils.skeletonManager = skeletonManager;
-        unitUtils.baseRotation = baseRotation;        
         const units: Unit[] = [];
 
         const createUnit = (props: IUnitProps) => {
             const { obj } = props;
             obj.bindMode = "detached";
             skeletonManager.applySkeleton("idle", obj);
-            obj.quaternion.copy(baseRotation);
             obj.userData.unserializable = true;
             owner.add(obj);
             const unit = new Unit(props);
@@ -412,9 +415,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
             npc.fsm.switchState(NPCState);
         }
         createNpc(new Vector3(4, 0, 4));
-        createNpc(new Vector3(-4, 0, 4));
-        createNpc(new Vector3(-4, 0, -4));
-        createNpc(new Vector3(4, 0, -4));
+        // createNpc(new Vector3(-4, 0, 4));
+        // createNpc(new Vector3(-4, 0, -4));
+        // createNpc(new Vector3(4, 0, -4));
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);

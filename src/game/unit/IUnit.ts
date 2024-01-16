@@ -16,11 +16,14 @@ export interface IUnit {
     coords: ICellAddr;
     isMoving: boolean;
     isColliding: boolean;
+    isAlive: boolean;
+    isIdle: boolean;
     collidable: boolean;
     type: UnitType;
     fsm: StateMachine<IUnit>;
     lookAt: Quaternion;
     rotationVelocity: number;
     rotation: Quaternion;
+    health: number;    
 }
 

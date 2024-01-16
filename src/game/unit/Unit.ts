@@ -3,6 +3,9 @@ import { GameUtils } from "../GameUtils";
 import { ICellAddr, unitUtils } from "./UnitUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { IUnit, UnitType } from "./IUnit";
+import { engineState } from "../../engine/EngineState";
+import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
+import { UnitFSM } from "./UnitFSM";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -20,9 +23,12 @@ export class Unit implements IUnit {
     public get coords() { return this._coords; }
     public get isMoving() { return this._isMoving; }
     public get isColliding() { return this._isColliding; }
+    public get isAlive() { return this._isAlive; }
+    public get isIdle() { return this._isIdle; }
     public get collidable() { return this._collidable; }
     public get type() { return this._type; }
-    public get id() { return this._id; }    
+    public get id() { return this._id; }  
+    public get health() { return this._health; }  
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -35,7 +41,17 @@ export class Unit implements IUnit {
     public set rotationVelocity(value: number) { this._rotationVelocity = value; }
     public set isMoving(value: boolean) { this._isMoving = value; }
     public set isColliding(value: boolean) { this._isColliding = value; }
+    public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }
+    public set health(value: number) { 
+        this._health = value; 
+        if (value <= 0) {
+            this._isAlive = false;
+            this._collidable = false;
+            engineState.removeComponent(this._obj, UnitCollisionAnim);
+            unitUtils.skeletonManager.applySkeleton("death", this._obj);
+        }
+    }
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();   
@@ -54,8 +70,11 @@ export class Unit implements IUnit {
     };
     private _isMoving = false;
     private _isColliding = false;
+    private _isAlive = true;
+    private _isIdle = true;
     private _collidable = true;
     private _type = UnitType.Worker;
+    private _health = 1;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
@@ -69,12 +88,12 @@ export class Unit implements IUnit {
         this._obj = props.obj;
         this._type = props.type;
         this._id = props.id;
-        this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
+        this._fsm = new UnitFSM({ states: props.states, owner: this });
         this._speed = props.speed ?? 1;
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);
-        console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
+        // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
     }
 }
 

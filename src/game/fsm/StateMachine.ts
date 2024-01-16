@@ -19,7 +19,7 @@ export class StateMachine<T> {
 
     private _states: Record<string, State<T>>;
     private _currentState: State<T> | null = null;
-    private _owner: T;
+    protected _owner: T;
 
     constructor(props: IStateMachineProps<T>) {
         this._states = props.states.reduce((prev, cur) => ({ ...prev, [cur.constructor.name]: cur }), {});

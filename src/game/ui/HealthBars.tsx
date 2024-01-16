@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react"
-import { ISelectedUnit, cmdSetSeletedUnits, cmdUpdateUI, evtScreenResized } from "../../Events";
+import { cmdSetSeletedUnits, cmdUpdateUI, evtScreenResized } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { Color, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
+import { IUnit } from "../unit/IUnit";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -17,11 +18,11 @@ const worldPos = new Vector3();
 const screenPos = new Vector3();
 export function HealthBars() {
 
-    const selectedUnitsRef = useRef<ISelectedUnit[]>([]);
+    const selectedUnitsRef = useRef<IUnit[]>([]);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        const onSelectedUnits = (units: ISelectedUnit[]) => {
+        const onSelectedUnits = (units: IUnit[]) => {
             selectedUnitsRef.current = units;
         };
 
@@ -38,8 +39,12 @@ export function HealthBars() {
             
             const selectedUnits = selectedUnitsRef.current;
             const camera = gameMapState.camera;
-            for (let i = 0; i < selectedUnits.length; i++) {                
-                const obj = selectedUnits[i].obj;
+            for (let i = 0; i < selectedUnits.length; i++) {  
+                const unit = selectedUnits[i];              
+                const { obj, isAlive } = unit;
+                if (!isAlive) {
+                    continue;
+                }
                 worldPos.copy(obj.position).addScaledVector(obj.up, 1.7);
                 GameUtils.worldToScreen(worldPos, camera, screenPos);
 

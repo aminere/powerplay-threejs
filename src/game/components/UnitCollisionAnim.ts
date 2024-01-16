@@ -26,18 +26,15 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
     }
 
     override start(owner: Object3D) {
-        if (!this.props.unit.fsm.currentState) {
-            unitUtils.skeletonManager.applySkeleton("walk", owner as SkinnedMesh);            
-        }
+        unitUtils.skeletonManager.applySkeleton("walk", owner as SkinnedMesh);
         this.setState({ timer: this.props.duration });
     }
 
     override update(owner: Object3D) {
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
-            if (!this.props.unit.fsm.currentState) {
-                unitUtils.skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
-            }
+            console.assert(this.props.unit.isIdle);
+            unitUtils.skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
             engineState.removeComponent(owner, UnitCollisionAnim);
         }
     }

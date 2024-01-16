@@ -34,10 +34,7 @@ class UnitUtils {
     public set skeletonManager(value: SkeletonManager) { this._skeletonManager = value; }
     public get skeletonManager() { return this._skeletonManager; }
 
-    public set baseRotation(value: Quaternion) { this._baseRotation.copy(value); }
-
     private _skeletonManager!: SkeletonManager;
-    private _baseRotation = new Quaternion();
 
     public makeCellPtr(cellAddr: ICellAddr) {
         return {
@@ -107,7 +104,7 @@ class UnitUtils {
             unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
             const rotationDamp = 0.2;
             unit.rotationVelocity = mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, unit.rotationVelocity, rotationDamp, 999, time.deltaTime);
-            unit.obj.quaternion.multiplyQuaternions(unit.rotation, this._baseRotation);
+            unit.obj.quaternion.copy(unit.rotation);
         }
     }
 }
