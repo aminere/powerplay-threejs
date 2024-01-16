@@ -7,6 +7,7 @@ import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
+import { skeletonManager } from "../animation/SkeletonManager";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -53,8 +54,8 @@ export class Unit implements IUnit {
             this._collidable = false;
             this._isMoving = false;
             this._isColliding = false;
-            unitUtils.skeletonManager.applySkeleton("death", this._obj);
-            engineState.setComponent(this._obj, new Fadeout({ delay: 1 }));
+            skeletonManager.applySkeleton("death", this._obj);
+            engineState.setComponent(this._obj, new Fadeout({ delay: 2 }));
         }
     }
 

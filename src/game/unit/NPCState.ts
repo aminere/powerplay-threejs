@@ -6,6 +6,7 @@ import { unitUtils } from "./UnitUtils";
 import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
+import { skeletonManager } from "../animation/SkeletonManager";
 
 enum NpcStep {
     Idle,
@@ -73,7 +74,7 @@ export class NPCState extends State<IUnit> {
                         if (this._attackTimer < 0) {
                             this._attackStarted = true;
                             this._hitTimer = 1 - .2;
-                            unitUtils.skeletonManager.applySkeleton("attack", unit.obj);
+                            skeletonManager.applySkeleton("attack", unit.obj);
                         }
                     } else {
                         unitUtils.updateRotation(unit, unit.obj.position, this._target!.obj.position);                        
@@ -84,7 +85,7 @@ export class NPCState extends State<IUnit> {
                             this._target!.health -= 0.5;
                             if (!this._target!.isAlive) {
                                 this._step = NpcStep.Idle;
-                                unitUtils.skeletonManager.applySkeleton("idle", unit.obj);
+                                skeletonManager.applySkeleton("idle", unit.obj);
                             }
                         }
                     }

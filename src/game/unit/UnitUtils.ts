@@ -5,7 +5,7 @@ import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { IUnit } from "./IUnit";
 import { flowField } from "../pathfinding/Flowfield";
-import { SkeletonManager } from "../animation/SkeletonManager";
+import { skeletonManager } from "../animation/SkeletonManager";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
 import { mathUtils } from "../MathUtils";
@@ -30,11 +30,6 @@ const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
 class UnitUtils {
-
-    public set skeletonManager(value: SkeletonManager) { this._skeletonManager = value; }
-    public get skeletonManager() { return this._skeletonManager; }
-
-    private _skeletonManager!: SkeletonManager;
 
     public makeCellPtr(cellAddr: ICellAddr) {
         return {
@@ -93,7 +88,7 @@ class UnitUtils {
         unit.collidable = true;
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
-        this._skeletonManager.applySkeleton("run", unit.obj);
+        skeletonManager.applySkeleton("run", unit.obj);
     }    
 
     public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {

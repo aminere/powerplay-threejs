@@ -6,6 +6,7 @@ import { Object3D, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
+import { skeletonManager } from "../animation/SkeletonManager";
 
 enum MiningStep {
     GoToResource,
@@ -37,7 +38,7 @@ export class MiningState extends State<IUnit> {
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
                     this._miningTimer = 1;
-                    unitUtils.skeletonManager.applySkeleton("pick", unit.obj);
+                    skeletonManager.applySkeleton("pick", unit.obj);
                 }
             }
                 break;

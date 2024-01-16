@@ -54,7 +54,6 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
     
     override start(owner: Object3D) {
         const mixer = new AnimationMixer(owner);
-
         const { animations, currentAnim } = this.props;
         const actions = animations.map(animation => {
             const info = engineState.animations.get(animation.valueOf());

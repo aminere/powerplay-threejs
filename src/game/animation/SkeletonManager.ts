@@ -17,7 +17,7 @@ interface ISkeletonManagerProps {
 }
 
 const identity = new Matrix4();
-export class SkeletonManager {
+class SkeletonManager {
 
     private _skeletons = new Map<string, {
         skeleton: Skeleton;
@@ -25,10 +25,10 @@ export class SkeletonManager {
     }>();
 
     public async load(props: ISkeletonManagerProps) {
-        const mesh = await objects.load(props.skin);
+        const skin = await objects.load(props.skin);
         const skinnedMeshes = props.animations.map(animation => {
-            const model = SkeletonUtils.clone(mesh);
-            const skinnedMesh = model.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
+            const skinCopy = SkeletonUtils.clone(skin);
+            const skinnedMesh = skinCopy.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
             const skeleton = skinnedMesh.skeleton;
             const rootBone = skeleton.bones[0];
             const armature = rootBone.parent!;
@@ -64,7 +64,19 @@ export class SkeletonManager {
         }
         if (target.skeleton !== skeleton.skeleton) {
             target.bind(skeleton.skeleton, identity);
+
+            if (animation === "death") {
+                const animator = utils.getComponent(Animator, skeleton.armature);
+                animator?.reset();
+                const onAnimFinished = () => {
+                    console.log("death anim finished");
+                    animator?.state.mixer.removeEventListener("finished", onAnimFinished);
+                };
+                animator?.state.mixer.addEventListener("finished", onAnimFinished);
+            }
         }
     }
 }
+
+export const skeletonManager = new SkeletonManager();
 

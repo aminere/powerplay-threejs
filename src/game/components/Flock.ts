@@ -14,7 +14,7 @@ import { raycastOnCells } from "./GameMapUtils";
 import { FlowfieldViewer } from "../pathfinding/FlowfieldViewer";
 import { config} from "../../game/config";
 import { unitUtils } from "../unit/UnitUtils";
-import { SkeletonManager } from "../animation/SkeletonManager";
+import { skeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
 import { IUnitProps, Unit } from "../unit/Unit";
 import { MiningState } from "../unit/MiningState";
@@ -51,7 +51,6 @@ interface IFlockState extends IComponentState {
     touchPressed: boolean;
     selectionInProgress: boolean;
     flowfieldViewer: FlowfieldViewer;
-    skeletonManager: SkeletonManager;
 }
 
 const { mapRes } = config.game;
@@ -198,14 +197,22 @@ export class Flock extends Component<FlockProps, IFlockState> {
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
             const unit = units[i];
+            if (!unit.isAlive) {
+                continue;
+            }
+
             const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount * unit.speed);
             for (let j = i + 1; j < units.length; ++j) {
                 const otherUnit = units[j];
-                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount * otherUnit.speed);
+                if (!otherUnit.isAlive) {
+                    continue;
+                }
 
+                const otherDesiredPos = unitUtils.computeDesiredPos(otherUnit, steerAmount * otherUnit.speed);
                 if (!(unit.collidable && otherUnit.collidable)) {
                     continue;
                 }
+
                 const dist = otherDesiredPos.distanceTo(desiredPos);
                 if (dist < separationDist) {
                     unit.isColliding = true;
@@ -251,8 +258,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         for (let i = 0; i < units.length; ++i) {  
             const unit = units[i];
-            unit.desiredPosValid = false;
+            if (!unit.isAlive) {
+                continue;
+            }
 
+            unit.desiredPosValid = false;
             let needsMotion = unit.isMoving || unit.isColliding;
             let hasMoved = false;
             let avoidedCell = false;
@@ -294,24 +304,21 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     hasMoved = true; 
                 } else if (unit.isColliding) {
                     unit.isColliding = false;
-                    if (unit.isIdle) {
-                        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                        if (collisionAnim) {
-                            collisionAnim.reset();
-                        } else {
-                            engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
-                        }
-                    }                    
+                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                    if (collisionAnim) {
+                        collisionAnim.reset();
+                    } else {
+                        engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
+                    }
                 }
             }
 
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
             if (collisionAnim) {
                 console.assert(!unit.isMoving);
-                console.assert(unit.isIdle);
                 nextPos.copy(unit.obj.position);
                 mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
-                hasMoved = true;               
+                hasMoved = true;
             }
 
             if (hasMoved) {
@@ -341,7 +348,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
                                     unit.isMoving = false;
-                                    this.state.skeletonManager.applySkeleton("idle", unit.obj);
+                                    skeletonManager.applySkeleton("idle", unit.obj);
                                 }
                             }
                         }
@@ -356,7 +363,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
     }
 
     public async load(owner: Object3D) {
-        const skeletonManager = new SkeletonManager();        
         const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
             skin: "/models/characters/Worker.json",
             animations: [
@@ -370,7 +376,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
             ],
         });
 
-        unitUtils.skeletonManager = skeletonManager;
         const units: Unit[] = [];
 
         const createUnit = (props: IUnitProps) => {
@@ -405,9 +410,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 type: UnitType.Worker,
                 states: [new MiningState()]
             });
-
-            const box3Helper = new Box3Helper(boundingBox);
-            mesh.add(box3Helper);
+            // const box3Helper = new Box3Helper(boundingBox);
+            // mesh.add(box3Helper);
         }
 
         const npcObj = await objects.load("/models/characters/NPC.json");
@@ -425,7 +429,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             npc.fsm.switchState(NPCState);
         }
         createNpc(new Vector3(4, 0, 4));
-        // createNpc(new Vector3(-4, 0, 4));
+        createNpc(new Vector3(-4, 0, 4));
         // createNpc(new Vector3(-4, 0, -4));
         // createNpc(new Vector3(4, 0, -4));
 
@@ -438,8 +442,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             selectionStart: new Vector2(),
             selectionInProgress: false,
             touchPressed: false,
-            flowfieldViewer,
-            skeletonManager
+            flowfieldViewer
         });
     }
 }
