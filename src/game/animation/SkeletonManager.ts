@@ -49,7 +49,12 @@ export class SkeletonManager {
             engine.scene!.add(armature);
         });
 
-        return skinnedMeshes[0];
+        const rootBone0 = skinnedMeshes[0].skeleton.bones[0];
+        const armature0 = rootBone0.parent!;
+        return {
+            sharedSkinnedMesh: skinnedMeshes[0],
+            baseRotation: armature0.quaternion.clone()
+        };
     }
 
     public applySkeleton(animation: string, target: SkinnedMesh) {
@@ -59,10 +64,6 @@ export class SkeletonManager {
         }
         if (target.skeleton !== skeleton.skeleton) {
             target.bind(skeleton.skeleton, identity);
-            if (animation === "death") {
-                const animator = utils.getComponent(Animator, skeleton.armature);
-                animator?.reset();
-            }
         }
     }
 }

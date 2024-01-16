@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Box3Helper, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -129,6 +129,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             const resource = cell.resource?.name;
                             const nextState = resource ? MiningState : null;
                             for (const unit of this.state.selectedUnits) {
+                                if (!unit.isAlive) {
+                                    continue;
+                                }
                                 unitUtils.moveTo(unit, cellCoords);
                                 unit.fsm.switchState(nextState);
                             }
@@ -354,7 +357,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
     public async load(owner: Object3D) {
         const skeletonManager = new SkeletonManager();        
-        const sharedSkinnedMesh = await skeletonManager.load({
+        const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
             skin: "/models/characters/Worker.json",
             animations: [
                 { name: "idle" },
@@ -382,22 +385,29 @@ export class Flock extends Component<FlockProps, IFlockState> {
         };
 
         const headOffset = new Vector3(0, 0, 1.8);
-        const boundingBox = new Box3().setFromObject(sharedSkinnedMesh).expandByPoint(headOffset);
+        const boundingBox = new Box3()
+            .setFromObject(sharedSkinnedMesh)
+            .expandByPoint(headOffset)
+            .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, new Vector3(1, 1, 1)));
+
         const radius = this.props.radius;
         for (let i = 0; i < this.props.count; i++) {
             const mesh = sharedSkinnedMesh.clone();
             mesh.boundingBox = boundingBox;
             mesh.position.set(
-                Math.random() * radius * 2 - radius,                
+                Math.random() * radius * 2 - radius,
                 0,
                 Math.random() * radius * 2 - radius,
             );
             createUnit({
-                id: i, 
-                obj: mesh, 
-                type: UnitType.Worker, 
+                id: i,
+                obj: mesh,
+                type: UnitType.Worker,
                 states: [new MiningState()]
             });
+
+            const box3Helper = new Box3Helper(boundingBox);
+            mesh.add(box3Helper);
         }
 
         const npcObj = await objects.load("/models/characters/NPC.json");

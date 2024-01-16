@@ -1,4 +1,4 @@
-import { Matrix4, Quaternion, Vector2, Vector3 } from "three";
+import { Matrix4, Vector2, Vector3 } from "three";
 import { ISector } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "../components/GameMapState";

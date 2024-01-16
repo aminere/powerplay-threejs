@@ -1,4 +1,5 @@
 
+import { Object3D } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 
@@ -15,6 +16,12 @@ interface IState extends IComponentState {
 export class Template extends Component<Props, IState> {
     constructor(props?: Partial<Props>) {
         super(new Props(props));
+    }
+
+    override start(_owner: Object3D) {
+    }
+
+    override update(_owner: Object3D) {        
     }
 }
 

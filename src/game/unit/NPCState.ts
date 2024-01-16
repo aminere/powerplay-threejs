@@ -3,7 +3,6 @@ import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
-import { GameUtils } from "../GameUtils";
 import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
@@ -81,8 +80,8 @@ export class NPCState extends State<IUnit> {
                         this._hitTimer -= time.deltaTime;
                         if (this._hitTimer < 0) {       
                             // TODO hit feedback                     
-                            this._hitTimer = 1;
-                            this._target!.health -= 0.2;
+                            this._hitTimer = .5;
+                            this._target!.health -= 0.5;
                             if (!this._target!.isAlive) {
                                 this._step = NpcStep.Idle;
                                 unitUtils.skeletonManager.applySkeleton("idle", unit.obj);
