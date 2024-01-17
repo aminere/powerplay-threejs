@@ -31,6 +31,7 @@ export class Unit implements IUnit {
     public get type() { return this._type; }
     public get id() { return this._id; }  
     public get health() { return this._health; }  
+    public get attackers() { return this._attackers; }
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -81,6 +82,7 @@ export class Unit implements IUnit {
     private _collidable = true;
     private _type = UnitType.Worker;
     private _health = 1;
+    private _attackers: IUnit[] = [];
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

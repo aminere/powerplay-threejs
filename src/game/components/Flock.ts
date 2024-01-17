@@ -263,8 +263,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             unit.desiredPosValid = false;
-            let needsMotion = unit.isMoving || unit.isColliding;
-            let hasMoved = false;
+            const needsMotion = unit.isMoving || unit.isColliding;
             let avoidedCell = false;
 
             if (needsMotion) {
@@ -293,6 +292,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
             unit.fsm.update();
 
+            let hasMoved = false;
             if (needsMotion) {
                 if (unit.isMoving) {
                     if (avoidedCell) {
@@ -303,7 +303,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     }
                     hasMoved = true; 
                 } else if (unit.isColliding) {
-                    unit.isColliding = false;
                     const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
                     if (collisionAnim) {
                         collisionAnim.reset();
@@ -313,6 +312,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 }
             }
 
+            unit.isColliding = false;
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
             if (collisionAnim) {
                 console.assert(!unit.isMoving);
@@ -430,8 +430,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
         createNpc(new Vector3(4, 0, 4));
         createNpc(new Vector3(-4, 0, 4));
-        // createNpc(new Vector3(-4, 0, -4));
-        // createNpc(new Vector3(4, 0, -4));
+        createNpc(new Vector3(-4, 0, -4));
+        createNpc(new Vector3(4, 0, -4));
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);

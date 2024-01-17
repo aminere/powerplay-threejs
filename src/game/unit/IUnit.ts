@@ -24,6 +24,7 @@ export interface IUnit {
     lookAt: Quaternion;
     rotationVelocity: number;
     rotation: Quaternion;
-    health: number;    
+    health: number;
+    attackers: IUnit[];
 }
 
