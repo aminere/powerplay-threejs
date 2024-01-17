@@ -26,5 +26,6 @@ export interface IUnit {
     rotation: Quaternion;
     health: number;
     attackers: IUnit[];
+    animation: string;
 }
 

@@ -1,4 +1,4 @@
-import { Object3D, SkinnedMesh } from "three";
+import { Object3D } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
@@ -25,9 +25,9 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
         super(new UnitCollisionAnimProps(props));
     }
 
-    override start(owner: Object3D) {
+    override start(_owner: Object3D) {
         if (this.props.unit.isIdle) {
-            skeletonManager.applySkeleton("walk", owner as SkinnedMesh);
+            skeletonManager.applySkeleton("walk", this.props.unit);
         }
         this.setState({ timer: this.props.duration });
     }
@@ -36,7 +36,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
             if (this.props.unit.isIdle) {                
-                skeletonManager.applySkeleton("idle", owner as SkinnedMesh);
+                skeletonManager.applySkeleton("idle", this.props.unit);
             }
             engineState.removeComponent(owner, UnitCollisionAnim);
         }

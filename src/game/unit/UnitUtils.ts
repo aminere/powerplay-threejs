@@ -83,12 +83,14 @@ class UnitUtils {
         return desiredPos;
     }
 
-    public moveTo(unit: IUnit, mapCoords: Vector2) {
+    public moveTo(unit: IUnit, mapCoords: Vector2, bindSkeleton = true) {
         unit.isMoving = true;
         unit.collidable = true;
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
-        skeletonManager.applySkeleton("run", unit.obj);
+        if (bindSkeleton) {
+            skeletonManager.applySkeleton("run", unit);
+        }
     }    
 
     public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {

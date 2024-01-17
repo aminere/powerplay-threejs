@@ -96,7 +96,7 @@ export class NPCState extends State<IUnit> {
                             if (this._attackTimer < 0) {
                                 this._attackStarted = true;
                                 this._hitTimer = 1 - .2;
-                                skeletonManager.applySkeleton("attack", unit.obj);
+                                skeletonManager.applySkeleton("attack", unit);
                             }
                         } else {
                             unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
@@ -140,7 +140,7 @@ export class NPCState extends State<IUnit> {
         this._target = null;
         this._step = NpcStep.Idle;
         unit.isMoving = false;
-        skeletonManager.applySkeleton("idle", unit.obj);
+        skeletonManager.applySkeleton("idle", unit);
     }
 }
 

@@ -32,6 +32,7 @@ export class Unit implements IUnit {
     public get id() { return this._id; }  
     public get health() { return this._health; }  
     public get attackers() { return this._attackers; }
+    public get animation() { return this._animation; }
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -55,10 +56,11 @@ export class Unit implements IUnit {
             this._collidable = false;
             this._isMoving = false;
             this._isColliding = false;
-            skeletonManager.applySkeleton("death", this._obj);
+            skeletonManager.applySkeleton("death", this);
             engineState.setComponent(this._obj, new Fadeout({ delay: 2 }));
         }
     }
+    public set animation(animation: string) { this._animation = animation; }
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();   
@@ -83,6 +85,7 @@ export class Unit implements IUnit {
     private _type = UnitType.Worker;
     private _health = 1;
     private _attackers: IUnit[] = [];
+    private _animation = "idle";
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

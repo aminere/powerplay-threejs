@@ -25,6 +25,7 @@ import { UnitType } from "../unit/IUnit";
 import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
+import { skeletonPool } from "../animation/SkeletonPool";
 
 export class FlockProps extends ComponentProps {
 
@@ -194,6 +195,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
         const [toTarget, lateralMove] = pools.vec3.get(2);
 
+        skeletonPool.update();
+
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
             const unit = units[i];
@@ -348,7 +351,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
                                     unit.isMoving = false;
-                                    skeletonManager.applySkeleton("idle", unit.obj);
+                                    skeletonManager.applySkeleton("idle", unit);
                                 }
                             }
                         }
@@ -376,15 +379,17 @@ export class Flock extends Component<FlockProps, IFlockState> {
             ],
         });
 
+        await skeletonPool.load("/models/characters/Worker.json");
+
         const units: Unit[] = [];
 
         const createUnit = (props: IUnitProps) => {
             const { obj } = props;
-            obj.bindMode = "detached";
-            skeletonManager.applySkeleton("idle", obj);
             obj.userData.unserializable = true;
             owner.add(obj);
             const unit = new Unit(props);
+            obj.bindMode = "detached";            
+            skeletonManager.applySkeleton(unit.animation, unit);
             units.push(unit);
             return unit;
         };

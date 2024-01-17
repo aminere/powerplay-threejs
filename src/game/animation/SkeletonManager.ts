@@ -5,16 +5,7 @@ import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
-
-interface ISkeletonAnim {
-    name: string;
-    isLooping?: boolean;
-}
-
-interface ISkeletonManagerProps {
-    skin: string;
-    animations: ISkeletonAnim[];
-}
+import { IUnit } from "../unit/IUnit";
 
 const identity = new Matrix4();
 class SkeletonManager {
@@ -24,7 +15,17 @@ class SkeletonManager {
         armature: Object3D;
     }>();
 
-    public async load(props: ISkeletonManagerProps) {
+    public getSkeleton(animation: string) {
+        return this._skeletons.get(animation);
+    }
+
+    public async load(props: {
+        skin: string;
+        animations: Array<{
+            name: string;
+            isLooping?: boolean;
+        }>;
+    }) {
         const skin = await objects.load(props.skin);
         const skinnedMeshes = props.animations.map(animation => {
             const skinCopy = SkeletonUtils.clone(skin);
@@ -58,23 +59,19 @@ class SkeletonManager {
         };
     }
 
-    public applySkeleton(animation: string, target: SkinnedMesh) {
+    public applySkeleton(animation: string, unit: IUnit) {
         const skeleton = this._skeletons.get(animation);
         if (!skeleton) {
             return;
         }
+        
+        const target = unit.obj;
         if (target.skeleton !== skeleton.skeleton) {
+            console.assert(unit.animation !== animation);
+            unit.animation = animation;
             target.bind(skeleton.skeleton, identity);
-
-            if (animation === "death") {
-                const animator = utils.getComponent(Animator, skeleton.armature);
-                animator?.reset();
-                const onAnimFinished = () => {
-                    console.log("death anim finished");
-                    animator?.state.mixer.removeEventListener("finished", onAnimFinished);
-                };
-                animator?.state.mixer.addEventListener("finished", onAnimFinished);
-            }
+        } else {
+            console.assert(unit.animation === animation);
         }
     }
 }

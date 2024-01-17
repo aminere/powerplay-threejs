@@ -24,9 +24,6 @@ export class AnimatorProps extends ComponentProps {
     repetitions = Infinity;
     autoStart = true;
 
-    @Attributes.command("transition")
-    transitionCommand = true;
-
     constructor(props?: Partial<AnimatorProps>) {
         super();
 
@@ -99,25 +96,16 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
         duration?: number;
         loopMode?: LoopMode;
         repetitions?: number;
-        onFinished?: () => void;
     }) {
         const currentAction = this.state.actions[this.state.currentAnim];
         const nextAction = this.state.actions[animation];
         if (currentAction && nextAction) {
-
-            if (options?.onFinished) {
-                const onAnimFinished = () => {
-                    options!.onFinished!();
-                    this.state.mixer.removeEventListener("finished", onAnimFinished);
-                };
-                this.state.mixer.addEventListener("finished", onAnimFinished);
-            }            
             
             const transitionDuration = options?.duration ?? 0.5;
             if (options?.loopMode) {
                 setLoopMode(nextAction, options?.loopMode, options.repetitions ?? Infinity);
             }
-            
+
             nextAction.reset().play();
             currentAction.crossFadeTo(nextAction, transitionDuration, true);
             this.state.currentAnim = animation;
