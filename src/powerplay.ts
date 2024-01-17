@@ -21,3 +21,5 @@ export { GameMap } from "./game/components/GameMap";
 
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation } from "./game/GameSerialization";
 
+export { Animator } from "./engine/components/Animator";
+

@@ -428,10 +428,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
             });
             npc.fsm.switchState(NPCState);
         }
-        createNpc(new Vector3(4, 0, 4));
-        createNpc(new Vector3(-4, 0, 4));
-        createNpc(new Vector3(-4, 0, -4));
-        createNpc(new Vector3(4, 0, -4));
+        // createNpc(new Vector3(4, 0, 4));
+        // createNpc(new Vector3(-4, 0, 4));
+        // createNpc(new Vector3(-4, 0, -4));
+        // createNpc(new Vector3(4, 0, -4));
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);

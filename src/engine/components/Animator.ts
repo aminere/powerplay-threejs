@@ -24,6 +24,9 @@ export class AnimatorProps extends ComponentProps {
     repetitions = Infinity;
     autoStart = true;
 
+    @Attributes.command("transition")
+    transitionCommand = true;
+
     constructor(props?: Partial<AnimatorProps>) {
         super();
 
@@ -44,6 +47,17 @@ interface IAnimatorState {
     currentAnim: string;
 }
 
+function setLoopMode(action: AnimationAction, loopMode: LoopMode, repetitions: number) {
+    switch (loopMode) {
+        case "Once": {
+            action.setLoop(LoopOnce, 1);
+            action.clampWhenFinished = true;
+        } break;
+        case "Repeat": action.setLoop(LoopRepeat, repetitions); break;
+        case "PingPong": action.setLoop(LoopPingPong, repetitions); break;
+    }   
+}
+
 export class Animator extends Component<AnimatorProps, IAnimatorState> {
 
     public get currentAction() { return this.state.actions[this.state.currentAnim]; }
@@ -59,14 +73,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             const info = engineState.animations.get(animation.valueOf());
             if (info) {
                 const action = mixer.clipAction(info.clip);
-                switch (this.props.loopMode) {
-                    case "Once": {
-                        action.setLoop(LoopOnce, 1);
-                        action.clampWhenFinished = true;
-                    } break;
-                    case "Repeat": action.setLoop(LoopRepeat, this.props.repetitions); break;
-                    case "PingPong": action.setLoop(LoopPingPong, this.props.repetitions); break;
-                }                
+                setLoopMode(action, this.props.loopMode, this.props.repetitions);
                 return action;
             } else {
                 console.warn(`Animation '${animation}' not found`);
@@ -88,24 +95,38 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
         this.state.mixer.update(time.deltaTime);
     }
 
-    public transitionTo(animation: string) {
-        const transitionDuration = .5;
+    public transitionTo(animation: string, options?: {
+        duration?: number;
+        loopMode?: LoopMode;
+        repetitions?: number;
+        onFinished?: () => void;
+    }) {
         const currentAction = this.state.actions[this.state.currentAnim];
         const nextAction = this.state.actions[animation];
         if (currentAction && nextAction) {
-            currentAction.crossFadeTo(nextAction, transitionDuration, false);
-            nextAction
-                .reset()
-                .play();                
+
+            if (options?.onFinished) {
+                const onAnimFinished = () => {
+                    options!.onFinished!();
+                    this.state.mixer.removeEventListener("finished", onAnimFinished);
+                };
+                this.state.mixer.addEventListener("finished", onAnimFinished);
+            }            
+            
+            const transitionDuration = options?.duration ?? 0.5;
+            if (options?.loopMode) {
+                setLoopMode(nextAction, options?.loopMode, options.repetitions ?? Infinity);
+            }
+            
+            nextAction.reset().play();
+            currentAction.crossFadeTo(nextAction, transitionDuration, true);
             this.state.currentAnim = animation;
         }
     }
 
     public reset() {
         const currentAction = this.state.actions[this.state.currentAnim];
-        currentAction
-            .reset()
-            .play();
+        currentAction.reset().play();
     }
 }
 

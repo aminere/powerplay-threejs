@@ -42,11 +42,12 @@ class SkeletonManager {
             return skinnedMesh;
         });
 
+        const skeletons = utils.createObject(engine.scene!, "Skeletons");
         skinnedMeshes.forEach((skinnedMesh, i) => {
             const rootBone = skinnedMesh.skeleton.bones[0];
             const armature = rootBone.parent!;
             armature.name = `${armature.name}-${props.animations[i].name}`;
-            engine.scene!.add(armature);
+            skeletons.add(armature);
         });
 
         const rootBone0 = skinnedMeshes[0].skeleton.bones[0];
