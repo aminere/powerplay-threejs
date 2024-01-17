@@ -7,6 +7,9 @@ import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
 import { skeletonManager } from "../animation/SkeletonManager";
+import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
+import { Animator } from "../../engine/components/Animator";
+import { utils } from "../../engine/Utils";
 
 enum NpcStep {
     Idle,
@@ -19,12 +22,23 @@ export class NPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
     private _target: IUnit | null = null;
-    private _attackTimer = -1;
-    private _attackStarted = false;
     private _hitTimer = 1;
     private _unitsInRange = new Array<[IUnit, number]>();
+    private _transitionSkeleton: IUniqueSkeleton | null = null;
+    private _timeout: NodeJS.Timeout | null = null;
 
     override enter(_unit: IUnit) {
+    }
+
+    override exit(_unit: IUnit) {
+        if (this._transitionSkeleton) {
+            this._transitionSkeleton!.isFree = true;
+            this._transitionSkeleton = null;            
+        }
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+            this._timeout = null;
+        }
     }
 
     override update(unit: IUnit): void {
@@ -74,9 +88,22 @@ export class NPCState extends State<IUnit> {
                         const dist = target.obj.position.distanceTo(unit.obj.position);
                         if (dist < flock.component.props.separation + .2) {
                             unit.isMoving = false;
-                            this._attackTimer = 0.2;
-                            this._attackStarted = false;
+                            this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
+
+                            // skeletonManager.applySkeleton("attack", unit);
+                            console.assert(unit.animation === "run");
+                            const skeleton = skeletonManager.getSkeleton(unit.animation)!;
+                            const animator = utils.getComponent(Animator, skeleton.armature)!;
+                            console.assert(!this._transitionSkeleton);
+                            const transitionDuration = .3;
+                            this._transitionSkeleton = skeletonPool.applyTransitionSkeleton({
+                                unit,
+                                srcAnim: unit.animation,
+                                srcAnimTime: animator.currentAction.time,
+                                destAnim: "attack",
+                                duration: transitionDuration
+                            });                            
                         }
                     }
                 } else {
@@ -91,23 +118,14 @@ export class NPCState extends State<IUnit> {
                     const dist = target.obj.position.distanceTo(unit.obj.position);
                     const inRange = dist < flock.component.props.separation + .4;
                     if (inRange) {
-                        if (!this._attackStarted) {
-                            this._attackTimer -= time.deltaTime;
-                            if (this._attackTimer < 0) {
-                                this._attackStarted = true;
-                                this._hitTimer = 1 - .2;
-                                skeletonManager.applySkeleton("attack", unit);
-                            }
-                        } else {
-                            unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
-                            this._hitTimer -= time.deltaTime;
-                            if (this._hitTimer < 0) {
-                                // TODO hit feedback                     
-                                this._hitTimer = .5;
-                                target.health -= 0.5;
-                                if (!target.isAlive) {
-                                    this.goToIdle(unit);
-                                }
+                        unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
+                        this._hitTimer -= time.deltaTime;
+                        if (this._hitTimer < 0) {
+                            // TODO hit feedback                     
+                            this._hitTimer = .5;
+                            target.health -= 0.5;
+                            if (!target.isAlive) {
+                                this.goToIdle(unit);
                             }
                         }
 
@@ -123,24 +141,69 @@ export class NPCState extends State<IUnit> {
     }
 
     private follow(unit: IUnit, target: IUnit) {
-        this._step = NpcStep.Follow;
         const [sectorCoords, localCoords] = pools.vec2.get(2);
         if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
-            unitUtils.moveTo(unit, target.coords.mapCoords);
+            switch (this._step) {
+                case NpcStep.Attack: {
+                    unitUtils.moveTo(unit, target.coords.mapCoords, false);
+                    const transitionDuration = .3;
+                    skeletonPool.transition(this._transitionSkeleton!, "attack", "run", transitionDuration);
+                    this._timeout = setTimeout(() => {
+                        this._transitionSkeleton!.isFree = true;
+                        this._transitionSkeleton = null;
+                        skeletonManager.applySkeleton("run", unit);
+                        this._timeout = null;
+                    }, transitionDuration * 1000);
+                }
+                    break;
+
+                default:
+                    unitUtils.moveTo(unit, target.coords.mapCoords);
+                    break;
+            }
         }
+
+        this._step = NpcStep.Follow;
     }
 
     private goToIdle(unit: IUnit) {
-        if (this._target) {
-            const index = this._target.attackers.indexOf(unit);
-            if (index !== -1) {
-                this._target.attackers.splice(index, 1);
+        const target = this._target!;
+        switch (this._step) {
+            case NpcStep.Idle: {
+                skeletonManager.applySkeleton("idle", unit);
             }
+                break;
+
+            case NpcStep.Attack: {
+                const transitionDuration = 1;
+                console.assert(this._transitionSkeleton);
+                this._transitionSkeleton!.isFree = true;
+                const attack = engineState.animations.get("attack")!;
+                const srcAnimTime = this._transitionSkeleton?.mixer.existingAction(attack.clip)!.time!;
+                this._transitionSkeleton = skeletonPool.applyTransitionSkeleton({
+                    unit,
+                    srcAnim: "attack",
+                    srcAnimTime,
+                    destAnim: "idle",
+                    duration: transitionDuration
+                });
+                this._timeout = setTimeout(() => {
+                    this._transitionSkeleton!.isFree = true;
+                    this._transitionSkeleton = null;
+                    skeletonManager.applySkeleton("idle", unit);
+                    this._timeout = null;
+                }, transitionDuration * 1000);
+            }
+                break;
+        }
+        
+        const index = target.attackers.indexOf(unit);
+        if (index !== -1) {
+            target.attackers.splice(index, 1);
         }
         this._target = null;
-        this._step = NpcStep.Idle;
         unit.isMoving = false;
-        skeletonManager.applySkeleton("idle", unit);
+        this._step = NpcStep.Idle;
     }
 }
 

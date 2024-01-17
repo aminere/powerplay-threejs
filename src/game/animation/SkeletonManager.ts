@@ -63,16 +63,12 @@ class SkeletonManager {
         const skeleton = this._skeletons.get(animation);
         if (!skeleton) {
             return;
-        }
-        
+        }        
         const target = unit.obj;
-        if (target.skeleton !== skeleton.skeleton) {
-            console.assert(unit.animation !== animation);
-            unit.animation = animation;
+        if (target.skeleton !== skeleton.skeleton) {            
             target.bind(skeleton.skeleton, identity);
-        } else {
-            console.assert(unit.animation === animation);
         }
+        unit.animation = animation;
     }
 }
 

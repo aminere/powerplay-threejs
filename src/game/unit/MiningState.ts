@@ -36,7 +36,6 @@ export class MiningState extends State<IUnit> {
 
     override exit(_owner: IUnit) {
         if (this._transitionSkeleton) {
-            this._transitionSkeleton!.armature.visible = false;
             this._transitionSkeleton!.isFree = true;
             this._transitionSkeleton = null;            
         }

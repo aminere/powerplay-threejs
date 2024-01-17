@@ -1,5 +1,5 @@
 
-import { Box3, Box3Helper, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Object3D, Object3DEventMap, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -433,7 +433,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             });
             npc.fsm.switchState(NPCState);
         }
-        // createNpc(new Vector3(4, 0, 4));
+        createNpc(new Vector3(4, 0, 4));
         // createNpc(new Vector3(-4, 0, 4));
         // createNpc(new Vector3(-4, 0, -4));
         // createNpc(new Vector3(4, 0, -4));
@@ -449,6 +449,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
             touchPressed: false,
             flowfieldViewer
         });
+    }
+    
+    override dispose(_owner: Object3D) {
+        skeletonPool.dispose();   
     }
 }
 

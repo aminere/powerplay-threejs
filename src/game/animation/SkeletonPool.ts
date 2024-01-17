@@ -25,9 +25,13 @@ class SkeletonPool {
         this._root = utils.createObject(engine.scene!, "UniqueSkeletons");
     }
 
+    public dispose() {
+        this._skeletons.clear();
+    }
+
     public applyTransitionSkeleton(props: {
         srcAnim: string;
-        srcAnimTime?: number;
+        srcAnimTime: number;
         destAnim: string;
         unit: IUnit;
         duration?: number;
@@ -73,10 +77,8 @@ class SkeletonPool {
 
         const srcAction = skeleton.mixer.existingAction(srcClip.clip)!;
         const destAction = skeleton.mixer.existingAction(destClip.clip)!;
-        if (srcAnimTime !== undefined) {
-            srcAction.reset().play();
-            srcAction.time = srcAnimTime;
-        }
+        srcAction.reset().play();
+        srcAction.time = srcAnimTime;
         destAction.reset().play();
         srcAction.crossFadeTo(destAction, duration ?? 1, true);
         skeleton.isFree = false;
