@@ -104,6 +104,9 @@ class UnitUtils {
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
         if (bindSkeleton) {
+            if (unit.skeleton) {
+                skeletonPool.releaseSkeleton(unit);
+            }
             skeletonManager.applySkeleton("run", unit);
         }
     }    

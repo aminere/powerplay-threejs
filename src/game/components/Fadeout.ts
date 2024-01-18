@@ -32,10 +32,17 @@ export class Fadeout extends Component<FadeoutProps, IFadeoutState> {
                 material.transparent = true;
                 mesh.material = material;
                 const { duration, delay } = this.props;
-                setTimeout(() => {
+
+                const fadeOut = () => {
                     mesh.castShadow = false;
                     gsap.to(material, { duration, opacity: 0 });
-                }, delay * 1000);                
+                };
+
+                if (delay > 0) {
+                    setTimeout(fadeOut, delay * 1000);                
+                } else {
+                    fadeOut();
+                }
             }
         } else {
             console.warn("Fadeout component can only be applied to Mesh objects");

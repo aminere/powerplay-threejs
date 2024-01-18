@@ -133,10 +133,7 @@ export class NPCState extends State<IUnit> {
                     break;
 
                 default:
-                    unitUtils.moveTo(unit, target.coords.mapCoords);
-                    if (unit.skeleton) {
-                        skeletonPool.releaseSkeleton(unit);
-                    }
+                    unitUtils.moveTo(unit, target.coords.mapCoords);                    
                     break;
             }
         }

@@ -8,7 +8,7 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { skeletonManager } from "../animation/SkeletonManager";
-import { IUniqueSkeleton } from "../animation/SkeletonPool";
+import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -60,10 +60,15 @@ export class Unit implements IUnit {
             this._isColliding = false;
             unitUtils.setAnimation(this, "death", { 
                 transitionDuration: 1,
-                destAnimLoopMode: "Once",
-                settleOnCommonSkeleton: true
-            });
-            engineState.setComponent(this._obj, new Fadeout({ delay: 2 }));
+                destAnimLoopMode: "Once"
+            });            
+            setTimeout(() => {
+                const fadeDuration = 1;
+                engineState.setComponent(this._obj, new Fadeout({ duration: fadeDuration }));
+                setTimeout(() => {
+                    skeletonPool.releaseSkeleton(this);
+                }, fadeDuration * 1000);
+            }, 2000);
         }
     }
     public set animation(animation: string) { this._animation = animation; }
