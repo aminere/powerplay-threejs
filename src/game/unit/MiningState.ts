@@ -45,7 +45,7 @@ export class MiningState extends State<IUnit> {
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
                     this._miningTimer = 1;                    
-                    unitUtils.setAnimation(unit, "pick", 1);                    
+                    unitUtils.setAnimation(unit, "pick", { transitionDuration: 1 });                    
                 }
             }
                 break;
@@ -84,7 +84,10 @@ export class MiningState extends State<IUnit> {
                         GameUtils.worldToMap(worldPos, targetBuilding);
                         if (flowField.compute(targetBuilding, sectorCoords, localCoords)) {
                             unitUtils.moveTo(unit, targetBuilding, false);
-                            unitUtils.setAnimation(unit, "run", .3, true);
+                            unitUtils.setAnimation(unit, "run", {
+                                transitionDuration: .3,
+                                settleOnCommonSkeleton: true
+                            });
                         } else {
                             console.assert(false, "No path found");
                         }

@@ -1,8 +1,9 @@
-import { Camera, DirectionalLight, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import { AnimationAction, Camera, DirectionalLight, LoopOnce, LoopPingPong, LoopRepeat, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { config } from "../game/config";
 import { Component } from "./Component";
 import { ComponentProps } from "./ComponentProps";
 import { TArray } from "./TArray";
+import { LoopMode } from "./Types";
 
 class Utils {
     public updateCameraAspect(camera: Camera, width: number, height: number) {
@@ -25,7 +26,7 @@ class Utils {
     private _dummy = new Vector3();
     private _dummy2 = new Vector3();
     public updateDirectionalLightTarget(light: DirectionalLight) {
-        const lightDir = light.getWorldDirection(this._dummy);        
+        const lightDir = light.getWorldDirection(this._dummy);
         light.target.position.copy(light.getWorldPosition(this._dummy2)).sub(lightDir);
         light.target.updateMatrixWorld();
     }
@@ -41,7 +42,7 @@ class Utils {
         return obj;
     }
 
-    public disposeObject(obj: Object3D) {       
+    public disposeObject(obj: Object3D) {
         const mesh = obj as THREE.Mesh;
         const line = obj as THREE.Line;
         if (mesh.isMesh) {
@@ -59,7 +60,7 @@ class Utils {
                 line.material.dispose();
             }
         }
-    }    
+    }
 
     public async loadObject(path: string) {
         const response = await fetch(path);
@@ -78,6 +79,17 @@ class Utils {
             array.grow(value);
         }
         return array;
+    }
+
+    public setLoopMode(action: AnimationAction, loopMode: LoopMode, repetitions: number) {
+        switch (loopMode) {
+            case "Once": {
+                action.setLoop(LoopOnce, 1);
+                action.clampWhenFinished = true;
+            } break;
+            case "Repeat": action.setLoop(LoopRepeat, repetitions); break;
+            case "PingPong": action.setLoop(LoopPingPong, repetitions); break;
+        }
     }
 }
 

@@ -13,6 +13,7 @@ import { time } from "../../engine/Time";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { Animator } from "../../engine/components/Animator";
+import { LoopMode } from "../../engine/Types";
 
 export interface ICellAddr {
     mapCoords: Vector2;
@@ -119,20 +120,24 @@ class UnitUtils {
         }
     }
 
-    public setAnimation(unit: IUnit, animation: string, transitionDuration?: number, settleOnCommonSkeleton = false) {
+    public setAnimation(unit: IUnit, animation: string, props: {
+        transitionDuration?: number;
+        settleOnCommonSkeleton?: boolean;
+        destAnimLoopMode?: LoopMode;
+    }) {
         if (animation === unit.animation) {
             return;
         }
 
         const checkIfCommonSkeletonIsNeeded = () => {
-            if (settleOnCommonSkeleton) {
+            if (props.settleOnCommonSkeleton) {
                 console.assert(!unit.skeleton!.timeout);
                 unit.skeleton!.timeout = setTimeout(() => {
                     unit.skeleton!.isFree = true;
                     unit.skeleton!.timeout = null;
                     unit.skeleton = null;
                     skeletonManager.applySkeleton(animation, unit);
-                }, transitionDuration! * 1000);
+                }, props.transitionDuration! * 1000);
             }
         };
 
@@ -142,18 +147,19 @@ class UnitUtils {
                 srcAnim: unit.animation,
                 srcAnimTime,
                 destAnim: animation,
-                duration: transitionDuration
+                duration: props.transitionDuration,
+                destAnimLoopMode: props.destAnimLoopMode
             });
             checkIfCommonSkeletonIsNeeded();
         };        
         
-        if (transitionDuration !== undefined) {
+        if (props.transitionDuration !== undefined) {
             const srcAnimTime = getCurrentAnimationTime(unit);
             if (unit.skeleton) {
 
                 const skeletonId = getSkeletonId(unit.animation, animation);
                 if (skeletonId === unit.skeleton.id) {
-                    skeletonPool.transition(unit.skeleton, unit.animation, animation, transitionDuration);
+                    skeletonPool.transition(unit.skeleton, unit.animation, animation, props.transitionDuration);
                     unit.animation = animation;
                     checkIfCommonSkeletonIsNeeded();
                 } else {

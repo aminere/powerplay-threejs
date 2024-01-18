@@ -58,7 +58,11 @@ export class Unit implements IUnit {
             this._collidable = false;
             this._isMoving = false;
             this._isColliding = false;
-            skeletonManager.applySkeleton("death", this);
+            unitUtils.setAnimation(this, "death", { 
+                transitionDuration: 1,
+                destAnimLoopMode: "Once",
+                settleOnCommonSkeleton: true
+            });
             engineState.setComponent(this._obj, new Fadeout({ delay: 2 }));
         }
     }

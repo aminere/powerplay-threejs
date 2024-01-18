@@ -6,6 +6,7 @@ import { engineState } from "../../engine/EngineState";
 import { time } from "../../engine/Time";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
+import { LoopMode } from "../../engine/Types";
 
 export interface IUniqueSkeleton {
     id: string;
@@ -45,6 +46,8 @@ class SkeletonPool {
         destAnim: string;
         unit: IUnit;
         duration?: number;
+        destAnimLoopMode?: LoopMode;
+        destAnimRepetitions?: number;
     }) {
         const { srcAnim, srcAnimTime, destAnim, unit, duration } = props;
         const id = getSkeletonId(srcAnim, destAnim);
@@ -67,7 +70,12 @@ class SkeletonPool {
             const armature = rootBone.parent!;
             const mixer = new AnimationMixer(armature);
             mixer.clipAction(srcClip.clip);
-            mixer.clipAction(destClip.clip);
+            
+            const destAction = mixer.clipAction(destClip.clip);
+            if (props.destAnimLoopMode) {
+                utils.setLoopMode(destAction, props.destAnimLoopMode, props.destAnimRepetitions ?? Infinity);
+            }
+
             skeleton = {
                 id,
                 isFree: true,

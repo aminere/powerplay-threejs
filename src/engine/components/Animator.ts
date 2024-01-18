@@ -5,14 +5,8 @@ import { time } from "../Time";
 import { engineState } from "../EngineState";
 import { TArray } from "../TArray";
 import * as Attributes from "../Attributes";
-
-const LoopModes = [
-    "Once",
-    "Repeat",
-    "PingPong"
-] as const;
-
-type LoopMode = typeof LoopModes[number];
+import { type LoopMode, LoopModes } from "../Types";
+import { utils } from "../Utils";
 
 export class AnimatorProps extends ComponentProps {
     currentAnim = 0;
@@ -44,17 +38,6 @@ interface IAnimatorState {
     currentAnim: string;
 }
 
-function setLoopMode(action: AnimationAction, loopMode: LoopMode, repetitions: number) {
-    switch (loopMode) {
-        case "Once": {
-            action.setLoop(LoopOnce, 1);
-            action.clampWhenFinished = true;
-        } break;
-        case "Repeat": action.setLoop(LoopRepeat, repetitions); break;
-        case "PingPong": action.setLoop(LoopPingPong, repetitions); break;
-    }   
-}
-
 export class Animator extends Component<AnimatorProps, IAnimatorState> {
 
     public get currentAction() { return this.state.actions[this.state.currentAnim]; }
@@ -70,7 +53,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             const info = engineState.animations.get(animation.valueOf());
             if (info) {
                 const action = mixer.clipAction(info.clip);
-                setLoopMode(action, this.props.loopMode, this.props.repetitions);
+                utils.setLoopMode(action, this.props.loopMode, this.props.repetitions);
                 return action;
             } else {
                 console.warn(`Animation '${animation}' not found`);
@@ -103,7 +86,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             
             const transitionDuration = options?.duration ?? 0.5;
             if (options?.loopMode) {
-                setLoopMode(nextAction, options?.loopMode, options.repetitions ?? Infinity);
+                utils.setLoopMode(nextAction, options?.loopMode, options.repetitions ?? Infinity);
             }
 
             nextAction.reset().play();

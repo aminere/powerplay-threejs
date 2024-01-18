@@ -82,7 +82,7 @@ export class NPCState extends State<IUnit> {
                             unit.isMoving = false;
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
-                            unitUtils.setAnimation(unit, "attack", .3);
+                            unitUtils.setAnimation(unit, "attack", { transitionDuration: .3 });
                         }
                     }
                 } else {
@@ -125,7 +125,10 @@ export class NPCState extends State<IUnit> {
             switch (this._step) {
                 case NpcStep.Attack: {
                     unitUtils.moveTo(unit, target.coords.mapCoords, false);
-                    unitUtils.setAnimation(unit, "run", .3, true);
+                    unitUtils.setAnimation(unit, "run", {
+                        transitionDuration: .3,
+                        settleOnCommonSkeleton: true
+                    });
                 }
                     break;
 
@@ -143,7 +146,10 @@ export class NPCState extends State<IUnit> {
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;
-        unitUtils.setAnimation(unit, "idle", 1, true);
+        unitUtils.setAnimation(unit, "idle", {
+            transitionDuration: 1,
+            settleOnCommonSkeleton: true
+        });
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
             target.attackers.splice(index, 1);
