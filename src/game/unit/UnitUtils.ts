@@ -10,6 +10,9 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/Time";
+import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
+import { utils } from "../../engine/Utils";
+import { Animator } from "../../engine/components/Animator";
 
 export interface ICellAddr {
     mapCoords: Vector2;
@@ -23,6 +26,17 @@ export interface ICellPtr {
     sectorCoords: Vector2;
     mapCoords: Vector2;
     cellIndex: number;
+}
+
+function getCurrentAnimationTime(unit: IUnit) {
+    if (unit.skeleton) {
+        const clipInfo = engineState.animations.get(unit.animation)!;
+        return unit.skeleton.mixer.existingAction(clipInfo.clip)!.time!;
+    } else {
+        const skeleton = skeletonManager.getSkeleton(unit.animation)!;
+        const animator = utils.getComponent(Animator, skeleton.armature)!;
+        return animator.currentAction.time;
+    }
 }
 
 const { mapRes } = config.game;
@@ -102,6 +116,62 @@ class UnitUtils {
             const rotationDamp = 0.2;
             unit.rotationVelocity = mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, unit.rotationVelocity, rotationDamp, 999, time.deltaTime);
             unit.obj.quaternion.copy(unit.rotation);
+        }
+    }
+
+    public setAnimation(unit: IUnit, animation: string, transitionDuration?: number, settleOnCommonSkeleton = false) {
+        if (animation === unit.animation) {
+            return;
+        }
+
+        const checkIfCommonSkeletonIsNeeded = () => {
+            if (settleOnCommonSkeleton) {
+                console.assert(!unit.skeleton!.timeout);
+                unit.skeleton!.timeout = setTimeout(() => {
+                    unit.skeleton!.isFree = true;
+                    unit.skeleton!.timeout = null;
+                    unit.skeleton = null;
+                    skeletonManager.applySkeleton(animation, unit);
+                }, transitionDuration! * 1000);
+            }
+        };
+
+        const applySkeleton = (srcAnimTime: number) => {
+            unit.skeleton = skeletonPool.applyTransitionSkeleton({
+                unit,
+                srcAnim: unit.animation,
+                srcAnimTime,
+                destAnim: animation,
+                duration: transitionDuration
+            });
+            checkIfCommonSkeletonIsNeeded();
+        };        
+        
+        if (transitionDuration !== undefined) {
+            const srcAnimTime = getCurrentAnimationTime(unit);
+            if (unit.skeleton) {
+
+                const skeletonId = getSkeletonId(unit.animation, animation);
+                if (skeletonId === unit.skeleton.id) {
+                    skeletonPool.transition(unit.skeleton, unit.animation, animation, transitionDuration);
+                    unit.animation = animation;
+                    checkIfCommonSkeletonIsNeeded();
+                } else {
+                    skeletonPool.releaseSkeleton(unit);
+                    applySkeleton(srcAnimTime);
+                }
+
+            } else {
+                applySkeleton(srcAnimTime);
+            }            
+
+        } else {
+
+            if (unit.skeleton) {
+                skeletonPool.releaseSkeleton(unit);
+            }
+
+            skeletonManager.applySkeleton(animation, unit);
         }
     }
 }

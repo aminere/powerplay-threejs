@@ -56,7 +56,7 @@ class Engine {
     }
 
     public update() {
-        time.updateDeltaTime();
+        time.update();
         pools.flush();
         input.update();
         this.updateComponents();

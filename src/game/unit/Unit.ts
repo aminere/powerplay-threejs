@@ -8,6 +8,7 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { skeletonManager } from "../animation/SkeletonManager";
+import { IUniqueSkeleton } from "../animation/SkeletonPool";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -33,6 +34,7 @@ export class Unit implements IUnit {
     public get health() { return this._health; }  
     public get attackers() { return this._attackers; }
     public get animation() { return this._animation; }
+    public get skeleton() { return this._skeleton; }
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -61,6 +63,7 @@ export class Unit implements IUnit {
         }
     }
     public set animation(animation: string) { this._animation = animation; }
+    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();   
@@ -86,6 +89,7 @@ export class Unit implements IUnit {
     private _health = 1;
     private _attackers: IUnit[] = [];
     private _animation = "idle";
+    private _skeleton: IUniqueSkeleton | null = null;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

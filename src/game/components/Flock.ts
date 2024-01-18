@@ -31,6 +31,7 @@ export class FlockProps extends ComponentProps {
 
     radius = 20;
     count = 50;
+    npcCount = 4;
     separation = 1;
     maxSpeed = 10;
     speed = 4;       
@@ -433,10 +434,14 @@ export class Flock extends Component<FlockProps, IFlockState> {
             });
             npc.fsm.switchState(NPCState);
         }
-        createNpc(new Vector3(4, 0, 4));
-        // createNpc(new Vector3(-4, 0, 4));
-        // createNpc(new Vector3(-4, 0, -4));
-        // createNpc(new Vector3(4, 0, -4));
+
+        for (let i = 0; i < this.props.npcCount; ++i) {
+            createNpc(new Vector3(
+                Math.random() * radius * 2 - radius,
+                0,
+                Math.random() * radius * 2 - radius,
+            ));
+        }
 
         const flowfieldViewer = new FlowfieldViewer();
         engine.scene!.add(flowfieldViewer);

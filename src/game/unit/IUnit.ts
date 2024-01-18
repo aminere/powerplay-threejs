@@ -1,6 +1,7 @@
 import { Quaternion, SkinnedMesh, Vector3 } from "three";
 import { ICellAddr } from "./UnitUtils";
 import { StateMachine } from "../fsm/StateMachine";
+import { IUniqueSkeleton } from "../animation/SkeletonPool";
 
 export enum UnitType {
     Worker,
@@ -27,5 +28,6 @@ export interface IUnit {
     health: number;
     attackers: IUnit[];
     animation: string;
+    skeleton: IUniqueSkeleton | null;
 }
 

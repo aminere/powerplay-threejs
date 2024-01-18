@@ -8,10 +8,20 @@ import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 
 export interface IUniqueSkeleton {
+    id: string;
     isFree: boolean;
     skeleton: Skeleton;
     armature: Object3D;
     mixer: AnimationMixer;
+    timeout: NodeJS.Timeout | null;
+}
+
+export function getSkeletonId(srcAnim: string, destAnim: string) {
+    if (srcAnim.localeCompare(destAnim) < 0) {
+        return `${srcAnim}-${destAnim}`;
+    } else {
+        return `${destAnim}-${srcAnim}`;
+    }
 }
 
 const identity = new Matrix4();
@@ -37,13 +47,7 @@ class SkeletonPool {
         duration?: number;
     }) {
         const { srcAnim, srcAnimTime, destAnim, unit, duration } = props;
-        const id = (() => {
-            if (srcAnim.localeCompare(destAnim) < 0) {
-                return `${srcAnim}-${destAnim}`;
-            } else {
-                return `${destAnim}-${srcAnim}`;
-            }
-        })();
+        const id = getSkeletonId(srcAnim, destAnim);
 
         let skeletons = this._skeletons.get(id);        
         if (!skeletons) {
@@ -65,10 +69,12 @@ class SkeletonPool {
             mixer.clipAction(srcClip.clip);
             mixer.clipAction(destClip.clip);
             skeleton = {
+                id,
                 isFree: true,
                 skeleton: _skeleton, 
                 armature,
-                mixer
+                mixer,
+                timeout: null
             };
             skeletons.push(skeleton);
             armature.name = `${armature.name}-${id}`;
@@ -106,6 +112,15 @@ class SkeletonPool {
                 skeleton.mixer.update(time.deltaTime);
             });
         });
+    }
+
+    public releaseSkeleton(unit: IUnit) {
+        unit.skeleton!.isFree = true;
+        if (unit.skeleton!.timeout) {
+            clearTimeout(unit.skeleton!.timeout);
+            unit.skeleton!.timeout = null;
+        }
+        unit.skeleton = null;
     }
 }
 

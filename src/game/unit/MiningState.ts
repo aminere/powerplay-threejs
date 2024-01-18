@@ -5,11 +5,8 @@ import { Object3D, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
-import { skeletonManager } from "../animation/SkeletonManager";
-import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
-import { utils } from "../../engine/Utils";
-import { Animator } from "../../engine/components/Animator";
 import { time } from "../../engine/Time";
+import { skeletonPool } from "../animation/SkeletonPool";
 
 enum MiningStep {
     GoToResource,
@@ -25,8 +22,6 @@ export class MiningState extends State<IUnit> {
     private _miningTimer!: number;
     private _targetResource!: ICellPtr;
     private _potentialTarget = new Vector2(-1, -1);
-    private _transitionSkeleton: IUniqueSkeleton | null = null;
-    private _timeout: NodeJS.Timeout | null = null;
 
     override enter(unit: IUnit) {        
         this._step = MiningStep.GoToResource;
@@ -34,14 +29,9 @@ export class MiningState extends State<IUnit> {
         this._potentialTarget.set(-1, -1);
     }
 
-    override exit(_owner: IUnit) {
-        if (this._transitionSkeleton) {
-            this._transitionSkeleton!.isFree = true;
-            this._transitionSkeleton = null;            
-        }
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = null;
+    override exit(unit: IUnit) {
+        if (unit.skeleton) {
+            skeletonPool.releaseSkeleton(unit);
         }
     }
 
@@ -54,17 +44,8 @@ export class MiningState extends State<IUnit> {
                     unit.isMoving = false;
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
-                    this._miningTimer = 1;
-                    
-                    const skeleton = skeletonManager.getSkeleton(unit.animation)!;
-                    const animator = utils.getComponent(Animator, skeleton.armature)!;
-                    console.assert(!this._transitionSkeleton);
-                    this._transitionSkeleton = skeletonPool.applyTransitionSkeleton({
-                        unit,
-                        srcAnim: unit.animation,
-                        srcAnimTime: animator.currentAction.time,
-                        destAnim: "pick"
-                    });
+                    this._miningTimer = 1;                    
+                    unitUtils.setAnimation(unit, "pick", 1);                    
                 }
             }
                 break;
@@ -103,16 +84,7 @@ export class MiningState extends State<IUnit> {
                         GameUtils.worldToMap(worldPos, targetBuilding);
                         if (flowField.compute(targetBuilding, sectorCoords, localCoords)) {
                             unitUtils.moveTo(unit, targetBuilding, false);
-
-                            const transitionDuration = .3;
-                            skeletonPool.transition(this._transitionSkeleton!, "pick", "run", transitionDuration);
-                            this._timeout = setTimeout(() => {
-                                this._transitionSkeleton!.isFree = true;
-                                this._transitionSkeleton = null;
-                                skeletonManager.applySkeleton("run", unit);
-                                this._timeout = null;
-                            }, transitionDuration * 1000);
-
+                            unitUtils.setAnimation(unit, "run", .3, true);
                         } else {
                             console.assert(false, "No path found");
                         }

@@ -6,10 +6,8 @@ import { unitUtils } from "./UnitUtils";
 import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
-import { skeletonManager } from "../animation/SkeletonManager";
-import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
-import { Animator } from "../../engine/components/Animator";
-import { utils } from "../../engine/Utils";
+import { skeletonPool } from "../animation/SkeletonPool";
+
 
 enum NpcStep {
     Idle,
@@ -24,20 +22,13 @@ export class NPCState extends State<IUnit> {
     private _target: IUnit | null = null;
     private _hitTimer = 1;
     private _unitsInRange = new Array<[IUnit, number]>();
-    private _transitionSkeleton: IUniqueSkeleton | null = null;
-    private _timeout: NodeJS.Timeout | null = null;
 
     override enter(_unit: IUnit) {
     }
 
-    override exit(_unit: IUnit) {
-        if (this._transitionSkeleton) {
-            this._transitionSkeleton!.isFree = true;
-            this._transitionSkeleton = null;            
-        }
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = null;
+    override exit(unit: IUnit) {
+        if (unit.skeleton) {
+            skeletonPool.releaseSkeleton(unit);
         }
     }
 
@@ -46,6 +37,7 @@ export class NPCState extends State<IUnit> {
         const flock = engineState.getComponents(Flock)[0];
         switch (this._step) {
             case NpcStep.Idle: {
+
                 const vision = flock.component.props.npcVision;
                 const units = flock.component.state!.units;
                 
@@ -70,8 +62,8 @@ export class NPCState extends State<IUnit> {
                         const target = unitsInRange[i][0];
                         if (target.attackers.length === 0 || i === unitsInRange.length - 1) {
                             this._target = target;
-                            target.attackers.push(unit);
-                            this.follow(unit, target);
+                            target.attackers.push(unit);                            
+                            this.follow(unit, target);                                                        
                             break;
                         }
                     }
@@ -90,20 +82,7 @@ export class NPCState extends State<IUnit> {
                             unit.isMoving = false;
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
-
-                            // skeletonManager.applySkeleton("attack", unit);
-                            console.assert(unit.animation === "run");
-                            const skeleton = skeletonManager.getSkeleton(unit.animation)!;
-                            const animator = utils.getComponent(Animator, skeleton.armature)!;
-                            console.assert(!this._transitionSkeleton);
-                            const transitionDuration = .3;
-                            this._transitionSkeleton = skeletonPool.applyTransitionSkeleton({
-                                unit,
-                                srcAnim: unit.animation,
-                                srcAnimTime: animator.currentAction.time,
-                                destAnim: "attack",
-                                duration: transitionDuration
-                            });                            
+                            unitUtils.setAnimation(unit, "attack", .3);
                         }
                     }
                 } else {
@@ -146,19 +125,15 @@ export class NPCState extends State<IUnit> {
             switch (this._step) {
                 case NpcStep.Attack: {
                     unitUtils.moveTo(unit, target.coords.mapCoords, false);
-                    const transitionDuration = .3;
-                    skeletonPool.transition(this._transitionSkeleton!, "attack", "run", transitionDuration);
-                    this._timeout = setTimeout(() => {
-                        this._transitionSkeleton!.isFree = true;
-                        this._transitionSkeleton = null;
-                        skeletonManager.applySkeleton("run", unit);
-                        this._timeout = null;
-                    }, transitionDuration * 1000);
+                    unitUtils.setAnimation(unit, "run", .3, true);
                 }
                     break;
 
                 default:
                     unitUtils.moveTo(unit, target.coords.mapCoords);
+                    if (unit.skeleton) {
+                        skeletonPool.releaseSkeleton(unit);
+                    }
                     break;
             }
         }
@@ -168,35 +143,7 @@ export class NPCState extends State<IUnit> {
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;
-        switch (this._step) {
-            case NpcStep.Idle: {
-                skeletonManager.applySkeleton("idle", unit);
-            }
-                break;
-
-            case NpcStep.Attack: {
-                const transitionDuration = 1;
-                console.assert(this._transitionSkeleton);
-                this._transitionSkeleton!.isFree = true;
-                const attack = engineState.animations.get("attack")!;
-                const srcAnimTime = this._transitionSkeleton?.mixer.existingAction(attack.clip)!.time!;
-                this._transitionSkeleton = skeletonPool.applyTransitionSkeleton({
-                    unit,
-                    srcAnim: "attack",
-                    srcAnimTime,
-                    destAnim: "idle",
-                    duration: transitionDuration
-                });
-                this._timeout = setTimeout(() => {
-                    this._transitionSkeleton!.isFree = true;
-                    this._transitionSkeleton = null;
-                    skeletonManager.applySkeleton("idle", unit);
-                    this._timeout = null;
-                }, transitionDuration * 1000);
-            }
-                break;
-        }
-        
+        unitUtils.setAnimation(unit, "idle", 1, true);
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
             target.attackers.splice(index, 1);
