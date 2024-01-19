@@ -59,16 +59,16 @@ class SkeletonManager {
         };
     }
 
-    public applySkeleton(animation: string, unit: IUnit) {
+    public applySkeleton(animation: string, target: SkinnedMesh) {
         const skeleton = this._skeletons.get(animation);
         if (!skeleton) {
-            return;
-        }        
-        const target = unit.obj;
+            return null;
+        }
         if (target.skeleton !== skeleton.skeleton) {            
             target.bind(skeleton.skeleton, identity);
         }
-        unit.animation = animation;
+        const animator = utils.getComponent(Animator, skeleton.armature)!;        
+        return animator.currentAction;
     }
 }
 

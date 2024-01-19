@@ -34,6 +34,7 @@ class SkeletonPool {
     public async load(skin: string) {
         this._skin = await objects.load(skin);
         this._root = utils.createObject(engine.scene!, "UniqueSkeletons");
+        this._root.visible = false;
     }
 
     public dispose() {
@@ -69,13 +70,8 @@ class SkeletonPool {
             const rootBone = _skeleton.bones[0];
             const armature = rootBone.parent!;
             const mixer = new AnimationMixer(armature);
-            mixer.clipAction(srcClip.clip);
-            
-            const destAction = mixer.clipAction(destClip.clip);
-            if (props.destAnimLoopMode) {
-                utils.setLoopMode(destAction, props.destAnimLoopMode, props.destAnimRepetitions ?? Infinity);
-            }
-
+            mixer.clipAction(srcClip.clip);            
+            mixer.clipAction(destClip.clip);
             skeleton = {
                 id,
                 isFree: true,
@@ -91,15 +87,23 @@ class SkeletonPool {
 
         const srcAction = skeleton.mixer.existingAction(srcClip.clip)!;
         const destAction = skeleton.mixer.existingAction(destClip.clip)!;
+        if (props.destAnimLoopMode) {
+            utils.setLoopMode(destAction, props.destAnimLoopMode, props.destAnimRepetitions ?? Infinity);
+            if (props.destAnimLoopMode === "Once") {
+                destAction.clampWhenFinished = true;
+            }
+        }
         srcAction.reset().play();
         srcAction.time = srcAnimTime;
         destAction.reset().play();
-        srcAction.crossFadeTo(destAction, duration ?? 1, true);
-        skeleton.isFree = false;
-        unit.animation = destAnim;
+        srcAction.crossFadeTo(destAction, duration ?? 1, false);
+        skeleton.isFree = false;        
         skeleton.mixer.update(time.deltaTime);
+
         unit.obj.bind(skeleton.skeleton, identity);
         unit.skeleton = skeleton;
+        unit.animation!.name = destAnim;
+        unit.animation!.action = destAction;
     }
 
     public transition(skeleton: IUniqueSkeleton, srcAnim: string, destAnim: string, duration?: number) {
@@ -108,7 +112,8 @@ class SkeletonPool {
         const srcAction = skeleton.mixer.existingAction(srcClip.clip)!;
         const destAction = skeleton.mixer.existingAction(destClip.clip)!;
         destAction.reset().play();
-        srcAction.crossFadeTo(destAction, duration ?? 1, true);
+        srcAction.crossFadeTo(destAction, duration ?? 1, false);
+        return destAction;      
     }
 
     public update() {

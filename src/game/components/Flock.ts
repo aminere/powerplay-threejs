@@ -384,12 +384,19 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const createUnit = (props: IUnitProps) => {
             const { obj } = props;
             obj.userData.unserializable = true;
-            owner.add(obj);
-            const unit = new Unit(props);
             obj.bindMode = "detached";
-            unitUtils.setAnimation(unit, unit.animation);
+            const unit = new Unit(props);
             units.push(unit);
+            owner.add(obj);
             return unit;
+        };
+
+        const initIdleAnim = (obj: SkinnedMesh) => {
+            const action = skeletonManager.applySkeleton("idle", obj)!;
+            return {
+                name: "idle",
+                action
+            }
         };
 
         const headOffset = new Vector3(0, 0, 1.8);
@@ -411,7 +418,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 id: i,
                 obj: mesh,
                 type: UnitType.Worker,
-                states: [new MiningState()]
+                states: [new MiningState()],
+                animation: initIdleAnim(mesh)
             });
             // const box3Helper = new Box3Helper(boundingBox);
             // mesh.add(box3Helper);
@@ -427,6 +435,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 obj: npcMesh,
                 type: UnitType.NPC,
                 states: [new NPCState()],
+                animation: initIdleAnim(npcMesh),
                 speed: .7
             });
             npc.fsm.switchState(NPCState);

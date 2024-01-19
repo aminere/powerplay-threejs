@@ -3,8 +3,8 @@ import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
-import { flowField } from "../pathfinding/Flowfield";
-import { pools } from "../../engine/Pools";
+// import { flowField } from "../pathfinding/Flowfield";
+// import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
 import { npcUtils } from "./NPCUtils";
 
@@ -14,11 +14,17 @@ enum NpcStep {
     Attack
 }
 
+enum AttackStep {
+    Draw,
+    Shoot
+}
+
 const vision = 10;
 
 export class ArcherNPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
+    private _attackStep = AttackStep.Draw;
     private _target: IUnit | null = null;
     private _hitTimer = 1;
 
@@ -32,50 +38,53 @@ export class ArcherNPCState extends State<IUnit> {
                     target.attackers.push(unit);
                     this._hitTimer = 1;
                     this._step = NpcStep.Attack;
-                    unitUtils.setAnimation(unit, "arrow-attack", { transitionDuration: .3 });
+                    unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: .3, destAnimLoopMode: "Once" });
                 }
             }
                 break;
 
-            case NpcStep.Follow: {
-                const target = this._target!;
-                if (target.isAlive) {
-                    if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
-                        this.follow(unit, target);
-                    } else {
-                        const dist = target.obj.position.distanceTo(unit.obj.position);
-                        if (dist < flock.component.props.separation + .2) {
-                            unit.isMoving = false;
-                            this._hitTimer = 1 - .2;
-                            this._step = NpcStep.Attack;
-                            unitUtils.setAnimation(unit, "attack", { transitionDuration: .3 });
-                        }
-                    }
-                } else {
-                    this.goToIdle(unit);
-                }
-            }
-                break;
+            // case NpcStep.Follow: {
+            //     const target = this._target!;
+            //     if (target.isAlive) {
+            //         if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
+            //             this.follow(unit, target);
+            //         } else {
+            //             const dist = target.obj.position.distanceTo(unit.obj.position);
+            //             if (dist < flock.component.props.separation + .2) {
+            //                 unit.isMoving = false;
+            //                 this._hitTimer = 1 - .2;
+            //                 this._step = NpcStep.Attack;
+            //                 unitUtils.setAnimation(unit, "attack", { transitionDuration: .3 });
+            //             }
+            //         }
+            //     } else {
+            //         this.goToIdle(unit);
+            //     }
+            // }
+            //     break;
 
             case NpcStep.Attack: {
                 const target = this._target!;
                 if (target.isAlive) {
                     const dist = target.obj.position.distanceTo(unit.obj.position);
-                    const inRange = dist < flock.component.props.separation + .4;
+                    const inRange = dist < vision + 1;
                     if (inRange) {
                         unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
-                        this._hitTimer -= time.deltaTime;
-                        if (this._hitTimer < 0) {
-                            // TODO hit feedback                     
-                            this._hitTimer = .5;
-                            target.health -= 0.5;
-                            if (!target.isAlive) {
-                                this.goToIdle(unit);
-                            }
-                        }
+
+                        console.log("todo hit");
+                        // this._hitTimer -= time.deltaTime;
+                        // if (this._hitTimer < 0) {
+                        //     // TODO hit feedback                     
+                        //     this._hitTimer = .5;
+                        //     target.health -= 0.5;
+                        //     if (!target.isAlive) {
+                        //         this.goToIdle(unit);
+                        //     }
+                        // }
 
                     } else {
-                        this.follow(unit, target);
+                        console.log("todo follow");
+                        // this.follow(unit, target);
                     }
                 } else {
                     this.goToIdle(unit);
@@ -85,27 +94,27 @@ export class ArcherNPCState extends State<IUnit> {
         }
     }
 
-    private follow(unit: IUnit, target: IUnit) {
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
-        if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
-            switch (this._step) {
-                case NpcStep.Attack: {
-                    unitUtils.moveTo(unit, target.coords.mapCoords, false);
-                    unitUtils.setAnimation(unit, "run", {
-                        transitionDuration: .3,
-                        scheduleCommonAnim: true
-                    });
-                }
-                    break;
+    // private follow(unit: IUnit, target: IUnit) {
+    //     const [sectorCoords, localCoords] = pools.vec2.get(2);
+    //     if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
+    //         switch (this._step) {
+    //             case NpcStep.Attack: {
+    //                 unitUtils.moveTo(unit, target.coords.mapCoords, false);
+    //                 unitUtils.setAnimation(unit, "run", {
+    //                     transitionDuration: .3,
+    //                     scheduleCommonAnim: true
+    //                 });
+    //             }
+    //                 break;
 
-                default:
-                    unitUtils.moveTo(unit, target.coords.mapCoords);
-                    break;
-            }
-        }
+    //             default:
+    //                 unitUtils.moveTo(unit, target.coords.mapCoords);
+    //                 break;
+    //         }
+    //     }
 
-        this._step = NpcStep.Follow;
-    }
+    //     this._step = NpcStep.Follow;
+    // }
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;

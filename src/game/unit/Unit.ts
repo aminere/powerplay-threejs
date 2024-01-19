@@ -2,7 +2,7 @@ import { Quaternion, SkinnedMesh, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { ICellAddr, unitUtils } from "./UnitUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, UnitType } from "./IUnit";
+import { IUnit, IUnitAnim, UnitType } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
@@ -15,6 +15,7 @@ export interface IUnitProps {
     id: number;
     speed?: number;
     states: State<IUnit>[];
+    animation: IUnitAnim;
 }
 
 export class Unit implements IUnit {
@@ -61,7 +62,7 @@ export class Unit implements IUnit {
             unitUtils.setAnimation(this, "death", { 
                 transitionDuration: 1,
                 destAnimLoopMode: "Once"
-            });            
+            });
             setTimeout(() => {
                 const fadeDuration = 1;
                 engineState.setComponent(this._obj, new Fadeout({ duration: fadeDuration }));
@@ -71,7 +72,6 @@ export class Unit implements IUnit {
             }, 2000);
         }
     }
-    public set animation(animation: string) { this._animation = animation; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
 
     private _desiredPosValid = false;
@@ -97,7 +97,7 @@ export class Unit implements IUnit {
     private _type = UnitType.Worker;
     private _health = 1;
     private _attackers: IUnit[] = [];
-    private _animation = "idle";
+    private _animation: IUnitAnim;
     private _skeleton: IUniqueSkeleton | null = null;
     private _unitsInRange: Array<[IUnit, number]> = [];
 
@@ -115,6 +115,7 @@ export class Unit implements IUnit {
         this._id = props.id;
         this._fsm = new UnitFSM({ states: props.states, owner: this });
         this._speed = props.speed ?? 1;
+        this._animation = props.animation;
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);
