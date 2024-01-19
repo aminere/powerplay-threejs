@@ -351,7 +351,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
                                     unit.isMoving = false;
-                                    skeletonManager.applySkeleton("idle", unit);
+                                    unitUtils.setAnimation(unit, "idle");
                                 }
                             }
                         }
@@ -386,8 +386,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
             obj.userData.unserializable = true;
             owner.add(obj);
             const unit = new Unit(props);
-            obj.bindMode = "detached";            
-            skeletonManager.applySkeleton(unit.animation, unit);
+            obj.bindMode = "detached";
+            unitUtils.setAnimation(unit, unit.animation);
             units.push(unit);
             return unit;
         };

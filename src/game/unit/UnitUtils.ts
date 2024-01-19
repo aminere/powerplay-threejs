@@ -130,10 +130,7 @@ class UnitUtils {
         this.computeCellAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
         if (bindSkeleton) {
-            if (unit.skeleton) {
-                skeletonPool.releaseSkeleton(unit);
-            }
-            skeletonManager.applySkeleton("run", unit);
+            this.setAnimation(unit, "run");
         }
     }    
 
@@ -149,7 +146,7 @@ class UnitUtils {
         }
     }
 
-    public setAnimation(unit: IUnit, animation: string, props: {
+    public setAnimation(unit: IUnit, animation: string, props?: {
         transitionDuration?: number;
         scheduleCommonAnim?: boolean;
         destAnimLoopMode?: LoopMode;
@@ -158,7 +155,7 @@ class UnitUtils {
             return;
         }
         
-        if (props.transitionDuration !== undefined) {
+        if (props?.transitionDuration !== undefined) {
             const srcAnimTime = getCurrentAnimTime(unit);
             if (unit.skeleton) {
 

@@ -4,7 +4,7 @@ import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
 import { engineState } from "../../engine/EngineState";
 import { IUnit } from "../unit/IUnit";
-import { skeletonManager } from "../animation/SkeletonManager";
+import { unitUtils } from "../unit/UnitUtils";
 
 export class UnitCollisionAnimProps extends ComponentProps {
     duration = .25;
@@ -27,7 +27,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
 
     override start(_owner: Object3D) {
         if (this.props.unit.isIdle) {
-            skeletonManager.applySkeleton("walk", this.props.unit);
+            unitUtils.setAnimation(this.props.unit, "walk");
         }
         this.setState({ timer: this.props.duration });
     }
@@ -35,8 +35,8 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
     override update(owner: Object3D) {
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
-            if (this.props.unit.isIdle) {                
-                skeletonManager.applySkeleton("idle", this.props.unit);
+            if (this.props.unit.isIdle) {     
+                unitUtils.setAnimation(this.props.unit, "idle");
             }
             engineState.removeComponent(owner, UnitCollisionAnim);
         }
