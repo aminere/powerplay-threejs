@@ -29,16 +29,42 @@ export interface ICellPtr {
     cellIndex: number;
 }
 
-function getCurrentAnimationTime(unit: IUnit) {
+function getCurrentAnimTime(unit: IUnit) {
     if (unit.skeleton) {
         const clipInfo = engineState.animations.get(unit.animation)!;
         return unit.skeleton.mixer.existingAction(clipInfo.clip)!.time!;
     } else {
         const skeleton = skeletonManager.getSkeleton(unit.animation)!;
+        if (!skeleton) {
+            debugger;
+        }
         const animator = utils.getComponent(Animator, skeleton.armature)!;
         return animator.currentAction.time;
     }
 }
+
+function scheduleCommonAnim(unit: IUnit, animation: string, delaySecs: number) {
+    if (unit.skeleton!.timeout) {
+        clearTimeout(unit.skeleton!.timeout);
+    }
+    unit.skeleton!.timeout = setTimeout(() => {
+        unit.skeleton!.isFree = true;
+        unit.skeleton!.timeout = null;
+        unit.skeleton = null;
+        skeletonManager.applySkeleton(animation, unit);
+    }, delaySecs * 1000);
+};
+
+function applySkeleton(unit: IUnit, animation: string, srcAnimTime: number, transitionDuration: number, destAnimLoopMode: LoopMode) {
+    skeletonPool.applyTransitionSkeleton({
+        unit,
+        srcAnim: unit.animation,
+        srcAnimTime,
+        destAnim: animation,
+        duration: transitionDuration,
+        destAnimLoopMode: destAnimLoopMode
+    });
+};
 
 const { mapRes } = config.game;
 const cellDirection3 = new Vector3();
@@ -125,54 +151,38 @@ class UnitUtils {
 
     public setAnimation(unit: IUnit, animation: string, props: {
         transitionDuration?: number;
-        settleOnCommonSkeleton?: boolean;
+        scheduleCommonAnim?: boolean;
         destAnimLoopMode?: LoopMode;
     }) {
         if (animation === unit.animation) {
             return;
         }
-
-        const checkIfCommonSkeletonIsNeeded = () => {
-            if (props.settleOnCommonSkeleton) {
-                console.assert(!unit.skeleton!.timeout);
-                unit.skeleton!.timeout = setTimeout(() => {
-                    unit.skeleton!.isFree = true;
-                    unit.skeleton!.timeout = null;
-                    unit.skeleton = null;
-                    skeletonManager.applySkeleton(animation, unit);
-                }, props.transitionDuration! * 1000);
-            }
-        };
-
-        const applySkeleton = (srcAnimTime: number) => {
-            unit.skeleton = skeletonPool.applyTransitionSkeleton({
-                unit,
-                srcAnim: unit.animation,
-                srcAnimTime,
-                destAnim: animation,
-                duration: props.transitionDuration,
-                destAnimLoopMode: props.destAnimLoopMode
-            });
-            checkIfCommonSkeletonIsNeeded();
-        };        
         
         if (props.transitionDuration !== undefined) {
-            const srcAnimTime = getCurrentAnimationTime(unit);
+            const srcAnimTime = getCurrentAnimTime(unit);
             if (unit.skeleton) {
 
                 const skeletonId = getSkeletonId(unit.animation, animation);
                 if (skeletonId === unit.skeleton.id) {
                     skeletonPool.transition(unit.skeleton, unit.animation, animation, props.transitionDuration);
                     unit.animation = animation;
-                    checkIfCommonSkeletonIsNeeded();
+                    if (props.scheduleCommonAnim) {
+                        scheduleCommonAnim(unit, animation, props.transitionDuration + .2);
+                    }
                 } else {
                     skeletonPool.releaseSkeleton(unit);
-                    applySkeleton(srcAnimTime);
+                    applySkeleton(unit, animation, srcAnimTime, props.transitionDuration, props.destAnimLoopMode ?? "Repeat");
+                    if (props.scheduleCommonAnim) {
+                        scheduleCommonAnim(unit, animation, props.transitionDuration + .2);
+                    }
                 }
 
             } else {
-                applySkeleton(srcAnimTime);
-            }            
+                applySkeleton(unit, animation, srcAnimTime, props.transitionDuration, props.destAnimLoopMode ?? "Repeat");
+                if (props.scheduleCommonAnim) {
+                    scheduleCommonAnim(unit, animation, props.transitionDuration + .2);
+                }
+            }
 
         } else {
 

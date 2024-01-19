@@ -1,4 +1,4 @@
-import { AnimationAction, AnimationMixer, LoopOnce, LoopPingPong, LoopRepeat, Object3D } from "three";
+import { AnimationAction, AnimationMixer, Object3D } from "three";
 import { Component } from "../Component";
 import { ComponentProps } from "../ComponentProps";
 import { time } from "../Time";

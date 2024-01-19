@@ -15,7 +15,7 @@ export const config = {
     game: {
         cellSize: 1,
         mapRes: 32,
-        elevationStep: .2,        
+        elevationStep: .2,
     },
     train: {
         maxSpeed: 40,

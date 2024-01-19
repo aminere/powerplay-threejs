@@ -6,7 +6,6 @@ import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
-import { skeletonPool } from "../animation/SkeletonPool";
 
 enum MiningStep {
     GoToResource,
@@ -27,12 +26,6 @@ export class MiningState extends State<IUnit> {
         this._step = MiningStep.GoToResource;
         this._targetResource = unitUtils.makeCellPtr(unit.targetCell);
         this._potentialTarget.set(-1, -1);
-    }
-
-    override exit(unit: IUnit) {
-        if (unit.skeleton) {
-            skeletonPool.releaseSkeleton(unit);
-        }
     }
 
     override update(unit: IUnit): void {
@@ -86,7 +79,7 @@ export class MiningState extends State<IUnit> {
                             unitUtils.moveTo(unit, targetBuilding, false);
                             unitUtils.setAnimation(unit, "run", {
                                 transitionDuration: .3,
-                                settleOnCommonSkeleton: true
+                                scheduleCommonAnim: true
                             });
                         } else {
                             console.assert(false, "No path found");

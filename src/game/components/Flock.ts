@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Object3D, Object3DEventMap, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { input } from "../../engine/Input";
@@ -38,7 +38,6 @@ export class FlockProps extends ComponentProps {
     repulsion = .2;
     positionDamp = .2;
     rotationDamp = .2;
-    npcVision = 5;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -372,11 +371,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
             animations: [
                 { name: "idle" },
                 { name: "walk" }, 
-                { name: "pick" }, 
+                // { name: "pick" },
                 { name: "run" }, 
-                { name: "attack" }, 
-                { name: "hurt" }, 
-                { name: "death", isLooping: false }
+                { name: "hurt" }
             ],
         });
 

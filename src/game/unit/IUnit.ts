@@ -29,5 +29,6 @@ export interface IUnit {
     attackers: IUnit[];
     animation: string;
     skeleton: IUniqueSkeleton | null;
+    unitsInRange: Array<[IUnit, number]>;
 }
 

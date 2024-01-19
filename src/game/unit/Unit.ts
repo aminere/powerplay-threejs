@@ -7,7 +7,6 @@ import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
-import { skeletonManager } from "../animation/SkeletonManager";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 
 export interface IUnitProps {
@@ -35,6 +34,7 @@ export class Unit implements IUnit {
     public get attackers() { return this._attackers; }
     public get animation() { return this._animation; }
     public get skeleton() { return this._skeleton; }
+    public get unitsInRange() { return this._unitsInRange; }
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -99,6 +99,7 @@ export class Unit implements IUnit {
     private _attackers: IUnit[] = [];
     private _animation = "idle";
     private _skeleton: IUniqueSkeleton | null = null;
+    private _unitsInRange: Array<[IUnit, number]> = [];
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

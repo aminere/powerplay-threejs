@@ -99,7 +99,7 @@ class SkeletonPool {
         unit.animation = destAnim;
         skeleton.mixer.update(time.deltaTime);
         unit.obj.bind(skeleton.skeleton, identity);
-        return skeleton;
+        unit.skeleton = skeleton;
     }
 
     public transition(skeleton: IUniqueSkeleton, srcAnim: string, destAnim: string, duration?: number) {

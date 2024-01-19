@@ -14,9 +14,9 @@ enum NpcStep {
     Attack
 }
 
-const vision = 5;
+const vision = 10;
 
-export class NPCState extends State<IUnit> {
+export class ArcherNPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
     private _target: IUnit | null = null;
@@ -30,7 +30,9 @@ export class NPCState extends State<IUnit> {
                 const target = npcUtils.findTarget(unit, vision);
                 if (target) {
                     target.attackers.push(unit);
-                    this.follow(unit, target);
+                    this._hitTimer = 1;
+                    this._step = NpcStep.Attack;
+                    unitUtils.setAnimation(unit, "arrow-attack", { transitionDuration: .3 });
                 }
             }
                 break;
@@ -97,12 +99,12 @@ export class NPCState extends State<IUnit> {
                     break;
 
                 default:
-                    unitUtils.moveTo(unit, target.coords.mapCoords);                    
+                    unitUtils.moveTo(unit, target.coords.mapCoords);
                     break;
             }
-            this._step = NpcStep.Follow;
-            this._target = target;
         }
+
+        this._step = NpcStep.Follow;
     }
 
     private goToIdle(unit: IUnit) {
