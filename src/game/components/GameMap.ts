@@ -99,7 +99,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const flocks = engineState.getComponents(Flock);
         for (const flock of flocks) {
             const { owner, component } = flock;
-            component.load(owner);
+            if (component.props.active) {
+                component.load(owner);
+            }
         }
     }
 

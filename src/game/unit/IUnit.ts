@@ -32,7 +32,7 @@ export interface IUnit {
     rotation: Quaternion;
     health: number;
     attackers: IUnit[];
-    animation: IUnitAnim | null;
+    animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
     unitsInRange: Array<[IUnit, number]>;
 }

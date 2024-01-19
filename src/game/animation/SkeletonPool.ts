@@ -1,4 +1,4 @@
-import { AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
+import { AnimationAction, AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { IUnit } from "../unit/IUnit";
@@ -42,25 +42,22 @@ class SkeletonPool {
     }
 
     public applyTransitionSkeleton(props: {
-        srcAnim: string;
-        srcAnimTime: number;
-        destAnim: string;
         unit: IUnit;
+        destAnim: string;
         duration?: number;
         destAnimLoopMode?: LoopMode;
-        destAnimRepetitions?: number;
     }) {
-        const { srcAnim, srcAnimTime, destAnim, unit, duration } = props;
-        const id = getSkeletonId(srcAnim, destAnim);
+        const { destAnim, unit, duration } = props;
+        const id = getSkeletonId(unit.animation.name, destAnim);
 
-        let skeletons = this._skeletons.get(id);        
+        let skeletons = this._skeletons.get(id);
         if (!skeletons) {
             skeletons = [];
             this._skeletons.set(id, skeletons);
         }
 
-        const srcClip = engineState.animations.get(srcAnim)!;
-        const destClip = engineState.animations.get(destAnim)!;
+        const srcClip = unit.animation.action.getClip();
+        const destClip = engineState.animations.get(destAnim)!.clip;
         let skeleton = skeletons.find(skeleton => skeleton.isFree);
         if (!skeleton) {
             console.log(`Creating new skeleton for ${id}`);
@@ -69,9 +66,9 @@ class SkeletonPool {
             const _skeleton = skinnedMesh.skeleton;
             const rootBone = _skeleton.bones[0];
             const armature = rootBone.parent!;
-            const mixer = new AnimationMixer(armature);
-            mixer.clipAction(srcClip.clip);            
-            mixer.clipAction(destClip.clip);
+            const mixer = new AnimationMixer(armature);            
+            mixer.clipAction(srcClip);
+            mixer.clipAction(destClip);
             skeleton = {
                 id,
                 isFree: true,
@@ -83,19 +80,20 @@ class SkeletonPool {
             skeletons.push(skeleton);
             armature.name = `${armature.name}-${id}`;
             this._root.add(armature);
-        }
+        }        
 
-        const srcAction = skeleton.mixer.existingAction(srcClip.clip)!;
-        const destAction = skeleton.mixer.existingAction(destClip.clip)!;
-        if (props.destAnimLoopMode) {
-            utils.setLoopMode(destAction, props.destAnimLoopMode, props.destAnimRepetitions ?? Infinity);
-            if (props.destAnimLoopMode === "Once") {
-                destAction.clampWhenFinished = true;
-            }
-        }
+        const srcAction = skeleton.mixer.existingAction(srcClip)!;
         srcAction.reset().play();
-        srcAction.time = srcAnimTime;
+        srcAction.time = unit.animation.action.time;
+        srcAction.loop = unit.animation.action.loop;
+        srcAction.clampWhenFinished = unit.animation.action.clampWhenFinished;
+
+        const destAction = skeleton.mixer.existingAction(destClip)!;
         destAction.reset().play();
+        if (props.destAnimLoopMode) {
+            utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
+        }
+        
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
         skeleton.isFree = false;        
         skeleton.mixer.update(time.deltaTime);
@@ -106,14 +104,23 @@ class SkeletonPool {
         unit.animation!.action = destAction;
     }
 
-    public transition(skeleton: IUniqueSkeleton, srcAnim: string, destAnim: string, duration?: number) {
-        const srcClip = engineState.animations.get(srcAnim)!;
-        const destClip = engineState.animations.get(destAnim)!;
-        const srcAction = skeleton.mixer.existingAction(srcClip.clip)!;
-        const destAction = skeleton.mixer.existingAction(destClip.clip)!;
+    public transition(props: {
+        unit: IUnit;
+        destAnim: string;
+        duration?: number;
+        destAnimLoopMode?: LoopMode;
+    }) {
+        const { destAnim, unit, duration } = props;
+        const srcAction = unit.animation.action;
+        const destClip = engineState.animations.get(destAnim)!.clip;
+        const destAction = unit.skeleton!.mixer.existingAction(destClip)!;
+        if (props.destAnimLoopMode) {
+            utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
+        }
         destAction.reset().play();
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
-        return destAction;      
+        unit.animation!.name = destAnim;
+        unit.animation!.action = destAction;
     }
 
     public update() {

@@ -19,7 +19,7 @@ enum AttackStep {
     Shoot
 }
 
-const vision = 10;
+const vision = 5;
 
 export class ArcherNPCState extends State<IUnit> {
 
@@ -37,8 +37,10 @@ export class ArcherNPCState extends State<IUnit> {
                 if (target) {
                     target.attackers.push(unit);
                     this._hitTimer = 1;
-                    this._step = NpcStep.Attack;
-                    unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: .3, destAnimLoopMode: "Once" });
+                    this._target = target;
+                    this._attackStep = AttackStep.Draw;
+                    this._step = NpcStep.Attack;                    
+                    unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });
                 }
             }
                 break;
@@ -71,7 +73,30 @@ export class ArcherNPCState extends State<IUnit> {
                     if (inRange) {
                         unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
 
-                        console.log("todo hit");
+                        switch (this._attackStep) {
+                            case AttackStep.Draw: {
+                                if (!unit.animation.action.isRunning()) {                                    
+                                    this._attackStep = AttackStep.Shoot;
+                                    unitUtils.setAnimation(unit, "arrow-shoot", { 
+                                        transitionDuration: .1,
+                                        destAnimLoopMode: "Once" 
+                                    });
+                                }
+                            }
+                            break;
+
+                            case AttackStep.Shoot: {
+                                if (!unit.animation.action.isRunning()) {    
+                                    this._attackStep = AttackStep.Draw;
+                                    unitUtils.setAnimation(unit, "arrow-draw", {
+                                        transitionDuration: .1, 
+                                        destAnimLoopMode: "Once" 
+                                    });
+                                }
+                            }
+                            break;
+                        }
+
                         // this._hitTimer -= time.deltaTime;
                         // if (this._hitTimer < 0) {
                         //     // TODO hit feedback                     

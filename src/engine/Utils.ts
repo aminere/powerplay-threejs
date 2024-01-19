@@ -81,14 +81,23 @@ class Utils {
         return array;
     }
 
-    public setLoopMode(action: AnimationAction, loopMode: LoopMode, repetitions: number) {
+    public setLoopMode(_action: AnimationAction, loopMode: LoopMode, repetitions: number) {
         switch (loopMode) {
             case "Once": {
-                action.setLoop(LoopOnce, 1);
-                action.clampWhenFinished = true;
+                _action.setLoop(LoopOnce, 1);
+                _action.clampWhenFinished = true;
+
+                const onFinished = ({ action }: { action: AnimationAction }) => {
+                    if (_action === action) {                        
+                        action.paused = true;
+                        _action.getMixer().removeEventListener("finished", onFinished);
+                        console.log(`action ${action.getClip().name} finished, isRunning() = ${action.isRunning()}`);
+                    }
+                }
+                _action.getMixer().addEventListener("finished", onFinished);
             } break;
-            case "Repeat": action.setLoop(LoopRepeat, repetitions); break;
-            case "PingPong": action.setLoop(LoopPingPong, repetitions); break;
+            case "Repeat": _action.setLoop(LoopRepeat, repetitions); break;
+            case "PingPong": _action.setLoop(LoopPingPong, repetitions); break;
         }
     }
 }

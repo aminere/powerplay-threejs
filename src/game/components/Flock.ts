@@ -26,6 +26,7 @@ import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
+import { ArcherNPCState } from "../unit/ArcherNPCState";
 
 export class FlockProps extends ComponentProps {
 
@@ -434,7 +435,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 id: units.length,
                 obj: npcMesh,
                 type: UnitType.NPC,
-                states: [new NPCState()],
+                states: [new NPCState(), new ArcherNPCState()],
                 animation: initIdleAnim(npcMesh),
                 speed: .7
             });
@@ -443,7 +444,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         for (let i = 0; i < this.props.npcCount; ++i) {
             createNpc(new Vector3(
-                Math.random() * radius * 2 - radius,
+                10 + Math.random() * radius * 2 - radius,
                 0,
                 Math.random() * radius * 2 - radius,
             ));
