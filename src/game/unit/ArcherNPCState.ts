@@ -2,11 +2,12 @@ import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
 import { npcUtils } from "./NPCUtils";
-import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from "three";
+import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
 import gsap from "gsap";
 import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
+import { time } from "../../engine/Time";
 
 enum NpcStep {
     Idle,
@@ -24,24 +25,31 @@ const vision = 5;
 interface IArrow {
     obj: Object3D;    
     tween: gsap.core.Tween | null;
+    progress: number;
+    startPos: Vector3;
 }
 
+const targetPos = new Vector3();
 export class ArcherNPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
     private _attackStep = AttackStep.Draw;
     private _target: IUnit | null = null;
-
+    private _idleTimer = -1;
     private _arrows = new Array<IArrow>();
 
     override update(unit: IUnit): void {
 
         switch (this._step) {
             case NpcStep.Idle: {
+                this._idleTimer -= time.deltaTime;
+                if (this._idleTimer > 0) {                    
+                    break;
+                }
                 const target = npcUtils.findTarget(unit, vision);
                 if (target) {
                     target.attackers.push(unit);
-                    this._target = target;
+                    this._target = target;                    
                     this.attack(unit);
                 }
             }
@@ -81,24 +89,28 @@ export class ArcherNPCState extends State<IUnit> {
                                     let arrow = this._arrows.find(a => a.tween === null);
                                     if (!arrow) {
                                         const arrowMesh = new Mesh(new SphereGeometry(.05), new MeshBasicMaterial({ color: 0x000000 }));
-                                        arrow = { obj: arrowMesh, tween: null };
+                                        arrow = { obj: arrowMesh, tween: null, progress: 0, startPos: new Vector3() };
                                         this._arrows.push(arrow);                                        
                                     }
                                     
                                     const hand = unit.skeleton?.skeleton.getBoneByName("HandL")!;
                                     hand?.getWorldPosition(arrow.obj.position);
-                                    arrow.obj.position.applyMatrix4(unit.obj.matrixWorld);
-                                    engine.scene!.add(arrow.obj);                                    
-                                    arrow.tween = gsap.to(arrow.obj.position, {
-                                        x: target.obj.position.x,
-                                        y: target.obj.position.y + 1,
-                                        z: target.obj.position.z,
-                                        duration: .5,
+                                    arrow.obj.position.applyMatrix4(unit.obj.matrixWorld);                                    
+                                    engine.scene!.add(arrow.obj);
+                                    arrow.progress = 0;
+                                    arrow.startPos.copy(arrow.obj.position);
+                                    arrow.tween = gsap.to(arrow, {
+                                        progress: 1,
+                                        duration: arrow.startPos.distanceTo(target.obj.position) / 8,
+                                        onUpdate: () => {
+                                            targetPos.copy(target.obj.position).setY(target.obj.position.y + 1.4);
+                                            arrow!.obj.position.lerpVectors(arrow!.startPos, targetPos, arrow!.progress);
+                                        },
                                         onComplete: () => {
                                             arrow!.tween = null;
                                             arrow!.obj.removeFromParent();
                                             target.health -= 0.5;
-                                            if (this._target && this._target.isAlive) {
+                                            if (this._target && !this._target.isAlive) {
                                                 this.goToIdle(unit);
                                             }
                                         }
@@ -159,8 +171,9 @@ export class ArcherNPCState extends State<IUnit> {
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;
+        const transitionDuration = .3;
         unitUtils.setAnimation(unit, "idle", {
-            transitionDuration: 1,
+            transitionDuration,
             scheduleCommonAnim: true
         });
         const index = target.attackers.indexOf(unit);
@@ -170,6 +183,7 @@ export class ArcherNPCState extends State<IUnit> {
         this._target = null;
         unit.isMoving = false;
         this._step = NpcStep.Idle;
+        this._idleTimer = transitionDuration; 
     }
 
     private attack(unit: IUnit) {

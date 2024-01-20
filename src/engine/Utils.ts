@@ -87,14 +87,14 @@ class Utils {
                 _action.setLoop(LoopOnce, 1);
                 _action.clampWhenFinished = true;
 
+                const mixer = _action.getMixer();
                 const onFinished = ({ action }: { action: AnimationAction }) => {
-                    if (_action === action) {                        
+                    if (_action === action) {
                         action.paused = true;
-                        _action.getMixer().removeEventListener("finished", onFinished);
-                        console.log(`action ${action.getClip().name} finished, isRunning() = ${action.isRunning()}`);
+                        mixer.removeEventListener("finished", onFinished);
                     }
                 }
-                _action.getMixer().addEventListener("finished", onFinished);
+                mixer.addEventListener("finished", onFinished);
             } break;
             case "Repeat": _action.setLoop(LoopRepeat, repetitions); break;
             case "PingPong": _action.setLoop(LoopPingPong, repetitions); break;
