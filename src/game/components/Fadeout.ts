@@ -1,12 +1,11 @@
 
 import { Mesh, Object3D } from "three";
-import { Component, IComponentState } from "../../engine/Component";
+import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import gsap from "gsap";
 
 export class FadeoutProps extends ComponentProps {    
     duration = 1;
-    delay = 0;
 
     constructor(props?: Partial<FadeoutProps>) {
         super();
@@ -14,12 +13,18 @@ export class FadeoutProps extends ComponentProps {
     }
 }
 
-interface IFadeoutState extends IComponentState {    
-}
+export class Fadeout extends Component<FadeoutProps> {
 
-export class Fadeout extends Component<FadeoutProps, IFadeoutState> {
+    private _tween: gsap.core.Tween | null = null;
+
     constructor(props?: Partial<FadeoutProps>) {
         super(new FadeoutProps(props));
+    }
+    
+    override dispose(_owner: Object3D) {        
+        if (this._tween) {
+            this._tween.kill();
+        }
     }
 
     override start(owner: Object3D) {
@@ -30,19 +35,16 @@ export class Fadeout extends Component<FadeoutProps, IFadeoutState> {
             } else {
                 const material = mesh.material.clone();
                 material.transparent = true;
-                mesh.material = material;
-                const { duration, delay } = this.props;
-
-                const fadeOut = () => {
-                    mesh.castShadow = false;
-                    gsap.to(material, { duration, opacity: 0 });
-                };
-
-                if (delay > 0) {
-                    setTimeout(fadeOut, delay * 1000);                
-                } else {
-                    fadeOut();
-                }
+                mesh.material = material;                
+                mesh.castShadow = false;
+                this._tween = gsap.to(material, {
+                    duration: this.props.duration,
+                    opacity: 0,
+                    onComplete: () => {
+                        mesh.visible = false;
+                        this._tween = null;
+                    }
+                });
             }
         } else {
             console.warn("Fadeout component can only be applied to Mesh objects");

@@ -9,6 +9,7 @@ import { gameMapState } from "./GameMapState";
 import { Pathfinding } from "../pathfinding/Pathfinding";
 import { time } from "../../engine/Time";
 import { ComponentProps } from "../../engine/ComponentProps";
+import { engine } from "../../engine/Engine";
 
 enum MotionState {
     None,
@@ -364,7 +365,7 @@ export class Car extends Component<CarProps> {
                 const lineMaterial = new LineBasicMaterial({ color: 0x0000ff });
                 const lineGeometry = new BufferGeometry();
                 const lines = new Line(lineGeometry, lineMaterial);
-                gameMapState.owner.add(lines);
+                engine.scene!.add(lines);
                 this._lines = lines;
             }
             this._lines.geometry.setFromPoints(this._motion.flatMap((m, i) => {
@@ -386,7 +387,7 @@ export class Car extends Component<CarProps> {
             this._pathIndicators = path.map(p => {
                 const mesh = new Mesh(new SphereGeometry(.05), new MeshBasicMaterial({ color: 0x0000ff }));
                 GameUtils.mapToWorld(p, mesh.position);
-                gameMapState.owner.add(mesh);
+                engine.scene!.add(mesh);
                 return mesh;
             });
         }

@@ -10,7 +10,6 @@ export interface IGameMapState {
     initialDragAxis?: "x" | "z";
     previousRoad: Vector2[];
     previousRail: ICell[];
-    owner: Object3D;
     cameraZoom: number;
     cameraAngleRad: number;
     cameraTween: gsap.core.Tween | null;
@@ -39,7 +38,6 @@ export class GameMapState {
     public set instance(value: IGameMapState | null) { this._instance = value; }
     public get instance() { return this._instance!; }
     public get sectors() { return this._instance!.sectors; }
-    public get owner() { return this._instance!.owner; }
     public get action() { return this._instance!.action; }
     public get initialDragAxis() { return this._instance!.initialDragAxis; }
     public get layers() { return this._instance!.layers; }

@@ -5,7 +5,6 @@ import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
-import { IUnit } from "../unit/IUnit";
 
 const identity = new Matrix4();
 class SkeletonManager {

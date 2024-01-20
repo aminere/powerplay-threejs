@@ -1,4 +1,4 @@
-import { AnimationAction, AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
+import { AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { objects } from "../../engine/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { IUnit } from "../unit/IUnit";

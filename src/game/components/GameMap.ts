@@ -26,7 +26,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         super(new GameMapProps(props));
     }
 
-    override start(owner: Object3D) {
+    override start() {
 
         const rails = new Object3D();
         rails.name = "rails";
@@ -34,16 +34,17 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         trains.name = "trains";
         const cars = new Object3D();
         cars.name = "cars";
-        owner.add(rails);
-        owner.add(trains);
-        owner.add(cars);
+
+        const root = engine.scene!;
+        root.add(rails);
+        root.add(trains);
+        root.add(cars);
 
         this.setState({
             sectors: new Map<string, any>(),
             action: null,
             previousRoad: [],
             previousRail: [],
-            owner,
             cameraZoom: 1,
             cameraAngleRad: 0,
             cameraTween: null,
@@ -85,7 +86,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         this.state.tileSelector = new TileSector();
         this.state.tileSelector.visible = false;
-        owner.parent!.add(this.state.tileSelector);
+        root.add(this.state.tileSelector);
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -308,7 +309,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     }    
 
     public createSector(coords: Vector2) {
-        const sectorRoot = Sector.create(coords, this.state.owner);
+        const sectorRoot = Sector.create(coords);
 
         // update bounds
         const { mapRes, cellSize } = config.game;

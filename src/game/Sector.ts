@@ -3,9 +3,10 @@ import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
+import { engine } from "../engine/Engine";
 
 export class Sector {
-    public static create(coords: Vector2, visualRoot: THREE.Object3D) {
+    public static create(coords: Vector2) {
         const { x, y } = coords;
         const { mapRes, cellSize } = config.game;
 
@@ -55,7 +56,7 @@ export class Sector {
         sectorRoot.add(terrain);
         sectorRoot.add(buildings);
         sectorRoot.add(resources);
-        visualRoot.add(sectorRoot);
+        engine.scene!.add(sectorRoot);
         return sectorRoot;       
     }
 
