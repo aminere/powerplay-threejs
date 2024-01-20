@@ -439,7 +439,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 animation: initIdleAnim(npcMesh),
                 speed: .7
             });
-            npc.fsm.switchState(NPCState);
+            npc.fsm.switchState(ArcherNPCState);
         }
 
         for (let i = 0; i < this.props.npcCount; ++i) {

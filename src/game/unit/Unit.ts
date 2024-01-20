@@ -52,7 +52,7 @@ export class Unit implements IUnit {
     public set collidable(value: boolean) { this._collidable = value; }
     public set health(value: number) { 
         this._health = value; 
-        if (value <= 0) {
+        if (value <= 0 && this._isAlive) {
             this._fsm.switchState(null);
             engineState.removeComponent(this._obj, UnitCollisionAnim);
             this._isAlive = false;            
