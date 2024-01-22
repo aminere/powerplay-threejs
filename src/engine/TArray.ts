@@ -1,4 +1,4 @@
-import { Color, Vector2 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 
 export class TArray<T> {
     public get length() { return this._data.length; }
@@ -7,10 +7,10 @@ export class TArray<T> {
     public get data() { return this._data; }    
 
     private _data: T[] = [];
-    private get createItem() { return (this as any)["_createItem"] as (value?: T) => T; }    
+    private get createItem() { return (this as any)["_createItem"] as () => T; }    
     private get copyInternal() { return (this as any)["_copy"] as (data: T[]) => void; }
 
-    constructor(ctor: new(value?: T) => T) {
+    constructor(ctor: new() => T) {
         Object.defineProperty(this, '_createItem', { 
             enumerable: false, 
             value: (value?: T) => {
@@ -19,19 +19,24 @@ export class TArray<T> {
                 } else if (ctor.name === "String") {
                     return value ?? "";
                 }
-                return new ctor(value);
+                return new ctor();
             }
         });
-        Object.defineProperty(this, '_copy', { 
-            enumerable: false, 
+
+        Object.defineProperty(this, '_copy', {
+            enumerable: false,
             value: (data: T[]) => {
                 if (ctor.name.endsWith("Vector2")) {
                     this._data = data.map(v => {
                         return new Vector2().copy(v as Vector2) as T;
                     });
+                } else if (ctor.name.endsWith("Vector3")) {
+                    this._data = data.map(v => {
+                        return new Vector3().copy(v as Vector3) as T;
+                    });
                 } else if (ctor.name.endsWith("Color")) {
                     this._data = data.map(v => {
-                        return new Color().set(v as Color) as T;
+                        return new Color().copy(v as Color) as T;
                     });
                 } else {
                     this._data = [...data];
@@ -41,7 +46,7 @@ export class TArray<T> {
     }
 
     public grow(value?: T) {
-        this._data.push(this.createItem(value));
+        this._data.push(value ?? this.createItem());
     }
 
     public copy(other: TArray<T>) {

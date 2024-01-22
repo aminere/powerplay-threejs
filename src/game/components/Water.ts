@@ -3,7 +3,7 @@ import { Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStanda
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
-import { perlin } from "../../engine/Perlin";
+import FastNoiseLite from "fastnoise-lite";
 
 export class WaterProps extends ComponentProps {
 
@@ -16,6 +16,9 @@ export class WaterProps extends ComponentProps {
         this.deserialize(props);
     }
 }
+
+const noise = new FastNoiseLite();
+noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 
 export class Water extends Component<WaterProps> {
     constructor(props?: Partial<WaterProps>) {
@@ -55,13 +58,14 @@ export class Water extends Component<WaterProps> {
         const verticesPerRow = Math.sqrt(positions.count);
         console.assert(verticesPerRow === Math.floor(verticesPerRow));
         const { strength, frequency, speed } = this.props;
+        noise.SetFrequency(frequency);
 
         const setFromNoise = (i: number, j: number) => {
             const offset = time.time * speed;
-            const normalized = perlin.getNoise(i + offset, j + offset, frequency);
-            const noise = -strength + normalized * strength * 2;
+            const normalized = (noise.GetNoise(i + offset, j + offset) + 1) / 2;
+            const sample = -strength + normalized * strength * 2;
             const index = i * verticesPerRow + j;
-            positions.setZ(index, noise);
+            positions.setZ(index, sample);
         };
 
         for (let i = 0; i < verticesPerRow; ++i) {

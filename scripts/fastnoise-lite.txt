@@ -1,0 +1,5 @@
+
+To regenerate, run:
+
+npx -p typescript tsc FastNoiseLite.js --declaration --allowJs --emitDeclarationOnly --outDir types
+

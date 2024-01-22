@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { config } from './config';
 import { Shader } from 'three';
+import FastNoiseLite from "fastnoise-lite";
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -14,7 +15,7 @@ export type TerrainUniforms = {
 };
 
 export class Terrain {
-    public static createPatch() {
+    public static createPatch(sectorX: number, sectorY: number) {
         const { mapRes, cellSize } = config.game;
         const verticesPerRow = mapRes + 1;
         const vertexCount = verticesPerRow * verticesPerRow;
@@ -67,26 +68,50 @@ export class Terrain {
         const terrainTexture = new THREE.TextureLoader().load('/images/dirt-atlas.png');
         terrainTexture.magFilter = THREE.NearestFilter;
         terrainTexture.minFilter = THREE.NearestFilter;
-        const cellTextureData = new Uint8Array(cellCount); // * 4);
-        const emptyTileThreshold = .9;
+        const cellTextureData = new Uint8Array(cellCount); // * 4);        
         const tileMapRes = 8;
         const { atlasTileCount } = config.terrain;
         const tileCount = atlasTileCount;
         const lastTileIndex = tileCount - 1;
-        const lastDirtTileIndex = 15;
+        // const lastDirtTileIndex = 15;
+        // const emptyTileThreshold = .9;
+
+        const segments = 5;
+        const segmentSize = 1 / segments;
+        // const position = terrainGeometry.getAttribute("position") as THREE.BufferAttribute;
         for (let i = 0; i < cellCount; ++i) {
             // const stride = i * 4;
             const stride = i;
-            if (Math.random() > emptyTileThreshold) {
-                const dirtIndex = Math.round(Math.random() * lastDirtTileIndex);
-                const indexNormalized = dirtIndex / lastTileIndex;                
-                cellTextureData[stride] = indexNormalized * 255;
-            } else {
-                cellTextureData[stride] = 0;
-            }
+
+            // if (Math.random() > emptyTileThreshold) {
+            //     const dirtIndex = Math.round(Math.random() * lastDirtTileIndex);
+            //     const indexNormalized = dirtIndex / lastTileIndex;                
+            //     cellTextureData[stride] = indexNormalized * 255;
+            // } else {
+            //     cellTextureData[stride] = 0;
+            // }
+
+            const cellY = Math.floor(i / mapRes);
+            const cellX = i - cellY * mapRes;
+
+            const noise = new FastNoiseLite();
+            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            noise.SetFrequency(0.1);
+
+            const sample = (noise.GetNoise(Math.abs(sectorX) * mapRes + cellX, Math.abs(sectorY) * mapRes + cellY) + 1) / 2;
+            const segmentIndex = Math.floor(sample / segmentSize);
+            const indexNormalized = (32 + segmentIndex) / lastTileIndex;            
             // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;
-            // cellTextureData[stride] = indexNormalized * 255;
+            
+            cellTextureData[stride] = indexNormalized * 255;
+
+            // const startVertexIndex = cellY * verticesPerRow + cellX;
+            // position.setY(startVertexIndex, segmentIndex);
+            // position.setY(startVertexIndex + 1, segmentIndex);
+            // position.setY(startVertexIndex + verticesPerRow, segmentIndex);
+            // position.setY(startVertexIndex + verticesPerRow + 1, segmentIndex);
         }
+
         const cellTexture = new THREE.DataTexture(cellTextureData, mapRes, mapRes, THREE.RedFormat);
         cellTexture.magFilter = THREE.NearestFilter;
         cellTexture.minFilter = THREE.NearestFilter;        

@@ -29,7 +29,7 @@ export class Sector {
         })
 
         // terrain
-        const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch();
+        const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(x, y);
         const buildings = new Object3D();
         buildings.name = "buildings";
         const resources = new Object3D();

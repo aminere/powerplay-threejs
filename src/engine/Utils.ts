@@ -76,7 +76,7 @@ class Utils {
     public MakeStrArray(values: string[]) {
         const array = new TArray(String);
         for (const value of values) {
-            array.grow(value);
+            array.grow(new String(value));
         }
         return array;
     }

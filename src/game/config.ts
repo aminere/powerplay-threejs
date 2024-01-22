@@ -10,7 +10,7 @@ export const config = {
         shadowRange: 2
     },
     terrain: {
-        atlasTileCount: 35
+        atlasTileCount: 37
     },
     game: {
         cellSize: 1,
