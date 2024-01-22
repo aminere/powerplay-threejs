@@ -74,8 +74,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             }            
         });
         
-        gameMapState.instance = this.state;        
-        this.createSector(new Vector2(0, 0));
+        gameMapState.instance = this.state;
+
+        this.createSectors();
         this.state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this.state.camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
         this.state.cameraPivot = this.state.camera.parent!;
@@ -308,14 +309,26 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         }
     }    
 
-    public createSector(coords: Vector2) {
-        const sectorRoot = Sector.create(coords);
+    public createSector(coords: Vector2) {        
+
+        const sector = Sector.create({
+            sectorX: coords.x,
+            sectorY: coords.y,
+            continentFreq: this.props.continentFreq,
+            erosionFreq: this.props.erosionFreq,
+            continentWeight: this.props.continentWeight,
+            erosionWeight: this.props.erosionWeight,
+            continentGain: this.props.continentGain,
+            erosionGain: this.props.erosionGain,
+            continent: this.props.continent.data,
+            erosion: this.props.erosion.data
+        });
 
         // update bounds
         const { mapRes, cellSize } = config.game;
         const mapSize = mapRes * cellSize;
         const [min, max] = pools.vec2.get(2);
-        min.set(sectorRoot.position.x, sectorRoot.position.z);
+        min.set(sector.root.position.x, sector.root.position.z);
         max.set(min.x + mapSize, min.y + mapSize);
         const { bounds } = this.state;
         if (!bounds) {
@@ -324,6 +337,45 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             bounds.expandByPoint(min);
             bounds.expandByPoint(max);
         }
+
+        return sector;
+    }
+
+    public createSectors() {
+
+        if (this.state.sectors.size > 0) {
+            this.disposeSectors();
+        }
+
+        const size = this.props.size;
+        for (let i = 0; i < size; ++i) {
+            for (let j = 0; j < size; ++j) {
+                this.createSector(new Vector2(i, j));
+
+                // stitching
+                const previousX = j - 1;                
+                const previousY = i - 1;
+                if (previousX >= 0) {
+
+                }
+
+                if (previousY >= 0) {
+
+                }
+            }
+        }
+    }
+
+    private disposeSectors() {
+        const { sectors } = this.state;
+        for (const sector of sectors.values()) {
+            const { root } = sector;
+            engine.scene?.remove(root);
+            root.traverse((obj) => {
+                utils.disposeObject(obj);
+            });
+        }
+        sectors.clear();
     }
 
     private checkCameraPan(xNorm: number, yNorm: number) {

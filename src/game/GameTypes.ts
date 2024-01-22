@@ -35,6 +35,8 @@ export interface ICell {
 
 export interface ISector {
     cells: ICell[];
+
+    root: Object3D;
     layers: {
         buildings: Object3D;
         resources: Object3D;

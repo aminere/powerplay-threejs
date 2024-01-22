@@ -60,12 +60,12 @@ export default class FastNoiseLite {
      * @type {Readonly<{FBm: string, DomainWarpIndependent: string, PingPong: string, None: string, Ridged: string, DomainWarpProgressive: string}>}
      */
     static FractalType: Readonly<{
-        FBm: string;
-        DomainWarpIndependent: string;
-        PingPong: string;
-        None: string;
-        Ridged: string;
-        DomainWarpProgressive: string;
+        FBm: "FBm";
+        DomainWarpIndependent: "DomainWarpIndependent";
+        PingPong: "PingPong";
+        None: "None";
+        Ridged: "Ridged";
+        DomainWarpProgressive: "DomainWarpProgressive";
     }>;
     /**
      * @static
@@ -73,10 +73,10 @@ export default class FastNoiseLite {
      * @type {Readonly<{EuclideanSq: string, Euclidean: string, Hybrid: string, Manhattan: string}>}
      */
     static CellularDistanceFunction: Readonly<{
-        EuclideanSq: string;
-        Euclidean: string;
-        Hybrid: string;
-        Manhattan: string;
+        EuclideanSq: "EuclideanSq";
+        Euclidean: "Euclidean";
+        Hybrid: "Hybrid";
+        Manhattan: "Manhattan";
     }>;
     /**
      * @static
@@ -212,14 +212,7 @@ export default class FastNoiseLite {
      * @default FastNoiseLite.FractalType.None
      * @param {FastNoiseLite.FractalType} fractalType
      */
-    SetFractalType(fractalType: Readonly<{
-        FBm: string;
-        DomainWarpIndependent: string;
-        PingPong: string;
-        None: string;
-        Ridged: string;
-        DomainWarpProgressive: string;
-    }>): void;
+    SetFractalType(fractalType: keyof typeof FastNoiseLite.FractalType): void;
     /**
      * @description Sets octave count for all fractal noise types
      * @remarks Default: 3
@@ -261,12 +254,7 @@ export default class FastNoiseLite {
      * @default FastNoiseLite.CellularDistanceFunction.EuclideanSq
      * @param {FastNoiseLite.CellularDistanceFunction} cellularDistanceFunction
      */
-    SetCellularDistanceFunction(cellularDistanceFunction: Readonly<{
-        EuclideanSq: string;
-        Euclidean: string;
-        Hybrid: string;
-        Manhattan: string;
-    }>): void;
+    SetCellularDistanceFunction(cellularDistanceFunction: keyof typeof FastNoiseLite.CellularDistanceFunction): void;
     /**
      * @description Sets return type from cellular noise calculations
      * @remarks Default: Distance

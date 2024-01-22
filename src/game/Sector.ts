@@ -1,13 +1,14 @@
 import { Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
-import { Terrain, TerrainUniforms } from "./Terrain";
+import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
 import { engine } from "../engine/Engine";
 
 export class Sector {
-    public static create(coords: Vector2) {
-        const { x, y } = coords;
+    public static create(props: ITerrainPatch) {
+        console.log(`creating sector ${props.sectorX},${props.sectorY}`);
+        const { sectorX: x, sectorY: y } = props;
         const { mapRes, cellSize } = config.game;
 
         const sectorRoot = new Object3D();
@@ -29,35 +30,34 @@ export class Sector {
         })
 
         // terrain
-        const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(x, y);
+        const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);
         const buildings = new Object3D();
         buildings.name = "buildings";
         const resources = new Object3D();
         resources.name = "resources";
 
         const { sectors } = gameMapState;
-        sectors.set(
-            `${x},${y}`,
-            {
-                cells,
-                layers: {
-                    terrain,
-                    buildings,
-                    resources                    
-                },
-                textureData: {
-                    terrain: cellTextureData,
-                    highlight: highlightTextureData
-                },
-                flowFieldCosts: grid.map(() => 1)
-            }
-        );
+        const sector: ISector = {
+            cells,
+            root: sectorRoot,
+            layers: {
+                terrain,
+                buildings,
+                resources                    
+            },
+            textureData: {
+                terrain: cellTextureData,
+                highlight: highlightTextureData
+            },
+            flowFieldCosts: grid.map(() => 1)
+        };
+        sectors.set(`${x},${y}`, sector);
 
         sectorRoot.add(terrain);
         sectorRoot.add(buildings);
         sectorRoot.add(resources);
         engine.scene!.add(sectorRoot);
-        return sectorRoot;       
+        return sector;
     }
 
     public static updateCellTexture(sector: ISector, localCoords: Vector2, tileIndex: number) {

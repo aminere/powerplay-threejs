@@ -1,21 +1,57 @@
 
-import * as THREE from 'three';
 import { config } from './config';
-import { Shader } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
     mapRes: Uniform<number>;
     cellSize: Uniform<number>;
-    cellTexture: Uniform<THREE.DataTexture>;
-    highlightTexture: Uniform<THREE.DataTexture>;
-    gridTexture: Uniform<THREE.Texture>;
+    cellTexture: Uniform<DataTexture>;
+    highlightTexture: Uniform<DataTexture>;
+    gridTexture: Uniform<Texture>;
     showGrid: Uniform<boolean>;
 };
 
+const continentNoise = new FastNoiseLite();
+continentNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+continentNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
+
+const erosionNoise = new FastNoiseLite();
+erosionNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+erosionNoise.SetFractalType(FastNoiseLite.FractalType.Ridged);
+
+function sampleNoise(sample: number, curve: Vector2[]) {
+    let index = 0;
+    for (let i = 0; i < curve.length - 1; ++i) {
+        if (sample < curve[i + 1].x) {
+            index = i;
+            break;
+        }
+    }
+    const curvePoint1 = curve[index];
+    const curvePoint2 = curve[index + 1];
+    const range = curvePoint2.x - curvePoint1.x;
+    const normalized = (sample - curvePoint1.x) / range;
+    const value = curvePoint1.y + normalized * (curvePoint2.y - curvePoint1.y);
+    return value;
+}
+
+export interface ITerrainPatch {
+    sectorX: number;
+    sectorY: number;
+    continentFreq: number;
+    erosionFreq: number;
+    continentWeight: number;
+    erosionWeight: number;
+    continentGain: number;
+    erosionGain: number;
+    continent: Vector2[];
+    erosion: Vector2[];
+}
+
 export class Terrain {
-    public static createPatch(sectorX: number, sectorY: number) {
+    public static createPatch(props: ITerrainPatch) {
         const { mapRes, cellSize } = config.game;
         const verticesPerRow = mapRes + 1;
         const vertexCount = verticesPerRow * verticesPerRow;
@@ -46,7 +82,7 @@ export class Terrain {
                 cellStartVertex + verticesPerRow + 1,
             ];
         });
-        // const color = new THREE.Color()
+        // const color = new Color()
         // color.setHex([
         //     0xc4926f,
         //     0xff0000,
@@ -55,19 +91,19 @@ export class Terrain {
         // ][this._color++ % 4]);
         // const colors = new Float32Array([...Array(vertexCount)].flatMap(_ => color.toArray()));
         const normals = new Float32Array([...Array(vertexCount)].flatMap(_ => [0, 1, 0]));
-        const terrainGeometry = new THREE.BufferGeometry()
-            .setAttribute('position', new THREE.BufferAttribute(vertices, 3))
-            // .setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
-            .setAttribute('normal', new THREE.BufferAttribute(normals, 3))
-            // .setAttribute('color', new THREE.BufferAttribute(colors, 3))
+        const terrainGeometry = new BufferGeometry()
+            .setAttribute('position', new BufferAttribute(vertices, 3))
+            // .setAttribute('uv', new BufferAttribute(uvs, 2))
+            .setAttribute('normal', new BufferAttribute(normals, 3))
+            // .setAttribute('color', new BufferAttribute(colors, 3))
             .setIndex(indices);
         // .translate(0, 0.01, 0);
 
         terrainGeometry.computeVertexNormals();
 
-        const terrainTexture = new THREE.TextureLoader().load('/images/dirt-atlas.png');
-        terrainTexture.magFilter = THREE.NearestFilter;
-        terrainTexture.minFilter = THREE.NearestFilter;
+        const terrainTexture = new TextureLoader().load('/images/dirt-atlas.png');
+        terrainTexture.magFilter = NearestFilter;
+        terrainTexture.minFilter = NearestFilter;
         const cellTextureData = new Uint8Array(cellCount); // * 4);        
         const tileMapRes = 8;
         const { atlasTileCount } = config.terrain;
@@ -76,9 +112,10 @@ export class Terrain {
         // const lastDirtTileIndex = 15;
         // const emptyTileThreshold = .9;
 
-        const segments = 5;
-        const segmentSize = 1 / segments;
-        // const position = terrainGeometry.getAttribute("position") as THREE.BufferAttribute;
+        const position = terrainGeometry.getAttribute("position") as BufferAttribute;
+        continentNoise.SetFrequency(props.continentFreq);
+        erosionNoise.SetFrequency(props.erosionFreq);
+
         for (let i = 0; i < cellCount; ++i) {
             // const stride = i * 4;
             const stride = i;
@@ -94,33 +131,61 @@ export class Terrain {
             const cellY = Math.floor(i / mapRes);
             const cellX = i - cellY * mapRes;
 
-            const noise = new FastNoiseLite();
-            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-            noise.SetFrequency(0.1);
+            const continentSample = continentNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
+            const continentHeight = sampleNoise(continentSample, props.continent);
+            const erosionSample = erosionNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
+            const erosionHeight = sampleNoise(erosionSample, props.erosion);
 
-            const sample = (noise.GetNoise(Math.abs(sectorX) * mapRes + cellX, Math.abs(sectorY) * mapRes + cellY) + 1) / 2;
-            const segmentIndex = Math.floor(sample / segmentSize);
-            const indexNormalized = (32 + segmentIndex) / lastTileIndex;            
-            // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;
-            
+            const startVertexIndex = cellY * verticesPerRow + cellX;
+
+            // if (cellX === 0 || cellX === mapRes - 1 || cellY === 0 || cellY === mapRes - 1) {
+            //     height = segmentIndex;
+            // } else {
+            //     const [minHeight, _, __, maxHeight] = [
+            //         position.getY(startVertexIndex),
+            //         position.getY(startVertexIndex + 1),
+            //         position.getY(startVertexIndex + verticesPerRow),
+            //         position.getY(startVertexIndex + verticesPerRow + 1)
+            //     ].sort((a, b) => a - b);
+
+            //     if (segmentIndex < minHeight) {
+            //         height = Math.max(segmentIndex, minHeight - 1);
+            //     } else if (segmentIndex > maxHeight) {
+            //         height = Math.min(segmentIndex, maxHeight + 1);
+            //     } else {
+            //         const distToMin = segmentIndex - minHeight;
+            //         const distToMax = maxHeight - segmentIndex;
+            //         if (distToMin < distToMax) {
+            //             height = Math.min(minHeight + 1, segmentIndex);
+            //         } else {
+            //             height = Math.max(maxHeight - 1, segmentIndex);
+            //         }
+            //     }
+            // }
+
+            const height = Math.round(
+                continentHeight * props.continentGain * props.continentWeight
+                + erosionHeight * props.erosionGain * props.erosionWeight
+            );
+            position.setY(startVertexIndex, height);
+            position.setY(startVertexIndex + 1, height);
+            position.setY(startVertexIndex + verticesPerRow, height);
+            position.setY(startVertexIndex + verticesPerRow + 1, height);
+
+            const indexNormalized = (32 + 0) / lastTileIndex;
+            // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
             cellTextureData[stride] = indexNormalized * 255;
-
-            // const startVertexIndex = cellY * verticesPerRow + cellX;
-            // position.setY(startVertexIndex, segmentIndex);
-            // position.setY(startVertexIndex + 1, segmentIndex);
-            // position.setY(startVertexIndex + verticesPerRow, segmentIndex);
-            // position.setY(startVertexIndex + verticesPerRow + 1, segmentIndex);
         }
 
-        const cellTexture = new THREE.DataTexture(cellTextureData, mapRes, mapRes, THREE.RedFormat);
-        cellTexture.magFilter = THREE.NearestFilter;
-        cellTexture.minFilter = THREE.NearestFilter;        
+        const cellTexture = new DataTexture(cellTextureData, mapRes, mapRes, RedFormat);
+        cellTexture.magFilter = NearestFilter;
+        cellTexture.minFilter = NearestFilter;
         cellTexture.needsUpdate = true;
 
         const highlightTextureData = new Uint8Array(cellCount * 4);
-        const highlightTexture = new THREE.DataTexture(highlightTextureData, mapRes, mapRes, THREE.RGBAFormat);
-        highlightTexture.magFilter = THREE.NearestFilter;
-        highlightTexture.minFilter = THREE.NearestFilter;
+        const highlightTexture = new DataTexture(highlightTextureData, mapRes, mapRes, RGBAFormat);
+        highlightTexture.magFilter = NearestFilter;
+        highlightTexture.minFilter = NearestFilter;
         for (let i = 0; i < mapRes; ++i) {
             for (let j = 0; j < mapRes; ++j) {
                 const cellIndex = i * mapRes + j;
@@ -133,13 +198,13 @@ export class Terrain {
         }
         highlightTexture.needsUpdate = true;
 
-        const gridTexture = new THREE.TextureLoader().load('/images/grid.png');
-        gridTexture.magFilter = THREE.NearestFilter;
-        gridTexture.minFilter = THREE.NearestFilter;
-        gridTexture.wrapS = THREE.ClampToEdgeWrapping;
-        gridTexture.wrapT = THREE.ClampToEdgeWrapping;
+        const gridTexture = new TextureLoader().load('/images/grid.png');
+        gridTexture.magFilter = NearestFilter;
+        gridTexture.minFilter = NearestFilter;
+        gridTexture.wrapS = ClampToEdgeWrapping;
+        gridTexture.wrapT = ClampToEdgeWrapping;
 
-        const terrainMaterial = new THREE.MeshStandardMaterial({
+        const terrainMaterial = new MeshStandardMaterial({
             flatShading: true,
             wireframe: false,
             // vertexColors: true,
@@ -221,7 +286,7 @@ export class Terrain {
         });        
 
         const { elevationStep } = config.game;        
-        const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+        const terrain = new Mesh(terrainGeometry, terrainMaterial);
         terrain.name = "terrain";
         terrain.scale.set(1, elevationStep, 1);
         terrain.userData.unserializable = true;
