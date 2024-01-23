@@ -1,6 +1,6 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, MathUtils, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 
 type Uniform<T> = { value: T; };
@@ -82,20 +82,14 @@ export class Terrain {
                 cellStartVertex + verticesPerRow + 1,
             ];
         });
-        // const color = new Color()
-        // color.setHex([
-        //     0xc4926f,
-        //     0xff0000,
-        //     0x00ff00,
-        //     0x0000ff,
-        // ][this._color++ % 4]);
-        // const colors = new Float32Array([...Array(vertexCount)].flatMap(_ => color.toArray()));
-        const normals = new Float32Array([...Array(vertexCount)].flatMap(_ => [0, 1, 0]));
+        
+        const colors = new Float32Array([...Array(vertexCount)].flatMap(_ => [1, 1, 1]));
+        // const normals = new Float32Array([...Array(vertexCount)].flatMap(_ => [0, 1, 0]));
         const terrainGeometry = new BufferGeometry()
             .setAttribute('position', new BufferAttribute(vertices, 3))
             // .setAttribute('uv', new BufferAttribute(uvs, 2))
-            .setAttribute('normal', new BufferAttribute(normals, 3))
-            // .setAttribute('color', new BufferAttribute(colors, 3))
+            // .setAttribute('normal', new BufferAttribute(normals, 3))
+            .setAttribute('color', new BufferAttribute(colors, 3))
             .setIndex(indices);
         // .translate(0, 0.01, 0);
 
@@ -113,9 +107,13 @@ export class Terrain {
         // const emptyTileThreshold = .9;
 
         const position = terrainGeometry.getAttribute("position") as BufferAttribute;
+        const color = terrainGeometry.getAttribute("color") as BufferAttribute;
         continentNoise.SetFrequency(props.continentFreq);
         erosionNoise.SetFrequency(props.erosionFreq);
 
+        const color1 = new Color(0xcdaf69);
+        const color2 = new Color(0xc4926f);
+        const colorMix = new Color();
         for (let i = 0; i < cellCount; ++i) {
             // const stride = i * 4;
             const stride = i;
@@ -172,7 +170,23 @@ export class Terrain {
             position.setY(startVertexIndex + verticesPerRow, height);
             position.setY(startVertexIndex + verticesPerRow + 1, height);
 
-            const indexNormalized = (32 + 0) / lastTileIndex;
+            const lastContinentHeight = props.continent[props.continent.length - 1].y;
+            const heightNormalized = continentHeight / lastContinentHeight;
+            const tileIndex = Math.round(heightNormalized * 4);
+
+            const setColor = (vertexIndex: number) => {
+                const vertexY = position.getY(vertexIndex);
+                const heightFactor = vertexY / lastContinentHeight;
+                const _color = colorMix.lerpColors(color1, color2, heightFactor);
+                _color.toArray(color.array, vertexIndex * 3);
+            }
+
+            setColor(startVertexIndex);
+            setColor(startVertexIndex + 1);
+            setColor(startVertexIndex + verticesPerRow);
+            setColor(startVertexIndex + verticesPerRow + 1);
+
+            const indexNormalized = (32 + tileIndex * 0) / lastTileIndex;
             // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
             cellTextureData[stride] = indexNormalized * 255;
         }
@@ -207,7 +221,7 @@ export class Terrain {
         const terrainMaterial = new MeshStandardMaterial({
             flatShading: true,
             wireframe: false,
-            // vertexColors: true,
+            vertexColors: true,
             map: terrainTexture,
         });
 
