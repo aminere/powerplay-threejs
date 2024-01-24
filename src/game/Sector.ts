@@ -1,9 +1,20 @@
-import { Object3D, Vector2 } from "three";
+import { MeshPhongMaterial, Object3D, TextureLoader, Vector2, Vector3 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
 import { engine } from "../engine/Engine";
+import { MathUtils } from "three/src/math/MathUtils.js";
+import { GameUtils } from "./GameUtils";
+import { meshes } from "../powerplay";
+import FastNoiseLite from "fastnoise-lite";
+
+const { elevationStep } = config.game;
+
+const treeNoise = new FastNoiseLite();
+treeNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+const treeNoise2 = new FastNoiseLite();
+treeNoise2.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 
 export class Sector {
     public static create(props: ITerrainPatch) {
@@ -57,6 +68,150 @@ export class Sector {
         sectorRoot.add(buildings);
         sectorRoot.add(resources);
         engine.scene!.add(sectorRoot);
+
+        const stones = [
+            // "diamond",
+            // "round",
+            // "flat",
+            // "pointy",
+            "oval",
+            "small",
+            // "diamond",
+        ];
+        
+        const atlas = new TextureLoader().load(`/models/atlas-albedo-LPUP.png`);
+
+        Promise.all([            
+            meshes.load(`/test/props/grass-clumb.fbx`),
+            meshes.load(`/test/props/rocks-small_brown.fbx`),
+            meshes.load(`/test/props/cactus-medium.fbx`),
+            ...stones.map(s => meshes.load(`/test/props/stone-${s}_brown.fbx`))
+        ])
+            .then(stoneMeshes => {
+                const stoneLib = stoneMeshes.map(m => m[0]);
+                const plantCellSize = cellSize * 8;
+                const plantMapRes = Math.floor(mapRes * cellSize / plantCellSize);
+                const plantMapSize = plantMapRes * plantCellSize;
+                const worldPos = new Vector3();
+                const mapCoords = new Vector2();
+                const localCoords = new Vector2();
+                const verticesPerRow = mapRes + 1;
+                const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                for (let i = 0; i < plantMapRes; ++i) {
+                    for (let j = 0; j < plantMapRes; ++j) {
+                        const localX = MathUtils.randFloat(0, plantCellSize);
+                        const localY = MathUtils.randFloat(0, plantCellSize);
+                        const plantSectorX = props.sectorX * plantMapSize;
+                        const plantSectorY = props.sectorY * plantMapSize;
+                        const plantWorldX = plantSectorX + i * plantCellSize + offset + localX;
+                        const plantWorldY = plantSectorY + j * plantCellSize + offset + localY;
+                        worldPos.set(plantWorldX, 0, plantWorldY);
+                        GameUtils.worldToMap(worldPos, mapCoords);
+                        const cell = GameUtils.getCell(mapCoords, undefined, localCoords);
+                        if (!cell) {
+                            continue;
+                        }
+                        const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
+                        const _height1 = position.getY(startVertexIndex);
+                        const _height2 = position.getY(startVertexIndex + 1);
+                        const _height3 = position.getY(startVertexIndex + verticesPerRow);
+                        const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+                        const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
+                        const _minHeight = Math.min(_height1, _height2, _height3, _height4);
+                        if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) { 
+                            const stoneIndex = MathUtils.randInt(0, stoneLib.length - 1);                   
+                            const meshInstance = stoneLib[stoneIndex].clone();
+                            const material = meshInstance.material as MeshPhongMaterial;
+                            material.map = atlas;
+                            meshInstance.castShadow = true;
+                            const factor = Math.random();
+                            const minScale = 0.002;
+                            const maxScale = 0.007;
+                            meshInstance.scale.setScalar(minScale + (maxScale - minScale) * factor);
+                            meshInstance.rotateY(MathUtils.randFloat(0, Math.PI * 2));
+                            meshInstance.position.set(
+                                worldPos.x,
+                                _minHeight * elevationStep,
+                                worldPos.z
+                            );                            
+                            engine.scene!.add(meshInstance);
+                        }
+                    }
+                }
+
+            });
+            
+            const trees = [
+                "palm-high",
+                "palm-big",
+                "palm",
+                "palm-round",
+            ];
+
+            Promise.all([
+                ...trees.map(s => meshes.load(`/test/trees/${s}.fbx`))
+            ])
+                .then(treeMeshes => {
+                    treeNoise.SetFrequency(.05);
+                    treeNoise2.SetFrequency(.05 * .5);            
+                    const treeLib = treeMeshes.map(m => m[0]);
+                    const treeCellSize = cellSize * 2;
+                    const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
+                    const treeMapSize = treeMapRes * treeCellSize;
+                    const worldPos = new Vector3();
+                    const mapCoords = new Vector2();
+                    const localCoords = new Vector2();
+                    const verticesPerRow = mapRes + 1;
+                    const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                    for (let i = 0; i < treeMapRes; ++i) {
+                        for (let j = 0; j < treeMapRes; ++j) {
+                            const localX = MathUtils.randFloat(0, treeCellSize);
+                            const localY = MathUtils.randFloat(0, treeCellSize);
+                            const plantSectorX = props.sectorX * treeMapSize;
+                            const plantSectorY = props.sectorY * treeMapSize;
+                            const plantWorldX = plantSectorX + i * treeCellSize + offset + localX;
+                            const plantWorldY = plantSectorY + j * treeCellSize + offset + localY;
+                            worldPos.set(plantWorldX, 0, plantWorldY);
+                            GameUtils.worldToMap(worldPos, mapCoords);
+                            const cell = GameUtils.getCell(mapCoords, undefined, localCoords);
+                            if (!cell) {
+                                continue;
+                            }
+                            const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
+                            const _height1 = position.getY(startVertexIndex);
+                            const _height2 = position.getY(startVertexIndex + 1);
+                            const _height3 = position.getY(startVertexIndex + verticesPerRow);
+                            const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+                            const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
+                            const _minHeight = Math.min(_height1, _height2, _height3, _height4);
+                            if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
+                                const treeSample = treeNoise.GetNoise((props.sectorX * mapRes) + localCoords.x, (props.sectorY * mapRes) + localCoords.y);
+                                const treeSample2 = treeNoise2.GetNoise((props.sectorX * mapRes) + localCoords.x, (props.sectorY * mapRes) + localCoords.y);
+                                if (treeSample > 0 && treeSample2 > 0) {
+                                    const treeIndex = MathUtils.randInt(0, treeLib.length - 1);
+                                    const meshInstance = treeLib[treeIndex].clone();
+                                    const material = meshInstance.material as MeshPhongMaterial;
+                                    material.map = atlas;
+                                    meshInstance.castShadow = true;
+                                    const factor = Math.random();
+                                    const minScale = 0.003;
+                                    const maxScale = 0.005;
+                                    meshInstance.scale.setScalar(minScale + (maxScale - minScale) * factor);
+                                    meshInstance.rotateY(MathUtils.randFloat(0, Math.PI * 2));
+                                    meshInstance.position.set(
+                                        worldPos.x,
+                                        _minHeight * elevationStep,
+                                        worldPos.z
+                                    );
+                                    engine.scene!.add(meshInstance);
+                                }
+
+                            }
+
+                        }
+                    }    
+                });
+
         return sector;
     }
 

@@ -1,7 +1,9 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, MathUtils, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, MathUtils, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, SphereGeometry, Texture, TextureLoader, Vector2, Vector3 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
+import { engine } from '../engine/Engine';
+import { GameUtils } from './GameUtils';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -20,6 +22,10 @@ continentNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
 const erosionNoise = new FastNoiseLite();
 erosionNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 erosionNoise.SetFractalType(FastNoiseLite.FractalType.Ridged);
+
+const sandNoise = new FastNoiseLite();
+sandNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+sandNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
 
 function sampleNoise(sample: number, curve: Vector2[]) {
     let index = 0;
@@ -50,9 +56,10 @@ export interface ITerrainPatch {
     erosion: Vector2[];
 }
 
+const { mapRes, cellSize, elevationStep } = config.game;
 export class Terrain {
     public static createPatch(props: ITerrainPatch) {
-        const { mapRes, cellSize } = config.game;
+        
         const verticesPerRow = mapRes + 1;
         const vertexCount = verticesPerRow * verticesPerRow;
         const vertices = new Float32Array(
@@ -110,10 +117,16 @@ export class Terrain {
         const color = terrainGeometry.getAttribute("color") as BufferAttribute;
         continentNoise.SetFrequency(props.continentFreq);
         erosionNoise.SetFrequency(props.erosionFreq);
+        sandNoise.SetFrequency(props.continentFreq * 4);
 
-        const color1 = new Color(0xcdaf69);
-        const color2 = new Color(0xc4926f);
+        const redSand = new Color(0xff0000);
+        const yellowSand = new Color(0xcdaf69);
+        const sand = new Color(0xc4926f);
+        const stone = new Color(0xa0a0a0);
         const colorMix = new Color();
+
+        const plantPerSector = 10;
+        let plantCount = 0;
         for (let i = 0; i < cellCount; ++i) {
             // const stride = i * 4;
             const stride = i;
@@ -175,10 +188,16 @@ export class Terrain {
             const tileIndex = Math.round(heightNormalized * 4);
 
             const setColor = (vertexIndex: number) => {
-                const vertexY = position.getY(vertexIndex);
-                const heightFactor = vertexY / lastContinentHeight;
-                const _color = colorMix.lerpColors(color1, color2, heightFactor);
-                _color.toArray(color.array, vertexIndex * 3);
+                if (height >= 0 && height <= 1) {
+                    const sandSample = sandNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
+                    const factor = (sandSample + 1) / 2;
+                    colorMix.lerpColors(yellowSand, sand, factor).toArray(color.array, vertexIndex * 3);
+                } else {
+                    const vertexY = position.getY(vertexIndex);
+                    const heightFactor = vertexY / lastContinentHeight;
+                    const _color = colorMix.lerpColors(sand, stone, heightFactor);
+                    _color.toArray(color.array, vertexIndex * 3);
+                }
             }
 
             setColor(startVertexIndex);
@@ -188,9 +207,11 @@ export class Terrain {
 
             const indexNormalized = (32 + tileIndex * 0) / lastTileIndex;
             // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
-            cellTextureData[stride] = indexNormalized * 255;
+            cellTextureData[stride] = indexNormalized * 255;            
         }
+        
 
+        console.log(`plantCount: ${plantCount}, plantPerSector: ${plantPerSector}`);
         const cellTexture = new DataTexture(cellTextureData, mapRes, mapRes, RedFormat);
         cellTexture.magFilter = NearestFilter;
         cellTexture.minFilter = NearestFilter;
@@ -299,7 +320,6 @@ export class Terrain {
             }
         });        
 
-        const { elevationStep } = config.game;        
         const terrain = new Mesh(terrainGeometry, terrainMaterial);
         terrain.name = "terrain";
         terrain.scale.set(1, elevationStep, 1);
