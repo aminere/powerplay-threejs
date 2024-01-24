@@ -8,6 +8,7 @@ class EngineState {
     public get animations() { return this._animations; }
 
     private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
+    private _componentsToRegister = new Array<IComponentInstance<Component<ComponentProps>>>();
     private _animations = new Map<string, {
         owner: Object3D;
         clip: AnimationClip;
@@ -23,7 +24,7 @@ class EngineState {
             owner.userData.components = {};
         }
         owner.userData.components[component.constructor.name] = component;
-        this.registerComponent(component, owner);
+        this._componentsToRegister.push({ owner, component });
         component.start(owner);
         return component;
     }
@@ -98,6 +99,16 @@ class EngineState {
         for (const anim of obj.animations) {
             this._animations.delete(anim.name);
         }
+    }
+
+    public handleComponentsToRegister() {
+        if (this._componentsToRegister.length === 0) {
+            return;
+        }
+        for (const instance of this._componentsToRegister) {
+            this.registerComponent(instance.component, instance.owner);
+        }
+        this._componentsToRegister.length = 0;
     }
 }
 

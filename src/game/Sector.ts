@@ -6,8 +6,9 @@ import { gameMapState } from "./components/GameMapState";
 import { engine } from "../engine/Engine";
 import { MathUtils } from "three/src/math/MathUtils.js";
 import { GameUtils } from "./GameUtils";
-import { meshes } from "../powerplay";
 import FastNoiseLite from "fastnoise-lite";
+import { utils } from "../engine/Utils";
+import { meshes } from "../engine/Meshes";
 
 const { elevationStep } = config.game;
 
@@ -42,10 +43,9 @@ export class Sector {
 
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);
-        const buildings = new Object3D();
-        buildings.name = "buildings";
-        const resources = new Object3D();
-        resources.name = "resources";
+        const buildings = utils.createObject(sectorRoot, "buildings");
+        const resources = utils.createObject(sectorRoot, "resources");
+        const envProps = utils.createObject(sectorRoot, "props");        
 
         const { sectors } = gameMapState;
         const sector: ISector = {
@@ -54,7 +54,8 @@ export class Sector {
             layers: {
                 terrain,
                 buildings,
-                resources                    
+                resources,
+                props: envProps
             },
             textureData: {
                 terrain: cellTextureData,
@@ -63,10 +64,7 @@ export class Sector {
             flowFieldCosts: grid.map(() => 1)
         };
         sectors.set(`${x},${y}`, sector);
-
         sectorRoot.add(terrain);
-        sectorRoot.add(buildings);
-        sectorRoot.add(resources);
         engine.scene!.add(sectorRoot);
 
         const stones = [
@@ -130,11 +128,11 @@ export class Sector {
                             meshInstance.scale.setScalar(minScale + (maxScale - minScale) * factor);
                             meshInstance.rotateY(MathUtils.randFloat(0, Math.PI * 2));
                             meshInstance.position.set(
-                                worldPos.x,
+                                worldPos.x - sectorRoot.position.x,
                                 _minHeight * elevationStep,
-                                worldPos.z
+                                worldPos.z - sectorRoot.position.z
                             );                            
-                            engine.scene!.add(meshInstance);
+                            envProps.add(meshInstance);
                         }
                     }
                 }
@@ -199,11 +197,11 @@ export class Sector {
                                     meshInstance.scale.setScalar(minScale + (maxScale - minScale) * factor);
                                     meshInstance.rotateY(MathUtils.randFloat(0, Math.PI * 2));
                                     meshInstance.position.set(
-                                        worldPos.x,
+                                        worldPos.x - sectorRoot.position.x,
                                         _minHeight * elevationStep,
-                                        worldPos.z
+                                        worldPos.z - sectorRoot.position.z
                                     );
-                                    engine.scene!.add(meshInstance);
+                                    resources.add(meshInstance);
                                 }
 
                             }

@@ -4,11 +4,12 @@ import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
 import FastNoiseLite from "fastnoise-lite";
+import { config } from "../config";
 
 export class WaterProps extends ComponentProps {
 
-    strength = 2;
-    frequency = 3;
+    strength = .2;
+    frequency = .5;
     speed = .5;
 
     constructor(props?: Partial<WaterProps>) {
@@ -19,6 +20,8 @@ export class WaterProps extends ComponentProps {
 
 const noise = new FastNoiseLite();
 noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+const { mapRes, cellSize } = config.game;
 
 export class Water extends Component<WaterProps> {
     constructor(props?: Partial<WaterProps>) {
@@ -26,11 +29,11 @@ export class Water extends Component<WaterProps> {
     }
 
     override start(owner: Object3D) {
-        const patchSize = 10;
-        const geometry = new PlaneGeometry(patchSize, patchSize, 10, 10);
+        const patchSize = mapRes * cellSize;
+        const geometry = new PlaneGeometry(patchSize, patchSize, 32, 32);
         const material = new MeshStandardMaterial({ color: 0x5199DB, flatShading: true, opacity: .5, transparent: true });
         
-        const rowSize = 5;
+        const rowSize = 4;
         const count = rowSize * rowSize;
         const plane = new InstancedMesh(geometry, material, count);
         // plane.rotateX(-Math.PI / 2);

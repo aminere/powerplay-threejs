@@ -143,6 +143,8 @@ class Engine {
             this._sceneStarted = true;
         }
 
+        engineState.handleComponentsToRegister();
+
         for (const [, components] of componentsMap) {
             for (const instance of components) {
                 if (instance.component.props.active) {

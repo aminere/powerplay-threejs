@@ -1,9 +1,7 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, MathUtils, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, SphereGeometry, Texture, TextureLoader, Vector2, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
-import { engine } from '../engine/Engine';
-import { GameUtils } from './GameUtils';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -119,14 +117,11 @@ export class Terrain {
         erosionNoise.SetFrequency(props.erosionFreq);
         sandNoise.SetFrequency(props.continentFreq * 4);
 
-        const redSand = new Color(0xff0000);
         const yellowSand = new Color(0xcdaf69);
         const sand = new Color(0xc4926f);
         const stone = new Color(0xa0a0a0);
         const colorMix = new Color();
 
-        const plantPerSector = 10;
-        let plantCount = 0;
         for (let i = 0; i < cellCount; ++i) {
             // const stride = i * 4;
             const stride = i;
@@ -149,31 +144,6 @@ export class Terrain {
 
             const startVertexIndex = cellY * verticesPerRow + cellX;
 
-            // if (cellX === 0 || cellX === mapRes - 1 || cellY === 0 || cellY === mapRes - 1) {
-            //     height = segmentIndex;
-            // } else {
-            //     const [minHeight, _, __, maxHeight] = [
-            //         position.getY(startVertexIndex),
-            //         position.getY(startVertexIndex + 1),
-            //         position.getY(startVertexIndex + verticesPerRow),
-            //         position.getY(startVertexIndex + verticesPerRow + 1)
-            //     ].sort((a, b) => a - b);
-
-            //     if (segmentIndex < minHeight) {
-            //         height = Math.max(segmentIndex, minHeight - 1);
-            //     } else if (segmentIndex > maxHeight) {
-            //         height = Math.min(segmentIndex, maxHeight + 1);
-            //     } else {
-            //         const distToMin = segmentIndex - minHeight;
-            //         const distToMax = maxHeight - segmentIndex;
-            //         if (distToMin < distToMax) {
-            //             height = Math.min(minHeight + 1, segmentIndex);
-            //         } else {
-            //             height = Math.max(maxHeight - 1, segmentIndex);
-            //         }
-            //     }
-            // }
-
             const height = Math.round(
                 continentHeight * props.continentGain * props.continentWeight
                 + erosionHeight * props.erosionGain * props.erosionWeight
@@ -184,8 +154,8 @@ export class Terrain {
             position.setY(startVertexIndex + verticesPerRow + 1, height);
 
             const lastContinentHeight = props.continent[props.continent.length - 1].y;
-            const heightNormalized = continentHeight / lastContinentHeight;
-            const tileIndex = Math.round(heightNormalized * 4);
+            // const heightNormalized = continentHeight / lastContinentHeight;
+            // const tileIndex = Math.round(heightNormalized * 4);
 
             const setColor = (vertexIndex: number) => {
                 if (height >= 0 && height <= 1) {
@@ -195,8 +165,7 @@ export class Terrain {
                 } else {
                     const vertexY = position.getY(vertexIndex);
                     const heightFactor = vertexY / lastContinentHeight;
-                    const _color = colorMix.lerpColors(sand, stone, heightFactor);
-                    _color.toArray(color.array, vertexIndex * 3);
+                    colorMix.lerpColors(sand, stone, heightFactor).toArray(color.array, vertexIndex * 3);
                 }
             }
 
@@ -205,13 +174,11 @@ export class Terrain {
             setColor(startVertexIndex + verticesPerRow);
             setColor(startVertexIndex + verticesPerRow + 1);
 
-            const indexNormalized = (32 + tileIndex * 0) / lastTileIndex;
+            const indexNormalized = (32 + 0) / lastTileIndex;
             // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
             cellTextureData[stride] = indexNormalized * 255;            
-        }
-        
+        }        
 
-        console.log(`plantCount: ${plantCount}, plantPerSector: ${plantPerSector}`);
         const cellTexture = new DataTexture(cellTextureData, mapRes, mapRes, RedFormat);
         cellTexture.magFilter = NearestFilter;
         cellTexture.minFilter = NearestFilter;
