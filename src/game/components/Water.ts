@@ -1,5 +1,5 @@
 
-import { Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, Vector3 } from "three";
+import { Color, Euler, InstancedMesh, Matrix4, Mesh, Object3D, PlaneGeometry, Quaternion, ShaderMaterial, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
@@ -8,9 +8,10 @@ import { config } from "../config";
 
 export class WaterProps extends ComponentProps {
 
-    strength = .2;
+    strength = .5;
     frequency = .5;
-    speed = .5;
+    speed = .6;
+    size = 1;
 
     constructor(props?: Partial<WaterProps>) {
         super();
@@ -31,15 +32,85 @@ export class Water extends Component<WaterProps> {
     override start(owner: Object3D) {
         const patchSize = mapRes * cellSize;
         const geometry = new PlaneGeometry(patchSize, patchSize, 32, 32);
-        const material = new MeshStandardMaterial({ color: 0x5199DB, flatShading: true, opacity: .5, transparent: true });
+
+        const vertexShader = `
+        uniform float time;
+        uniform float strength;
+        uniform float frequency;
         
-        const rowSize = 4;
+        vec2 srandom2(in vec2 st) {
+            const vec2 k = vec2(.3183099, .3678794);
+            st = st * k + k.yx;
+            return -1. + 2. * fract(16. * k * fract(st.x * st.y * (st.x + st.y)));
+        }
+
+        float noised (in vec2 p) {
+            // grid
+            vec2 i = floor( p );
+            vec2 f = fract( p );
+        
+            // quintic interpolation
+            vec2 u = f * f * f * (f * (f * 6. - 15.) + 10.);
+            vec2 du = 30. * f * f * (f * (f - 2.) + 1.);
+        
+            vec2 ga = srandom2(i + vec2(0., 0.));
+            vec2 gb = srandom2(i + vec2(1., 0.));
+            vec2 gc = srandom2(i + vec2(0., 1.));
+            vec2 gd = srandom2(i + vec2(1., 1.));
+        
+            float va = dot(ga, f - vec2(0., 0.));
+            float vb = dot(gb, f - vec2(1., 0.));
+            float vc = dot(gc, f - vec2(0., 1.));
+            float vd = dot(gd, f - vec2(1., 1.));
+
+            return va + u.x*(vb-va) + u.y*(vc-va) + u.x*u.y*(va-vb-vc+vd);
+        }
+
+        out float normalizedNoise;
+        void main() {          
+            vec4 mvPosition = vec4( position, 1.0 );
+            #ifdef USE_INSTANCING
+                mvPosition = instanceMatrix * mvPosition;
+            #endif
+
+            float rawNoise = noised(mvPosition.xz * frequency + time);
+            mvPosition.y = rawNoise * strength;
+            normalizedNoise = smoothstep(-.5, 0.5, rawNoise);
+
+            vec4 modelViewPosition = modelViewMatrix * mvPosition;
+            gl_Position = projectionMatrix * modelViewPosition;          
+        }
+      `;
+
+        const fragmentShader = `
+        uniform vec3 color;
+        in float normalizedNoise;
+        void main() {
+          gl_FragColor = vec4(mix(color, color * 1.5, normalizedNoise), .5);
+        }
+      `;
+
+        const uniforms = {
+            time: { value: 0 },
+            strength: { value: this.props.strength },
+            frequency: { value: this.props.frequency },
+            color: { value: new Color(0x5199DB) }
+        };
+
+        const waterMaterial = new ShaderMaterial({
+            vertexShader,
+            fragmentShader,
+            uniforms,
+            transparent: true,
+            opacity: 0.5
+        });
+
+        const rowSize = this.props.size;
         const count = rowSize * rowSize;
-        const plane = new InstancedMesh(geometry, material, count);
-        // plane.rotateX(-Math.PI / 2);
-        
+        const plane = new InstancedMesh(geometry, waterMaterial, count);
+
         const matrix = new Matrix4();
-        const position = new Vector3();        
+        const position = new Vector3();
         const scale = new Vector3(1, 1, 1);
         const quaternion = new Quaternion();
         quaternion.setFromEuler(new Euler(-Math.PI / 2, 0, 0));
@@ -56,50 +127,9 @@ export class Water extends Component<WaterProps> {
     }
 
     override update(owner: Object3D) {
-        const geometry = (owner.children[0] as Mesh).geometry as PlaneGeometry;
-        const positions = geometry.getAttribute("position") as Float32BufferAttribute;
-        const verticesPerRow = Math.sqrt(positions.count);
-        console.assert(verticesPerRow === Math.floor(verticesPerRow));
-        const { strength, frequency, speed } = this.props;
-        noise.SetFrequency(frequency);
-
-        const setFromNoise = (i: number, j: number) => {
-            const offset = time.time * speed;
-            const normalized = (noise.GetNoise(i + offset, j + offset) + 1) / 2;
-            const sample = -strength + normalized * strength * 2;
-            const index = i * verticesPerRow + j;
-            positions.setZ(index, sample);
-        };
-
-        for (let i = 0; i < verticesPerRow; ++i) {
-            for (let j = 0; j < verticesPerRow; ++j) {
-                const index = i * verticesPerRow + j;
-                
-                // make it seamless
-                if (j === 0) {
-                    if (i === verticesPerRow - 1) {
-                        positions.setZ(index, positions.getZ(0 * verticesPerRow + 0));
-                    } else {
-                        setFromNoise(i, j);
-                    }
-                } else if (j === verticesPerRow - 1) {
-                    if (i === 0) {
-                        positions.setZ(index, positions.getZ(0 * verticesPerRow + 0));
-                    } else if (i === verticesPerRow - 1) {
-                        positions.setZ(index, positions.getZ(0 * verticesPerRow + 0));
-                    } else {
-                        positions.setZ(index, positions.getZ(i * verticesPerRow + 0));
-                    }                
-                } else if (i === verticesPerRow - 1) {
-                    positions.setZ(index, positions.getZ(0 * verticesPerRow + j));
-                } else {
-                    setFromNoise(i, j);
-                }
-            }
-        }
-        // geometry.computeVertexNormals();
-        positions.needsUpdate = true;
+        const material = (owner.children[0] as Mesh).material as ShaderMaterial;
+        material.uniforms.time.value = time.time * this.props.speed;
+        material.uniformsNeedUpdate = true;
     }
 }
-
 

@@ -372,7 +372,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         // water
         const water = utils.createObject(engine.scene!, "water");
         water.position.setY(-.75);
-        engineState.setComponent(water, new Water());
+        engineState.setComponent(water, new Water({ size: this.props.size }));
     }
 
     private disposeSectors() {
