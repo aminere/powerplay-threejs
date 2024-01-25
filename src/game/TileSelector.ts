@@ -7,9 +7,9 @@ import { gameMapState } from "./components/GameMapState";
 
 export class TileSector extends Object3D {
 
-    public get radius() { return this._radius; }
+    public get size() { return this._size; }
 
-    private _radius = 0;
+    private _size = 2;
     constructor() {
         super();
 
@@ -49,15 +49,9 @@ export class TileSector extends Object3D {
             return mesh;
         };
         
-        this.add(createMesh(0, 0));
-        const startX = 0;
-        const startY = 0;
-        for (let y = startY - this._radius; y <= startY + this._radius; ++y) {
-            for (let x = startX - this._radius; x <= startX + this._radius; ++x) {
-                if (x === startX && y === startY) {
-                    continue;
-                }
-                this.add(createMesh(x, y));
+        for (let i = 0; i < this._size; ++i) {
+            for (let j = 0; j < this._size; ++j) {
+                this.add(createMesh(j, i));                
             }
         }
     }
@@ -98,18 +92,11 @@ export class TileSector extends Object3D {
             tilePosition.needsUpdate = true;
         };
 
-        fitTile(mapCoords.x, mapCoords.y, 0);
-
-        const startX = 0;
-        const startY = 0;
-        let tileIndex = 1;
-        for (let y = startY - this._radius; y <= startY + this._radius; ++y) {
-            for (let x = startX - this._radius; x <= startX + this._radius; ++x) {
-                if (x === startX && y === startY) {
-                    continue;
-                }
-                fitTile(mapCoords.x + x, mapCoords.y + y, tileIndex);
-                ++tileIndex;
+        let tileIndex = 0;    
+        for (let i = 0; i < this._size; ++i) {
+            for (let j = 0; j < this._size; ++j) {
+                fitTile(mapCoords.x + j, mapCoords.y + i, tileIndex);
+                ++tileIndex;              
             }
         }
     }

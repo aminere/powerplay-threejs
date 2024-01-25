@@ -8,24 +8,18 @@ import { gameMapState } from "./components/GameMapState";
 export class Elevation {
 
     private static _elevatedCells = new Map<ISector, Set<number>>();
-    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, radius: number) {
+    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, size: number) {
         Elevation._elevatedCells.clear();
-        Elevation.elevateCell(mapCoords, sectorCoords, localCoords, direction);
-
-        const centerCoords = mapCoords;
-        const cellCoords = pools.vec2.getOne();
-        for (let y = centerCoords.y - radius; y <= centerCoords.y + radius; ++y) {
-            for (let x = centerCoords.x - radius; x <= centerCoords.x + radius; ++x) {
-                if (x === centerCoords.x && y === centerCoords.y) {
-                    continue;
-                }
-                cellCoords.set(x, y);
+        const cellCoords = pools.vec2.getOne();        
+        for (let i = 0; i < size; ++i) {
+            for (let j = 0; j < size; ++j) {
+                cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
                     Elevation.elevateCell(cellCoords, sectorCoords, localCoords, direction);
                 }
             }
-        }
+        }        
 
         const { mapRes, elevationStep, cellSize } = config.game;
         const floorStep = cellSize;
@@ -126,86 +120,86 @@ export class Elevation {
         }
 
         // keep neighbor elevation one step away
-        let radius = 1;
-        const [neighborCoords2, neighborSectorCoords2, neighborLocalCoords2] = pools.vec2.get(3);
-        while (true) {
-            const startY = mapCoords.y - radius;
-            const startX = mapCoords.x - radius;
-            const endY = mapCoords.y + radius;
-            const endX = mapCoords.x + radius;
-            let elevatedNeighbors = 0;
-            for (let y = startY; y <= endY; ++y) {
-                for (let x = startX; x <= endX; ++x) {
-                    if (y > startY && y < endY) {
-                        if (x !== startX && x !== endX) {
-                            continue;
-                        }
-                    }
-                    // check neighbor                    
-                    neighborCoords.set(x, y);
-                    const neighborCell = GameUtils.getCell(neighborCoords, neighborSectorCoords, neighborLocalCoords);
-                    if (neighborCell) {
-                        const neighborSector = sectors.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`)!;
-                        const geometry = (neighborSector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-                        const position = geometry.getAttribute("position") as THREE.BufferAttribute;
-                        const startVertexIndex = neighborLocalCoords.y * verticesPerRow + neighborLocalCoords.x;
+        // let radius = 1;
+        // const [neighborCoords2, neighborSectorCoords2, neighborLocalCoords2] = pools.vec2.get(3);
+        // while (true) {
+        //     const startY = mapCoords.y - radius;
+        //     const startX = mapCoords.x - radius;
+        //     const endY = mapCoords.y + radius;
+        //     const endX = mapCoords.x + radius;
+        //     let elevatedNeighbors = 0;
+        //     for (let y = startY; y <= endY; ++y) {
+        //         for (let x = startX; x <= endX; ++x) {
+        //             if (y > startY && y < endY) {
+        //                 if (x !== startX && x !== endX) {
+        //                     continue;
+        //                 }
+        //             }
+        //             // check neighbor                    
+        //             neighborCoords.set(x, y);
+        //             const neighborCell = GameUtils.getCell(neighborCoords, neighborSectorCoords, neighborLocalCoords);
+        //             if (neighborCell) {
+        //                 const neighborSector = sectors.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`)!;
+        //                 const geometry = (neighborSector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
+        //                 const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+        //                 const startVertexIndex = neighborLocalCoords.y * verticesPerRow + neighborLocalCoords.x;
 
-                        const height0 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex) ?? position.getY(startVertexIndex);
-                        const height1 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + 1) ?? position.getY(startVertexIndex + 1);
-                        const height2 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + verticesPerRow) ?? position.getY(startVertexIndex + verticesPerRow);
-                        const height3 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + verticesPerRow + 1) ?? position.getY(startVertexIndex + verticesPerRow + 1);
+        //                 const height0 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex) ?? position.getY(startVertexIndex);
+        //                 const height1 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + 1) ?? position.getY(startVertexIndex + 1);
+        //                 const height2 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + verticesPerRow) ?? position.getY(startVertexIndex + verticesPerRow);
+        //                 const height3 = this._vertexOperations.get(neighborSector)?.get(startVertexIndex + verticesPerRow + 1) ?? position.getY(startVertexIndex + verticesPerRow + 1);
 
-                        const minHeight = Math.min(height0, height1, height2, height3);
-                        const maxHeight = Math.max(height0, height1, height2, height3);
-                        if (maxHeight - minHeight > 1) {
-                            if (direction > 0) {
-                                const height = minHeight + 1;
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex, neighborSector, Math.max(height0, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + 1, neighborSector, Math.max(height1, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, neighborSector, Math.max(height2, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, neighborSector, Math.max(height3, height), neighborSectorCoords, true);
-                                if (allowed) {
-                                    for (const dy of [-1, 0, 1]) {
-                                        for (const dx of [-1, 0, 1]) {
-                                            neighborCoords2.set(neighborCoords.x + dx, neighborCoords.y + dy);
-                                            const neighborCell2 = GameUtils.getCell(neighborCoords2, neighborSectorCoords2, neighborLocalCoords2);
-                                            if (neighborCell2) {
-                                                const neighborSector2 = sectors.get(`${neighborSectorCoords2.x},${neighborSectorCoords2.y}`)!;
-                                                this.trackElevatedCell(neighborSector2, neighborLocalCoords2.y * mapRes + neighborLocalCoords2.x);
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                const height = maxHeight - 1;
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex, neighborSector, Math.min(height0, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + 1, neighborSector, Math.min(height1, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, neighborSector, Math.min(height2, height), neighborSectorCoords, true);
-                                allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, neighborSector, Math.min(height3, height), neighborSectorCoords, true);
-                                if (allowed) {
-                                    for (const dy of [-1, 0, 1]) {
-                                        for (const dx of [-1, 0, 1]) {
-                                            neighborCoords2.set(neighborCoords.x + dx, neighborCoords.y + dy);
-                                            const neighborCell2 = GameUtils.getCell(neighborCoords2, neighborSectorCoords2, neighborLocalCoords2);
-                                            if (neighborCell2) {
-                                                const neighborSector2 = sectors.get(`${neighborSectorCoords2.x},${neighborSectorCoords2.y}`)!;
-                                                this.trackElevatedCell(neighborSector2, neighborLocalCoords2.y * mapRes + neighborLocalCoords2.x);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            ++elevatedNeighbors;
-                        }
-                    }
-                }
-            }
-            if (elevatedNeighbors === 0 || !allowed) {
-                break;
-            } else {
-                ++radius;
-            }
-        }
+        //                 const minHeight = Math.min(height0, height1, height2, height3);
+        //                 const maxHeight = Math.max(height0, height1, height2, height3);
+        //                 if (maxHeight - minHeight > 1) {
+        //                     if (direction > 0) {
+        //                         const height = minHeight + 1;
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex, neighborSector, Math.max(height0, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + 1, neighborSector, Math.max(height1, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, neighborSector, Math.max(height2, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, neighborSector, Math.max(height3, height), neighborSectorCoords, true);
+        //                         if (allowed) {
+        //                             for (const dy of [-1, 0, 1]) {
+        //                                 for (const dx of [-1, 0, 1]) {
+        //                                     neighborCoords2.set(neighborCoords.x + dx, neighborCoords.y + dy);
+        //                                     const neighborCell2 = GameUtils.getCell(neighborCoords2, neighborSectorCoords2, neighborLocalCoords2);
+        //                                     if (neighborCell2) {
+        //                                         const neighborSector2 = sectors.get(`${neighborSectorCoords2.x},${neighborSectorCoords2.y}`)!;
+        //                                         this.trackElevatedCell(neighborSector2, neighborLocalCoords2.y * mapRes + neighborLocalCoords2.x);
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     } else {
+        //                         const height = maxHeight - 1;
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex, neighborSector, Math.min(height0, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + 1, neighborSector, Math.min(height1, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, neighborSector, Math.min(height2, height), neighborSectorCoords, true);
+        //                         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, neighborSector, Math.min(height3, height), neighborSectorCoords, true);
+        //                         if (allowed) {
+        //                             for (const dy of [-1, 0, 1]) {
+        //                                 for (const dx of [-1, 0, 1]) {
+        //                                     neighborCoords2.set(neighborCoords.x + dx, neighborCoords.y + dy);
+        //                                     const neighborCell2 = GameUtils.getCell(neighborCoords2, neighborSectorCoords2, neighborLocalCoords2);
+        //                                     if (neighborCell2) {
+        //                                         const neighborSector2 = sectors.get(`${neighborSectorCoords2.x},${neighborSectorCoords2.y}`)!;
+        //                                         this.trackElevatedCell(neighborSector2, neighborLocalCoords2.y * mapRes + neighborLocalCoords2.x);
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                     ++elevatedNeighbors;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if (elevatedNeighbors === 0 || !allowed) {
+        //         break;
+        //     } else {
+        //         ++radius;
+        //     }
+        // }
 
         if (!allowed) {
             // TODO feedback
@@ -248,70 +242,70 @@ export class Elevation {
         const z = Math.floor(index / verticesPerRow);
 
         // do not allow elevating edge vertices
-        if (height !== 0) {
-            if (x === 0) {
-                if (z === 0) {
-                    // top left corner
-                    const cornerSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y - 1}`);
-                    const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
-                    const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
-                    if (!cornerSector || !leftSector || !topSector) {
-                        return false;
-                    }
-                } else if (z === mapRes) {
-                    // bottom left corner
-                    const cornerSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y + 1}`);
-                    const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
-                    const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
-                    if (!cornerSector || !leftSector || !bottomSector) {
-                        return false;
-                    }
-                } else {
-                    // left edge
-                    const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
-                    if (!leftSector) {
-                        return false;
-                    }
-                }
-            } else if (x === mapRes) {
-                if (z === 0) {
-                    // top right corner
-                    const cornerSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y - 1}`);
-                    const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
-                    const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
-                    if (!cornerSector || !rightSector || !topSector) {
-                        return false;
-                    }
-                } else if (z === mapRes) {
-                    // bottom right corner
-                    const cornerSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y + 1}`);
-                    const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
-                    const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
-                    if (!cornerSector || !rightSector || !bottomSector) {
-                        return false;
-                    }
-                } else {
-                    // right edge
-                    const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
-                    if (!rightSector) {
-                        return false;
-                    }
-                }
-            } else if (z === 0) {
-                // top edge
-                const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
-                if (!topSector) {
-                    return false;
-                }
+        // if (height !== 0) {
+        //     if (x === 0) {
+        //         if (z === 0) {
+        //             // top left corner
+        //             const cornerSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y - 1}`);
+        //             const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
+        //             const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
+        //             if (!cornerSector || !leftSector || !topSector) {
+        //                 return false;
+        //             }
+        //         } else if (z === mapRes) {
+        //             // bottom left corner
+        //             const cornerSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y + 1}`);
+        //             const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
+        //             const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
+        //             if (!cornerSector || !leftSector || !bottomSector) {
+        //                 return false;
+        //             }
+        //         } else {
+        //             // left edge
+        //             const leftSector = sectors.get(`${sectorCoords.x - 1},${sectorCoords.y}`);
+        //             if (!leftSector) {
+        //                 return false;
+        //             }
+        //         }
+        //     } else if (x === mapRes) {
+        //         if (z === 0) {
+        //             // top right corner
+        //             const cornerSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y - 1}`);
+        //             const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
+        //             const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
+        //             if (!cornerSector || !rightSector || !topSector) {
+        //                 return false;
+        //             }
+        //         } else if (z === mapRes) {
+        //             // bottom right corner
+        //             const cornerSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y + 1}`);
+        //             const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
+        //             const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
+        //             if (!cornerSector || !rightSector || !bottomSector) {
+        //                 return false;
+        //             }
+        //         } else {
+        //             // right edge
+        //             const rightSector = sectors.get(`${sectorCoords.x + 1},${sectorCoords.y}`);
+        //             if (!rightSector) {
+        //                 return false;
+        //             }
+        //         }
+        //     } else if (z === 0) {
+        //         // top edge
+        //         const topSector = sectors.get(`${sectorCoords.x},${sectorCoords.y - 1}`);
+        //         if (!topSector) {
+        //             return false;
+        //         }
 
-            } else if (z === mapRes) {
-                // bottom edge
-                const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
-                if (!bottomSector) {
-                    return false;
-                }
-            }
-        }
+        //     } else if (z === mapRes) {
+        //         // bottom edge
+        //         const bottomSector = sectors.get(`${sectorCoords.x},${sectorCoords.y + 1}`);
+        //         if (!bottomSector) {
+        //             return false;
+        //         }
+        //     }
+        // }
 
         const sectorOperations = this._vertexOperations.get(sector);
         if (sectorOperations) {

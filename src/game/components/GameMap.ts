@@ -131,11 +131,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 this.state.previousTouchPos.copy(input.touchPos);
 
                 if (this.state.action) {
-                    const cellCoords = pools.vec2.getOne();
-                    raycastOnCells(input.touchPos, this.state.camera, cellCoords)
-                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
+                    const [cellCoords, localCoords] = pools.vec2.get(2);
+                    raycastOnCells(input.touchPos, this.state.camera, cellCoords, localCoords);
+                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {                        
                         this.state.tileSelector.setPosition(cellCoords!);
-                        this.state.selectedCellCoords.copy(cellCoords!);                        
+                        this.state.selectedCellCoords.copy(cellCoords!);
                         // default rail preview was here                        
                     }
                 }
@@ -224,11 +224,10 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                             this.updateCameraBounds();
                         } else {
                             const mapCoords = this.state.selectedCellCoords;
-                            const { radius } = this.state.tileSelector;
                             switch (this.state.action) {
                                 case "elevation": {
-                                    onElevation(mapCoords, sectorCoords, localCoords, radius, input.touchButton);
-                                    this.state.tileSelector.fit(mapCoords);       
+                                    onElevation(mapCoords, sectorCoords, localCoords, this.state.tileSelector.size, input.touchButton);
+                                    this.state.tileSelector.fit(mapCoords);
                                 }
                                 break;
 

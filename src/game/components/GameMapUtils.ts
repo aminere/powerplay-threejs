@@ -66,13 +66,20 @@ export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Cam
     return selectedVertexIndex;
 }
 
-export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2) {
+export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2, localCoordsOut?: Vector2) {
     const intersection = pools.vec3.getOne();
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
-    const sectorCoords = pools.vec2.getOne();
+    const sectorCoords = pools.vec2.getOne();    
     GameUtils.worldToMap(intersection, cellCoordsOut);
+
+    if (localCoordsOut) {
+        const cellPos = pools.vec3.getOne();
+        GameUtils.mapToWorld(cellCoordsOut, cellPos);
+        localCoordsOut.set(intersection.x - cellPos.x, intersection.z - cellPos.z);
+    }
+
     let cell = GameUtils.getCell(cellCoordsOut, sectorCoords);
     let sectorX = sectorCoords.x;
     let sectorY = sectorCoords.y;
