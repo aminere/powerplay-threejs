@@ -1,16 +1,15 @@
 
-import { Color, Euler, InstancedMesh, Matrix4, Mesh, Object3D, PlaneGeometry, Quaternion, ShaderMaterial, Vector3 } from "three";
+import { Color, Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, TextureLoader, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
-import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 
 export class WaterProps extends ComponentProps {
 
-    strength = .5;
-    frequency = .5;
-    speed = .6;
+    strength = 1;
+    frequency = 5;
+    speed = .1;
     size = 1;
 
     constructor(props?: Partial<WaterProps>) {
@@ -19,9 +18,6 @@ export class WaterProps extends ComponentProps {
     }
 }
 
-const noise = new FastNoiseLite();
-noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-noise.SetFractalType(FastNoiseLite.FractalType.FBm);
 const { mapRes, cellSize } = config.game;
 
 export class Water extends Component<WaterProps> {
@@ -32,78 +28,55 @@ export class Water extends Component<WaterProps> {
     override start(owner: Object3D) {
         const patchSize = mapRes * cellSize;
         const geometry = new PlaneGeometry(patchSize, patchSize, 32, 32);
-
-        const vertexShader = `
-        uniform float time;
-        uniform float strength;
-        uniform float frequency;
         
-        vec2 srandom2(in vec2 st) {
-            const vec2 k = vec2(.3183099, .3678794);
-            st = st * k + k.yx;
-            return -1. + 2. * fract(16. * k * fract(st.x * st.y * (st.x + st.y)));
-        }
-
-        float noised (in vec2 p) {
-            // grid
-            vec2 i = floor( p );
-            vec2 f = fract( p );
-        
-            // quintic interpolation
-            vec2 u = f * f * f * (f * (f * 6. - 15.) + 10.);
-            vec2 du = 30. * f * f * (f * (f - 2.) + 1.);
-        
-            vec2 ga = srandom2(i + vec2(0., 0.));
-            vec2 gb = srandom2(i + vec2(1., 0.));
-            vec2 gc = srandom2(i + vec2(0., 1.));
-            vec2 gd = srandom2(i + vec2(1., 1.));
-        
-            float va = dot(ga, f - vec2(0., 0.));
-            float vb = dot(gb, f - vec2(1., 0.));
-            float vc = dot(gc, f - vec2(0., 1.));
-            float vd = dot(gd, f - vec2(1., 1.));
-
-            return va + u.x*(vb-va) + u.y*(vc-va) + u.x*u.y*(va-vb-vc+vd);
-        }
-
-        out float normalizedNoise;
-        void main() {          
-            vec4 mvPosition = vec4( position, 1.0 );
-            #ifdef USE_INSTANCING
-                mvPosition = instanceMatrix * mvPosition;
-            #endif
-
-            float rawNoise = noised(mvPosition.xz * frequency + time);
-            mvPosition.y = rawNoise * strength;
-            normalizedNoise = smoothstep(-.5, 0.5, rawNoise);
-
-            vec4 modelViewPosition = modelViewMatrix * mvPosition;
-            gl_Position = projectionMatrix * modelViewPosition;          
-        }
-      `;
-
-        const fragmentShader = `
-        uniform vec3 color;
-        in float normalizedNoise;
-        void main() {
-          gl_FragColor = vec4(mix(color, color * 1.5, normalizedNoise), .5);
-        }
-      `;
-
-        const uniforms = {
-            time: { value: 0 },
-            strength: { value: this.props.strength },
-            frequency: { value: this.props.frequency },
-            color: { value: new Color(0x5199DB) }
-        };
-
-        const waterMaterial = new ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms,
+        const perlin = new TextureLoader().load("/images/perlin.png");
+        perlin.wrapS = RepeatWrapping;
+        perlin.wrapT = RepeatWrapping;
+        const waterMaterial = new MeshStandardMaterial({
+            flatShading: true,
             transparent: true,
-            opacity: 0.5
+            opacity: 0.5,
+            color: 0x5199DB            
         });
+
+        Object.defineProperty(waterMaterial, "onBeforeCompile", {
+            enumerable: false,
+            value: (shader: Shader) => { 
+                const uniforms = {
+                    time: { value: 0 },
+                    strength: { value: this.props.strength },
+                    frequency: { value: this.props.frequency },
+                    color: { value: new Color(0x5199DB) },
+                    perlin: { value: perlin }
+                };
+                shader.uniforms = {
+                    ...shader.uniforms,
+                    ...uniforms
+                };
+                waterMaterial.userData.shader = shader;
+    
+                shader.vertexShader = `               
+                uniform float time;
+                uniform float strength;
+                uniform float frequency;
+                uniform sampler2D perlin;
+                ${shader.vertexShader}
+                `;
+    
+                shader.vertexShader = shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `#include <begin_vertex>
+
+                    // [-mapRes / 2, mapRes / 2] to [0, 1]
+                    vec2 coord = (transformed.xy / ${mapRes}.) + .5;
+                    float rawNoise = texture2D(perlin, coord * frequency + time).r;
+                    // [0, 1] to [-1, 1]
+                    rawNoise = rawNoise * 2. - 1.;                    
+                    transformed.z = rawNoise * strength;
+                    `
+                );                
+            }
+        });     
 
         const rowSize = this.props.size;
         const count = rowSize * rowSize;
@@ -127,9 +100,10 @@ export class Water extends Component<WaterProps> {
     }
 
     override update(owner: Object3D) {
-        const material = (owner.children[0] as Mesh).material as ShaderMaterial;
-        material.uniforms.time.value = time.time * this.props.speed;
-        material.uniformsNeedUpdate = true;
+        const material = (owner.children[0] as Mesh).material as MeshStandardMaterial;
+        if (material.userData.shader) {
+            material.userData.shader.uniforms.time.value = time.time * this.props.speed;
+        }
     }
 }
 
