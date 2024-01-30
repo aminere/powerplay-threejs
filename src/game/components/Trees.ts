@@ -1,5 +1,5 @@
 
-import { InstancedMesh, MathUtils, Matrix4, Mesh, MeshPhongMaterial, Object3D, Quaternion, RepeatWrapping, Shader, TextureLoader, Vector2, Vector3 } from "three";
+import { InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Shader, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { meshes } from "../../engine/Meshes";
@@ -8,6 +8,7 @@ import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/Time";
+import { textures } from "../../engine/Textures";
 
 export class TreesProps extends ComponentProps {
 
@@ -39,16 +40,16 @@ export class Trees extends Component<TreesProps> {
     override start(owner: Object3D) {
         const trees = [
             "palm-high",
-            "palm-round",
-            "palm-big2",
-            "palm2"
+            // "palm-round",
+            "palm-big",
+            "palm"
         ];
 
-        const atlas = new TextureLoader().load(`/models/atlas-albedo-LPUP.png`);
-        const perlin = new TextureLoader().load("/images/perlin.png");
+        const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
+        const perlin = textures.load("/images/perlin.png");
         perlin.wrapS = RepeatWrapping;
         perlin.wrapT = RepeatWrapping;
-        const treeMaterial = new MeshPhongMaterial({
+        const treeMaterial = new MeshStandardMaterial({
             map: atlas,
             flatShading: true
         });
@@ -186,7 +187,7 @@ export class Trees extends Component<TreesProps> {
     }
 
     override update(owner: Object3D) {
-        const material = (owner.children[0] as InstancedMesh)?.material as MeshPhongMaterial;
+        const material = (owner.children[0] as InstancedMesh)?.material as Material;
         const uniforms = material?.userData?.shader?.uniforms;
         if (uniforms) {
             uniforms.time.value = time.time * this.props.speed;

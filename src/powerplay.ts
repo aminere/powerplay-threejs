@@ -16,6 +16,7 @@ export { EngineStats } from "./debug/EngineStats";
 export { config } from "./game/config";
 
 export { meshes } from "./engine/Meshes";
+export { textures } from "./engine/Textures";
 export { GameMap } from "./game/components/GameMap";
 
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation } from "./game/GameSerialization";

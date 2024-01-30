@@ -2,6 +2,7 @@ import { Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import * as THREE from "three";
+import { textures } from "../engine/Textures";
 
 const { cellSize, mapRes, elevationStep } = config.game;
 export class Buildings {
@@ -111,7 +112,7 @@ export class Buildings {
         // .translate(0, -.1, 0);
         geometry.computeVertexNormals();
 
-        const bricks = new THREE.TextureLoader().load('/images/bricks.png');
+        const bricks = textures.load('/images/bricks.png');
         bricks.magFilter = THREE.NearestFilter;
         bricks.wrapS = THREE.RepeatWrapping;
         bricks.wrapT = THREE.RepeatWrapping;

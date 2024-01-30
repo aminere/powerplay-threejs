@@ -1,9 +1,10 @@
 
-import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, TextureLoader, NearestFilter, Vector2 } from "three";
+import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, NearestFilter, Vector2 } from "three";
 import { config } from "./config";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/Pools";
 import { gameMapState } from "./components/GameMapState";
+import { textures } from "../engine/Textures";
 
 export class TileSector extends Object3D {
 
@@ -16,7 +17,7 @@ export class TileSector extends Object3D {
         const { cellSize } = config.game;
         const yOffset = 0.01;
 
-        const texture = new TextureLoader().load('images/tile-selected.png');
+        const texture = textures.load('images/tile-selected.png');
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
         const material = new MeshBasicMaterial({ 

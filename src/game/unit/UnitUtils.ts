@@ -80,13 +80,13 @@ class UnitUtils {
                 const targetCellIndex = targetCell.cellIndex;
                 const currentCellIndex = coords.cellIndex;
                 const _flowField = sector!.cells[targetCellIndex].flowField!;
-                const { directions } = _flowField;
-                const [cellDirection, cellDirectionValid] = directions[currentCellIndex];
-                if (!cellDirectionValid) {
-                    flowField.computeDirection(_flowField, sector!.flowFieldCosts, currentCellIndex, cellDirection);
-                    directions[currentCellIndex][1] = true;
+                const flowfieldInfo =  _flowField[currentCellIndex];
+                const { direction, directionValid } = flowfieldInfo;
+                if (!directionValid) {
+                    flowField.computeDirection(_flowField, sector!.flowFieldCosts, currentCellIndex, direction);
+                    flowfieldInfo.directionValid = true;
                 }
-                cellDirection3.set(cellDirection.x, 0, cellDirection.y);
+                cellDirection3.set(direction.x, 0, direction.y);
                 desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
                 unit.desiredPosValid = true;
             }

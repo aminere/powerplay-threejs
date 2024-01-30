@@ -1,9 +1,10 @@
 
-import { Color, Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, TextureLoader, Vector3 } from "three";
+import { Color, Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { time } from "../../engine/Time";
 import { config } from "../config";
+import { textures } from "../../engine/Textures";
 
 export class WaterProps extends ComponentProps {
 
@@ -29,7 +30,7 @@ export class Water extends Component<WaterProps> {
         const patchSize = mapRes * cellSize;
         const geometry = new PlaneGeometry(patchSize, patchSize, 32, 32);
         
-        const perlin = new TextureLoader().load("/images/perlin.png");
+        const perlin = textures.load("/images/perlin.png");
         perlin.wrapS = RepeatWrapping;
         perlin.wrapT = RepeatWrapping;
         const waterMaterial = new MeshStandardMaterial({

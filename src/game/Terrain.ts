@@ -1,7 +1,8 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, TextureLoader, Vector2 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, Vector2 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
+import { textures } from '../engine/Textures';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -98,7 +99,7 @@ export class Terrain {
             .setIndex(indices);
         // .translate(0, 0.01, 0);
 
-        const terrainTexture = new TextureLoader().load('/images/dirt-atlas.png');
+        const terrainTexture = textures.load('/images/dirt-atlas.png');
         terrainTexture.magFilter = NearestFilter;
         terrainTexture.minFilter = NearestFilter;
         const cellTextureData = new Uint8Array(cellCount); // * 4);        
@@ -180,7 +181,7 @@ export class Terrain {
         }
         highlightTexture.needsUpdate = true;
 
-        const gridTexture = new TextureLoader().load('/images/grid.png');
+        const gridTexture = textures.load('/images/grid.png');
         gridTexture.magFilter = NearestFilter;
         gridTexture.minFilter = NearestFilter;
         gridTexture.wrapS = ClampToEdgeWrapping;
