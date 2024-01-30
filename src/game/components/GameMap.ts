@@ -43,6 +43,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         root.add(cars);
 
         this.setState({
+            sectorsRoot: utils.createObject(root, "sectors"),
             sectors: new Map<string, any>(),
             action: null,
             previousRoad: [],
@@ -325,6 +326,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             erosion: this.props.erosion.data
         });
 
+        this.state.sectorsRoot.add(sector.root);
+
         // update bounds
         const { mapRes, cellSize } = config.game;
         const mapSize = mapRes * cellSize;
@@ -369,7 +372,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const { sectors } = this.state;
         for (const sector of sectors.values()) {
             const { root } = sector;
-            engine.scene?.remove(root);
+            root.removeFromParent();
             root.traverse((obj) => {
                 utils.disposeObject(obj);
             });

@@ -4,6 +4,7 @@ import { TileSector } from "../TileSelector";
 import { Action } from "../GameDefinitions";
 
 export interface IGameMapState {
+    sectorsRoot: Object3D;
     sectors: Map<string, ISector>;
     bounds?: Box2;
     action: Action | null;

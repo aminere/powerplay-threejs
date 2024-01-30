@@ -3,7 +3,6 @@ import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
-import { engine } from "../engine/Engine";
 import { MathUtils } from "three/src/math/MathUtils.js";
 import { GameUtils } from "./GameUtils";
 import { utils } from "../engine/Utils";
@@ -57,7 +56,6 @@ export class Sector {
         };
         sectors.set(`${x},${y}`, sector);
         sectorRoot.add(terrain);
-        engine.scene!.add(sectorRoot);
 
         const stones = [
             // "diamond",
