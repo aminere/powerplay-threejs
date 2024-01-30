@@ -1,5 +1,5 @@
 
-import { InstancedMesh, MathUtils, Matrix4, Mesh, MeshPhongMaterial, Object3D, Quaternion, TextureLoader, Vector2, Vector3 } from "three";
+import { InstancedMesh, MathUtils, Matrix4, Mesh, MeshPhongMaterial, Object3D, Quaternion, RepeatWrapping, Shader, TextureLoader, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { meshes } from "../../engine/Meshes";
@@ -7,10 +7,15 @@ import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
+import { time } from "../../engine/Time";
 
 export class TreesProps extends ComponentProps {
 
     mapSize = 1;
+    speed = .1;
+    strength = 1;
+    frequency = .05;
+    heightVar = 40;
 
     constructor(props?: Partial<TreesProps>) {
         super();
@@ -33,16 +38,62 @@ export class Trees extends Component<TreesProps> {
 
     override start(owner: Object3D) {
         const trees = [
-            ["palm-high", 1],
-            ["palm-round", 1],
-            ["palm-big", .01],
-            ["palm", .01]
-        ] as const;
+            "palm-high",
+            "palm-round",
+            "palm-big2",
+            "palm2"
+        ];
 
         const atlas = new TextureLoader().load(`/models/atlas-albedo-LPUP.png`);
+        const perlin = new TextureLoader().load("/images/perlin.png");
+        perlin.wrapS = RepeatWrapping;
+        perlin.wrapT = RepeatWrapping;
         const treeMaterial = new MeshPhongMaterial({
-            map: atlas
+            map: atlas,
+            flatShading: true
         });
+
+        Object.defineProperty(treeMaterial, "onBeforeCompile", {
+            enumerable: false,
+            value: (shader: Shader) => { 
+                const uniforms = {
+                    time: { value: 0 },
+                    strength: { value: this.props.strength },
+                    frequency: { value: this.props.frequency },
+                    heightVar: { value: this.props.heightVar },
+                    perlin: { value: perlin }
+                };
+                shader.uniforms = {
+                    ...shader.uniforms,
+                    ...uniforms
+                };
+                treeMaterial.userData.shader = shader;
+    
+                shader.vertexShader = `               
+                uniform float time;
+                uniform float strength;
+                uniform float frequency;
+                uniform float heightVar;
+                uniform sampler2D perlin;
+                ${shader.vertexShader}
+                `;
+    
+                shader.vertexShader = shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `#include <begin_vertex>
+
+                    float rawNoise = texture2D(perlin, transformed.xz * frequency + time).r;                    
+                    // [0, 1] to [-1, 1]
+                    rawNoise = rawNoise * 2. - 1.;
+                    
+                    float heightFactor = 1.;//smoothstep(4., 10., transformed.y);
+                    float radialFactor = smoothstep(0., 4., abs(transformed.x));
+                    transformed.xz += rawNoise * heightFactor * radialFactor * strength;
+                    `
+                );
+            }
+        });
+
         const treeCellSize = cellSize * 2;
         const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
         const treeMapSize = treeMapRes * treeCellSize;
@@ -58,7 +109,7 @@ export class Trees extends Component<TreesProps> {
         const { mapSize } = this.props;
         const { sectors } = gameMapState;
 
-        Promise.all(trees.map(([s]) => meshes.load(`/models/trees/${s}.fbx`)))
+        Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)))
             .then(treeMeshes => {
 
                 treeNoise.SetFrequency(.05);
@@ -66,8 +117,8 @@ export class Trees extends Component<TreesProps> {
 
                 const treeGeometries = treeMeshes.map(m => m[0].geometry);
                 const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
-                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTreesPerSector);
-                    instancedMesh.name = `${trees[index][0]}`;
+                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTreesPerSector);                    
+                    instancedMesh.name = `${trees[index]}`;
                     instancedMesh.castShadow = true;
                     owner.add(instancedMesh);
                     return {
@@ -111,13 +162,10 @@ export class Trees extends Component<TreesProps> {
                                     const treeSample2 = treeNoise2.GetNoise(noiseX, noiseY);
                                     if (treeSample > 0 && treeSample2 > 0) {
                                         const treeIndex = MathUtils.randInt(0, treeInstancedMeshes.length - 1);
-                                        console.log(treeIndex);
                                         worldPos.setY(_minHeight * elevationStep);                                        
                                         const minScale = 0.3;
                                         const maxScale = 0.5;
                                         scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
-                                        const scaleFactor = trees[treeIndex][1];
-                                        scale.multiplyScalar(scaleFactor);
                                         quaternion.setFromAxisAngle(up, MathUtils.randFloat(0, Math.PI * 2));
                                         matrix.compose(worldPos, quaternion, scale);
                                         const treeMesh = treeInstancedMeshes[treeIndex];
@@ -137,7 +185,14 @@ export class Trees extends Component<TreesProps> {
             });
     }
 
-    override update(_owner: Object3D) {
+    override update(owner: Object3D) {
+        const material = (owner.children[0] as InstancedMesh)?.material as MeshPhongMaterial;
+        const uniforms = material?.userData?.shader?.uniforms;
+        if (uniforms) {
+            uniforms.time.value = time.time * this.props.speed;
+            uniforms.heightVar.value = this.props.heightVar;
+            uniforms.strength.value = this.props.strength;
+        }
     }
 }
 
