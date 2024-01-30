@@ -215,13 +215,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         const [sectorCoords, localCoords] = pools.vec2.get(2);
                         const cell = GameUtils.getCell(this.state.selectedCellCoords, sectorCoords, localCoords);
                         if (!cell) {
-                            this.createSector(sectorCoords.clone());
-                            if (sectorCoords.x > 0) {
-                                this.stitchSectorLeftEdge(sectorCoords.x, sectorCoords.y);
-                            }
-                            if (sectorCoords.y > 0) {
-                                this.stitchSectorTopEdge(sectorCoords.x, sectorCoords.y);
-                            }
+                            this.createSector(sectorCoords.clone());                            
                             this.updateCameraBounds();
                         } else {
                             const mapCoords = this.state.selectedCellCoords;
@@ -359,13 +353,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const size = this.props.size;
         for (let i = 0; i < size; ++i) {
             for (let j = 0; j < size; ++j) {
-                this.createSector(new Vector2(j, i));
-                if (j > 0) {
-                    this.stitchSectorLeftEdge(j, i);
-                }
-                if (i > 0) {
-                    this.stitchSectorTopEdge(j, i);
-                }
+                this.createSector(new Vector2(j, i));                
             }
         }
 
@@ -489,12 +477,15 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     }
 
     private onKeyDown(e: KeyboardEvent) {
-        this.state.pressedKeys.add(e.key);
+        const key = e.key.toLowerCase();
+        this.state.pressedKeys.add(key);
     }
 
     private onKeyUp(e: KeyboardEvent) {
         let cameraDirection = 0;
-        switch (e.key) {
+        const key = e.key.toLowerCase();
+
+        switch (key) {
             case 'q': cameraDirection = -1; break;
             case 'e': cameraDirection = 1; break;
         }
@@ -528,7 +519,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 });
         }
 
-        this.state.pressedKeys.delete(e.key);
+        this.state.pressedKeys.delete(key);
     }
 
     private updateCameraSize() {
@@ -552,57 +543,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         if (this.state.action) {
             this.state.tileSelector.visible = !over;
         }
-    }
-
-    private stitchSectorLeftEdge(sectorX: number, sectorY: number) {        
-        const sector = this.state.sectors.get(`${sectorX},${sectorY}`)!;
-        const previousX = sectorX - 1;        
-        const previousSector = this.state.sectors.get(`${previousX},${sectorY}`)!;
-        const terrain = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const previousTerrain = (previousSector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const position = terrain.getAttribute("position") as THREE.BufferAttribute;
-        const previousPosition = previousTerrain.getAttribute("position") as THREE.BufferAttribute;
-        const color = terrain.getAttribute("color") as THREE.BufferAttribute;
-        const previousColor = previousTerrain.getAttribute("color") as THREE.BufferAttribute;
-        const verticesPerRow = mapRes + 1;
-        for (let i = 0; i < verticesPerRow; ++i) {
-            const vertexX = 0;
-            const vertexY = i;
-            const vertexIndex = vertexY * verticesPerRow + vertexX;
-            const previousVertexX = mapRes;
-            const previousVertexY = i;
-            const previousVertexIndex = previousVertexY * verticesPerRow + previousVertexX;
-            const previousY = previousPosition.getY(previousVertexIndex);
-            position.setY(vertexIndex, previousY);
-            color.setXYZ(vertexIndex, previousColor.getX(previousVertexIndex), previousColor.getY(previousVertexIndex), previousColor.getZ(previousVertexIndex));
-        }
-        // terrain.computeVertexNormals();
-
-    }
-
-    private stitchSectorTopEdge(sectorX: number, sectorY: number) {        
-        const sector = this.state.sectors.get(`${sectorX},${sectorY}`)!;
-        const previousY = sectorY - 1;        
-        const previousSector = this.state.sectors.get(`${sectorX},${previousY}`)!;
-        const terrain = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const previousTerrain = (previousSector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const position = terrain.getAttribute("position") as THREE.BufferAttribute;
-        const previousPosition = previousTerrain.getAttribute("position") as THREE.BufferAttribute;
-        const color = terrain.getAttribute("color") as THREE.BufferAttribute; 
-        const previousColor = previousTerrain.getAttribute("color") as THREE.BufferAttribute;       
-        const verticesPerRow = mapRes + 1;
-        for (let i = 0; i < verticesPerRow; ++i) {
-            const vertexX = i;
-            const vertexY = 0;
-            const vertexIndex = vertexY * verticesPerRow + vertexX;
-            const previousVertexX = i;
-            const previousVertexY = mapRes;
-            const previousVertexIndex = previousVertexY * verticesPerRow + previousVertexX;
-            const previousY = previousPosition.getY(previousVertexIndex);
-            position.setY(vertexIndex, previousY);
-            color.setXYZ(vertexIndex, previousColor.getX(previousVertexIndex), previousColor.getY(previousVertexIndex), previousColor.getZ(previousVertexIndex));
-        }
-        // terrain.computeVertexNormals();        
-    }
+    }    
 }
 

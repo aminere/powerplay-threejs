@@ -8,7 +8,7 @@ import { config } from "../config";
 export class WaterProps extends ComponentProps {
 
     strength = 1;
-    frequency = 5;
+    frequency = 3;
     speed = .1;
     mapSize = 1;
 

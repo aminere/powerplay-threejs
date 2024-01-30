@@ -55,11 +55,11 @@ export interface ITerrainPatch {
 }
 
 const { mapRes, cellSize, elevationStep } = config.game;
+const verticesPerRow = mapRes + 1;
+const vertexCount = verticesPerRow * verticesPerRow;
+
 export class Terrain {
-    public static createPatch(props: ITerrainPatch) {
-        
-        const verticesPerRow = mapRes + 1;
-        const vertexCount = verticesPerRow * verticesPerRow;
+    public static createPatch(props: ITerrainPatch) {        
         const vertices = new Float32Array(
             [...Array(vertexCount)].flatMap((_, i) => {
                 const x = i % verticesPerRow;
@@ -98,8 +98,6 @@ export class Terrain {
             .setIndex(indices);
         // .translate(0, 0.01, 0);
 
-        terrainGeometry.computeVertexNormals();
-
         const terrainTexture = new TextureLoader().load('/images/dirt-atlas.png');
         terrainTexture.magFilter = NearestFilter;
         terrainTexture.minFilter = NearestFilter;
@@ -121,45 +119,26 @@ export class Terrain {
         const sand = new Color(0xc4926f);
         const stone = new Color(0xa0a0a0);
         const colorMix = new Color();
+        const lastContinentHeight = props.continent[props.continent.length - 1].y;      
 
-        for (let i = 0; i < cellCount; ++i) {
-            // const stride = i * 4;
-            const stride = i;
+        for (let i = 0; i < verticesPerRow; ++i) {
+            for (let j = 0; j < verticesPerRow; ++j) {
+                const noiseX = (props.sectorX * mapRes) + j;
+                const noiseY = (props.sectorY * mapRes) + i;
+                const continentSample = continentNoise.GetNoise(noiseX, noiseY);
+                const continentHeight = sampleNoise(continentSample, props.continent);
+                const erosionSample = erosionNoise.GetNoise(noiseX, noiseY);
+                const erosionHeight = sampleNoise(erosionSample, props.erosion);
+                const height = Math.round(
+                    continentHeight * props.continentGain * props.continentWeight
+                    + erosionHeight * props.erosionGain * props.erosionWeight
+                );
 
-            // if (Math.random() > emptyTileThreshold) {
-            //     const dirtIndex = Math.round(Math.random() * lastDirtTileIndex);
-            //     const indexNormalized = dirtIndex / lastTileIndex;                
-            //     cellTextureData[stride] = indexNormalized * 255;
-            // } else {
-            //     cellTextureData[stride] = 0;
-            // }
+                const vertexIndex = i * verticesPerRow + j;
+                position.setY(vertexIndex, height);
 
-            const cellY = Math.floor(i / mapRes);
-            const cellX = i - cellY * mapRes;
-
-            const continentSample = continentNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
-            const continentHeight = sampleNoise(continentSample, props.continent);
-            const erosionSample = erosionNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
-            const erosionHeight = sampleNoise(erosionSample, props.erosion);
-
-            const startVertexIndex = cellY * verticesPerRow + cellX;
-
-            const height = Math.round(
-                continentHeight * props.continentGain * props.continentWeight
-                + erosionHeight * props.erosionGain * props.erosionWeight
-            );
-            position.setY(startVertexIndex, height);
-            position.setY(startVertexIndex + 1, height);
-            position.setY(startVertexIndex + verticesPerRow, height);
-            position.setY(startVertexIndex + verticesPerRow + 1, height);
-
-            const lastContinentHeight = props.continent[props.continent.length - 1].y;
-            // const heightNormalized = continentHeight / lastContinentHeight;
-            // const tileIndex = Math.round(heightNormalized * 4);
-
-            const setColor = (vertexIndex: number) => {
                 if (height >= 0 && height <= 1) {
-                    const sandSample = sandNoise.GetNoise((props.sectorX * mapRes) + cellX, (props.sectorY * mapRes) + cellY);
+                    const sandSample = sandNoise.GetNoise(noiseX, noiseY);
                     const factor = (sandSample + 1) / 2;
                     colorMix.lerpColors(yellowSand, sand, factor).toArray(color.array, vertexIndex * 3);
                 } else {
@@ -168,16 +147,17 @@ export class Terrain {
                     colorMix.lerpColors(sand, stone, heightFactor).toArray(color.array, vertexIndex * 3);
                 }
             }
+        }
 
-            setColor(startVertexIndex);
-            setColor(startVertexIndex + 1);
-            setColor(startVertexIndex + verticesPerRow);
-            setColor(startVertexIndex + verticesPerRow + 1);
+        terrainGeometry.computeVertexNormals();
 
+        for (let i = 0; i < cellCount; ++i) {
+             // const stride = i * 4;
+            const stride = i;
             const indexNormalized = (32 + 0) / lastTileIndex;
             // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
-            cellTextureData[stride] = indexNormalized * 255;            
-        }        
+            cellTextureData[stride] = indexNormalized * 255;          
+        }
 
         const cellTexture = new DataTexture(cellTextureData, mapRes, mapRes, RedFormat);
         cellTexture.magFilter = NearestFilter;
