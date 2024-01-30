@@ -12,6 +12,7 @@ import { GameMapLoader, GameMapLoaderProps } from "./GameMapLoader";
 import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
 import { Test, TestProps } from "./Test";
+import { Trees, TreesProps } from "./Trees";
 import { Water, WaterProps } from "./Water";
 
 export function registerComponents() {
@@ -28,5 +29,6 @@ export function registerComponents() {
     componentFactory.register<FlockProps>(Flock);
     componentFactory.register<FadeoutProps>(Fadeout);
     componentFactory.register<BezierPathProps>(BezierPath);
+    componentFactory.register<TreesProps>(Trees);
 }
 

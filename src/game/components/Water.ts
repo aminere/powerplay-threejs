@@ -10,7 +10,7 @@ export class WaterProps extends ComponentProps {
     strength = 1;
     frequency = 5;
     speed = .1;
-    size = 1;
+    mapSize = 1;
 
     constructor(props?: Partial<WaterProps>) {
         super();
@@ -78,7 +78,7 @@ export class Water extends Component<WaterProps> {
             }
         });     
 
-        const rowSize = this.props.size;
+        const rowSize = this.props.mapSize;
         const count = rowSize * rowSize;
         const plane = new InstancedMesh(geometry, waterMaterial, count);
 

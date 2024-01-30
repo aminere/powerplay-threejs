@@ -20,6 +20,7 @@ import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";
 import { Flock } from "./Flock";
 import { Water } from "./Water";
+import { Trees } from "./Trees";
 
 const { mapRes } = config.game;
 
@@ -371,7 +372,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         // water
         const water = utils.createObject(engine.scene!, "water");
         water.position.setY(-.75);
-        engineState.setComponent(water, new Water({ size: this.props.size }));
+        engineState.setComponent(water, new Water({ mapSize: this.props.size }));
+
+        // trees
+        const trees = utils.createObject(engine.scene!, "trees");
+        engineState.setComponent(trees, new Trees({ mapSize: this.props.size }));
     }
 
     private disposeSectors() {
