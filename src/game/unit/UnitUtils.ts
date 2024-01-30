@@ -83,7 +83,7 @@ class UnitUtils {
                 const flowfieldInfo =  _flowField[currentCellIndex];
                 const { direction, directionValid } = flowfieldInfo;
                 if (!directionValid) {
-                    flowField.computeDirection(_flowField, sector!.flowFieldCosts, currentCellIndex, direction);
+                    flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
                     flowfieldInfo.directionValid = true;
                 }
                 cellDirection3.set(direction.x, 0, direction.y);

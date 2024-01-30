@@ -26,18 +26,18 @@ export class FlowfieldViewer extends Object3D {
         const linePoints = new Array<Vector3>();
         const cellIndex = localCoords.y * mapRes + localCoords.x;
         const cell = sector.cells[cellIndex];
-        const costs = sector.flowFieldCosts;
-        for (let i = 0; i < sector.cells.length; i++) {
+        const cells = sector.cells;
+        for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
             const cellX = i - cellY * mapRes;
             if (cellX === localCoords.x && cellY === localCoords.y) {
                 continue;
             }
-            const cost = costs[i];
+            const cost = cells[i].flowFieldCost;
             if (cost === 0xffff) {
                 continue;
             }
-            const computed = flowField.computeDirection(cell.flowField, costs, i, cellDirection);
+            const computed = flowField.computeDirection(cell.flowField, cells, i, cellDirection);
             if (computed) {
                 currentCoords.set(cellX, cellY);
                 GameUtils.mapToWorld(currentCoords, worldPos1);

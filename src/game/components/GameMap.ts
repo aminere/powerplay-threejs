@@ -22,8 +22,6 @@ import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { Trees } from "./Trees";
 
-const { mapRes } = config.game;
-
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
     constructor(props?: Partial<GameMapProps>) {

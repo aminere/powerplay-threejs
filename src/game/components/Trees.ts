@@ -95,10 +95,13 @@ export class Trees extends Component<TreesProps> {
             }
         });
 
+        const { mapSize } = this.props;
         const treeCellSize = cellSize * 2;
         const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
         const treeMapSize = treeMapRes * treeCellSize;
         const maxTreesPerSector = treeMapRes * treeMapRes;
+        const sectorCount = mapSize * mapSize;
+        const maxTrees = maxTreesPerSector * sectorCount;
         const matrix = new Matrix4();
         const worldPos = new Vector3();
         const quaternion = new Quaternion();
@@ -107,7 +110,6 @@ export class Trees extends Component<TreesProps> {
         const mapCoords = new Vector2();
         const localCoords = new Vector2();
         const verticesPerRow = mapRes + 1;
-        const { mapSize } = this.props;
         const { sectors } = gameMapState;
 
         Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)))
@@ -118,7 +120,7 @@ export class Trees extends Component<TreesProps> {
 
                 const treeGeometries = treeMeshes.map(m => m[0].geometry);
                 const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
-                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTreesPerSector);                    
+                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);                    
                     instancedMesh.name = `${trees[index]}`;
                     instancedMesh.castShadow = true;
                     owner.add(instancedMesh);

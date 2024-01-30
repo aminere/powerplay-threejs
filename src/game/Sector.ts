@@ -1,4 +1,4 @@
-import { MeshPhongMaterial, Object3D, TextureLoader, Vector2, Vector3 } from "three";
+import { MeshPhongMaterial, Object3D, Vector2, Vector3 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
@@ -8,6 +8,7 @@ import { MathUtils } from "three/src/math/MathUtils.js";
 import { GameUtils } from "./GameUtils";
 import { utils } from "../engine/Utils";
 import { meshes } from "../engine/Meshes";
+import { textures } from "../engine/Textures";
 
 const { elevationStep } = config.game;
 
@@ -26,11 +27,9 @@ export class Sector {
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map(() => {
             const cell: ICell = {
-                flowField: {
-                    integrations: grid.map(() => 0xffff),
-                    directions: grid.map(() => [new Vector2(), false])
-                },
-                isEmpty: true
+                flowField: [],
+                isEmpty: true,
+                flowFieldCost: 1
             };
             return cell;
         })
@@ -55,7 +54,6 @@ export class Sector {
                 terrain: cellTextureData,
                 highlight: highlightTextureData
             },
-            flowFieldCosts: grid.map(() => 1)
         };
         sectors.set(`${x},${y}`, sector);
         sectorRoot.add(terrain);
@@ -71,7 +69,7 @@ export class Sector {
             // "diamond",
         ];
         
-        const atlas = new TextureLoader().load(`/models/atlas-albedo-LPUP.png`);
+        const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
 
         Promise.all([            
             meshes.load(`/models/props/grass-clumb.fbx`),

@@ -12,6 +12,8 @@ const trees = [
     "palm-high"
 ];
 
+const { cellSize } = config.game;
+
 class Resources {
     public create(sector: ISector, localCoords: Vector2, cell: ICell, type: ResourceType) {
         const resource = utils.createObject(sector.layers.resources, type); 
@@ -39,14 +41,12 @@ class Resources {
                     }
                 });
         }
-        const { cellSize, mapRes } = config.game;
         resource.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
         cell.resource = resource;
         cell.isEmpty = false;
 
         // update cost field
-        const cellIndex = localCoords.y * mapRes + localCoords.x;
-        sector.flowFieldCosts[cellIndex] = 0xffff;
+        cell.flowFieldCost = 0xffff;
     }
 
     public clear(sector: ISector, cell: ICell) {
@@ -55,6 +55,7 @@ class Resources {
         if (!cell.building) {
             cell.isEmpty = true;
         }
+        cell.flowFieldCost = 1;
     }
 }
 

@@ -1,15 +1,27 @@
 import { Vector2 } from "three";
-import { IFlowField } from "../GameTypes";
+import type { ICell, TFlowField } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { gameMapState } from "../components/GameMapState";
 
-function resetField(field: IFlowField) {
-    const { integrations, directions } = field;
-    for (let i = 0; i < integrations.length; i++) {
-        integrations[i] = 0xffff;
-        directions[i][1] = false;
-    }
+const { mapRes } = config.game;
+
+function resetField(field: TFlowField) {    
+    if (field.length === 0) {
+        const cellCount = mapRes * mapRes;
+        for (let i = 0; i < cellCount; ++i) {
+            field.push({
+                integration: 0xffff,
+                direction: new Vector2(),
+                directionValid: false
+            });
+        }
+    } else {
+        for (const cell of field) {
+            cell.integration = 0xffff;
+            cell.directionValid = false;
+        }
+    }    
 }
 
 function shiftSet(set: Set<number>) {
@@ -19,26 +31,25 @@ function shiftSet(set: Set<number>) {
     }
 }
 
-const { mapRes } = config.game;
 class FlowField {
     public compute(targetCoords: Vector2, sectorCoordsOut: Vector2, localCoordsOut: Vector2) {
         const cell = GameUtils.getCell(targetCoords, sectorCoordsOut, localCoordsOut);
         if (cell) {
             resetField(cell.flowField);
-            const { integrations } = cell.flowField;
             const cellIndex = localCoordsOut.y * mapRes + localCoordsOut.x;
-            integrations[cellIndex] = 0;
+            cell.flowField[cellIndex].integration = 0;
             const openList = new Set<number>();
             openList.add(cellIndex);
 
             const sector = gameMapState.sectors.get(`${sectorCoordsOut.x},${sectorCoordsOut.y}`)!;
-            const costs = sector.flowFieldCosts;
+            const cells = sector.cells;
             const checkNeighbor = (neighborX: number, neighborY: number, currentIndex: number, diagonalCost: number) => {
                 const neighborIndex = neighborY * mapRes + neighborX;
-                const endNodeCost = integrations[currentIndex] + costs[neighborIndex] + diagonalCost;
-                if (endNodeCost < integrations[neighborIndex]) {
+                const endNodeCost = cell.flowField[currentIndex].integration + cells[neighborIndex].flowFieldCost + diagonalCost;
+                const neighborFlowfieldInfo = cell.flowField[neighborIndex];
+                if (endNodeCost < neighborFlowfieldInfo.integration) {
                     openList.add(neighborIndex);
-                    integrations[neighborIndex] = endNodeCost;
+                    neighborFlowfieldInfo.integration = endNodeCost;
                 }
             };
 
@@ -68,16 +79,16 @@ class FlowField {
                 const bottomNeighborX = currentX;
                 const bottomNeightborY = currentY + 1;
                 const bottomNeighborIndex = bottomNeightborY * mapRes + bottomNeighborX;
-                if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
+                if ((leftNeighborX >= 0 && topNeightborY >= 0) && (cells[leftNeighborIndex].flowFieldCost < 0xffff && cells[topNeighborIndex].flowFieldCost < 0xffff)) {
                     checkNeighbor(leftNeighborX, topNeightborY, currentIndex, 1);
                 }
-                if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
+                if ((rightNeighborX < mapRes && topNeightborY >= 0) && (cells[rightNeighborIndex].flowFieldCost < 0xffff && cells[topNeighborIndex].flowFieldCost < 0xffff)) {
                     checkNeighbor(rightNeighborX, topNeightborY, currentIndex, 1);
                 }
-                if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
+                if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (cells[leftNeighborIndex].flowFieldCost < 0xffff && cells[bottomNeighborIndex].flowFieldCost < 0xffff)) {
                     checkNeighbor(leftNeighborX, bottomNeightborY, currentIndex, 1);
                 }
-                if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
+                if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (cells[rightNeighborIndex].flowFieldCost < 0xffff && cells[bottomNeighborIndex].flowFieldCost < 0xffff)) {
                     checkNeighbor(rightNeighborX, bottomNeightborY, currentIndex, 1);
                 }
             }
@@ -86,13 +97,12 @@ class FlowField {
         return false;
     }
 
-    public computeDirection(flowField: IFlowField, costs: number[], cellIndex: number, directionOut: Vector2) {
-        const { integrations } = flowField;
+    public computeDirection(flowField: TFlowField, cells: ICell[], cellIndex: number, directionOut: Vector2) {
         let minCost = 0xffff;
         let minIndex = -1;
         const considerNeighbor = (neighborX: number, neighborY: number) => {
             const neighborIndex = neighborY * mapRes + neighborX;
-            const cost = integrations[neighborIndex];
+            const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
                 minCost = cost;
                 minIndex = neighborIndex;
@@ -123,16 +133,16 @@ class FlowField {
         const bottomNeighborX = cellX;
         const bottomNeightborY = cellY + 1;
         const bottomNeighborIndex = bottomNeightborY * mapRes + bottomNeighborX;
-        if ((leftNeighborX >= 0 && topNeightborY >= 0) && (costs[leftNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
+        if ((leftNeighborX >= 0 && topNeightborY >= 0) && (cells[leftNeighborIndex].flowFieldCost < 0xffff && cells[topNeighborIndex].flowFieldCost < 0xffff)) {
             considerNeighbor(leftNeighborX, topNeightborY);
         }
-        if ((rightNeighborX < mapRes && topNeightborY >= 0) && (costs[rightNeighborIndex] < 0xffff && costs[topNeighborIndex] < 0xffff)) {
+        if ((rightNeighborX < mapRes && topNeightborY >= 0) && (cells[rightNeighborIndex].flowFieldCost < 0xffff && cells[topNeighborIndex].flowFieldCost < 0xffff)) {
             considerNeighbor(rightNeighborX, topNeightborY);
         }
-        if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (costs[leftNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
+        if ((leftNeighborX >= 0 && bottomNeightborY < mapRes) && (cells[leftNeighborIndex].flowFieldCost < 0xffff && cells[bottomNeighborIndex].flowFieldCost < 0xffff)) {
             considerNeighbor(leftNeighborX, bottomNeightborY);
         }
-        if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (costs[rightNeighborIndex] < 0xffff && costs[bottomNeighborIndex] < 0xffff)) {
+        if ((rightNeighborX < mapRes && bottomNeightborY < mapRes) && (cells[rightNeighborIndex].flowFieldCost < 0xffff && cells[bottomNeighborIndex].flowFieldCost < 0xffff)) {
             considerNeighbor(rightNeighborX, bottomNeightborY);
         }
         if (minIndex >= 0) {

@@ -125,18 +125,16 @@ export class Buildings {
         cell.isEmpty = false;
 
         // update cost field
-        const cellIndex = localCoords.y * mapRes + localCoords.x;
-        sector.flowFieldCosts[cellIndex] = 0xffff;
+        cell.flowFieldCost = 0xffff;
     }
 
-    public static clear(sector: ISector, localCoords: Vector2, cell: ICell) {
+    public static clear(sector: ISector, cell: ICell) {
         sector.layers.buildings.remove(cell.building!);
         delete cell.building;
         if (!cell.resource) {
             cell.isEmpty = true;
         }
-        const cellIndex = localCoords.y * mapRes + localCoords.x;
-        sector.flowFieldCosts[cellIndex] = 1;
+        cell.flowFieldCost = 1;
     }
 }
 
