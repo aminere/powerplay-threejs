@@ -1,5 +1,5 @@
 
-import { MathUtils, Mesh, MeshPhongMaterial, Object3D, TextureLoader, Vector2, Vector3 } from "three";
+import { InstancedMesh, MathUtils, Matrix4, Mesh, MeshPhongMaterial, Object3D, Quaternion, TextureLoader, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/Component";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { meshes } from "../../engine/Meshes";
@@ -7,8 +7,6 @@ import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
-import { engine } from "../../engine/Engine";
-import { utils } from "../../engine/Utils";
 
 export class TreesProps extends ComponentProps {
 
@@ -33,49 +31,65 @@ export class Trees extends Component<TreesProps> {
         super(new TreesProps(props));
     }
 
-    override start(_owner: Object3D) {
+    override start(owner: Object3D) {
         const trees = [
-            "palm-high",
-            "palm-big",
-            "palm",
-            "palm-round",
-        ];
+            ["palm-high", 1],
+            ["palm-round", 1],
+            ["palm-big", .01],
+            ["palm", .01]
+        ] as const;
 
         const atlas = new TextureLoader().load(`/models/atlas-albedo-LPUP.png`);
+        const treeMaterial = new MeshPhongMaterial({
+            map: atlas
+        });
+        const treeCellSize = cellSize * 2;
+        const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
+        const treeMapSize = treeMapRes * treeCellSize;
+        const maxTreesPerSector = treeMapRes * treeMapRes;
+        const matrix = new Matrix4();
+        const worldPos = new Vector3();
+        const quaternion = new Quaternion();
+        const scale = new Vector3(1, 1, 1);
+        const mapCoords = new Vector2();
+        const localCoords = new Vector2();
+        const verticesPerRow = mapRes + 1;
+        const { mapSize } = this.props;
+        const { sectors } = gameMapState;
 
-        Promise.all([
-            ...trees.map(s => meshes.load(`/models/trees/${s}.fbx`))
-        ])
+        Promise.all(trees.map(([s]) => meshes.load(`/models/trees/${s}.fbx`)))
             .then(treeMeshes => {
 
                 treeNoise.SetFrequency(.05);
                 treeNoise2.SetFrequency(.05 * .5);
-                const treeLib = treeMeshes.map(m => m[0]);
-                const treeCellSize = cellSize * 2;
-                const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
-                const treeMapSize = treeMapRes * treeCellSize;
-                const worldPos = new Vector3();
-                const mapCoords = new Vector2();
-                const localCoords = new Vector2();
-                const verticesPerRow = mapRes + 1;
-                const { sectors } = gameMapState;
-                const trees = utils.createObject(engine.scene!, "trees");
 
-                for (let i = 0; i < this.props.mapSize; ++i) {
-                    for (let j = 0; j < this.props.mapSize; ++j) {
+                const treeGeometries = treeMeshes.map(m => m[0].geometry);
+                const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
+                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTreesPerSector);
+                    instancedMesh.name = `${trees[index][0]}`;
+                    instancedMesh.castShadow = true;
+                    owner.add(instancedMesh);
+                    return {
+                        instancedMesh,
+                        count: 0
+                    };
+                });
+
+                for (let i = 0; i < mapSize; ++i) {
+                    for (let j = 0; j < mapSize; ++j) {
                         const sectorX = j;
                         const sectorY = i;
                         const sector = sectors.get(`${sectorX},${sectorY}`);
                         const terrain = sector?.layers.terrain as Mesh;
                         const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
-                        for (let i = 0; i < treeMapRes; ++i) {
-                            for (let j = 0; j < treeMapRes; ++j) {
+                        for (let k = 0; k < treeMapRes; ++k) {
+                            for (let l = 0; l < treeMapRes; ++l) {
                                 const localX = MathUtils.randFloat(0, treeCellSize);
                                 const localY = MathUtils.randFloat(0, treeCellSize);
                                 const plantSectorX = sectorX * treeMapSize;
                                 const plantSectorY = sectorY * treeMapSize;
-                                const plantWorldX = plantSectorX + i * treeCellSize + sectorOffset + localX;
-                                const plantWorldY = plantSectorY + j * treeCellSize + sectorOffset + localY;
+                                const plantWorldX = plantSectorX + l * treeCellSize + sectorOffset + localX;
+                                const plantWorldY = plantSectorY + k * treeCellSize + sectorOffset + localY;
                                 worldPos.set(plantWorldX, 0, plantWorldY);
                                 GameUtils.worldToMap(worldPos, mapCoords);
                                 const cell = GameUtils.getCell(mapCoords, undefined, localCoords);
@@ -90,32 +104,33 @@ export class Trees extends Component<TreesProps> {
                                 const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
                                 const _minHeight = Math.min(_height1, _height2, _height3, _height4);
                                 if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
-                                    const treeSample = treeNoise.GetNoise((sectorX * mapRes) + localCoords.x, (sectorY * mapRes) + localCoords.y);
-                                    const treeSample2 = treeNoise2.GetNoise((sectorX * mapRes) + localCoords.x, (sectorY * mapRes) + localCoords.y);
+                                    const noiseX = (sectorX * mapRes) + localCoords.x;
+                                    const noiseY = (sectorY * mapRes) + localCoords.y;
+                                    const treeSample = treeNoise.GetNoise(noiseX, noiseY);
+                                    const treeSample2 = treeNoise2.GetNoise(noiseX, noiseY);
                                     if (treeSample > 0 && treeSample2 > 0) {
-                                        const treeIndex = MathUtils.randInt(0, treeLib.length - 1);
-                                        const meshInstance = treeLib[treeIndex].clone();
-                                        const material = meshInstance.material as MeshPhongMaterial;
-                                        material.map = atlas;
-                                        meshInstance.castShadow = true;
-                                        const factor = Math.random();
-                                        const minScale = 0.003;
-                                        const maxScale = 0.005;
-                                        meshInstance.scale.setScalar(minScale + (maxScale - minScale) * factor);
-                                        meshInstance.rotateY(MathUtils.randFloat(0, Math.PI * 2));
-                                        meshInstance.position.set(
-                                            worldPos.x /*- sectorRoot.position.x*/,
-                                            _minHeight * elevationStep,
-                                            worldPos.z /*- sectorRoot.position.z*/
-                                        );
-
-                                        trees.add(meshInstance);
-                                        // resources.add(meshInstance);
+                                        const treeIndex = MathUtils.randInt(0, treeInstancedMeshes.length - 1);
+                                        console.log(treeIndex);
+                                        worldPos.setY(_minHeight * elevationStep);                                        
+                                        const minScale = 0.3;
+                                        const maxScale = 0.5;
+                                        scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
+                                        const scaleFactor = trees[treeIndex][1];
+                                        scale.multiplyScalar(scaleFactor);
+                                        matrix.compose(worldPos, quaternion, scale);
+                                        const treeMesh = treeInstancedMeshes[treeIndex];
+                                        const count = treeMesh.count;
+                                        treeMesh.instancedMesh.setMatrixAt(count, matrix);
+                                        treeMesh.count = count + 1;
                                     }
                                 }
                             }
                         }
                     }
+                }
+
+                for (const treeMesh of treeInstancedMeshes) {
+                    treeMesh.instancedMesh.count = treeMesh.count;
                 }
             });
     }
