@@ -51,6 +51,7 @@ export class Trees extends Component<TreesProps> {
         const worldPos = new Vector3();
         const quaternion = new Quaternion();
         const scale = new Vector3(1, 1, 1);
+        const up = new Vector3(0, 1, 0);
         const mapCoords = new Vector2();
         const localCoords = new Vector2();
         const verticesPerRow = mapRes + 1;
@@ -117,6 +118,7 @@ export class Trees extends Component<TreesProps> {
                                         scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
                                         const scaleFactor = trees[treeIndex][1];
                                         scale.multiplyScalar(scaleFactor);
+                                        quaternion.setFromAxisAngle(up, MathUtils.randFloat(0, Math.PI * 2));
                                         matrix.compose(worldPos, quaternion, scale);
                                         const treeMesh = treeInstancedMeshes[treeIndex];
                                         const count = treeMesh.count;
