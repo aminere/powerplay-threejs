@@ -6,14 +6,22 @@ class Meshes {
     private _gltfLoader = new GLTFLoader();
     private _fbxLoader = new FBXLoader();
     private _cache = new Map<string, Mesh[]>();
+    private _loading = new Map<string, Promise<Mesh[]>>();
 
     public async load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {
-            console.log(`returning cached meshes for ${path}`);
+            // console.log(`returning cached meshes for ${path}`);
             return cached;
         }
-        return new Promise<Mesh[]>((resolve, reject) => {     
+
+        const inProgress = this._loading.get(path);
+        if (inProgress) {
+            // console.log(`returning in-progress meshes for ${path}`);
+            return inProgress;
+        }
+
+        const promise = new Promise<Mesh[]>((resolve, reject) => {     
             const ext = path.split(".").pop()?.toLowerCase();
             if (ext === "fbx") {
                 this._fbxLoader.load(
@@ -35,7 +43,9 @@ class Meshes {
                         reject(error);
                     });
             }
-        })
+        });
+        this._loading.set(path, promise);
+        return promise;
     }
 
     private extractMeshes(path: string, root: Object3D) {
@@ -46,6 +56,7 @@ class Meshes {
             }
         });
         this._cache.set(path, list);
+        this._loading.delete(path);
         return list;
     }
 }

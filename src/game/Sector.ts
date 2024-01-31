@@ -3,12 +3,12 @@ import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
+import { utils } from "../engine/Utils";
+
 import { MathUtils } from "three/src/math/MathUtils.js";
 import { GameUtils } from "./GameUtils";
-import { utils } from "../engine/Utils";
 import { meshes } from "../engine/Meshes";
 import { textures } from "../engine/Textures";
-
 const { elevationStep } = config.game;
 
 export class Sector {
@@ -18,10 +18,13 @@ export class Sector {
         const { mapRes, cellSize } = config.game;
 
         const sectorRoot = new Object3D();
+        sectorRoot.matrixAutoUpdate = false;
+        sectorRoot.matrixWorldAutoUpdate = false;
         sectorRoot.name = `sector-${x},${y}`;
         const mapSize = mapRes * cellSize;
         const offset = -mapSize / 2;
         sectorRoot.position.set(x * mapSize + offset, 0, y * mapSize + offset);
+        sectorRoot.updateMatrix();
 
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map(() => {
