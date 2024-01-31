@@ -8,56 +8,61 @@ class Meshes {
     private _cache = new Map<string, Mesh[]>();
     private _loading = new Map<string, Promise<Mesh[]>>();
 
-    public async load(path: string) {
+    public load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {
-            // console.log(`returning cached meshes for ${path}`);
+            console.log(`returning cached meshes for ${path}`);
             return cached;
         }
 
         const inProgress = this._loading.get(path);
         if (inProgress) {
-            // console.log(`returning in-progress meshes for ${path}`);
+            console.log(`returning in-progress meshes for ${path}`);
             return inProgress;
         }
 
-        const promise = new Promise<Mesh[]>((resolve, reject) => {     
-            const ext = path.split(".").pop()?.toLowerCase();
-            if (ext === "fbx") {
-                this._fbxLoader.load(
-                    path,
-                    root => resolve(this.extractMeshes(path, root)),
-                    undefined,
-                    error => {
-                        console.error(error);
-                        reject(error);
-                    });
-                return;
-            } else {
-                this._gltfLoader.load(
-                    path,
-                    gltf => resolve(this.extractMeshes(path, gltf.scene)),
-                    undefined,
-                    error => {
-                        console.error(error);
-                        reject(error);
-                    });
-            }
-        });
+        const promise = this.loadScene(path)
+            .then(root => {
+                const meshes = root.getObjectsByProperty("isMesh", true) as Mesh[];
+                this._cache.set(path, meshes);
+                this._loading.delete(path);
+                return meshes;
+            })
+            .catch(error => {
+                console.error(error);
+                this._loading.delete(path);
+                return [];
+            });
+
         this._loading.set(path, promise);
         return promise;
     }
 
-    private extractMeshes(path: string, root: Object3D) {
-        const list: Mesh[] = [];
-        root.traverse(child => {
-            if ((child as Mesh).isMesh) {
-                list.push(child as Mesh);
-            }
-        });
-        this._cache.set(path, list);
-        this._loading.delete(path);
-        return list;
+    private loadScene(path: string) {
+        const ext = path.split(".").pop()?.toLowerCase();
+        switch (ext) {
+            case "fbx":
+                return new Promise<Object3D>((resolve, reject) => {
+                    this._fbxLoader.load(
+                        path,
+                        root => resolve(root),
+                        undefined,
+                        error => reject(error));
+                })
+
+            case "glb":
+            case "gltf":
+                return new Promise<Object3D>((resolve, reject) => {
+                    this._gltfLoader.load(
+                        path,
+                        gltf => resolve(gltf.scene),
+                        undefined,
+                        error => reject(error));
+                })
+
+            default:
+                return Promise.reject(`unknown file type: ${ext}`);
+        }
     }
 }
 
