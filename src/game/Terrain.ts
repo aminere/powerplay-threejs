@@ -1,6 +1,6 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Texture, Vector2 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Sphere, Texture, Vector2, Vector3 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/Textures';
 
@@ -152,6 +152,20 @@ export class Terrain {
 
         terrainGeometry.computeVertexNormals();
 
+        // custom bounding sphere
+        let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;        
+        for (let i = 0; i < position.count; ++i) {
+            const x = position.getX(i);
+            const z = position.getZ(i);
+            if (x < minX) minX = x;
+            else if (x > maxX) maxX = x;
+            if (z < minZ) minZ = z;
+            else if (z > maxZ) maxZ = z;
+        }
+        const center = new Vector3((minX + maxX) / 2, 0, (minZ + maxZ) / 2);
+        const corner = new Vector3(maxX, 0, maxZ);
+        terrainGeometry.boundingSphere = new Sphere(center, center.distanceTo(corner));
+
         for (let i = 0; i < cellCount; ++i) {
              // const stride = i * 4;
             const stride = i;
@@ -270,7 +284,10 @@ export class Terrain {
 
         const terrain = new Mesh(terrainGeometry, terrainMaterial);
         terrain.name = "terrain";
+        terrain.matrixWorldAutoUpdate = false;
+        terrain.matrixAutoUpdate = false;
         terrain.scale.set(1, elevationStep, 1);
+        terrain.updateMatrix();
         terrain.userData.unserializable = true;
         // terrain.castShadow = true;
         terrain.receiveShadow = true;        
