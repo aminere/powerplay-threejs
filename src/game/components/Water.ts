@@ -81,7 +81,10 @@ export class Water extends Component<WaterProps> {
 
         const rowSize = this.props.mapSize;
         const count = rowSize * rowSize;
-        const plane = new InstancedMesh(geometry, waterMaterial, count);
+        const waterMesh = new InstancedMesh(geometry, waterMaterial, count);        
+        waterMesh.frustumCulled = false;
+        waterMesh.matrixAutoUpdate = false;
+        waterMesh.matrixWorldAutoUpdate = false;        
 
         const matrix = new Matrix4();
         const position = new Vector3();
@@ -93,11 +96,11 @@ export class Water extends Component<WaterProps> {
                 const index = i * rowSize + j;
                 position.set(i * patchSize, 0, j * patchSize);
                 matrix.compose(position, quaternion, scale);
-                plane.setMatrixAt(index, matrix);
+                waterMesh.setMatrixAt(index, matrix);
             }
         }
 
-        owner.add(plane);
+        owner.add(waterMesh);
     }
 
     override update(owner: Object3D) {
