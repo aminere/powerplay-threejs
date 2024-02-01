@@ -147,14 +147,21 @@ export class Flock extends Component<FlockProps, IFlockState> {
                                     continue;
                                 }
 
-                                let targetCell = path[path.length - 1];
-                                if (!cell.isEmpty) {
-                                    if (path.length > 2) {
-                                        targetCell = path[path.length - 2];                                        
+                                const resource = cell.resource?.name;
+                                const targetCell = (() => {
+                                    if (resource) {
+                                        return cellCoords;
+                                    } else if (cell.isEmpty) {
+                                        return path[path.length - 1];
+                                    } else if (path.length > 2) {
+                                        return path[path.length - 2];
                                     } else {
-                                        // already near target
-                                        continue;
+                                        return null;
                                     }
+                                })();
+                                
+                                if (!targetCell) {
+                                    continue;
                                 }
 
                                 // moving within the same sector                                
@@ -162,7 +169,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                                 console.assert(computed);
                                 const sector = gameMapState.sectors.get(sectorId)!;
                                 this.state.flowfieldViewer.update(sector, localCoords);
-                                const resource = cell.resource?.name;
                                 const nextState = resource ? MiningState : null;
                                 for (const unit of units) {
                                     if (!unit.isAlive) {
