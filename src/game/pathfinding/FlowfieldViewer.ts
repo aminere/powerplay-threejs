@@ -5,11 +5,14 @@ import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
 import { flowField } from "./Flowfield";
+import { pools } from "../../engine/Pools";
 
 const currentCoords = new Vector2();
 const cellDirection = new Vector2();
 const worldPos1 = new Vector3();
 const cellDirection3 = new Vector3();
+const { mapRes, cellSize } = config.game;
+const mapSize = mapRes * cellSize;
 export class FlowfieldViewer extends Object3D {
     constructor() {
         super();
@@ -53,6 +56,10 @@ export class FlowfieldViewer extends Object3D {
         const pointCoords = linePoints.filter((_, i) => i % 2 !== 0);
         points.geometry.setFromPoints(pointCoords);
         points.geometry.computeBoundingSphere();
+
+        const offset = pools.vec3.getOne();
+        offset.set(mapSize / 2, 0, mapSize / 2);
+        this.position.copy(sector.root.position).add(offset);
     }
 }
 

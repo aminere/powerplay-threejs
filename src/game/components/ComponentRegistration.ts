@@ -4,6 +4,7 @@ import { BezierPath, BezierPathProps } from "../../engine/components/BezierPath"
 import { Particles } from "../../engine/components/Particles";
 import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
+import { EnvProps, EnvPropsProps } from "./EnvProps";
 import { Fadeout, FadeoutProps } from "./Fadeout";
 import { Flock, FlockProps } from "./Flock";
 
@@ -30,5 +31,6 @@ export function registerComponents() {
     componentFactory.register<FadeoutProps>(Fadeout);
     componentFactory.register<BezierPathProps>(BezierPath);
     componentFactory.register<TreesProps>(Trees);
+    componentFactory.register<EnvPropsProps>(EnvProps);
 }
 

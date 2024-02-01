@@ -4,11 +4,6 @@ import { BezierPath } from "./BezierPath";
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
 
-// export interface IFlowField {
-//     integrations: number[];
-//     directions: [Vector2, boolean][];
-// }
-
 export type TFlowField = Array<{
     integration: number;
     direction: Vector2;

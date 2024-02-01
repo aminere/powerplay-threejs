@@ -20,6 +20,7 @@ import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";
 import { Flock } from "./Flock";
 import { Water } from "./Water";
+import { EnvProps } from "./EnvProps";
 import { Trees } from "./Trees";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
@@ -131,8 +132,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 this.state.previousTouchPos.copy(input.touchPos);
 
                 if (this.state.action) {
-                    const [cellCoords, localCoords] = pools.vec2.get(2);
-                    raycastOnCells(input.touchPos, this.state.camera, cellCoords, localCoords);
+                    const [cellCoords] = pools.vec2.get(1);
+                    raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                     if (cellCoords?.equals(this.state.selectedCellCoords) === false) {                        
                         this.state.tileSelector.setPosition(cellCoords!);
                         this.state.selectedCellCoords.copy(cellCoords!);
@@ -360,12 +361,19 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         // water
         const water = utils.createObject(engine.scene!, "water");
+        water.matrixAutoUpdate = false;
+        water.matrixWorldAutoUpdate = false;
         water.position.setY(-.75);
+        water.updateMatrix();
         engineState.setComponent(water, new Water({ mapSize: this.props.size }));
 
         // trees
         const trees = utils.createObject(engine.scene!, "trees");
         engineState.setComponent(trees, new Trees({ mapSize: this.props.size }));
+
+        // env props
+        const props = utils.createObject(engine.scene!, "env-props");
+        engineState.setComponent(props, new EnvProps({ mapSize: this.props.size }));
     }
 
     private disposeSectors() {

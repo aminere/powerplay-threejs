@@ -28,7 +28,7 @@ export class Water extends Component<WaterProps> {
 
     override start(owner: Object3D) {
         const patchSize = mapRes * cellSize;
-        const geometry = new PlaneGeometry(patchSize, patchSize, 32, 32);
+        const geometry = new PlaneGeometry(patchSize, patchSize, mapRes, mapRes);
         
         const perlin = textures.load("/images/perlin.png");
         perlin.wrapS = RepeatWrapping;

@@ -123,6 +123,9 @@ export class Trees extends Component<TreesProps> {
                     const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);                    
                     instancedMesh.name = `${trees[index]}`;
                     instancedMesh.castShadow = true;
+                    instancedMesh.frustumCulled = false;
+                    instancedMesh.matrixAutoUpdate = false;
+                    instancedMesh.matrixWorldAutoUpdate = false;
                     owner.add(instancedMesh);
                     return {
                         instancedMesh,

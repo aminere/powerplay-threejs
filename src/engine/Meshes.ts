@@ -11,13 +11,13 @@ class Meshes {
     public load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {
-            console.log(`returning cached meshes for ${path}`);
+            // console.log(`returning cached meshes for ${path}`);
             return cached;
         }
 
         const inProgress = this._loading.get(path);
         if (inProgress) {
-            console.log(`returning in-progress meshes for ${path}`);
+            // console.log(`returning in-progress meshes for ${path}`);
             return inProgress;
         }
 
