@@ -27,7 +27,8 @@ import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { ArcherNPCState } from "../unit/ArcherNPCState";
-import { Pathfinding } from "../pathfinding/Pathfinding";
+import { cellPathfinder } from "../pathfinding/CellPathfinder";
+import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 
 export class FlockProps extends ComponentProps {
 
@@ -142,7 +143,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             const [sectorX, sectorY] = sectorId.split(",").map(Number);
                             unitSectorCoords.set(sectorX, sectorY);
                             if (unitSectorCoords.equals(sectorCoords)) {
-                                const path = Pathfinding.findPath(units[0].coords.mapCoords, cellCoords, { diagonals: () => false });
+                                const path = cellPathfinder.findPath(units[0].coords.mapCoords, cellCoords, { diagonals: () => false });
                                 if (!path || path.length < 2) {
                                     continue;
                                 }
@@ -181,6 +182,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             } else {
                                 
                                 // A* across sectors
+                                const path = sectorPathfinder.findPath(unitSectorCoords, sectorCoords);
+                                console.log(path);
 
                             }
                         }

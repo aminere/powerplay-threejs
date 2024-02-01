@@ -6,10 +6,10 @@ import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
 import { Sector } from "../Sector";
 import { gameMapState } from "./GameMapState";
-import { Pathfinding } from "../pathfinding/Pathfinding";
 import { time } from "../../engine/Time";
 import { ComponentProps } from "../../engine/ComponentProps";
 import { engine } from "../../engine/Engine";
+import { cellPathfinder } from "../pathfinding/CellPathfinder";
 
 enum MotionState {
     None,
@@ -248,7 +248,7 @@ export class Car extends Component<CarProps> {
             return;
         }
 
-        const path = Pathfinding.findPath(
+        const path = cellPathfinder.findPath(
             this.props.coords,
             mapCoords,
             {

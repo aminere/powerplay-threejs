@@ -57,6 +57,11 @@ export class GameUtils {
         return sector.cells[localY * mapRes + localX];
     }
 
+    public static getSector(sectorCoords: Vector2) {
+        const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+        return gameMapState.sectors.get(sectorId) ?? null;
+    }
+
     // public static canPlaceRoad(mapCoords: Vector2) {
         // const cell = GameUtils.getCell(mapCoords);
         // if (cell && GameUtils.hasStructure(cell)) {
