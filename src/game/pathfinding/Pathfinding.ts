@@ -48,9 +48,14 @@ function checkNeighbor(
     if (!cell) {
         return NeighborCheckStatus.NotWalkable;
     } else {
-        const walkable = options?.isWalkable?.(cell) ?? cell.isEmpty;
+        const walkable = options?.isWalkable?.(cell) ?? cell.isEmpty;        
         if (!walkable) {
-            return NeighborCheckStatus.NotWalkable;
+            const isTarget = mapCoords.equals(context.end);
+            if (isTarget) {
+                // Allow including the target in the path even if it's not walkable
+            } else {
+                return NeighborCheckStatus.NotWalkable;
+            }            
         }
     }    
 
@@ -71,6 +76,16 @@ function checkNeighbor(
         visited.parent = node;
     }
     return NeighborCheckStatus.JustEvaluated;
+}
+
+function makePath(currentNode: Node) {
+    const path = new Array<Vector2>();
+    let current: Node | null = currentNode;
+    while (current != null) {
+        path.push(current.coords);
+        current = current.parent;
+    }
+    return path.reverse();
 }
 
 // A* pathfinding algorithm
@@ -100,7 +115,7 @@ export class Pathfinding {
         };
 
         let iteration = 0;
-        const maxIterations = 1000;
+        const maxIterations = 500;
         while (true) {
             let nodeWithLowestFCost = -1;
             let lowestFCost = Infinity;            
@@ -122,14 +137,8 @@ export class Pathfinding {
             }
 
             const currentNode = toEvaluate[nodeWithLowestFCost];
-            if (currentNode.coords.x === context.end.x && currentNode.coords.y === context.end.y) {
-                const path = new Array<Vector2>();
-                let current: Node | null = currentNode;
-                while (current != null) {
-                    path.push(current.coords);                    
-                    current = current.parent;
-                }
-                return path.reverse();
+            if (currentNode.coords.equals(context.end)) {
+                return makePath(currentNode);
             }
 
             evaluated.push(currentNode);
@@ -140,8 +149,8 @@ export class Pathfinding {
             const topStatus = checkNeighbor(context, currentNode, 0, -1, options);
             const bottomStatus = checkNeighbor(context, currentNode, 0, 1, options);
             
-            const _diagonals = currentNode.cell ? (options?.diagonals?.(currentNode.cell!) ?? true) : true;
-            if (_diagonals) {
+            const diagonals = currentNode.cell ? (options?.diagonals?.(currentNode.cell!) ?? true) : true;
+            if (diagonals) {
                 // do not move diagonally near corners
                 const leftWalkable = leftStatus !== NeighborCheckStatus.NotWalkable;
                 const rightWalkable = rightStatus !== NeighborCheckStatus.NotWalkable;

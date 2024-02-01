@@ -27,6 +27,7 @@ import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { ArcherNPCState } from "../unit/ArcherNPCState";
+import { Pathfinding } from "../pathfinding/Pathfinding";
 
 export class FlockProps extends ComponentProps {
 
@@ -121,20 +122,60 @@ export class Flock extends Component<FlockProps, IFlockState> {
             } else if (input.touchButton === 2) {
                 if (this.state.selectedUnits.length > 0) {                    
                     const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
-                    const cell = raycastOnCells(input.touchPos, gameMapState.camera, cellCoords);
-                    if (cell) {
-                        const computed = flowField.compute(cellCoords, sectorCoords, localCoords);
-                        if (computed) {                        
-                            const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                            this.state.flowfieldViewer.update(sector, localCoords);
-                            const resource = cell.resource?.name;
-                            const nextState = resource ? MiningState : null;
-                            for (const unit of this.state.selectedUnits) {
-                                if (!unit.isAlive) {
+                    const cell = raycastOnCells(input.touchPos, gameMapState.camera, cellCoords, sectorCoords);
+                    if (cell) {                        
+                        // group units per sector
+                        const groups = this.state.selectedUnits.reduce((prev, cur) => {
+                            const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+                            let units = prev[key];
+                            if (!units) {
+                                units = [cur];
+                                prev[key] = units;
+                            } else {
+                                units.push(cur);
+                            }
+                            return prev;
+                        }, {} as Record<string, Unit[]>);
+
+                        const unitSectorCoords = pools.vec2.getOne();
+                        for (const [sectorId, units] of Object.entries(groups)) {
+                            const [sectorX, sectorY] = sectorId.split(",").map(Number);
+                            unitSectorCoords.set(sectorX, sectorY);
+                            if (unitSectorCoords.equals(sectorCoords)) {
+                                const path = Pathfinding.findPath(units[0].coords.mapCoords, cellCoords, { diagonals: () => false });
+                                if (!path || path.length < 2) {
                                     continue;
                                 }
-                                unitUtils.moveTo(unit, cellCoords);
-                                unit.fsm.switchState(nextState);
+
+                                let targetCell = path[path.length - 1];
+                                if (!cell.isEmpty) {
+                                    if (path.length > 2) {
+                                        targetCell = path[path.length - 2];                                        
+                                    } else {
+                                        // already near target
+                                        continue;
+                                    }
+                                }
+
+                                // moving within the same sector                                
+                                const computed = flowField.compute(targetCell, unitSectorCoords, localCoords);
+                                console.assert(computed);
+                                const sector = gameMapState.sectors.get(sectorId)!;
+                                this.state.flowfieldViewer.update(sector, localCoords);
+                                const resource = cell.resource?.name;
+                                const nextState = resource ? MiningState : null;
+                                for (const unit of units) {
+                                    if (!unit.isAlive) {
+                                        continue;
+                                    }
+                                    unitUtils.moveTo(unit, targetCell);
+                                    unit.fsm.switchState(nextState);
+                                }
+
+                            } else {
+                                
+                                // A* across sectors
+
                             }
                         }
                     }

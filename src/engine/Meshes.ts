@@ -12,7 +12,7 @@ class Meshes {
         const cached = this._cache.get(path);
         if (cached) {
             // console.log(`returning cached meshes for ${path}`);
-            return cached;
+            return Promise.resolve(cached);
         }
 
         const inProgress = this._loading.get(path);
