@@ -27,24 +27,20 @@ export interface ICellPtr {
     cellIndex: number;
 }
 
-function scheduleCommonAnim(unit: IUnit, animation: string, delaySecs: number) {
-    if (unit.skeleton!.timeout) {
-        clearTimeout(unit.skeleton!.timeout);
-    }
-    unit.skeleton!.timeout = setTimeout(() => {
-        unit.skeleton!.isFree = true;
-        unit.skeleton!.timeout = null;
-        unit.skeleton = null;
-        const action = skeletonManager.applySkeleton(animation, unit.obj)!;
-        unit.animation!.name = animation;
-        unit.animation!.action = action;
-    }, delaySecs * 1000);
-};
-
 const { mapRes } = config.game;
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
+
+function setCommonAnimation(unit: IUnit, animation: string) {
+    if (unit.skeleton) {
+        skeletonPool.releaseSkeleton(unit);
+    }
+    const action = skeletonManager.applySkeleton(animation, unit.obj)!;
+    unit.animation!.name = animation;
+    unit.animation!.action = action;
+}
+
 class UnitUtils {
 
     public makeCellPtr(cellAddr: ICellAddr) {
@@ -121,11 +117,15 @@ class UnitUtils {
         }
     }
 
-    public setAnimation(unit: IUnit, animation: string, props?: {
-        transitionDuration?: number;
-        scheduleCommonAnim?: boolean;
-        destAnimLoopMode?: LoopMode;
-    }) {
+    public setAnimation(
+        unit: IUnit,
+        animation: string,
+        props?: {
+            transitionDuration?: number;
+            scheduleCommonAnim?: boolean;
+            destAnimLoopMode?: LoopMode;
+        }
+    ) {
         if (animation === unit.animation!.name) {
             return;
         }
@@ -134,38 +134,28 @@ class UnitUtils {
 
             const { transitionDuration, destAnimLoopMode } = props;
             const skeletonId = getSkeletonId(unit.animation!.name, animation);
+            
             if (unit.skeleton?.id === skeletonId) {
-                skeletonPool.transition({ 
-                    unit,
-                    destAnim: animation, 
-                    duration: transitionDuration,
-                    destAnimLoopMode 
-                });
+                skeletonPool.transition({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode });
             } else {
                 if (unit.skeleton) {
                     skeletonPool.releaseSkeleton(unit);
                 }
-                skeletonPool.applyTransitionSkeleton({
-                    unit,
-                    destAnim: animation,
-                    duration: transitionDuration,
-                    destAnimLoopMode        
-                });
+                skeletonPool.applyTransitionSkeleton({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode });
             }
 
             if (props.scheduleCommonAnim) {
-                scheduleCommonAnim(unit, animation, transitionDuration + .2);
+                if (unit.skeleton!.timeout) {
+                    clearTimeout(unit.skeleton!.timeout);
+                }
+                unit.skeleton!.timeout = setTimeout(() => {
+                    unit.skeleton!.timeout = null;
+                    setCommonAnimation(unit, animation);
+                }, transitionDuration * 1000 + 200);
             }
 
         } else {
-
-            if (unit.skeleton) {
-                skeletonPool.releaseSkeleton(unit);
-            }
-
-            const action = skeletonManager.applySkeleton(animation, unit.obj)!;
-            unit.animation!.name = animation;
-            unit.animation!.action = action;
+            setCommonAnimation(unit, animation);
         }
     }
 }
