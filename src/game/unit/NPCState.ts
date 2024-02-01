@@ -7,6 +7,7 @@ import { flowField } from "../pathfinding/Flowfield";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
 import { npcUtils } from "./NPCUtils";
+import { utils } from "../../engine/Utils";
 
 enum NpcStep {
     Idle,
@@ -113,7 +114,7 @@ export class NPCState extends State<IUnit> {
         });
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
-            target.attackers.splice(index, 1);
+            utils.fastDelete(target.attackers, index);
         }
         this._target = null;
         unit.isMoving = false;

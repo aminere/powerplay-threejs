@@ -3,13 +3,21 @@ import { ISector } from "../GameTypes";
 import { IPathfindingContext, PathfindingNode } from "./PathfindingTypes";
 import { astar } from "./AStar";
 import { GameUtils } from "../GameUtils";
+import { utils } from "../../engine/Utils";
 
 type TNode = PathfindingNode<ISector>;
 
 class SectorPathfinder {
+
+    private _toEvaluate = new Array<TNode>();
+    private _evaluated = new Array<TNode>();
+
     public findPath(startCell: Vector2, endCell: Vector2) {        
-        const toEvaluate = new Array<TNode>();
-        const evaluated = new Array<TNode>();
+
+        const toEvaluate = this._toEvaluate;
+        const evaluated = this._evaluated;
+        toEvaluate.length = 0;
+        evaluated.length = 0;
 
         const startNode: TNode = {
             coords: new Vector2().copy(startCell),
@@ -57,7 +65,7 @@ class SectorPathfinder {
             }
 
             evaluated.push(currentNode);
-            toEvaluate.splice(nodeWithLowestFCost, 1);
+            utils.fastDelete(toEvaluate, nodeWithLowestFCost);
 
             astar.checkNeighbor(context, currentNode, -1, 0);
             astar.checkNeighbor(context, currentNode, 1, 0);

@@ -114,10 +114,10 @@ class SkeletonPool {
         const srcAction = unit.animation.action;
         const destClip = engineState.animations.get(destAnim)!.clip;
         const destAction = unit.skeleton!.mixer.existingAction(destClip)!;
+        destAction.reset().play();
         if (props.destAnimLoopMode) {
             utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
-        }
-        destAction.reset().play();
+        }        
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
         unit.animation!.name = destAnim;
         unit.animation!.action = destAction;

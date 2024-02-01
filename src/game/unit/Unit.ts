@@ -2,7 +2,7 @@ import { Quaternion, SkinnedMesh, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { ICellAddr, unitUtils } from "./UnitUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, IUnitAnim, UnitType } from "./IUnit";
+import { IMultiSectorMotion, IUnit, IUnitAnim, UnitType } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
@@ -36,6 +36,7 @@ export class Unit implements IUnit {
     public get animation() { return this._animation; }
     public get skeleton() { return this._skeleton; }
     public get unitsInRange() { return this._unitsInRange; }
+    public get multiSectorMotion() { return this._multiSectorMotion; }
 
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
@@ -46,7 +47,12 @@ export class Unit implements IUnit {
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set rotationVelocity(value: number) { this._rotationVelocity = value; }
-    public set isMoving(value: boolean) { this._isMoving = value; }
+    public set isMoving(value: boolean) { 
+        this._isMoving = value; 
+        if (!value) {
+            this._multiSectorMotion = null;
+        }
+    }
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }
@@ -73,9 +79,10 @@ export class Unit implements IUnit {
         }
     }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
+    public set multiSectorMotion(value: IMultiSectorMotion | null) { this._multiSectorMotion = value; }
 
     private _desiredPosValid = false;
-    private _desiredPos = new Vector3();   
+    private _desiredPos = new Vector3();
     private _targetCell: ICellAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
@@ -100,6 +107,7 @@ export class Unit implements IUnit {
     private _animation: IUnitAnim;
     private _skeleton: IUniqueSkeleton | null = null;
     private _unitsInRange: Array<[IUnit, number]> = [];
+    private _multiSectorMotion: IMultiSectorMotion | null = null; 
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

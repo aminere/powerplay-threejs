@@ -2,12 +2,13 @@ import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
 import { npcUtils } from "./NPCUtils";
-import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
+import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
 import gsap from "gsap";
 import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
+import { utils } from "../../engine/Utils";
 
 enum NpcStep {
     Idle,
@@ -82,8 +83,8 @@ export class ArcherNPCState extends State<IUnit> {
                         unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
 
                         switch (this._attackStep) {
-                            case AttackStep.Draw: {
-                                if (!unit.animation.action.isRunning()) {                                    
+                            case AttackStep.Draw: {                               
+                                if (!unit.animation.action.isRunning()) {                  
                                     this._attackStep = AttackStep.Shoot;                                    
 
                                     let arrow = this._arrows.find(a => a.tween === null);
@@ -120,6 +121,12 @@ export class ArcherNPCState extends State<IUnit> {
                                         transitionDuration: .1,
                                         destAnimLoopMode: "Once"
                                     });
+                                } else {
+                                    if (unit.animation.action.loop !== LoopOnce) {
+                                        debugger;
+                                        console.assert(false);
+                                        this.attack(unit);
+                                    }
                                 }
                             }
                             break;
@@ -178,7 +185,7 @@ export class ArcherNPCState extends State<IUnit> {
         });
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
-            target.attackers.splice(index, 1);
+            utils.fastDelete(target.attackers, index);
         }
         this._target = null;
         unit.isMoving = false;

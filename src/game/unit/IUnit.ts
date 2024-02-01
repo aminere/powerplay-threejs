@@ -1,4 +1,4 @@
-import { AnimationAction, Quaternion, SkinnedMesh, Vector3 } from "three";
+import { AnimationAction, Quaternion, SkinnedMesh, Vector2, Vector3 } from "three";
 import { ICellAddr } from "./UnitUtils";
 import { StateMachine } from "../fsm/StateMachine";
 import { IUniqueSkeleton } from "../animation/SkeletonPool";
@@ -13,6 +13,14 @@ export interface IUnitAnim {
     action: AnimationAction;
 }
 
+export interface IMultiSectorMotion {
+    sectors: Array<{
+        sectorCoords: Vector2;
+        targetCell: ICellAddr;
+    }>;
+    currentSector: number;
+}
+
 export interface IUnit {
     id: number;
     desiredPosValid: boolean;
@@ -21,6 +29,7 @@ export interface IUnit {
     obj: SkinnedMesh;
     coords: ICellAddr;
     isMoving: boolean;
+    multiSectorMotion: IMultiSectorMotion | null;
     isColliding: boolean;
     isAlive: boolean;
     isIdle: boolean;

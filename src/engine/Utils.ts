@@ -100,6 +100,13 @@ class Utils {
             case "PingPong": _action.setLoop(LoopPingPong, repetitions); break;
         }
     }
+
+    public fastDelete<T>(array: T[], index: number) {
+        console.assert(index >= 0 && index < array.length);
+        const lastElem = array[array.length - 1];
+        array[index] = lastElem;
+        array.length--;
+    }
 }
 
 export const utils = new Utils();

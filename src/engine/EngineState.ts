@@ -1,6 +1,7 @@
 import { AnimationClip, Object3D } from "three";
 import { Component, IComponentInstance } from "./Component";
 import { ComponentProps } from "./ComponentProps";
+import { utils } from "./Utils";
 
 class EngineState {
 
@@ -79,7 +80,7 @@ class EngineState {
         if (list) {
             const index = list.findIndex(i => i.owner === owner);
             if (index >= 0) {
-                list.splice(index, 1);
+                utils.fastDelete(list, index);
             }
         }
     }

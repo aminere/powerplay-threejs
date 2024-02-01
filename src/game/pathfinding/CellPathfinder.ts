@@ -3,13 +3,21 @@ import { GameUtils } from "../GameUtils";
 import { IPathfindingContext, IPathfindingOptions, NeighborCheckStatus, PathfindingNode } from "./PathfindingTypes";
 import { ICell } from "../GameTypes";
 import { astar } from "./AStar";
+import { utils } from "../../engine/Utils";
 
 type TNode = PathfindingNode<ICell>;
 
 class CellPathfinder {
+
+    private _toEvaluate = new Array<TNode>();
+    private _evaluated = new Array<TNode>();
+
     public findPath(startCell: Vector2, endCell: Vector2, options?: IPathfindingOptions<ICell>) {        
-        const toEvaluate = new Array<TNode>();
-        const evaluated = new Array<TNode>();
+
+        const toEvaluate = this._toEvaluate;
+        const evaluated = this._evaluated;
+        toEvaluate.length = 0;
+        evaluated.length = 0;
 
         const startNode: TNode = {
             coords: new Vector2().copy(startCell),
@@ -57,7 +65,7 @@ class CellPathfinder {
             }
 
             evaluated.push(currentNode);
-            toEvaluate.splice(nodeWithLowestFCost, 1);
+            utils.fastDelete(toEvaluate, nodeWithLowestFCost);
 
             const leftStatus = astar.checkNeighbor(context, currentNode, -1, 0, options);
             const rightStatus = astar.checkNeighbor(context, currentNode, 1, 0, options);
