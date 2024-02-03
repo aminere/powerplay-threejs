@@ -5,7 +5,6 @@ import { npcUtils } from "./NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
 import gsap from "gsap";
-import { pools } from "../../engine/Pools";
 import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
 import { utils } from "../../engine/Utils";
@@ -84,14 +83,14 @@ export class ArcherNPCState extends State<IUnit> {
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               
-                                if (!unit.animation.action.isRunning()) {                  
+                                if (!unit.animation.action.isRunning()) {
                                     this._attackStep = AttackStep.Shoot;                                    
 
                                     let arrow = this._arrows.find(a => a.tween === null);
                                     if (!arrow) {
                                         const arrowMesh = new Mesh(new SphereGeometry(.05), new MeshBasicMaterial({ color: 0x000000 }));
                                         arrow = { obj: arrowMesh, tween: null, progress: 0, startPos: new Vector3() };
-                                        this._arrows.push(arrow);                                        
+                                        this._arrows.push(arrow);
                                     }
                                     
                                     const hand = unit.skeleton?.skeleton.getBoneByName("HandL")!;
@@ -110,23 +109,18 @@ export class ArcherNPCState extends State<IUnit> {
                                         onComplete: () => {
                                             arrow!.tween = null;
                                             arrow!.obj.removeFromParent();
-                                            target.health -= 0.5;
-                                            if (this._target && !this._target.isAlive) {
-                                                this.goToIdle(unit);
+                                            if (this._target?.isAlive) {
+                                                this._target.health -= 0.5;
                                             }
                                         }
-                                    });
+                                    });                                    
 
                                     unitUtils.setAnimation(unit, "arrow-shoot", { 
                                         transitionDuration: .1,
                                         destAnimLoopMode: "Once"
                                     });
                                 } else {
-                                    if (unit.animation.action.loop !== LoopOnce) {
-                                        debugger;
-                                        console.assert(false);
-                                        this.attack(unit);
-                                    }
+                                    console.assert(unit.animation.action.loop === LoopOnce);
                                 }
                             }
                             break;
@@ -137,7 +131,9 @@ export class ArcherNPCState extends State<IUnit> {
                                     unitUtils.setAnimation(unit, "arrow-draw", {
                                         transitionDuration: .1, 
                                         destAnimLoopMode: "Once" 
-                                    });
+                                    });                                    
+                                } else {
+                                    console.assert(unit.animation.action.loop === LoopOnce);
                                 }
                             }
                             break;
@@ -149,14 +145,12 @@ export class ArcherNPCState extends State<IUnit> {
                 } else {
                     this.goToIdle(unit);
                 }
-
             }
         }
     }
 
     private follow(unit: IUnit, target: IUnit) {
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
-        if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
+        if (flowField.compute(target.coords.mapCoords)) {
             switch (this._step) {
                 case NpcStep.Attack: {
                     unitUtils.moveTo(unit, target.coords.mapCoords, false);
@@ -183,6 +177,7 @@ export class ArcherNPCState extends State<IUnit> {
             transitionDuration,
             scheduleCommonAnim: true
         });
+
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
             utils.fastDelete(target.attackers, index);
@@ -196,7 +191,7 @@ export class ArcherNPCState extends State<IUnit> {
     private attack(unit: IUnit) {
         this._attackStep = AttackStep.Draw;
         this._step = NpcStep.Attack;
-        unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });
+        unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });        
     }
 }
 

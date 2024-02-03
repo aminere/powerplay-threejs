@@ -100,8 +100,8 @@ class SkeletonPool {
 
         unit.obj.bind(skeleton.skeleton, identity);
         unit.skeleton = skeleton;
-        unit.animation!.name = destAnim;
-        unit.animation!.action = destAction;
+        unit.animation.name = destAnim;
+        unit.animation.action = destAction;
     }
 
     public transition(props: {
@@ -119,8 +119,8 @@ class SkeletonPool {
             utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
         }        
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
-        unit.animation!.name = destAnim;
-        unit.animation!.action = destAction;
+        unit.animation.name = destAnim;
+        unit.animation.action = destAction;
     }
 
     public update() {

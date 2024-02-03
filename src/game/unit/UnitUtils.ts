@@ -17,8 +17,8 @@ export interface ICellAddr {
     mapCoords: Vector2;
     localCoords: Vector2;
     sectorCoords: Vector2;
-    sector?: ISector;
     cellIndex: number;
+    sector?: ISector;
 }
 
 export interface ICellPtr {
@@ -37,18 +37,19 @@ function setCommonAnimation(unit: IUnit, animation: string) {
         skeletonPool.releaseSkeleton(unit);
     }
     const action = skeletonManager.applySkeleton(animation, unit.obj)!;
-    unit.animation!.name = animation;
-    unit.animation!.action = action;
+    unit.animation.name = animation;
+    unit.animation.action = action;
 }
 
 class UnitUtils {
 
     public makeCellPtr(cellAddr: ICellAddr) {
-        return {
+        const cellPtr: ICellPtr = {
             sectorCoords: cellAddr.sectorCoords.clone(),
             mapCoords: cellAddr.mapCoords.clone(),
             cellIndex: cellAddr.cellIndex
         };
+        return cellPtr;
     }
 
     public getCell(cellPtr: ICellPtr) {
@@ -72,17 +73,29 @@ class UnitUtils {
         const { isMoving, desiredPosValid, desiredPos, targetCell, coords, obj } = unit;
         if (isMoving) {
             if (!desiredPosValid) {
-                const { sector } = targetCell;
-                const targetCellIndex = targetCell.cellIndex;
-                const currentCellIndex = coords.cellIndex;
-                const _flowField = sector!.cells[targetCellIndex].flowField!;
-                const flowfieldInfo =  _flowField[currentCellIndex];
-                const { direction, directionValid } = flowfieldInfo;
-                if (!directionValid) {
-                    flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
-                    flowfieldInfo.directionValid = true;
+                const crossingSectors = unit.multiSectorMotion?.crossingSectors;
+                if (crossingSectors) {
+                    const { sectors, currentSector } = unit.multiSectorMotion!;
+                    const sectorCoords = sectors[currentSector].sectorCoords;
+                    const nextSectorCoords = sectors[currentSector + 1].sectorCoords;
+                    const dx = nextSectorCoords.x - sectorCoords.x;
+                    const dy = nextSectorCoords.y - sectorCoords.y;
+                    cellDirection3.set(dx, 0, dy);
+
+                } else {
+                    const { sector } = targetCell;
+                    const targetCellIndex = targetCell.cellIndex;
+                    const currentCellIndex = coords.cellIndex;
+                    const _flowField = sector!.cells[targetCellIndex].flowField!;
+                    const flowfieldInfo = _flowField[currentCellIndex];
+                    const { direction, directionValid } = flowfieldInfo;
+                    if (!directionValid) {
+                        flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
+                        flowfieldInfo.directionValid = true;
+                    }
+                    cellDirection3.set(direction.x, 0, direction.y);
                 }
-                cellDirection3.set(direction.x, 0, direction.y);
+
                 desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
                 unit.desiredPosValid = true;
             }
@@ -103,7 +116,7 @@ class UnitUtils {
         if (bindSkeleton) {
             this.setAnimation(unit, "run");
         }
-    }    
+    }
 
     public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
         deltaPos.subVectors(toPos, fromPos);
@@ -111,7 +124,7 @@ class UnitUtils {
         if (deltaPosLen > 0.01) {
             cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
             unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-            const rotationDamp = 0.2;
+            const rotationDamp = 0.3;
             unit.rotationVelocity = mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, unit.rotationVelocity, rotationDamp, 999, time.deltaTime);
             unit.obj.quaternion.copy(unit.rotation);
         }
@@ -152,6 +165,11 @@ class UnitUtils {
                     unit.skeleton!.timeout = null;
                     setCommonAnimation(unit, animation);
                 }, transitionDuration * 1000 + 200);
+            } else {
+                if (unit.skeleton!.timeout) {
+                    clearTimeout(unit.skeleton!.timeout);
+                    unit.skeleton!.timeout = null;
+                }
             }
 
         } else {
