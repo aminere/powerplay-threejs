@@ -3,16 +3,16 @@
 import { BufferGeometry, LineBasicMaterial, LineSegments, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { ISector } from "../GameTypes";
+import { ISector, TFlowField } from "../GameTypes";
 import { flowField } from "./Flowfield";
-import { pools } from "../../engine/Pools";
 
 const currentCoords = new Vector2();
 const cellDirection = new Vector2();
 const worldPos1 = new Vector3();
 const cellDirection3 = new Vector3();
 const { mapRes, cellSize } = config.game;
-const mapSize = mapRes * cellSize;
+const linePoints = new Array<Vector3>();
+
 export class FlowfieldViewer extends Object3D {
     constructor() {
         super();
@@ -22,25 +22,21 @@ export class FlowfieldViewer extends Object3D {
         const points = new Points(new BufferGeometry(), new PointsMaterial({ color: 0xff0000, size: 5, sizeAttenuation: false }));
         points.position.y = 0.05;
         this.add(points);
+        this.name = "flowfield";
     }
 
-    public update(sector: ISector, localCoords: Vector2) {
+    public update(sector: ISector, field: TFlowField[]) {
         const { mapRes } = config.game;
-        const linePoints = new Array<Vector3>();
-        const cellIndex = localCoords.y * mapRes + localCoords.x;
-        const cell = sector.cells[cellIndex];
         const cells = sector.cells;
+        linePoints.length = 0;
         for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
             const cellX = i - cellY * mapRes;
-            if (cellX === localCoords.x && cellY === localCoords.y) {
-                continue;
-            }
             const cost = cells[i].flowFieldCost;
-            if (cost === 0xffff) {
+            if (cost === 0xffff || field[i].integration === 0) {
                 continue;
             }
-            const computed = flowField.computeDirection(cell.flowField, cells, i, cellDirection);
+            const computed = flowField.computeDirection(field, cells, i, cellDirection);
             if (computed) {
                 currentCoords.set(cellX, cellY);
                 GameUtils.mapToWorld(currentCoords, worldPos1);
@@ -56,10 +52,7 @@ export class FlowfieldViewer extends Object3D {
         const pointCoords = linePoints.filter((_, i) => i % 2 !== 0);
         points.geometry.setFromPoints(pointCoords);
         points.geometry.computeBoundingSphere();
-
-        const offset = pools.vec3.getOne();
-        offset.set(mapSize / 2, 0, mapSize / 2);
-        this.position.copy(sector.root.position).add(offset);
+        this.position.copy(sector.root.position).negate();
     }
 }
 

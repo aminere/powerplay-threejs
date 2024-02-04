@@ -4,6 +4,7 @@ import { ICell, ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
 import { utils } from "../engine/Utils";
+import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 
 export class Sector {
     public static create(props: ITerrainPatch) {
@@ -24,6 +25,7 @@ export class Sector {
         const cells = grid.map(() => {
             const cell: ICell = {
                 flowField: [],
+                flowFieldsPerSector: new Map(),
                 isEmpty: true,
                 flowFieldCost: 1
             };
@@ -34,8 +36,9 @@ export class Sector {
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);
         const buildings = utils.createObject(sectorRoot, "buildings");
         const resources = utils.createObject(sectorRoot, "resources");
-        const envProps = utils.createObject(sectorRoot, "props");        
+        const envProps = utils.createObject(sectorRoot, "props");
 
+        const flowfield = new FlowfieldViewer();
         const { sectors } = gameMapState;
         const sector: ISector = {
             cells,
@@ -50,9 +53,11 @@ export class Sector {
                 terrain: cellTextureData,
                 highlight: highlightTextureData
             },
+            flowfieldViewer: flowfield
         };
         sectors.set(`${x},${y}`, sector);
-        sectorRoot.add(terrain);            
+        sectorRoot.add(terrain);
+        sectorRoot.add(flowfield);
         return sector;
     }
 

@@ -72,18 +72,20 @@ export class MiningState extends State<IUnit> {
                         // TODO scan other sectors
                         console.assert(false, "No building found");
                     } else {
-                        closestBuilding.getWorldPosition(worldPos);
-                        const [sectorCoords, localCoords, targetBuilding] = pools.vec2.get(3);
-                        GameUtils.worldToMap(worldPos, targetBuilding);
-                        if (flowField.compute(targetBuilding, sectorCoords, localCoords)) {
-                            unitUtils.moveTo(unit, targetBuilding, false);
-                            unitUtils.setAnimation(unit, "run", {
-                                transitionDuration: .3,
-                                scheduleCommonAnim: true
-                            });
-                        } else {
-                            console.assert(false, "No path found");
-                        }
+
+                        console.assert(false, "Not implemented");
+                        // closestBuilding.getWorldPosition(worldPos);
+                        // const targetBuilding = pools.vec2.getOne();
+                        // GameUtils.worldToMap(worldPos, targetBuilding);
+                        // if (flowField.compute(targetBuilding)) {
+                        //     unitUtils.moveTo(unit, targetBuilding, false);
+                        //     unitUtils.setAnimation(unit, "run", {
+                        //         transitionDuration: .3,
+                        //         scheduleCommonAnim: true
+                        //     });
+                        // } else {
+                        //     console.assert(false, "No path found");
+                        // }
                     }
                     this._step = MiningStep.GoToBase;
                 }

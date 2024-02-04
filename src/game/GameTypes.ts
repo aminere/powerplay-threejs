@@ -1,14 +1,15 @@
 import { Object3D, Vector2 } from "three";
 import { BezierPath } from "./BezierPath";
+import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
 
-export type TFlowField = Array<{
+export type TFlowField = {
     integration: number;
     direction: Vector2;
     directionValid: boolean;
-}>;
+};
 
 export interface ICell {
     roadTile?: number;
@@ -30,7 +31,8 @@ export interface ICell {
     };
     
     unit?: THREE.Object3D;
-    flowField: TFlowField;
+    flowField: TFlowField[];
+    flowFieldsPerSector: Map<string, TFlowField[]>;
     flowFieldCost: number;
     isEmpty: boolean;
 }
@@ -48,7 +50,9 @@ export interface ISector {
     textureData: {
         terrain: Uint8Array;
         highlight: Uint8Array;
-    };  
+    };
+
+    flowfieldViewer: FlowfieldViewer;
 }
 
 export interface IRail {    

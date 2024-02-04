@@ -4,7 +4,6 @@ import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
 import { flowField } from "../pathfinding/Flowfield";
-import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
@@ -85,25 +84,25 @@ export class NPCState extends State<IUnit> {
     }
 
     private follow(unit: IUnit, target: IUnit) {
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
-        if (flowField.compute(target.coords.mapCoords, sectorCoords, localCoords)) {
-            switch (this._step) {
-                case NpcStep.Attack: {
-                    unitUtils.moveTo(unit, target.coords.mapCoords, false);
-                    unitUtils.setAnimation(unit, "run", {
-                        transitionDuration: .3,
-                        scheduleCommonAnim: true
-                    });
-                }
-                    break;
+        console.assert(false, "Not implemented");
+        // if (flowField.compute(target.coords.mapCoords)) {
+        //     switch (this._step) {
+        //         case NpcStep.Attack: {
+        //             unitUtils.moveTo(unit, target.coords.mapCoords, false);
+        //             unitUtils.setAnimation(unit, "run", {
+        //                 transitionDuration: .3,
+        //                 scheduleCommonAnim: true
+        //             });
+        //         }
+        //             break;
 
-                default:
-                    unitUtils.moveTo(unit, target.coords.mapCoords);                    
-                    break;
-            }
-            this._step = NpcStep.Follow;
-            this._target = target;
-        }
+        //         default:
+        //             unitUtils.moveTo(unit, target.coords.mapCoords);                    
+        //             break;
+        //     }
+        //     this._step = NpcStep.Follow;
+        //     this._target = target;
+        // }
     }
 
     private goToIdle(unit: IUnit) {

@@ -6,6 +6,12 @@ import { engine } from "../powerplay";
 import { gameMapState } from "./components/GameMapState";
 
 const { mapRes, cellSize } = config.game;
+const mapSize = mapRes * cellSize;
+const halfMapSize = mapSize / 2;
+const halfCellSize = cellSize / 2;
+const cellOffset =  -halfMapSize + halfCellSize;
+const normalizedPos = new Vector3();
+
 export class GameUtils {
 
     public static vec3 = {
@@ -19,7 +25,6 @@ export class GameUtils {
 
     public static worldToScreen(worldPos: Vector3, camera: Camera, screenPos: Vector3) {
         const { width, height } = engine.screenRect;
-        const normalizedPos = pools.vec3.getOne();
         normalizedPos.copy(worldPos).project(camera);
         screenPos.x = (normalizedPos.x + 1) / 2 * width;
         screenPos.y = -(normalizedPos.y - 1) / 2 * height;
@@ -27,11 +32,7 @@ export class GameUtils {
     }
 
     public static mapToWorld(mapCoords: Vector2, worldPos: Vector3) {
-        const { x, y } = mapCoords;
-        const mapSize = mapRes * cellSize;
-        const offset = -mapSize / 2;
-        worldPos.set(x * cellSize + cellSize / 2 + offset, 0, y * cellSize + cellSize / 2 + offset);
-        return worldPos;
+        return worldPos.set(mapCoords.x * cellSize + cellOffset, 0, mapCoords.y * cellSize + cellOffset);
     }
 
     public static worldToMap(worldPos: Vector3, out: Vector2) {

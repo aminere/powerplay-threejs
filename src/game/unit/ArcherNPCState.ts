@@ -150,24 +150,25 @@ export class ArcherNPCState extends State<IUnit> {
     }
 
     private follow(unit: IUnit, target: IUnit) {
-        if (flowField.compute(target.coords.mapCoords)) {
-            switch (this._step) {
-                case NpcStep.Attack: {
-                    unitUtils.moveTo(unit, target.coords.mapCoords, false);
-                    unitUtils.setAnimation(unit, "run", {
-                        transitionDuration: .3,
-                        scheduleCommonAnim: true
-                    });
-                }
-                    break;
+        console.assert(false, "Not implemented");
+        // if (flowField.compute(target.coords.mapCoords)) {
+        //     switch (this._step) {
+        //         case NpcStep.Attack: {
+        //             unitUtils.moveTo(unit, target.coords.mapCoords, false);
+        //             unitUtils.setAnimation(unit, "run", {
+        //                 transitionDuration: .3,
+        //                 scheduleCommonAnim: true
+        //             });
+        //         }
+        //             break;
 
-                default:
-                    unitUtils.moveTo(unit, target.coords.mapCoords);
-                    break;
-            }
-        }
+        //         default:
+        //             unitUtils.moveTo(unit, target.coords.mapCoords);
+        //             break;
+        //     }
+        // }
 
-        this._step = NpcStep.Follow;
+        // this._step = NpcStep.Follow;
     }
 
     private goToIdle(unit: IUnit) {
