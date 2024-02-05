@@ -1,10 +1,11 @@
 import { Vector2 } from "three";
 import { ICell } from "../GameTypes";
-import { flowField } from "../pathfinding/Flowfield";
+import { flowField, getFlowfield } from "../pathfinding/Flowfield";
 import { MiningState } from "./MiningState";
 import { unitUtils } from "./UnitUtils";
 import { IUnit } from "./IUnit";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
+import { GameUtils } from "../GameUtils";
 
 class UnitMotion {
     public getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
@@ -25,8 +26,10 @@ class UnitMotion {
         if (sectorPath) {
             console.assert(sourceSectorCoords.equals(sectorPath[0]));
         }
-        const sectorCoords = sectorPath ?? [sourceSectorCoords];
-        const computed = flowField.compute(destMapCoords, sectorCoords);
+        const sectors = sectorPath ?? [sourceSectorCoords];
+        const computed = flowField.compute(destMapCoords, sectors);
+        console.log(destCell.flowField);
+        console.log(destCell.flowFieldsPerSector);
         console.assert(computed);
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;
@@ -36,7 +39,13 @@ class UnitMotion {
             }
             unitUtils.moveTo(unit, destMapCoords);
             unit.fsm.switchState(nextState);
-        }        
+        }
+
+        for (const sectorCoords of sectors) {
+            const flowfield = getFlowfield(destCell, destSectorCoords, sectorCoords);                            
+            const sector = GameUtils.getSector(sectorCoords)!;
+            sector.flowfieldViewer.update(sector, flowfield);
+        }
     }
 
     // public moveWithinSector(units: IUnit[], srcMapCoords: Vector2, destMapCoords: Vector2, destCell: ICell, multiSectorMotion?: IMultiSectorMotion) {

@@ -4,7 +4,7 @@ import { GameUtils } from "../GameUtils";
 import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { IUnit } from "./IUnit";
-import { flowField } from "../pathfinding/Flowfield";
+import { flowField, getFlowfield } from "../pathfinding/Flowfield";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
@@ -21,12 +21,6 @@ export interface ICellAddr {
     sector?: ISector;
 }
 
-export interface ICellPtr {
-    sectorCoords: Vector2;
-    mapCoords: Vector2;
-    cellIndex: number;
-}
-
 const { mapRes } = config.game;
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
@@ -41,26 +35,7 @@ function setCommonAnimation(unit: IUnit, animation: string) {
     unit.animation.action = action;
 }
 
-class UnitUtils {
-
-    public makeCellPtr(cellAddr: ICellAddr) {
-        const cellPtr: ICellPtr = {
-            sectorCoords: cellAddr.sectorCoords.clone(),
-            mapCoords: cellAddr.mapCoords.clone(),
-            cellIndex: cellAddr.cellIndex
-        };
-        return cellPtr;
-    }
-
-    public getCell(cellPtr: ICellPtr) {
-        const { sectors } = gameMapState;
-        const { sectorCoords, cellIndex } = cellPtr;
-        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
-        if (!sector) {
-            return null;
-        }
-        return sector.cells[cellIndex];
-    }
+class UnitUtils {    
 
     public computeCellAddr(mapCoords: Vector2, addrOut: ICellAddr) {
         addrOut.mapCoords.copy(mapCoords);
@@ -69,33 +44,30 @@ class UnitUtils {
         addrOut.cellIndex = addrOut.localCoords.y * mapRes + addrOut.localCoords.x;
     }
 
+    public copyCellAddr(src: ICellAddr, dest: ICellAddr) {
+        dest.mapCoords.copy(src.mapCoords);
+        dest.localCoords.copy(src.localCoords);
+        dest.sectorCoords.copy(src.sectorCoords);
+        dest.cellIndex = src.cellIndex;
+        dest.sector = src.sector;
+    }
+
     public computeDesiredPos(unit: IUnit, steerAmount: number) {
         const { isMoving, desiredPosValid, desiredPos, targetCell, coords, obj } = unit;
         if (isMoving) {
             if (!desiredPosValid) {
-                const crossingSectors = unit.multiSectorMotion?.crossingSectors;
-                if (crossingSectors) {
-                    const { sectors, currentSector } = unit.multiSectorMotion!;
-                    const sectorCoords = sectors[currentSector].sectorCoords;
-                    const nextSectorCoords = sectors[currentSector + 1].sectorCoords;
-                    const dx = nextSectorCoords.x - sectorCoords.x;
-                    const dy = nextSectorCoords.y - sectorCoords.y;
-                    cellDirection3.set(dx, 0, dy);
-
-                } else {
-                    const { sector } = targetCell;
-                    const targetCellIndex = targetCell.cellIndex;
-                    const currentCellIndex = coords.cellIndex;
-                    const _flowField = sector!.cells[targetCellIndex].flowField!;
-                    const flowfieldInfo = _flowField[currentCellIndex];
-                    const { direction, directionValid } = flowfieldInfo;
-                    if (!directionValid) {
-                        flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
-                        flowfieldInfo.directionValid = true;
-                    }
-                    cellDirection3.set(direction.x, 0, direction.y);
+                const { sector } = targetCell;
+                const targetCellIndex = targetCell.cellIndex;
+                const targetCellInstance = sector!.cells[targetCellIndex];
+                const _flowField = getFlowfield(targetCellInstance, targetCell.sectorCoords, coords.sectorCoords);
+                const currentCellIndex = coords.cellIndex;
+                const flowfieldInfo = _flowField[currentCellIndex];
+                const { direction, directionValid } = flowfieldInfo;
+                if (!directionValid) {
+                    flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
+                    flowfieldInfo.directionValid = true;
                 }
-
+                cellDirection3.set(direction.x, 0, direction.y);
                 desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
                 unit.desiredPosValid = true;
             }

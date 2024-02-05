@@ -26,7 +26,6 @@ import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { ArcherNPCState } from "../unit/ArcherNPCState";
 import { unitMotion } from "../unit/UnitMotion";
-import { getFlowfield } from "../pathfinding/Flowfield";
 
 export class FlockProps extends ComponentProps {
 
@@ -141,10 +140,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             const [sectorX, sectorY] = sectorId.split(",").map(Number);
                             currentSector.set(sectorX, sectorY);
                             unitMotion.move(units, currentSector, targetSectorCoords, targetCellCoords, targetCell);
-
-                            const flowfield = getFlowfield(targetCell, targetSectorCoords, currentSector);                            
-                            const sector = gameMapState.sectors.get(sectorId)!;
-                            sector.flowfieldViewer.update(sector, flowfield);
 
                             // this.state.flowfieldViewer.update(sector, localCoords);
                             
