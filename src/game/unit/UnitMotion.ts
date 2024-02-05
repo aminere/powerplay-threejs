@@ -6,6 +6,7 @@ import { unitUtils } from "./UnitUtils";
 import { IUnit } from "./IUnit";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { GameUtils } from "../GameUtils";
+import { gameMapState } from "../components/GameMapState";
 
 class UnitMotion {
     public getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
@@ -38,10 +39,14 @@ class UnitMotion {
             unitUtils.moveTo(unit, destMapCoords);
             unit.fsm.switchState(nextState);
         }
-
+        
+        for (const sector of gameMapState.sectors.values()) {
+            sector.flowfieldViewer.visible = false;
+        }
         for (const sectorCoords of sectors) {
             const sector = GameUtils.getSector(sectorCoords)!;
             sector.flowfieldViewer.update(sector, sectorCoords, destCell, destMapCoords, destSectorCoords);
+            sector.flowfieldViewer.visible = true;
         }
     }
 
