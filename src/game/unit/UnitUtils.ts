@@ -60,18 +60,21 @@ class UnitUtils {
                 const targetCellIndex = targetCell.cellIndex;
                 const targetCellInstance = sector!.cells[targetCellIndex];
                 const _flowField = getFlowfield(targetCellInstance, targetCell.sectorCoords, coords.sectorCoords);
-                const currentCellIndex = coords.cellIndex;
-                const flowfieldInfo = _flowField[currentCellIndex];
-                const { direction, directionValid } = flowfieldInfo;
-                if (!directionValid) {
-                    const computed = flowField.computeDirection(unit.coords.mapCoords, targetCellInstance, targetCell.sectorCoords, direction);
-                    if (computed) {
+                if (_flowField) {
+                    const currentCellIndex = coords.cellIndex;
+                    const flowfieldInfo = _flowField[currentCellIndex];
+                    const { direction } = flowfieldInfo;
+                    if (!flowfieldInfo.directionValid) {
+                        const computed = flowField.computeDirection(unit.coords.mapCoords, targetCellInstance, targetCell.sectorCoords, direction);
                         flowfieldInfo.directionValid = true;
-                    } else {
-                        console.assert(false, "flowfield direction not valid");
+                        console.assert(computed, "flowfield direction not valid");
                     }
-                }
-                cellDirection3.set(direction.x, 0, direction.y);
+                    cellDirection3.set(direction.x, 0, direction.y);
+                    unit.flowfieldDir.copy(direction);
+                } else {
+                    console.log(`moving near corner, using the last known direction`);
+                    cellDirection3.set(unit.flowfieldDir.x, 0, unit.flowfieldDir.y);
+                }                
                 desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
                 unit.desiredPosValid = true;
             }

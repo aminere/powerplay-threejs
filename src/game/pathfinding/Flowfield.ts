@@ -115,20 +115,16 @@ class FlowField {
         context.targetCellSectorCoords.copy(sectorCoordsOut);
         while (context.openList.size > 0) {
             const currentCoords = shiftSet(context.openList)!;
-            console.log(`processing ${currentCoords.x},${currentCoords.y}`);
 
             for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
                 this._neighborAddr.mapCoords.set(currentCoords.x + dx, currentCoords.y + dy);
-                console.log(`neighbor ${this._neighborAddr.mapCoords.x},${this._neighborAddr.mapCoords.y}`);
                 const neighborCell = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords);
                 if (!neighborCell) {
-                    // console.log(`no neighbor cell at ${neighborX},${neighborY}`);
                     continue;
                 }
 
                 const includedSector = sectors.find(s => s.equals(this._neighborAddr.sectorCoords));
                 if (!includedSector) {
-                    // console.log(`sector not included ${sectorCoordsOut2.x},${sectorCoordsOut2.y}`);
                     continue;
                 }
                 
@@ -139,7 +135,6 @@ class FlowField {
             // check diagonal neighbors
             for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
                 this._neighborAddr.mapCoords.set(currentCoords.x + dx, currentCoords.y + dy);
-                console.log(`diagonal neighbor ${this._neighborAddr.mapCoords.x},${this._neighborAddr.mapCoords.y}`);
                 const neighborCell = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords)!;
                 if (!neighborCell) {
                     continue;
@@ -147,16 +142,12 @@ class FlowField {
 
                 const includedSector = sectors.find(s => s.equals(this._neighborAddr.sectorCoords));
                 if (!includedSector) {
-                    // console.log(`sector not included ${sectorCoordsOut2.x},${sectorCoordsOut2.y}`);
                     continue;
                 }
 
                 neighborCoords.set(currentCoords.x + dx, currentCoords.y);
                 const lateralCell = GameUtils.getCell(neighborCoords)!;
-                console.assert(lateralCell);
-                if (!lateralCell) {
-                    debugger;
-                }
+                console.assert(lateralCell);                
                 if (lateralCell.flowFieldCost === 0xffff) {
                     // don't navigate diagonally near obstacles
                     continue;
@@ -207,7 +198,6 @@ class FlowField {
 
             const includedSector = isSectorIncluded(this._neighborAddr.sectorCoords);
             if (!includedSector) {
-                // console.log(`sector not included ${sectorCoordsOut2.x},${sectorCoordsOut2.y}`);
                 continue;
             }
 
@@ -220,7 +210,7 @@ class FlowField {
             }
         }
 
-        for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [-1, 1]]) {
+        for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
             this._neighborAddr.mapCoords.set(mapCoords.x + dx, mapCoords.y + dy);
             const neighbor = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords);
             if (!neighbor) {
@@ -229,7 +219,6 @@ class FlowField {
 
             const includedSector = isSectorIncluded(this._neighborAddr.sectorCoords);
             if (!includedSector) {
-                // console.log(`sector not included ${sectorCoordsOut2.x},${sectorCoordsOut2.y}`);
                 continue;
             }
 

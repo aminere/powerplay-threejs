@@ -71,6 +71,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             touchHoveredCoords: new Vector2(),
             touchDragged: false,
             cursorOverUI: false,
+            selectionInProgress: false,
             layers: {
                 rails,
                 trains,
@@ -389,6 +390,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     }
 
     private checkCameraPan(xNorm: number, yNorm: number) {
+
+        if (this.state.selectionInProgress) {
+            return;
+        }
+
         const { width, height } = engine.screenRect;
         const dt = time.deltaTime;
         const { panMargin, panSpeed } = config.camera;

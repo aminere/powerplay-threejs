@@ -13,23 +13,15 @@ export interface IUnitAnim {
     action: AnimationAction;
 }
 
-export interface IMultiSectorMotion {
-    sectors: Array<{
-        sectorCoords: Vector2;
-        targetCell: ICellAddr;
-    }>;
-    currentSector: number;
-}
-
 export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
+    flowfieldDir: Vector2;
     targetCell: ICellAddr;
     obj: SkinnedMesh;
     coords: ICellAddr;
     isMoving: boolean;
-    multiSectorMotion: IMultiSectorMotion | null;
     isColliding: boolean;
     isAlive: boolean;
     isIdle: boolean;

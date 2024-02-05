@@ -71,10 +71,10 @@ class SectorPathfinder {
             astar.checkNeighbor(context, currentNode, 1, 0);
             astar.checkNeighbor(context, currentNode, 0, -1);
             astar.checkNeighbor(context, currentNode, 0, 1);
-            astar.checkNeighbor(context, currentNode, -1, -1);
-            astar.checkNeighbor(context, currentNode, -1, 1);
-            astar.checkNeighbor(context, currentNode, 1, -1);
-            astar.checkNeighbor(context, currentNode, 1, 1);
+            // astar.checkNeighbor(context, currentNode, -1, -1);
+            // astar.checkNeighbor(context, currentNode, -1, 1);
+            // astar.checkNeighbor(context, currentNode, 1, -1);
+            // astar.checkNeighbor(context, currentNode, 1, 1);
 
             ++iteration;
             if (iteration > maxIterations) {

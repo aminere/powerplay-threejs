@@ -28,8 +28,6 @@ class UnitMotion {
         }
         const sectors = sectorPath ?? [sourceSectorCoords];
         const computed = flowField.compute(destMapCoords, sectors);
-        console.log(destCell.flowField);
-        console.log(destCell.flowFieldsPerSector);
         console.assert(computed);
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;

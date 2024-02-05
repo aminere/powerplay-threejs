@@ -28,6 +28,7 @@ export interface IGameMapState {
     touchHoveredCoords: Vector2;
     touchDragged: boolean;
     cursorOverUI: boolean;
+    selectionInProgress: boolean;
     layers: {
         rails: Object3D;
         trains: Object3D;
@@ -45,10 +46,12 @@ export class GameMapState {
     public get camera() { return this._instance!.camera; }
     public get previousRoad() { return this._instance!.previousRoad; }
     public get previousRail() { return this._instance!.previousRail; }
+    public get selectionInProgress() { return this._instance!.selectionInProgress; }
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
     public set action(value: Action | null) { this._instance!.action = value; }    
     public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
+    public set selectionInProgress(value: boolean) { this._instance!.selectionInProgress = value; }
     
     private _instance: IGameMapState | null = null;
 }

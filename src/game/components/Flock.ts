@@ -50,7 +50,6 @@ interface IFlockState extends IComponentState {
     selectedUnits: Unit[];
     selectionStart: Vector2;
     touchPressed: boolean;
-    selectionInProgress: boolean;
 }
 
 const { mapRes } = config.game;
@@ -75,9 +74,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
             this.state.touchPressed = false;     
             if (input.touchButton === 0) {
 
-                if (this.state.selectionInProgress) {
+                if (gameMapState.selectionInProgress) {
                     cmdEndSelection.post();
-                    this.state.selectionInProgress = false;
+                    gameMapState.selectionInProgress = false;
 
                 } else {
                     const { width, height } = engine.screenRect;
@@ -222,7 +221,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         if (input.touchJustMoved) {
             if (this.state.touchPressed) {
                 if (input.touchButton === 0) {
-                    if (this.state.selectionInProgress) {
+                    if (gameMapState.selectionInProgress) {
                         const { selectedUnits } = this.state;
                         selectedUnits.length = 0;
                         const { units } = this.state;
@@ -256,7 +255,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             const dist = Math.sqrt(dx * dx + dy * dy);
                             const threshold = 5;
                             if (dist > threshold) {
-                                this.state.selectionInProgress = true;
+                                gameMapState.selectionInProgress = true;
                                 cmdStartSelection.post(this.state.selectionStart);
                             }
                         }
@@ -335,7 +334,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         const { positionDamp } = this.props;
         const [awayDirection, avoidedCellCoords, nextMapCoords] = pools.vec2.get(3);
-        const [nextPos] = pools.vec3.get(1);        
+        const nextPos = pools.vec3.getOne();     
 
         for (let i = 0; i < units.length; ++i) {  
             const unit = units[i];
@@ -531,7 +530,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
             units,
             selectedUnits: [],
             selectionStart: new Vector2(),
-            selectionInProgress: false,
             touchPressed: false
         });
     }
