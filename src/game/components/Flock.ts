@@ -134,6 +134,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             return prev;
                         }, {} as Record<string, Unit[]>);
                         
+                        // TODO the problem when multiple groups are present, is that they overwrite flowfield data on the target cell
+                        // This must be stored outside the target cell and in an exclusive location for the current motion
+                        // Specially that if another group starts moving to the same target, it will also overwrite the flowfield data
                         const currentSector = pools.vec2.getOne();
                         for (const [sectorId, units] of Object.entries(groups)) {
                             const [sectorX, sectorY] = sectorId.split(",").map(Number);
