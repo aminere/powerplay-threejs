@@ -42,9 +42,8 @@ class UnitMotion {
         }
 
         for (const sectorCoords of sectors) {
-            const flowfield = getFlowfield(destCell, destSectorCoords, sectorCoords);                            
             const sector = GameUtils.getSector(sectorCoords)!;
-            sector.flowfieldViewer.update(sector, flowfield);
+            sector.flowfieldViewer.update(sector, sectorCoords, destCell, destMapCoords, destSectorCoords);
         }
     }
 

@@ -127,7 +127,7 @@ export class Unit implements IUnit {
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);
-        // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
+        console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
     }
 }
 

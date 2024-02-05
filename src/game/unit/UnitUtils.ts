@@ -64,8 +64,12 @@ class UnitUtils {
                 const flowfieldInfo = _flowField[currentCellIndex];
                 const { direction, directionValid } = flowfieldInfo;
                 if (!directionValid) {
-                    flowField.computeDirection(_flowField, sector!.cells, currentCellIndex, direction);
-                    flowfieldInfo.directionValid = true;
+                    const computed = flowField.computeDirection(unit.coords.mapCoords, targetCellInstance, targetCell.sectorCoords, direction);
+                    if (computed) {
+                        flowfieldInfo.directionValid = true;
+                    } else {
+                        console.assert(false, "flowfield direction not valid");
+                    }
                 }
                 cellDirection3.set(direction.x, 0, direction.y);
                 desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));

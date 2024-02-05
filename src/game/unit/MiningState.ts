@@ -1,10 +1,8 @@
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { ICellPtr, unitUtils } from "./UnitUtils";
+import { ICellAddr, unitUtils } from "./UnitUtils";
 import { Object3D, Vector2 } from "three";
-import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/Pools";
-import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
 
 enum MiningStep {
@@ -19,12 +17,17 @@ export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
     private _miningTimer!: number;
-    private _targetResource!: ICellPtr;
+    private _targetResource: ICellAddr = {
+        mapCoords: new Vector2(),
+        localCoords: new Vector2(),
+        sectorCoords: new Vector2(),
+        cellIndex: 0,
+    };
     private _potentialTarget = new Vector2(-1, -1);
 
     override enter(unit: IUnit) {        
         this._step = MiningStep.GoToResource;
-        this._targetResource = unitUtils.makeCellPtr(unit.targetCell);
+        unitUtils.copyCellAddr(unit.targetCell, this._targetResource);
         this._potentialTarget.set(-1, -1);
     }
 

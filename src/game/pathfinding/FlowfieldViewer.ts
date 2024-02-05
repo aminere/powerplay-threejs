@@ -3,14 +3,13 @@
 import { BufferGeometry, LineBasicMaterial, LineSegments, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { ISector, TFlowField } from "../GameTypes";
+import { ICell, ISector } from "../GameTypes";
 import { flowField } from "./Flowfield";
 
 const currentCoords = new Vector2();
 const cellDirection = new Vector2();
 const worldPos1 = new Vector3();
 const cellDirection3 = new Vector3();
-const { mapRes, cellSize } = config.game;
 const linePoints = new Array<Vector3>();
 
 export class FlowfieldViewer extends Object3D {
@@ -25,26 +24,30 @@ export class FlowfieldViewer extends Object3D {
         this.name = "flowfield";
     }
 
-    public update(sector: ISector, field: TFlowField[]) {
+    public update(sector: ISector, sectorCoords: Vector2, targetCell: ICell, targetCellCoords: Vector2, targetSectorCoords: Vector2) {
         const { mapRes } = config.game;
         const cells = sector.cells;
         linePoints.length = 0;
         for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
             const cellX = i - cellY * mapRes;
+            const mapX = sectorCoords.x * mapRes + cellX;
+            const mapY = sectorCoords.y * mapRes + cellY;
+            currentCoords.set(mapX, mapY);
             const cost = cells[i].flowFieldCost;
-            if (cost === 0xffff || field[i].integration === 0) {
+            if (cost === 0xffff || currentCoords.equals(targetCellCoords)) {
                 continue;
             }
-            const computed = flowField.computeDirection(field, cells, i, cellDirection);
+           
+            const computed = flowField.computeDirection(currentCoords, targetCell, targetSectorCoords, cellDirection);
             if (computed) {
-                currentCoords.set(cellX, cellY);
                 GameUtils.mapToWorld(currentCoords, worldPos1);
                 linePoints.push(worldPos1.clone());
                 cellDirection3.set(cellDirection.x, 0, cellDirection.y);
                 linePoints.push(worldPos1.clone().addScaledVector(cellDirection3, 0.5));
-            }           
+            }
         }
+
         const lines = this.children[0] as LineSegments;
         lines.geometry.setFromPoints(linePoints);
         lines.geometry.computeBoundingSphere();
