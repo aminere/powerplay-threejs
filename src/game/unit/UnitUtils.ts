@@ -49,7 +49,7 @@ class UnitUtils {
         if (deltaPosLen > 0.01) {
             cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
             unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
-            const rotationDamp = 0.3;
+            const rotationDamp = 0.2;
             unit.rotationVelocity = mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, unit.rotationVelocity, rotationDamp, 999, time.deltaTime);
             unit.obj.quaternion.copy(unit.rotation);
         }

@@ -47,7 +47,7 @@ function shiftSet<T>(set: Set<T>) {
 interface IFlowfieldContext {
     targetCell: ICell;
     targetCellSectorCoords: Vector2;
-    openList: Set<Vector2>;
+    openList: Set<string>;
     flowfields: Map<string, TFlowField[]>;
 }
 
@@ -65,18 +65,21 @@ function processNeighbor(currentCoords: Vector2, neighborCell: ICell, neighborAd
     }
     const neighborFlowfieldInfo = neighborFlowfield[neighborAddr.cellIndex];
     if (endNodeCost < neighborFlowfieldInfo.integration) {
-        context.openList.add(neighborAddr.mapCoords.clone());
+        context.openList.add(`${neighborAddr.mapCoords.x},${neighborAddr.mapCoords.y}`);
         neighborFlowfieldInfo.integration = endNodeCost;
     }
 };
 
-const neighborCoords = new Vector2();
 const context: IFlowfieldContext = {
     targetCell: null as any,
     targetCellSectorCoords: new Vector2(),
-    openList: new Set<Vector2>(),
+    openList: new Set<string>(),
     flowfields: new Map<string, TFlowField[]>()
 };
+
+const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+const diagonalNeighbors = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+const neighborCoords = new Vector2();
 
 class FlowField {
 
@@ -86,6 +89,8 @@ class FlowField {
         sectorCoords: new Vector2(),
         cellIndex: 0,
     };
+
+    // private _cache = new Map<string, TFlowField[]>();
 
     public compute(targetCoords: Vector2, sectors: Vector2[]) {
 
@@ -107,13 +112,16 @@ class FlowField {
 
         context.flowfields = flowfields;
         context.openList.clear();
-        context.openList.add(targetCoords.clone());
+        context.openList.add(`${targetCoords.x},${targetCoords.y}`);
         context.targetCell = cell;
         context.targetCellSectorCoords.copy(sectorCoordsOut);
+        const currentCoords = pools.vec2.getOne();
         while (context.openList.size > 0) {
-            const currentCoords = shiftSet(context.openList)!;
+            const currentCoordsStr = shiftSet(context.openList)!;
+            const [x, y] = currentCoordsStr.split(",").map(Number);
+            currentCoords.set(x, y);
 
-            for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            for (const [dx, dy] of gridNeighbors) {
                 this._neighborAddr.mapCoords.set(currentCoords.x + dx, currentCoords.y + dy);
                 const neighborCell = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords);
                 if (!neighborCell) {
@@ -130,7 +138,7 @@ class FlowField {
             }
 
             // check diagonal neighbors
-            for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+            for (const [dx, dy] of diagonalNeighbors) {
                 this._neighborAddr.mapCoords.set(currentCoords.x + dx, currentCoords.y + dy);
                 const neighborCell = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords)!;
                 if (!neighborCell) {
@@ -172,7 +180,7 @@ class FlowField {
         const minNeighbor = pools.vec2.getOne();
         const flowfields = unitMotion.getFlowfields(motionId);
 
-        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        for (const [dx, dy] of gridNeighbors) {
             this._neighborAddr.mapCoords.set(mapCoords.x + dx, mapCoords.y + dy);
             const neighbor = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords);
             if (!neighbor) {
@@ -192,7 +200,7 @@ class FlowField {
             }
         }
 
-        for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        for (const [dx, dy] of diagonalNeighbors) {
             this._neighborAddr.mapCoords.set(mapCoords.x + dx, mapCoords.y + dy);
             const neighbor = GameUtils.getCell(this._neighborAddr.mapCoords, this._neighborAddr.sectorCoords, this._neighborAddr.localCoords);
             if (!neighbor) {

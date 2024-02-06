@@ -34,12 +34,11 @@ export class FlockProps extends ComponentProps {
     radius = 20;
     count = 50;
     npcCount = 4;
-    separation = 1;
-    maxSpeed = 10;
-    speed = 4;       
+    separation = 1;    
+    speed = 4;
+    avoidanceSpeed = 2;
     repulsion = .2;
-    positionDamp = .2;
-    rotationDamp = .2;
+    positionDamp = .05;
 
     constructor(props?: Partial<FlockProps>) {
         super();
@@ -194,7 +193,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const { units } = this.state;
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
-        const maxSteerAmount = this.props.maxSpeed * time.deltaTime;
+        const avoidanceSteerAmount = this.props.avoidanceSpeed * time.deltaTime;
         const [toTarget, lateralMove] = pools.vec3.get(2);
 
         skeletonPool.update();
@@ -225,7 +224,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     if (otherUnit.motionId > 0) {
                         if (unit.motionId > 0) {
                             // move away from each other
-                            const moveAmount = Math.min((separationDist - dist) / 2, maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) / 2, avoidanceSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                             otherDesiredPos.sub(toTarget);
@@ -236,18 +235,18 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             otherDesiredPos.sub(lateralMove);
 
                         } else {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion, maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                         }
                     } else {
                         if (unit.motionId > 0) {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion , maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             otherDesiredPos.add(toTarget);                            
                         } else {
                             // move away from each other
-                            const moveAmount = Math.min((separationDist - dist) / 2 + repulsion, maxSteerAmount);
+                            const moveAmount = Math.min((separationDist - dist) / 2 + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                             otherDesiredPos.sub(toTarget);
@@ -279,11 +278,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     avoidedCell = true;
                     avoidedCellCoords.copy(nextMapCoords);
 
-                    // move away from blocked cell                    
+                    // move away from blocked cell
                     awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
                     unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * steerAmount;
-                    unit.desiredPos.z += awayDirection.y * steerAmount;
+                    unit.desiredPos.x += awayDirection.x * avoidanceSteerAmount;
+                    unit.desiredPos.z += awayDirection.y * avoidanceSteerAmount;
                     GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
                 }
             }
@@ -302,9 +301,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 if (unit.motionId > 0) {
                     if (avoidedCell) {
                         nextPos.copy(unit.obj.position);
-                        mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
+                        mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime);                         
                     } else {
-                        nextPos.copy(unit.desiredPos); 
+                        nextPos.copy(unit.desiredPos);
                     }
                     hasMoved = true; 
                 } else if (unit.isColliding) {
