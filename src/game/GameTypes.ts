@@ -5,12 +5,6 @@ import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
 
-export type TFlowField = {
-    integration: number;
-    direction: Vector2;
-    directionValid: boolean;
-};
-
 export interface ICell {
     roadTile?: number;
 
@@ -30,9 +24,7 @@ export interface ICell {
         obj?: THREE.Object3D;        
     };
     
-    unit?: THREE.Object3D;
-    flowField: TFlowField[];
-    flowFieldsPerSector: Map<string, TFlowField[]>;
+    unit?: THREE.Object3D;    
     flowFieldCost: number;
     isEmpty: boolean;
 }

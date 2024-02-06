@@ -26,6 +26,8 @@ import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { ArcherNPCState } from "../unit/ArcherNPCState";
 import { unitMotion } from "../unit/UnitMotion";
+import { computeUnitAddr } from "../unit/UnitAddr";
+import { unitAnimation } from "../unit/UnitAnimation";
 
 export class FlockProps extends ComponentProps {
 
@@ -119,8 +121,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 if (this.state.selectedUnits.length > 0) {                    
                     const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
                     const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
-                    if (targetCell) {       
-                                        
+                    if (targetCell) {
                         // group units per sector
                         const groups = this.state.selectedUnits.reduce((prev, cur) => {
                             const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
@@ -134,87 +135,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             return prev;
                         }, {} as Record<string, Unit[]>);
                         
-                        // TODO the problem when multiple groups are present, is that they overwrite flowfield data on the target cell
-                        // This must be stored outside the target cell and in an exclusive location for the current motion
-                        // Specially that if another group starts moving to the same target, it will also overwrite the flowfield data
-                        const currentSector = pools.vec2.getOne();
-                        for (const [sectorId, units] of Object.entries(groups)) {
-                            const [sectorX, sectorY] = sectorId.split(",").map(Number);
-                            currentSector.set(sectorX, sectorY);
-                            unitMotion.move(units, currentSector, targetSectorCoords, targetCellCoords, targetCell);
-
-                            // this.state.flowfieldViewer.update(sector, localCoords);
-                            
-                            /*if (unitSectorCoords.equals(sectorCoords)) {
-                                unitMotion.moveWithinSector(units, units[0].coords.mapCoords, cellCoords, cell);
-                                // const sector = gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                                // this.state.flowfieldViewer.update(sector, localCoords);
-
-                            } else {
-                                
-                                // A* across sectors
-                                const path = sectorPathfinder.findPath(unitSectorCoords, sectorCoords);
-                                if (!path || path.length < 2) {
-                                    continue;
-                                }
-
-                                const multiSectorMotion: IMultiSectorMotion = {
-                                    currentSector: 0,
-                                    sectors: []
-                                };
-
-                                for (let i = 0; i < path.length; ++i) {
-                                    const sectorCoords = path[i];
-                                    const lastSector = i === path.length - 1;
-                                    const cellAddr: ICellAddr = {                                        
-                                        mapCoords: new Vector2(),
-                                        localCoords: new Vector2(),
-                                        sectorCoords: new Vector2(),
-                                        cellIndex: 0
-                                    };
-
-                                    if (lastSector) {                                        
-                                        unitUtils.computeCellAddr(cellCoords, cellAddr);
-                                        multiSectorMotion.sectors.push({
-                                            sectorCoords,
-                                            targetCell: cellAddr
-                                        });
-
-                                    } else {                                        
-                                        const nextSectorCoords = path[i + 1];
-                                        if (nextSectorCoords.x === sectorCoords.x) {                                            
-                                            if (nextSectorCoords.y > sectorCoords.y) {
-                                                // moving down, find cell at the bottom of the sector
-                                                const cellY = mapRes - 1;
-                                                const cellX = Math.floor(mapRes / 2);
-                                                const cellMapX = sectorCoords.x * mapRes + cellX;
-                                                const cellMapY = sectorCoords.y * mapRes + cellY;
-                                                cellAddr.mapCoords.set(cellMapX, cellMapY);
-                                                unitUtils.computeCellAddr(cellAddr.mapCoords, cellAddr);
-                                                multiSectorMotion.sectors.push({
-                                                    sectorCoords,
-                                                    targetCell: cellAddr
-                                                });
-
-                                            } else {
-                                                console.warn("moving up not implemented");                                                
-                                            }
-
-                                        } else if (nextSectorCoords.y === sectorCoords.y) {
-                                            
-                                            console.warn("moving laterally not implemented");
-
-                                        } else {
-                                            // diagonal                                           
-                                            console.warn("diagonal not implemented");
-                                        }
-                                    }
-                                }                                     
-                                const targetCell0Addr = multiSectorMotion.sectors[0].targetCell;
-                                const targetCell0 = targetCell0Addr.sector!.cells[targetCell0Addr.cellIndex];
-                                unitMotion.moveWithinSector(units, units[0].coords.mapCoords, targetCell0Addr.mapCoords, targetCell0, multiSectorMotion);
-                            }*/
-                            
+                        for (const units of Object.values(groups)) {
+                            unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);                            
                         }
                     }
                 }
@@ -300,8 +222,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 if (dist < separationDist) {
                     unit.isColliding = true;
                     otherUnit.isColliding = true;
-                    if (otherUnit.isMoving) {
-                        if (unit.isMoving) {
+                    if (otherUnit.motionId > 0) {
+                        if (unit.motionId > 0) {
                             // move away from each other
                             const moveAmount = Math.min((separationDist - dist) / 2, maxSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
@@ -319,7 +241,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             desiredPos.add(toTarget);
                         }
                     } else {
-                        if (unit.isMoving) {
+                        if (unit.motionId > 0) {
                             const moveAmount = Math.min((separationDist - dist) + repulsion , maxSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             otherDesiredPos.add(toTarget);                            
@@ -346,7 +268,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             unit.desiredPosValid = false;
-            const needsMotion = unit.isMoving || unit.isColliding;
+            const needsMotion = unit.motionId > 0 || unit.isColliding;
             let avoidedCell = false;
 
             if (needsMotion) {
@@ -377,7 +299,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
             let hasMoved = false;
             if (needsMotion) {
-                if (unit.isMoving) {
+                if (unit.motionId > 0) {
                     if (avoidedCell) {
                         nextPos.copy(unit.obj.position);
                         mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
@@ -398,7 +320,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             unit.isColliding = false;
             const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
             if (collisionAnim) {
-                console.assert(!unit.isMoving);
+                console.assert(unit.motionId === 0);
                 nextPos.copy(unit.obj.position);
                 mathUtils.smoothDampVec3(nextPos, unit.desiredPos, unit.velocity, positionDamp, 999, time.deltaTime); 
                 hasMoved = true;
@@ -420,18 +342,18 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         localCoords.y += dy;
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector
-                            unitUtils.computeCellAddr(nextMapCoords, unit.coords);
+                            computeUnitAddr(nextMapCoords, unit.coords);
                         } else {
                             unit.coords.mapCoords.copy(nextMapCoords);
                             unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                         }
 
-                        if (unit.isMoving) {
+                        if (unit.motionId > 0) {
                             if (!unit.fsm.currentState) {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
-                                    unit.isMoving = false;
-                                    unitUtils.setAnimation(unit, "idle");
+                                    unit.motionId = 0;
+                                    unitAnimation.setAnimation(unit, "idle");
                                 }
                             }
                         }

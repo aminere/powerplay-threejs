@@ -1,6 +1,5 @@
 import { Quaternion, SkinnedMesh, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
-import { ICellAddr, unitUtils } from "./UnitUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { IUnit, IUnitAnim, UnitType } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
@@ -8,6 +7,8 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
+import { IUnitAddr, computeUnitAddr } from "./UnitAddr";
+import { unitAnimation } from "./UnitAnimation";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -25,7 +26,7 @@ export class Unit implements IUnit {
     public get targetCell() { return this._targetCell; }
     public get obj() { return this._obj; }    
     public get coords() { return this._coords; }
-    public get isMoving() { return this._isMoving; }
+    public get motionId() { return this._motionId; }
     public get isColliding() { return this._isColliding; }
     public get isAlive() { return this._isAlive; }
     public get isIdle() { return this._isIdle; }
@@ -47,7 +48,7 @@ export class Unit implements IUnit {
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set rotationVelocity(value: number) { this._rotationVelocity = value; }
-    public set isMoving(value: boolean) { this._isMoving = value; }
+    public set motionId(value: number) { this._motionId = value; }
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }
@@ -58,9 +59,9 @@ export class Unit implements IUnit {
             engineState.removeComponent(this._obj, UnitCollisionAnim);
             this._isAlive = false;            
             this._collidable = false;
-            this._isMoving = false;
+            this._motionId = 0;
             this._isColliding = false;
-            unitUtils.setAnimation(this, "death", { 
+            unitAnimation.setAnimation(this, "death", { 
                 transitionDuration: 1,
                 destAnimLoopMode: "Once"
             });
@@ -78,20 +79,20 @@ export class Unit implements IUnit {
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();
     private _flowfieldDir = new Vector2();
-    private _targetCell: ICellAddr = {
+    private _targetCell: IUnitAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
         sectorCoords: new Vector2(),
         cellIndex: 0
     };
     private _obj: SkinnedMesh;    
-    private _coords: ICellAddr = {
+    private _coords: IUnitAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
         sectorCoords: new Vector2(),
         cellIndex: 0
     };
-    private _isMoving = false;
+    private _motionId = 0;
     private _isColliding = false;
     private _isAlive = true;
     private _isIdle = true;
@@ -120,7 +121,7 @@ export class Unit implements IUnit {
         this._animation = props.animation;
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
-        unitUtils.computeCellAddr(this._coords.mapCoords, this._coords);
+        computeUnitAddr(this._coords.mapCoords, this._coords);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
     }
 }

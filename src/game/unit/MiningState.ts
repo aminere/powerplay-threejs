@@ -1,9 +1,10 @@
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { ICellAddr, unitUtils } from "./UnitUtils";
 import { Object3D, Vector2 } from "three";
 import { pools } from "../../engine/Pools";
 import { time } from "../../engine/Time";
+import { unitAnimation } from "./UnitAnimation";
+import { IUnitAddr, copyUnitAddr } from "./UnitAddr";
 
 enum MiningStep {
     GoToResource,
@@ -17,7 +18,7 @@ export class MiningState extends State<IUnit> {
 
     private _step!: MiningStep;
     private _miningTimer!: number;
-    private _targetResource: ICellAddr = {
+    private _targetResource: IUnitAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
         sectorCoords: new Vector2(),
@@ -27,7 +28,7 @@ export class MiningState extends State<IUnit> {
 
     override enter(unit: IUnit) {        
         this._step = MiningStep.GoToResource;
-        unitUtils.copyCellAddr(unit.targetCell, this._targetResource);
+        copyUnitAddr(unit.targetCell, this._targetResource);
         this._potentialTarget.set(-1, -1);
     }
 
@@ -37,11 +38,11 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToResource: {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unit.isMoving = false;
+                    unit.motionId = 0;
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
                     this._miningTimer = 1;                    
-                    unitUtils.setAnimation(unit, "pick", { transitionDuration: 1 });                    
+                    unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });                    
                 }
             }
                 break;
@@ -49,9 +50,10 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToBase: {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unit.isMoving = false;
-                    this._step = MiningStep.GoToResource;
-                    unitUtils.moveTo(unit, this._targetResource.mapCoords);
+                    unit.motionId = 0;
+                    this._step = MiningStep.GoToResource;                    
+                    // TODO
+                    // unitUtils.moveTo(unit, this._targetResource.mapCoords);
                 }
             }
                 break;

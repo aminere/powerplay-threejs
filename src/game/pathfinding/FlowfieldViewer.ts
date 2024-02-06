@@ -3,7 +3,7 @@
 import { BufferGeometry, LineBasicMaterial, LineSegments, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { ICell, ISector } from "../GameTypes";
+import { ISector } from "../GameTypes";
 import { flowField } from "./Flowfield";
 
 const currentCoords = new Vector2();
@@ -24,7 +24,7 @@ export class FlowfieldViewer extends Object3D {
         this.name = "flowfield";
     }
 
-    public update(sector: ISector, sectorCoords: Vector2, targetCell: ICell, targetCellCoords: Vector2, targetSectorCoords: Vector2) {
+    public update(motionId: number, sector: ISector, sectorCoords: Vector2, targetCellCoords: Vector2) {
         const { mapRes } = config.game;
         const cells = sector.cells;
         linePoints.length = 0;
@@ -39,7 +39,7 @@ export class FlowfieldViewer extends Object3D {
                 continue;
             }
            
-            const computed = flowField.computeDirection(currentCoords, targetCell, targetSectorCoords, cellDirection);
+            const computed = flowField.computeDirection(motionId, currentCoords, cellDirection);
             if (computed) {
                 GameUtils.mapToWorld(currentCoords, worldPos1);
                 linePoints.push(worldPos1.clone());

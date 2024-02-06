@@ -3,10 +3,10 @@ import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
-import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
+import { unitAnimation } from "./UnitAnimation";
 
 enum NpcStep {
     Idle,
@@ -43,10 +43,10 @@ export class NPCState extends State<IUnit> {
                     } else {
                         const dist = target.obj.position.distanceTo(unit.obj.position);
                         if (dist < flock.component.props.separation + .2) {
-                            unit.isMoving = false;
+                            unit.motionId = 0;
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
-                            unitUtils.setAnimation(unit, "attack", { transitionDuration: .3 });
+                            unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
                         }
                     }
                 } else {
@@ -83,7 +83,7 @@ export class NPCState extends State<IUnit> {
         }
     }
 
-    private follow(unit: IUnit, target: IUnit) {
+    private follow(_unit: IUnit, _target: IUnit) {
         console.assert(false, "Not implemented");
         // if (flowField.compute(target.coords.mapCoords)) {
         //     switch (this._step) {
@@ -107,7 +107,7 @@ export class NPCState extends State<IUnit> {
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;
-        unitUtils.setAnimation(unit, "idle", {
+        unitAnimation.setAnimation(unit, "idle", {
             transitionDuration: 1,
             scheduleCommonAnim: true
         });
@@ -116,7 +116,7 @@ export class NPCState extends State<IUnit> {
             utils.fastDelete(target.attackers, index);
         }
         this._target = null;
-        unit.isMoving = false;
+        unit.motionId = 0;
         this._step = NpcStep.Idle;
     }
 }

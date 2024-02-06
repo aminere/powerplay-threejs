@@ -5,9 +5,9 @@ import { npcUtils } from "./NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
 import gsap from "gsap";
-import { flowField } from "../pathfinding/Flowfield";
 import { time } from "../../engine/Time";
 import { utils } from "../../engine/Utils";
+import { unitAnimation } from "./UnitAnimation";
 
 enum NpcStep {
     Idle,
@@ -63,7 +63,7 @@ export class ArcherNPCState extends State<IUnit> {
                     } else {
                         const dist = target.obj.position.distanceTo(unit.obj.position);
                         if (dist < vision) {
-                            unit.isMoving = false;
+                            unit.motionId = 0;
                             this.attack(unit);
                         }
                     }
@@ -115,7 +115,7 @@ export class ArcherNPCState extends State<IUnit> {
                                         }
                                     });                                    
 
-                                    unitUtils.setAnimation(unit, "arrow-shoot", { 
+                                    unitAnimation.setAnimation(unit, "arrow-shoot", { 
                                         transitionDuration: .1,
                                         destAnimLoopMode: "Once"
                                     });
@@ -128,7 +128,7 @@ export class ArcherNPCState extends State<IUnit> {
                             case AttackStep.Shoot: {
                                 if (!unit.animation.action.isRunning()) {    
                                     this._attackStep = AttackStep.Draw;
-                                    unitUtils.setAnimation(unit, "arrow-draw", {
+                                    unitAnimation.setAnimation(unit, "arrow-draw", {
                                         transitionDuration: .1, 
                                         destAnimLoopMode: "Once" 
                                     });                                    
@@ -149,7 +149,7 @@ export class ArcherNPCState extends State<IUnit> {
         }
     }
 
-    private follow(unit: IUnit, target: IUnit) {
+    private follow(_unit: IUnit, _target: IUnit) {
         console.assert(false, "Not implemented");
         // if (flowField.compute(target.coords.mapCoords)) {
         //     switch (this._step) {
@@ -174,7 +174,7 @@ export class ArcherNPCState extends State<IUnit> {
     private goToIdle(unit: IUnit) {
         const target = this._target!;
         const transitionDuration = .3;
-        unitUtils.setAnimation(unit, "idle", {
+        unitAnimation.setAnimation(unit, "idle", {
             transitionDuration,
             scheduleCommonAnim: true
         });
@@ -184,7 +184,7 @@ export class ArcherNPCState extends State<IUnit> {
             utils.fastDelete(target.attackers, index);
         }
         this._target = null;
-        unit.isMoving = false;
+        unit.motionId = 0;
         this._step = NpcStep.Idle;
         this._idleTimer = transitionDuration; 
     }
@@ -192,7 +192,7 @@ export class ArcherNPCState extends State<IUnit> {
     private attack(unit: IUnit) {
         this._attackStep = AttackStep.Draw;
         this._step = NpcStep.Attack;
-        unitUtils.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });        
+        unitAnimation.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });        
     }
 }
 

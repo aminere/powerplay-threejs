@@ -24,8 +24,6 @@ export class Sector {
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map(() => {
             const cell: ICell = {
-                flowField: [],
-                flowFieldsPerSector: new Map(),
                 isEmpty: true,
                 flowFieldCost: 1
             };

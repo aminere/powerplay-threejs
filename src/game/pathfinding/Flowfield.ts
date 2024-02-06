@@ -1,9 +1,16 @@
 import { Vector2 } from "three";
-import type { ICell, TFlowField } from "../GameTypes";
+import type { ICell } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { pools } from "../../engine/Pools";
-import { ICellAddr } from "../unit/UnitUtils";
+import { unitMotion } from "../unit/UnitMotion";
+import { IUnitAddr } from "../unit/UnitAddr";
+
+export type TFlowField = {
+    integration: number;
+    direction: Vector2;
+    directionValid: boolean;
+};
 
 const { mapRes } = config.game;
 const cellCount = mapRes * mapRes;
@@ -18,17 +25,17 @@ function initFlowField(flowField: TFlowField[]) {
     }
 }
 
-function resetField(flowField: TFlowField[]) {
-    if (flowField.length === 0) {
-        initFlowField(flowField);
+// function resetField(flowField: TFlowField[]) {
+//     if (flowField.length === 0) {
+//         initFlowField(flowField);
 
-    } else {
-        for (const elem of flowField) {
-            elem.integration = 0xffff;
-            elem.directionValid = false;
-        }
-    }
-}
+//     } else {
+//         for (const elem of flowField) {
+//             elem.integration = 0xffff;
+//             elem.directionValid = false;
+//         }
+//     }
+// }
 
 function shiftSet<T>(set: Set<T>) {
     for (const value of set) {
@@ -37,29 +44,22 @@ function shiftSet<T>(set: Set<T>) {
     }
 }
 
-export function getFlowfield(cell: ICell, cellSectorCoords: Vector2, targetSectorCoords: Vector2) {
-    if (targetSectorCoords.equals(cellSectorCoords)) {
-        return cell.flowField;
-    } else {
-        return cell.flowFieldsPerSector.get(`${targetSectorCoords.x},${targetSectorCoords.y}`)!;
-    }
-}
-
 interface IFlowfieldContext {
     targetCell: ICell;
     targetCellSectorCoords: Vector2;
     openList: Set<Vector2>;
+    flowfields: Map<string, TFlowField[]>;
 }
 
 const sectorCoordsOut2 = new Vector2();
 const localCoordsOut2 = new Vector2();
-function processNeighbor(currentCoords: Vector2, neighborCell: ICell, neighborAddr: ICellAddr, diagonalCost: number, context: IFlowfieldContext) {
+function processNeighbor(currentCoords: Vector2, neighborCell: ICell, neighborAddr: IUnitAddr, diagonalCost: number, context: IFlowfieldContext) {
     const currentCell = GameUtils.getCell(currentCoords, sectorCoordsOut2, localCoordsOut2);
     console.assert(currentCell);
-    const flowField = getFlowfield(context.targetCell, context.targetCellSectorCoords, sectorCoordsOut2);
+    const flowField = context.flowfields.get(`${sectorCoordsOut2.x},${sectorCoordsOut2.y}`)!;
     const currentIndex = localCoordsOut2.y * mapRes + localCoordsOut2.x;
     const endNodeCost = flowField[currentIndex].integration + neighborCell.flowFieldCost + diagonalCost;
-    const neighborFlowfield = getFlowfield(context.targetCell, context.targetCellSectorCoords, neighborAddr.sectorCoords);
+    const neighborFlowfield = context.flowfields.get(`${neighborAddr.sectorCoords.x},${neighborAddr.sectorCoords.y}`)!;
     if (!neighborFlowfield) {
         debugger;
     }
@@ -74,12 +74,13 @@ const neighborCoords = new Vector2();
 const context: IFlowfieldContext = {
     targetCell: null as any,
     targetCellSectorCoords: new Vector2(),
-    openList: new Set<Vector2>()
+    openList: new Set<Vector2>(),
+    flowfields: new Map<string, TFlowField[]>()
 };
 
 class FlowField {
 
-    private _neighborAddr: ICellAddr = {
+    private _neighborAddr: IUnitAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),
         sectorCoords: new Vector2(),
@@ -91,24 +92,20 @@ class FlowField {
         const [sectorCoordsOut, localCoordsOut] = pools.vec2.get(2);
         const cell = GameUtils.getCell(targetCoords, sectorCoordsOut, localCoordsOut);
         if (!cell) {
-            return false;
-        }
-        
-        // TODO only recompute if the sector costs are dirty
-        resetField(cell.flowField);
-        cell.flowFieldsPerSector.clear();
-        if (sectors.length > 1) {
-            for (let i = 0; i < sectors.length - 1; ++i) {
-                const sectorCoord = sectors[i];
-                const flowField = new Array<TFlowField>();
-                initFlowField(flowField);
-                cell.flowFieldsPerSector.set(`${sectorCoord.x},${sectorCoord.y}`, flowField);
-            }
+            return null;
+        }       
+
+        const flowfields = new Map<string, TFlowField[]>();
+        for (const sectorCoords of sectors) {
+            const flowField = new Array<TFlowField>();
+            initFlowField(flowField);
+            flowfields.set(`${sectorCoords.x},${sectorCoords.y}`, flowField);
         }
 
         const cellIndex = localCoordsOut.y * mapRes + localCoordsOut.x;
-        cell.flowField[cellIndex].integration = 0;
+        flowfields.get(`${sectorCoordsOut.x},${sectorCoordsOut.y}`)![cellIndex].integration = 0;
 
+        context.flowfields = flowfields;
         context.openList.clear();
         context.openList.add(targetCoords.clone());
         context.targetCell = cell;
@@ -167,27 +164,13 @@ class FlowField {
                 processNeighbor(currentCoords, neighborCell, this._neighborAddr, 1, context);
             }            
         }
-        return true;
+        return flowfields;
     }
 
-    public computeDirection(mapCoords: Vector2, targetCell: ICell, targetCellSector: Vector2, directionOut: Vector2) {        
+    public computeDirection(motionId: number, mapCoords: Vector2, directionOut: Vector2) {        
         let minCost = 0xffff;
-        const minNeighbor = pools.vec2.getOne();       
-
-        const isSectorIncluded = (sectorCoords: Vector2) => {
-            if (sectorCoords.equals(targetCellSector)) {
-                return true;
-            }
-            if (targetCell.flowFieldsPerSector.size > 0) {
-                for (const sectorId of targetCell.flowFieldsPerSector.keys()) {
-                    const [sectorX, sectorY] = sectorId.split(",").map(Number);
-                    if (sectorX === sectorCoords.x && sectorY === sectorCoords.y) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
+        const minNeighbor = pools.vec2.getOne();
+        const flowfields = unitMotion.getFlowfields(motionId);
 
         for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
             this._neighborAddr.mapCoords.set(mapCoords.x + dx, mapCoords.y + dy);
@@ -196,12 +179,11 @@ class FlowField {
                 continue;
             }
 
-            const includedSector = isSectorIncluded(this._neighborAddr.sectorCoords);
-            if (!includedSector) {
+            const flowField = flowfields.get(`${this._neighborAddr.sectorCoords.x},${this._neighborAddr.sectorCoords.y}`);
+            if (!flowField) {
                 continue;
             }
-
-            const flowField = getFlowfield(targetCell, targetCellSector, this._neighborAddr.sectorCoords);
+            
             const neighborIndex = this._neighborAddr.localCoords.y * mapRes + this._neighborAddr.localCoords.x;
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
@@ -217,8 +199,8 @@ class FlowField {
                 continue;
             }
 
-            const includedSector = isSectorIncluded(this._neighborAddr.sectorCoords);
-            if (!includedSector) {
+            const flowField = flowfields.get(`${this._neighborAddr.sectorCoords.x},${this._neighborAddr.sectorCoords.y}`)!;
+            if (!flowField) {
                 continue;
             }
 
@@ -236,8 +218,7 @@ class FlowField {
                 // don't navigate diagonally near obstacles
                 continue;
             }
-
-            const flowField = getFlowfield(targetCell, targetCellSector, this._neighborAddr.sectorCoords);
+            
             const neighborIndex = this._neighborAddr.localCoords.y * mapRes + this._neighborAddr.localCoords.x;
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {

@@ -1,7 +1,7 @@
 import { AnimationAction, Quaternion, SkinnedMesh, Vector2, Vector3 } from "three";
-import { ICellAddr } from "./UnitUtils";
 import { StateMachine } from "../fsm/StateMachine";
 import { IUniqueSkeleton } from "../animation/SkeletonPool";
+import { IUnitAddr } from "./UnitAddr";
 
 export enum UnitType {
     Worker,
@@ -18,10 +18,10 @@ export interface IUnit {
     desiredPosValid: boolean;
     desiredPos: Vector3;
     flowfieldDir: Vector2;
-    targetCell: ICellAddr;
+    targetCell: IUnitAddr;
     obj: SkinnedMesh;
-    coords: ICellAddr;
-    isMoving: boolean;
+    coords: IUnitAddr;
+    motionId: number;
     isColliding: boolean;
     isAlive: boolean;
     isIdle: boolean;
