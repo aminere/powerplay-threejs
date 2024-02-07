@@ -16,6 +16,19 @@ import { pools } from "../../engine/Pools";
 
 type FlowFieldMap = Map<string, TFlowField[]>;
 const { mapRes } = config.game;
+const oneSector = [new Vector2()];
+
+function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
+    const resource = desiredTargetCell.resource?.name;
+    if (resource) {
+        return desiredTargetCellCoords;
+    } else if (desiredTargetCell.isEmpty) {
+        return path[path.length - 1];
+    } else if (path.length > 2) {
+        return path[path.length - 2];
+    }
+    return null;
+}    
 
 class UnitMotion {
     private _motionId = 1;
@@ -27,7 +40,8 @@ class UnitMotion {
         const sameSector = sourceSectorCoords.equals(destSectorCoords);
         const sectors = (() => {
             if (sameSector) {
-                return [sourceSectorCoords];
+                oneSector[0] = sourceSectorCoords;
+                return oneSector;
             } else {
                 const sectorPath = sectorPathfinder.findPath(sourceSectorCoords, destSectorCoords)!;
                 console.assert(sectorPath);
@@ -79,7 +93,7 @@ class UnitMotion {
         if (!path || path.length < 2) {
             return;
         }
-        targetCellCoords = this.getTargetCoords(path, destCell, destMapCoords);
+        targetCellCoords = getTargetCoords(path, destCell, destMapCoords);
         if (!targetCellCoords) {
             return;
         }
@@ -96,9 +110,8 @@ class UnitMotion {
             }
             if (unit.coords.mapCoords.equals(targetCellCoords)) {
                 continue;
-            }
-            unit.motionId = motionId;
-            this.moveTo(unit, targetCellCoords);
+            }            
+            this.moveTo(unit, motionId, targetCellCoords);
             unit.fsm.switchState(nextState);
         }
         
@@ -116,7 +129,8 @@ class UnitMotion {
         return this._motions.get(motionId)!;
     }
 
-    private moveTo(unit: IUnit, mapCoords: Vector2, bindSkeleton = true) {
+    private moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
+        unit.motionId = motionId;
         unit.collidable = true;
         computeUnitAddr(mapCoords, unit.targetCell);
         engineState.removeComponent(unit.obj, UnitCollisionAnim);
@@ -124,18 +138,6 @@ class UnitMotion {
             unitAnimation.setAnimation(unit, "run");
         }
     }
-
-    private getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
-        const resource = desiredTargetCell.resource?.name;
-        if (resource) {
-            return desiredTargetCellCoords;
-        } else if (desiredTargetCell.isEmpty) {
-            return path[path.length - 1];
-        } else if (path.length > 2) {
-            return path[path.length - 2];
-        }
-        return null;
-    }    
 }
 
 export const unitMotion = new UnitMotion();
