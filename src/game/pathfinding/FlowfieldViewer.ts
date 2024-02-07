@@ -1,18 +1,48 @@
 
 
-import { BufferGeometry, LineBasicMaterial, LineSegments, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
+import { BufferGeometry, LineBasicMaterial, LineSegments, MathUtils, Mesh, MeshBasicMaterial, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
 import { flowField } from "./Flowfield";
+import { _3dFonts } from "../../engine/3DFonts";
+import { Font, TextGeometry } from "three/examples/jsm/Addons.js";
+import { utils } from "../../engine/Utils";
+import { unitMotion } from "../unit/UnitMotion";
 
 const currentCoords = new Vector2();
 const cellDirection = new Vector2();
 const worldPos1 = new Vector3();
 const cellDirection3 = new Vector3();
 const linePoints = new Array<Vector3>();
+const textCache = new Map<number, TextGeometry>();
+
+function getText(value: number, font: Font) {
+    const cached = textCache.get(value);
+    if (cached) {
+        return cached;
+    }
+    const text = new TextGeometry(`${value}`, {
+        font,
+        size: 0.2,
+        height: 0.02,
+        curveSegments: 2,
+        bevelEnabled: false,
+    });
+    text.computeBoundingBox();
+    text.rotateX(-Math.PI / 2);
+    const centerOffset = - 0.5 * (text.boundingBox!.max.x - text.boundingBox!.min.x);
+    text.translate(centerOffset, 0, 0);
+    textCache.set(value, text);
+    return text;
+}
+
+const { mapRes, cellSize } = config.game;
 
 export class FlowfieldViewer extends Object3D {
+
+    private _font: Font | null = null;
+
     constructor() {
         super();
         const lineSegments = new LineSegments(new BufferGeometry(), new LineBasicMaterial({ color: 0xff0000 }));
@@ -22,10 +52,10 @@ export class FlowfieldViewer extends Object3D {
         points.position.y = 0.05;
         this.add(points);
         this.name = "flowfield";
+        this.visible = false;
     }
 
-    public update(motionId: number, sector: ISector, sectorCoords: Vector2, targetCellCoords: Vector2) {
-        const { mapRes } = config.game;
+    public update(motionId: number, sector: ISector, sectorCoords: Vector2, targetCellCoords: Vector2) {        
         const cells = sector.cells;
         linePoints.length = 0;
         for (let i = 0; i < cells.length; i++) {
@@ -56,6 +86,38 @@ export class FlowfieldViewer extends Object3D {
         points.geometry.setFromPoints(pointCoords);
         points.geometry.computeBoundingSphere();
         this.position.copy(sector.root.position).negate();
+
+        const flowfields = unitMotion.getFlowfields(motionId);
+        const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+        const flowfield = flowfields.get(sectorId)!;
+        const texts = this.children[2];
+        if (!texts) {
+            _3dFonts.load("helvetiker_regular.typeface").then(font => {
+                this._font = font;
+                const _texts = utils.createObject(this, "Texts");
+                _texts.position.copy(sector.root.position);
+                for (let y = 0; y < mapRes; ++y) {
+                    for (let x = 0; x < mapRes; ++x) {
+                        const cellIndex = y * mapRes + x;
+                        const integration = flowfield[cellIndex].integration;
+                        const text = getText(integration, font);
+                        const mesh = new Mesh(text, new MeshBasicMaterial({ color: 0x00ff00 }));
+                        mesh.position.set(x * cellSize + cellSize / 2, 0, y * cellSize + cellSize / 2);
+                        _texts.add(mesh);
+                    }
+                }
+            });
+        } else {
+            for (let y = 0; y < mapRes; ++y) {
+                for (let x = 0; x < mapRes; ++x) {
+                    const cellIndex = y * mapRes + x;
+                    const integration = flowfield[cellIndex].integration;
+                    const mesh = texts.children[cellIndex] as Mesh;                    
+                    const text = getText(integration, this._font!);
+                    mesh.geometry = text;
+                }
+            }
+        }
     }
 }
 
