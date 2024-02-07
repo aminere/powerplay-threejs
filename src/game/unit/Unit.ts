@@ -1,7 +1,7 @@
 import { Quaternion, SkinnedMesh, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, IUnitAnim, UnitType } from "./IUnit";
+import { IUnit, IUnitAnim, IUnitFlowfieldInfo, UnitType } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
@@ -22,7 +22,7 @@ export interface IUnitProps {
 export class Unit implements IUnit {
     public get desiredPosValid() { return this._desiredPosValid; }
     public get desiredPos() { return this._desiredPos; }
-    public get flowfieldDir() { return this._flowfieldDir; }
+    public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
     public get obj() { return this._obj; }    
     public get coords() { return this._coords; }
@@ -75,10 +75,11 @@ export class Unit implements IUnit {
         }
     }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
+    public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();
-    private _flowfieldDir = new Vector2();
+    private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell: IUnitAddr = {
         mapCoords: new Vector2(),
         localCoords: new Vector2(),

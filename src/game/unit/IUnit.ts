@@ -13,11 +13,16 @@ export interface IUnitAnim {
     action: AnimationAction;
 }
 
+export interface IUnitFlowfieldInfo {
+    cellIndex: number;
+    sectorCoords: Vector2;
+}
+
 export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
-    flowfieldDir: Vector2;
+    lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
     obj: SkinnedMesh;
     coords: IUnitAddr;

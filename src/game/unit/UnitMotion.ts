@@ -120,7 +120,7 @@ class UnitMotion {
         }
         for (const sectorCoords of sectors) {
             const sector = GameUtils.getSector(sectorCoords)!;
-            sector.flowfieldViewer.update(motionId, sector, sectorCoords, targetCellCoords);
+            sector.flowfieldViewer.update(motionId, sector, sectorCoords);
             sector.flowfieldViewer.visible = true;
         }
     }
