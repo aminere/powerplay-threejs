@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 import { ICell } from "../GameTypes";
-import { TFlowField, flowField } from "../pathfinding/Flowfield";
+import { flowField } from "../pathfinding/Flowfield";
 import { MiningState } from "./MiningState";
 import { IUnit } from "./IUnit";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
@@ -14,7 +14,6 @@ import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
 
-type FlowFieldMap = Map<string, TFlowField[]>;
 const { mapRes } = config.game;
 const oneSector = [new Vector2()];
 
@@ -31,8 +30,6 @@ function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTarge
 }    
 
 class UnitMotion {
-    private _motionId = 1;
-    private _motions = new Map<number, FlowFieldMap>();
 
     public move(units: IUnit[], destSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
         const sourceSectorCoords = units[0].coords.sectorCoords;
@@ -100,8 +97,7 @@ class UnitMotion {
 
         const flowfields = flowField.compute(targetCellCoords, sectors)!;
         console.assert(flowfields);
-        const motionId = this._motionId++;
-        this._motions.set(motionId, flowfields);
+        const motionId = flowField.register(flowfields);
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;
         for (const unit of units) {
@@ -123,11 +119,7 @@ class UnitMotion {
             sector.flowfieldViewer.update(motionId, sector, sectorCoords);
             sector.flowfieldViewer.visible = true;
         }
-    }
-
-    public getFlowfields(motionId: number) {
-        return this._motions.get(motionId)!;
-    }
+    }    
 
     private moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
         unit.motionId = motionId;

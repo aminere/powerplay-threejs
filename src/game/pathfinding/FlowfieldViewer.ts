@@ -8,7 +8,6 @@ import { flowField } from "./Flowfield";
 import { _3dFonts } from "../../engine/resources/3DFonts";
 import { Font, TextGeometry } from "three/examples/jsm/Addons.js";
 import { utils } from "../../engine/Utils";
-import { unitMotion } from "../unit/UnitMotion";
 
 const currentCoords = new Vector2();
 const cellDirection = new Vector2();
@@ -58,7 +57,7 @@ export class FlowfieldViewer extends Object3D {
     public update(motionId: number, sector: ISector, sectorCoords: Vector2) {        
         const cells = sector.cells;
         linePoints.length = 0;
-        const flowFields = unitMotion.getFlowfields(motionId);
+        const flowFields = flowField.getFlowfields(motionId);
         const _flowField = flowFields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
@@ -92,7 +91,7 @@ export class FlowfieldViewer extends Object3D {
         points.geometry.computeBoundingSphere();
         this.position.copy(sector.root.position).negate();
 
-        const flowfields = unitMotion.getFlowfields(motionId);
+        const flowfields = flowField.getFlowfields(motionId);
         const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
         const flowfield = flowfields.get(sectorId)!;
         const texts = this.children[2];

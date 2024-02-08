@@ -2,7 +2,6 @@ import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
-import { unitMotion } from "../unit/UnitMotion";
 
 export type TFlowField = {
     integration: number;
@@ -48,9 +47,14 @@ const directionPalette = [
     new Vector2(1, 1).normalize()
 ];
 
+type FlowFieldMap = Map<string, TFlowField[]>;
+
 class FlowField {    
 
     // private _cache = new Map<string, TFlowField[]>();
+    private _motionId = 1;
+    private _motions = new Map<number, FlowFieldMap>();
+
     public compute(targetCoords: Vector2, sectors: Vector2[]) {
 
         const [currentSectorCoords, currentLocalCoords] = pools.vec2.get(2);
@@ -175,7 +179,7 @@ class FlowField {
         let minCost = 0xffff;
         let toNeighborX = 0;
         let toNeighborY = 0;        
-        const flowfields = unitMotion.getFlowfields(motionId);        
+        const flowfields = this.getFlowfields(motionId);        
         
         lateralCellBlocked[0] = false;
         lateralCellBlocked[1] = false;
@@ -228,6 +232,17 @@ class FlowField {
         }
 
         for (const [dx, dy] of diagonalNeighbors) {
+
+            // don't navigate diagonally near obstacles
+            const lateralIndex = (dx + 1) / 2;
+            if (lateralCellBlocked[lateralIndex]) {
+                continue;
+            }
+            const verticalIndex = (dy + 1) / 2;
+            if (verticalCellBlocked[verticalIndex]) {
+                continue;
+            }
+
             neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
             const neighbor = GameUtils.getCell(neighborCoords, neighborSectorCoords, neighborLocalCoords);
             if (!neighbor) {
@@ -239,16 +254,6 @@ class FlowField {
                 continue;
             }
 
-            // don't navigate diagonally near obstacles
-            const lateralIndex = (dx + 1) / 2;
-            if (lateralCellBlocked[lateralIndex]) {
-                continue;
-            }
-            const verticalIndex = (dy + 1) / 2;
-            if (verticalCellBlocked[verticalIndex]) {
-                continue;
-            }
-            
             const neighborIndex = neighborLocalCoords.y * mapRes + neighborLocalCoords.x;
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
@@ -296,6 +301,17 @@ class FlowField {
 
     public getDirection(index: number, directionOut: Vector2) {
         directionOut.copy(directionPalette[index]);
+    }
+
+    public getFlowfields(motionId: number) {
+        return this._motions.get(motionId)!;
+    }
+
+    public register(flowfields: FlowFieldMap) {
+        const motionId = this._motionId;
+        this._motions.set(motionId, flowfields);
+        this._motionId++
+        return motionId;
     }
 }
 

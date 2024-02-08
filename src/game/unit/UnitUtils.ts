@@ -4,7 +4,6 @@ import { IUnit } from "./IUnit";
 import { TFlowField, flowField } from "../pathfinding/Flowfield";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
-import { unitMotion } from "./UnitMotion";
 
 const cellDirection = new Vector2()
 const cellDirection3 = new Vector3();
@@ -31,7 +30,7 @@ class UnitUtils {
         const { motionId, desiredPosValid, desiredPos, coords, obj } = unit;
         if (motionId > 0) {
             if (!desiredPosValid) {   
-                const flowfields = unitMotion.getFlowfields(motionId);            
+                const flowfields = flowField.getFlowfields(motionId);            
                 const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
                 if (_flowField) {
                     const currentCellIndex = coords.cellIndex;
