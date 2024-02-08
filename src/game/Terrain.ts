@@ -130,11 +130,12 @@ export class Terrain {
                 const continentHeight = sampleNoise(continentSample, props.continent);
                 const erosionSample = erosionNoise.GetNoise(noiseX, noiseY);
                 const erosionHeight = sampleNoise(erosionSample, props.erosion);
-                const height = Math.round(
+                const _height = Math.round(
                     continentHeight * props.continentGain * props.continentWeight
                     + erosionHeight * props.erosionGain * props.erosionWeight
                 );
 
+                const height = _height * 0;
                 const vertexIndex = i * verticesPerRow + j;
                 position.setY(vertexIndex, height);
 
@@ -268,7 +269,30 @@ export class Terrain {
                         vec2 tileUv = vec2(lookUpX + localUVx, lookUpY + localUVy) / ${tileMapRes}.;
                         vec4 tileColor = texture2D(map, vec2(tileUv.x, 1.0 - tileUv.y)); 
                         diffuseColor *= tileColor;
-    
+                        
+                        // FOG
+                        /*float cxn = (cellX - 1.) / mapRes;
+                        float cxp = (cellX + 1.) / mapRes;
+                        float cyn = (cellY - 1.) / mapRes;
+                        float cyp = (cellY + 1.) / mapRes;
+                        vec4 c = texture2D(highlightTexture, vec2(cx, cy));
+                        vec4 t = texture2D(highlightTexture, vec2(cx, cyn));
+                        vec4 b = texture2D(highlightTexture, vec2(cx, cyp));
+                        vec4 l = texture2D(highlightTexture, vec2(cxn, cy));
+                        vec4 r = texture2D(highlightTexture, vec2(cxp, cy));
+                        vec4 tl = texture2D(highlightTexture, vec2(cxn, cyn));
+                        vec4 tr = texture2D(highlightTexture, vec2(cxp, cyn));
+                        vec4 bl = texture2D(highlightTexture, vec2(cxn, cyp));
+                        vec4 br = texture2D(highlightTexture, vec2(cxp, cyp));
+                        vec4 tla = (c + tl + l + t) / 4.;
+                        vec4 tra = (c + tr + r + t) / 4.;
+                        vec4 bla = (c + bl + l + b) / 4.;
+                        vec4 bra = (c + br + r + b) / 4.;
+                        vec4 tColor = mix(tla, tra, localUVx);
+                        vec4 bColor = mix(bla, bra, localUVx);
+                        vec4 yColor = mix(tColor, bColor, localUVy);
+                        vec4 highlightColor = yColor;*/
+
                         vec4 highlightColor = texture2D(highlightTexture, vec2(cx, cy));
                         diffuseColor.rgb *= highlightColor.rgb;
     
