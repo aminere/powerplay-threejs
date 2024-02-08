@@ -340,9 +340,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         const { localCoords } = unit.coords;
                         localCoords.x += dx;
                         localCoords.y += dy;
-
-                        fogOfWar.removeCircle(unit.coords.mapCoords, 10);
-                        fogOfWar.addCircle(nextMapCoords, 10);
+                        
+                        fogOfWar.moveCircle(unit.coords.mapCoords, 10, dx, dy);
 
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector

@@ -12,6 +12,7 @@ class FogOfWar {
     private _cellRes = 0;
     private _texture!: DataTexture;
     private _textureData!: Uint8Array;
+    private _circleCache = new Map<number, boolean[]>();
 
     public init(sectorRes: number) {        
         const cellRes = mapRes * sectorRes;        
@@ -52,65 +53,106 @@ class FogOfWar {
     }
 
     public addCircle(mapCoords: Vector2, radius: number) {
+
         const startX = mapCoords.x - radius;
         const startY = mapCoords.y - radius;
         const radius2 = radius + radius;
+        const circle = this.getCircle(radius);
+        let index = 0;
         for (let i = 0; i < radius2; ++i) {
             for (let j = 0; j < radius2; ++j) {
+                if (!circle[index]) {
+                    index++;
+                    continue;
+                }
+                index++;
+
                 const x = startX + j;
                 const y = startY + i;
-                if (x < 0 || x >= this._cellRes || y < 0 || y >= this._cellRes) {
-                    continue;
-                }
                 circlePos.set(x, y);
-                const dist = mapCoords.distanceTo(circlePos);
-                if (dist > radius) {
+                const cell = GameUtils.getCell(circlePos);
+                if (!cell) {
                     continue;
                 }
 
-                const cell = GameUtils.getCell(circlePos)!;
-                console.assert(cell);
                 cell.viewCount++;
-
                 if (cell.viewCount === 1) {
                     const cellIndex = y * this._cellRes + x;
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 0;
-                }                
+                }
             }
         }
         this._texture.needsUpdate = true;
     }
 
-    public removeCircle(mapCoords: Vector2, radius: number) {
+    public moveCircle(mapCoords: Vector2, radius: number, dx: number, dy: number) {
+
         const startX = mapCoords.x - radius;
         const startY = mapCoords.y - radius;
         const radius2 = radius + radius;
+        const circle = this.getCircle(radius);
+        let index = 0;
+        for (let i = 0; i < radius2; ++i) {
+            for (let j = 0; j < radius2; ++j) {
+                if (!circle[index]) {
+                    index++;
+                    continue;
+                }
+                index++;
+
+                const x = startX + j;
+                const y = startY + i;
+                circlePos.set(x, y);
+                const oldCell = GameUtils.getCell(circlePos);
+                if (oldCell) {
+                    oldCell.viewCount--;
+                    if (oldCell.viewCount === 0) {
+                        const cellIndex = circlePos.y * this._cellRes + circlePos.x;
+                        const stride = cellIndex * 4;
+                        this._textureData[stride + 3] = 128;
+                    }
+                }
+
+                circlePos.set(x + dx, y + dy);
+                const newCell = GameUtils.getCell(circlePos);
+                if (newCell) {
+                    newCell.viewCount++;
+                    if (newCell.viewCount === 1) {
+                        const cellIndex = circlePos.y * this._cellRes + circlePos.x;
+                        const stride = cellIndex * 4;
+                        this._textureData[stride + 3] = 0;
+                    }                
+                }
+            }
+        }
+
+        this._texture.needsUpdate = true;
+    }    
+
+    private getCircle(radius: number) {
+        const cached = this._circleCache.get(radius);
+        if (cached) {
+            return cached;
+        }
+        const radius2 = radius + radius;
+        const startX = -radius;
+        const startY = -radius;
+        let index = 0;
+        const _circle: boolean[] = [...Array(radius2 * radius2)];
         for (let i = 0; i < radius2; ++i) {
             for (let j = 0; j < radius2; ++j) {
                 const x = startX + j;
                 const y = startY + i;
-                if (x < 0 || x >= this._cellRes || y < 0 || y >= this._cellRes) {
-                    continue;
-                }
                 circlePos.set(x, y);
-                const dist = mapCoords.distanceTo(circlePos);
-                if (dist > radius) {
-                    continue;
-                }
-
-                const cell = GameUtils.getCell(circlePos)!;
-                console.assert(cell);
-                cell.viewCount--;
-                console.assert(cell.viewCount >= 0);
-                if (cell.viewCount === 0) {
-                    const cellIndex = y * this._cellRes + x;
-                    const stride = cellIndex * 4;
-                    this._textureData[stride + 3] = 128;
-                }
+                const dist = circlePos.length();
+                const inside = dist < radius;
+                _circle[index] = inside;
+                index++;
             }
         }
-        this._texture.needsUpdate = true;
+        this._circleCache.set(radius, _circle);
+        return _circle;
     }
 }
 
