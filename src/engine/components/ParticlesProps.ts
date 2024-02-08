@@ -1,7 +1,7 @@
 import { Color, Vector2 } from "three";
-import { ComponentProps } from "../ComponentProps";
-import { TArray } from "../TArray";
-import * as Attributes from "../Attributes";
+import { ComponentProps } from "../ecs/ComponentProps";
+import { TArray } from "../serialization/TArray";
+import * as Attributes from "../serialization/Attributes";
 
 const ParticleDirections = [
     "static",

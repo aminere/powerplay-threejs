@@ -3,7 +3,7 @@ import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { unitUtils } from "./UnitUtils";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";

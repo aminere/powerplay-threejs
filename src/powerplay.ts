@@ -1,22 +1,22 @@
 
-export { Component } from "./engine/Component";
-export { ComponentProps }  from "./engine/ComponentProps";
-export { serialization } from "./engine/Serialization";
-export { TArray } from "./engine/TArray";
+export { Component } from "./engine/ecs/Component";
+export { ComponentProps }  from "./engine/ecs/ComponentProps";
+export { serialization } from "./engine/serialization/Serialization";
+export { TArray } from "./engine/serialization/TArray";
 
-export { componentFactory } from "./engine/ComponentFactory";
+export { componentFactory } from "./engine/ecs/ComponentFactory";
 export { engine, type ISceneInfo } from "./engine/Engine";
 export { engineState } from "./engine/EngineState";
 export { input } from "./engine/Input";
 export { utils } from "./engine/Utils";
-export { time } from "./engine/Time";
+export { time } from "./engine/core/Time";
 
 export { GameUI } from "./game/ui/GameUI";
 export { EngineStats } from "./debug/EngineStats";
 export { config } from "./game/config";
 
-export { meshes } from "./engine/Meshes";
-export { textures } from "./engine/Textures";
+export { meshes } from "./engine/resources/Meshes";
+export { textures } from "./engine/resources/Textures";
 export { GameMap } from "./game/components/GameMap";
 
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation } from "./game/GameSerialization";

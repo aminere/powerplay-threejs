@@ -1,8 +1,8 @@
 import { Mesh, Object3D, ObjectLoader, SkinnedMesh } from "three";
-import { Component, IComponentState } from "./Component";
-import { componentFactory } from "./ComponentFactory";
-import { utils } from "./Utils";
-import { ComponentProps } from "./ComponentProps";
+import { Component, IComponentState } from "../ecs/Component";
+import { componentFactory } from "../ecs/ComponentFactory";
+import { utils } from "../Utils";
+import { ComponentProps } from "../ecs/ComponentProps";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
 class Serialization {

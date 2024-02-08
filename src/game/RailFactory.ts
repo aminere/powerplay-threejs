@@ -3,8 +3,8 @@ import { Mesh, Object3D, Vector3 } from "three";
 import { config } from "./config";
 import { BezierPath } from "./BezierPath";
 import { IRail } from "./GameTypes";
-import { meshes } from "../engine/Meshes";
-import { pools } from "../engine/Pools";
+import { meshes } from "../engine/resources/Meshes";
+import { pools } from "../engine/core/Pools";
 
 class RailFactory {
 

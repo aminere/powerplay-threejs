@@ -1,10 +1,10 @@
 
 import { Color, Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { time } from "../../engine/Time";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { time } from "../../engine/core/Time";
 import { config } from "../config";
-import { textures } from "../../engine/Textures";
+import { textures } from "../../engine/resources/Textures";
 
 export class WaterProps extends ComponentProps {
 

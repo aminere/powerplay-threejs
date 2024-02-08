@@ -3,7 +3,7 @@ import { GameUtils } from "../GameUtils";
 import { IUnit } from "./IUnit";
 import { flowField } from "../pathfinding/Flowfield";
 import { mathUtils } from "../MathUtils";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { unitMotion } from "./UnitMotion";
 
 const cellDirection3 = new Vector3();

@@ -2,7 +2,7 @@ import { Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import * as THREE from "three";
-import { textures } from "../engine/Textures";
+import { textures } from "../engine/resources/Textures";
 
 const { cellSize, mapRes, elevationStep } = config.game;
 export class Buildings {

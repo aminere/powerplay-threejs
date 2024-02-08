@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
-import { pools } from "../engine/Pools";
+import { pools } from "../engine/core/Pools";
 
 export class BezierPath {
 

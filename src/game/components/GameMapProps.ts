@@ -1,6 +1,6 @@
 import { type TileType, TileTypes, type MineralType, MineralTypes } from "../GameDefinitions";
-import { ComponentProps } from "../../engine/ComponentProps";
-import * as Attributes from "../../engine/Attributes";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
 import { Vector2 } from "three";
 

@@ -12,7 +12,7 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { unitAnimation } from "./UnitAnimation";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { config } from "../config";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 
 type FlowFieldMap = Map<string, TFlowField[]>;
 const { mapRes } = config.game;

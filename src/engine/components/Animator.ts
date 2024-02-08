@@ -1,11 +1,11 @@
 import { AnimationAction, AnimationMixer, Object3D } from "three";
-import { Component } from "../Component";
-import { ComponentProps } from "../ComponentProps";
-import { time } from "../Time";
+import { Component } from "../ecs/Component";
+import { ComponentProps } from "../ecs/ComponentProps";
+import { time } from "../core/Time";
 import { engineState } from "../EngineState";
-import { TArray } from "../TArray";
-import * as Attributes from "../Attributes";
-import { type LoopMode, LoopModes } from "../Types";
+import { TArray } from "../serialization/TArray";
+import * as Attributes from "../serialization/Attributes";
+import { type LoopMode, LoopModes } from "../serialization/Types";
 import { utils } from "../Utils";
 
 export class AnimatorProps extends ComponentProps {

@@ -1,10 +1,19 @@
 import { Vector2 } from "three";
-import { DOMUtils } from "./DOMUtils";
+
+function getWheelDelta(delta: number, deltaMode: number) {
+    if (deltaMode === 1) { // DOM_DELTA_LINE
+        return delta * 32; // approximation, supposed to be the font size
+    } else if (deltaMode === 2) { // DOM_DELTA_PAGE
+        return delta * 32 * 10; // approximation, supposed to be the 'page' size whatever the fuck this is
+    } else {
+        return delta; // DOM_DELTA_PIXEL
+    }
+}
 
 class Input {
     set touchPos(value: Vector2) { this._touchPos.copy(value); }
     set touchInside(value: boolean) { this._touchInside = value; }
-    set rawWheelDelta(e: WheelEvent) {this._rawWheelDelta = DOMUtils.getWheelDelta(e.deltaY, e.deltaMode); }
+    set rawWheelDelta(e: WheelEvent) {this._rawWheelDelta = getWheelDelta(e.deltaY, e.deltaMode); }
     set rawTouchDown(value: boolean) { this._rawTouchDown = value; }
     set rawTouchButton(value: number) { this._rawTouchButton = value; }
     set rawTouchJustMoved(value: boolean) { this._rawTouchJustMoved = value; }

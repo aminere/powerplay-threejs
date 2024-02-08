@@ -1,4 +1,4 @@
-import { Constructor } from "../../engine/Types";
+import { Constructor } from "../../engine/serialization/Types";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 

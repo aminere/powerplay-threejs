@@ -1,11 +1,11 @@
 
-import { Component } from "../../engine/Component";
+import { Component } from "../../engine/ecs/Component";
 import { ICell } from "../GameTypes";
-import { meshes } from "../../engine/Meshes";
+import { meshes } from "../../engine/resources/Meshes";
 import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";
 import { Object3D } from "three";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engineState } from "../../engine/EngineState";
 
 export class TrainProps extends ComponentProps {

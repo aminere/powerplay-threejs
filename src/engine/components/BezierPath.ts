@@ -1,9 +1,9 @@
 
 
 import { Object3D, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { TArray } from "../TArray";
+import { Component } from "../ecs/Component";
+import { ComponentProps } from "../ecs/ComponentProps";
+import { TArray } from "../serialization/TArray";
 
 export class BezierPathProps extends ComponentProps {
 

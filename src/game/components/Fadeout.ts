@@ -1,7 +1,7 @@
 
 import { Mesh, Object3D } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import gsap from "gsap";
 
 export class FadeoutProps extends ComponentProps {    

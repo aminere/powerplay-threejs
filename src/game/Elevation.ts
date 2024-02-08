@@ -2,7 +2,7 @@ import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { ISector } from "./GameTypes";
 import { config } from "./config";
-import { pools } from "../engine/Pools";
+import { pools } from "../engine/core/Pools";
 import { gameMapState } from "./components/GameMapState";
 
 export class Elevation {

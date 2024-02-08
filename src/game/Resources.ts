@@ -2,8 +2,8 @@ import { MathUtils, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
-import { meshes } from "../engine/Meshes";
-import { objects } from "../engine/Objects";
+import { meshes } from "../engine/resources/Meshes";
+import { objects } from "../engine/resources/Objects";
 import { ResourceType } from "./GameDefinitions";
 
 const trees = [

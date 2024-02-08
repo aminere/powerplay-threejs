@@ -1,14 +1,14 @@
 
 import { InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Shader, Vector2, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { meshes } from "../../engine/Meshes";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { meshes } from "../../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
-import { time } from "../../engine/Time";
-import { textures } from "../../engine/Textures";
+import { time } from "../../engine/core/Time";
+import { textures } from "../../engine/resources/Textures";
 
 export class TreesProps extends ComponentProps {
 

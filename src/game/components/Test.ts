@@ -1,11 +1,11 @@
 
 import { Matrix4, Object3D, Quaternion, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { mathUtils } from "../MathUtils";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { GameUtils } from "../GameUtils";
 
 export class TestProps extends ComponentProps {

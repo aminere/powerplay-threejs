@@ -1,5 +1,5 @@
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
-import { objects } from "../../engine/Objects";
+import { objects } from "../../engine/resources/Objects";
 import { Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";

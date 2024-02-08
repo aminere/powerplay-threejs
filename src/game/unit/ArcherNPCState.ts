@@ -5,7 +5,7 @@ import { npcUtils } from "./NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
 import gsap from "gsap";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
 

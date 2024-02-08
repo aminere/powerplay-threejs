@@ -1,7 +1,7 @@
 
 import { Object3D } from "three";
-import { Component, IComponentState } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component, IComponentState } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 
 export class Props extends ComponentProps {
     constructor(props?: Partial<Props>) {

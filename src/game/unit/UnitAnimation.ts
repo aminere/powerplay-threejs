@@ -1,4 +1,4 @@
-import { LoopMode } from "../../engine/Types";
+import { LoopMode } from "../../engine/serialization/Types";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
 import { IUnit } from "./IUnit";

@@ -1,12 +1,12 @@
 import { AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
-import { objects } from "../../engine/Objects";
+import { objects } from "../../engine/resources/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { IUnit } from "../unit/IUnit";
 import { engineState } from "../../engine/EngineState";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
-import { LoopMode } from "../../engine/Types";
+import { LoopMode } from "../../engine/serialization/Types";
 
 export interface IUniqueSkeleton {
     id: string;

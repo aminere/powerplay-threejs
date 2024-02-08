@@ -2,9 +2,9 @@
 import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, NearestFilter, Vector2 } from "three";
 import { config } from "./config";
 import { GameUtils } from "./GameUtils";
-import { pools } from "../engine/Pools";
+import { pools } from "../engine/core/Pools";
 import { gameMapState } from "./components/GameMapState";
-import { textures } from "../engine/Textures";
+import { textures } from "../engine/resources/Textures";
 
 export class TileSector extends Object3D {
 

@@ -1,7 +1,7 @@
 
 import { Camera, Vector2, Vector3, Raycaster } from "three";
 import { config } from "./config";
-import { pools } from "../engine/Pools";
+import { pools } from "../engine/core/Pools";
 import { engine } from "../powerplay";
 import { gameMapState } from "./components/GameMapState";
 

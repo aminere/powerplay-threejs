@@ -1,12 +1,12 @@
 
 import { Box3, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
-import { Component, IComponentState } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component, IComponentState } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import { engine } from "../../engine/Engine";
 import { cmdStartSelection, cmdEndSelection, cmdSetSeletedUnits } from "../../Events";
 import { raycastOnCells } from "./GameMapUtils";
@@ -20,7 +20,7 @@ import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
 import { UnitType } from "../unit/IUnit";
-import { objects } from "../../engine/Objects";
+import { objects } from "../../engine/resources/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";

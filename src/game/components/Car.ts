@@ -1,13 +1,13 @@
 import { BufferGeometry, Color, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector2, Vector3 } from "three";
-import { Component } from "../../engine/Component";
+import { Component } from "../../engine/ecs/Component";
 import { Axis, ICell, ISector } from "../GameTypes";
-import { meshes } from "../../engine/Meshes";
+import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { Sector } from "../Sector";
 import { gameMapState } from "./GameMapState";
-import { time } from "../../engine/Time";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { time } from "../../engine/core/Time";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engine } from "../../engine/Engine";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 

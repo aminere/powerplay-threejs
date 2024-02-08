@@ -1,7 +1,7 @@
 import { Object3D } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { time } from "../../engine/Time";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { time } from "../../engine/core/Time";
 import { engineState } from "../../engine/EngineState";
 import { IUnit } from "../unit/IUnit";
 import { unitAnimation } from "../unit/UnitAnimation";

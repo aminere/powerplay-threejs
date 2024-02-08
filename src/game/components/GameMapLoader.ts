@@ -1,14 +1,14 @@
 
 import { Object3D, Vector2 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { ISerializedGameMap } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { GameMap } from "./GameMap";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
 import { config } from "../config";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { ResourceType } from "../GameDefinitions";
 import { Buildings } from "../Buildings";
 

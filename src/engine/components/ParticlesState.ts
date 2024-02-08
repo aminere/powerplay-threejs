@@ -1,5 +1,5 @@
 import { Color, Vector3 } from "three";
-import { IComponentState } from "../Component";
+import { IComponentState } from "../ecs/Component";
 
 const dataOffsets = {    
     position: 0, // Vector3    

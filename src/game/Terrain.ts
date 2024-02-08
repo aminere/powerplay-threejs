@@ -2,7 +2,7 @@
 import { config } from './config';
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Sphere, Texture, Vector2, Vector3 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
-import { textures } from '../engine/Textures';
+import { textures } from '../engine/resources/Textures';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -135,7 +135,7 @@ export class Terrain {
                     + erosionHeight * props.erosionGain * props.erosionWeight
                 );
 
-                const height = _height * 0;
+                const height = _height; // * 0;
                 const vertexIndex = i * verticesPerRow + j;
                 position.setY(vertexIndex, height);
 

@@ -1,4 +1,4 @@
-import { componentFactory } from "../../engine/ComponentFactory";
+import { componentFactory } from "../../engine/ecs/ComponentFactory";
 import { Animator, AnimatorProps } from "../../engine/components/Animator";
 import { BezierPath, BezierPathProps } from "../../engine/components/BezierPath";
 import { Particles } from "../../engine/components/Particles";

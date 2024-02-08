@@ -1,8 +1,8 @@
 
 import { Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { time } from "../../engine/Time";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { time } from "../../engine/core/Time";
 import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 

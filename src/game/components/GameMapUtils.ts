@@ -1,6 +1,6 @@
 import { Camera, Vector2 } from "three";
 import { input } from "../../engine/Input";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { engine } from "../../engine/Engine";

@@ -1,6 +1,6 @@
 import { AnimationClip, Object3D } from "three";
-import { Component, IComponentInstance } from "./Component";
-import { ComponentProps } from "./ComponentProps";
+import { Component, IComponentInstance } from "./ecs/Component";
+import { ComponentProps } from "./ecs/ComponentProps";
 import { utils } from "./Utils";
 
 class EngineState {

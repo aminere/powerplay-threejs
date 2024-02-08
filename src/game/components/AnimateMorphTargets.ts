@@ -1,7 +1,7 @@
 import { Mesh, Object3D } from "three";
-import { Component, IComponentState } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { time } from "../../engine/Time";
+import { Component, IComponentState } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { time } from "../../engine/core/Time";
 
 export class AnimateMorphTargetsProps extends ComponentProps { 
     frequency = 1;

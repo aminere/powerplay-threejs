@@ -1,8 +1,8 @@
 
 import { Color, Euler, InstancedMesh, Matrix4, Mesh, Object3D, PlaneGeometry, Quaternion, ShaderMaterial, Vector3 } from "three";
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
-import { time } from "../../engine/Time";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { time } from "../../engine/core/Time";
 import { config } from "../config";
 
 export class WaterProps extends ComponentProps {

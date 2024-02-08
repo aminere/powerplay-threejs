@@ -1,11 +1,11 @@
 import { BufferAttribute, Color, DynamicDrawUsage, MathUtils, Object3D, Points, ShaderMaterial, Vector2 } from "three";
-import { Component } from "../Component";
-import { TArray } from "../TArray";
-import { time } from "../Time";
-import { pools } from "../Pools";
+import { Component } from "../ecs/Component";
+import { TArray } from "../serialization/TArray";
+import { time } from "../core/Time";
+import { pools } from "../core/Pools";
 import { ParticleState } from "./ParticlesState";
 import { ParticlesProps } from "./ParticlesProps";
-import * as Attributes from "../../engine/Attributes";
+import * as Attributes from "../serialization/Attributes";
 
 function randomRange(range: Vector2) {
     return MathUtils.randFloat(range.x, range.y);

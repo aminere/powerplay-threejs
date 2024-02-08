@@ -1,5 +1,5 @@
 import { Color, Vector2 } from "three";
-import { TArray } from "./TArray";
+import { TArray } from "../serialization/TArray";
 
 export class ComponentProps {
     public active = true;

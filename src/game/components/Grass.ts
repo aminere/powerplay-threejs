@@ -1,10 +1,10 @@
 
-import { Component } from "../../engine/Component";
-import { ComponentProps } from "../../engine/ComponentProps";
+import { Component } from "../../engine/ecs/Component";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
 
-import * as Attributes from "../../engine/Attributes";
+import * as Attributes from "../../engine/serialization/Attributes";
 import { Mesh, Object3D, ShaderMaterial } from "three";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 
 export class GrassProps extends ComponentProps {
 

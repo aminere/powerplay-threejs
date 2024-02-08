@@ -4,9 +4,9 @@ import { BezierPath } from "../BezierPath";
 import { Axis, ICell, IRail } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
-import { pools } from "../../engine/Pools";
-import { Component } from "../../engine/Component";
-import { time } from "../../engine/Time";
+import { pools } from "../../engine/core/Pools";
+import { Component } from "../../engine/ecs/Component";
+import { time } from "../../engine/core/Time";
 import { ComponentProps } from "../../powerplay";
 
 interface IMotionSegment {

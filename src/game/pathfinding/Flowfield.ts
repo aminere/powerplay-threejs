@@ -1,7 +1,7 @@
 import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { unitMotion } from "../unit/UnitMotion";
 
 export type TFlowField = {

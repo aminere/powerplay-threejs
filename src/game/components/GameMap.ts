@@ -1,11 +1,11 @@
 import { Box2, Camera, Color, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
-import { Component } from "../../engine/Component"
+import { Component } from "../../engine/ecs/Component"
 import { Sector } from "../Sector";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { input } from "../../engine/Input";
 import { engine } from "../../engine/Engine";
-import { pools } from "../../engine/Pools";
+import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
 import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
@@ -14,7 +14,7 @@ import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { Car } from "./Car";
-import { time } from "../../engine/Time";
+import { time } from "../../engine/core/Time";
 import gsap from "gsap";
 import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";

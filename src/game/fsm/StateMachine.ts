@@ -1,5 +1,5 @@
 
-import { Constructor } from '../../engine/Types';
+import { Constructor } from '../../engine/serialization/Types';
 
 export class State<T> {
     enter(_owner: T) {}

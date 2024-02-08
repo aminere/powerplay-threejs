@@ -1,13 +1,13 @@
 
 import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
 import { registerComponents } from "../game/components/ComponentRegistration";
-import { Component } from "./Component";
-import { ComponentProps } from "./ComponentProps";
+import { Component } from "./ecs/Component";
+import { ComponentProps } from "./ecs/ComponentProps";
 import { engineState } from "./EngineState";
 import { input } from "./Input";
-import { pools } from "./Pools";
-import { serialization } from "./Serialization";
-import { time } from "./Time";
+import { pools } from "./core/Pools";
+import { serialization } from "./serialization/Serialization";
+import { time } from "./core/Time";
 import { utils } from "./Utils";
 import { cmdUpdateUI, evtScreenResized } from "../Events";
 
