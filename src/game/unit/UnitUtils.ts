@@ -1,14 +1,29 @@
-import { Matrix4, Vector3 } from "three";
+import { Matrix4, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { IUnit } from "./IUnit";
-import { flowField } from "../pathfinding/Flowfield";
+import { TFlowField, flowField } from "../pathfinding/Flowfield";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { unitMotion } from "./UnitMotion";
 
+const cellDirection = new Vector2()
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
+
+function getFlowDirection(motionId: number, mapCoords: Vector2, _flowfield: TFlowField, directionOut: Vector2) {
+    const { directionIndex } = _flowfield;
+    if (directionIndex < 0) {
+        const computed = flowField.computeDirection(motionId, mapCoords, directionOut);
+        console.assert(computed, "flowfield direction not valid");                        
+        const index = flowField.computeDirectionIndex(directionOut);
+        flowField.getDirection(index, directionOut);
+        _flowfield.directionIndex = index;
+
+    } else {
+        flowField.getDirection(directionIndex, directionOut);                        
+    }
+}
 
 class UnitUtils {        
 
@@ -21,13 +36,9 @@ class UnitUtils {
                 if (_flowField) {
                     const currentCellIndex = coords.cellIndex;
                     const flowfieldInfo = _flowField[currentCellIndex];
-                    const { direction } = flowfieldInfo;
-                    if (!flowfieldInfo.directionValid) {
-                        const computed = flowField.computeDirection(unit.motionId, unit.coords.mapCoords, direction);
-                        console.assert(computed, "flowfield direction not valid");
-                        flowfieldInfo.directionValid = true;
-                    }
-                    cellDirection3.set(direction.x, 0, direction.y);
+                    getFlowDirection(motionId, coords.mapCoords, flowfieldInfo, cellDirection);
+                    cellDirection3.set(cellDirection.x, 0, cellDirection.y);
+                    
                     if (!unit.lastKnownFlowfield) {
                         unit.lastKnownFlowfield = {
                             cellIndex: currentCellIndex,
@@ -51,12 +62,8 @@ class UnitUtils {
                         const cellDist = neighborDist + cell.flowFieldCost;
                         const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
                         flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
-
                         const flowfieldInfo = newFlowfield[coords.cellIndex];
-                        const { direction } = flowfieldInfo;
-                        flowField.computeDirection(unit.motionId, unit.coords.mapCoords, direction);
-                        flowfieldInfo.directionValid = true;
-                        cellDirection3.set(direction.x, 0, direction.y);
+                        getFlowDirection(motionId, coords.mapCoords, flowfieldInfo, cellDirection);
                         unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
                         unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
 

@@ -6,8 +6,7 @@ import { unitMotion } from "../unit/UnitMotion";
 
 export type TFlowField = {
     integration: number;
-    direction: Vector2;
-    directionValid: boolean;
+    directionIndex: number; 
 };
 
 const { mapRes } = config.game;
@@ -17,23 +16,10 @@ function initFlowField(flowField: TFlowField[]) {
     for (let i = 0; i < cellCount; ++i) {
         flowField.push({
             integration: 0xffff,
-            direction: new Vector2(),
-            directionValid: false
+            directionIndex: -1            
         });
     }
 }
-
-// function resetField(flowField: TFlowField[]) {
-//     if (flowField.length === 0) {
-//         initFlowField(flowField);
-
-//     } else {
-//         for (const elem of flowField) {
-//             elem.integration = 0xffff;
-//             elem.directionValid = false;
-//         }
-//     }
-// }
 
 function shiftSet<T>(set: Set<T>) {
     for (const value of set) {
@@ -48,10 +34,19 @@ const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const diagonalNeighbors = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
 const lateralCellBlocked = [false, false];
 const verticalCellBlocked = [false, false];
-const closestNeighbor = new Vector2();
 const neighborCoords = new Vector2();
 const neighborSectorCoords = new Vector2();
 const neighborLocalCoords = new Vector2();
+const directionPalette = [
+    new Vector2(-1, -1).normalize(),
+    new Vector2(0, -1).normalize(),
+    new Vector2(1, -1).normalize(),
+    new Vector2(-1, 0).normalize(),
+    new Vector2(1, 0).normalize(),
+    new Vector2(-1, 1).normalize(),
+    new Vector2(0, 1).normalize(),
+    new Vector2(1, 1).normalize()
+];
 
 class FlowField {    
 
@@ -177,7 +172,9 @@ class FlowField {
     }
 
     public computeDirection(motionId: number, mapCoords: Vector2, directionOut: Vector2) {        
-        let minCost = 0xffff;        
+        let minCost = 0xffff;
+        let toNeighborX = 0;
+        let toNeighborY = 0;        
         const flowfields = unitMotion.getFlowfields(motionId);        
         
         lateralCellBlocked[0] = false;
@@ -200,7 +197,8 @@ class FlowField {
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
                 minCost = cost;
-                closestNeighbor.copy(neighborCoords);
+                toNeighborX = dx;
+                toNeighborY = 0;
             }
         }
 
@@ -224,7 +222,8 @@ class FlowField {
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
                 minCost = cost;
-                closestNeighbor.copy(neighborCoords);
+                toNeighborX = 0;
+                toNeighborY = dy;
             }
         }
 
@@ -254,16 +253,49 @@ class FlowField {
             const cost = flowField[neighborIndex].integration;
             if (cost < minCost) {
                 minCost = cost;
-                closestNeighbor.copy(neighborCoords);
+                toNeighborX = dx;
+                toNeighborY = dy;
             }
         }
 
         if (minCost < 0xffff) {
-            directionOut.set(closestNeighbor.x - mapCoords.x, closestNeighbor.y - mapCoords.y).normalize();
+            directionOut.set(toNeighborX, toNeighborY);
             return true;
         }
         directionOut.set(0, 0);
         return false;
+    }
+
+    public computeDirectionIndex(direction: Vector2) {
+        if (direction.x < 0) {
+            if (direction.y < 0) {
+                return 0;
+            } else if (direction.y > 0) {
+                return 5;
+            } else {
+                return 3;
+            }
+        } else if (direction.x > 0) {
+            if (direction.y < 0) {
+                return 2;
+            } else if (direction.y > 0) {
+                return 7;
+            } else {
+                return 4;
+            }
+        } else {
+            if (direction.y < 0) {
+                return 1;
+            } else if (direction.y > 0) {
+                return 6;
+            }
+        }
+        console.assert(false);
+        return -1;
+    }
+
+    public getDirection(index: number, directionOut: Vector2) {
+        directionOut.copy(directionPalette[index]);
     }
 }
 
