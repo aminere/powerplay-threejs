@@ -22,6 +22,7 @@ import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 import { Trees } from "./Trees";
+import { fogOfWar } from "../FogOfWar";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -366,15 +367,19 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         water.matrixWorldAutoUpdate = false;
         water.position.setY(-.75);
         water.updateMatrix();
-        engineState.setComponent(water, new Water({ mapSize: this.props.size }));
+        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));
 
         // trees
         const trees = utils.createObject(engine.scene!, "trees");
-        engineState.setComponent(trees, new Trees({ mapSize: this.props.size }));
+        engineState.setComponent(trees, new Trees({ sectorRes: this.props.size }));
+        // trees.visible = false;
 
         // env props
         const props = utils.createObject(engine.scene!, "env-props");
-        engineState.setComponent(props, new EnvProps({ mapSize: this.props.size }));
+        engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
+
+        // Fog of war
+        fogOfWar.init(this.props.size);
     }
 
     private disposeSectors() {

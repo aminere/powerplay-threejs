@@ -1,6 +1,5 @@
 import { componentFactory } from "../../engine/ecs/ComponentFactory";
 import { Animator, AnimatorProps } from "../../engine/components/Animator";
-import { BezierPath, BezierPathProps } from "../../engine/components/BezierPath";
 import { Particles } from "../../engine/components/Particles";
 import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
@@ -29,7 +28,6 @@ export function registerComponents() {
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
     componentFactory.register<FlockProps>(Flock);
     componentFactory.register<FadeoutProps>(Fadeout);
-    componentFactory.register<BezierPathProps>(BezierPath);
     componentFactory.register<TreesProps>(Trees);
     componentFactory.register<EnvPropsProps>(EnvProps);
 }

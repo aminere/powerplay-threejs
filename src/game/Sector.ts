@@ -25,7 +25,8 @@ export class Sector {
         const cells = grid.map(() => {
             const cell: ICell = {
                 isEmpty: true,
-                flowFieldCost: 1
+                flowFieldCost: 1,
+                viewCount: 0
             };
             return cell;
         })

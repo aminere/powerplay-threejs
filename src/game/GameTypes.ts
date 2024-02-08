@@ -27,6 +27,7 @@ export interface ICell {
     unit?: THREE.Object3D;    
     flowFieldCost: number;
     isEmpty: boolean;
+    viewCount: number;
 }
 
 export interface ISector {

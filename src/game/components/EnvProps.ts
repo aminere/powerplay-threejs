@@ -10,7 +10,7 @@ import { gameMapState } from "./GameMapState";
 
 export class EnvPropsProps extends ComponentProps {
 
-    mapSize = 1;
+    sectorRes = 1;
 
     constructor(props?: Partial<EnvPropsProps>) {
         super();
@@ -59,8 +59,8 @@ export class EnvProps extends Component<EnvPropsProps> {
                 const verticesPerRow = mapRes + 1;
 
                 const geometries = propMeshes.map(m => m[0].geometry);
-                const { mapSize } = this.props;
-                const sectorCount = mapSize * mapSize;
+                const { sectorRes } = this.props;
+                const sectorCount = sectorRes * sectorRes;
                 const maxPropsPerSector = propMapRes * propMapRes;
                 const maxProps = maxPropsPerSector * sectorCount;
                 const instancedMeshes = geometries.map((geometry, index) => {
@@ -78,8 +78,8 @@ export class EnvProps extends Component<EnvPropsProps> {
                 });
 
                 const { sectors } = gameMapState;
-                for (let i = 0; i < mapSize; ++i) {
-                    for (let j = 0; j < mapSize; ++j) {
+                for (let i = 0; i < sectorRes; ++i) {
+                    for (let j = 0; j < sectorRes; ++j) {
                         const sectorX = j;
                         const sectorY = i;
                         const sector = sectors.get(`${sectorX},${sectorY}`);

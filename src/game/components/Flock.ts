@@ -28,6 +28,7 @@ import { ArcherNPCState } from "../unit/ArcherNPCState";
 import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
+import { fogOfWar } from "../FogOfWar";
 
 export class FlockProps extends ComponentProps {
 
@@ -339,6 +340,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         const { localCoords } = unit.coords;
                         localCoords.x += dx;
                         localCoords.y += dy;
+
+                        fogOfWar.removeCircle(unit.coords.mapCoords, 10);
+                        fogOfWar.addCircle(nextMapCoords, 10);
+
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector
                             computeUnitAddr(nextMapCoords, unit.coords);
@@ -389,6 +394,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
             const unit = new Unit(props);
             units.push(unit);
             owner.add(obj);
+
+            fogOfWar.addCircle(unit.coords.mapCoords, 10);
             return unit;
         };
 

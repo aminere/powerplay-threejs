@@ -12,7 +12,7 @@ import { textures } from "../../engine/resources/Textures";
 
 export class TreesProps extends ComponentProps {
 
-    mapSize = 1;
+    sectorRes = 1;
     speed = .1;
     strength = 1;
     frequency = .05;
@@ -95,12 +95,12 @@ export class Trees extends Component<TreesProps> {
             }
         });
 
-        const { mapSize } = this.props;
+        const { sectorRes } = this.props;
         const treeCellSize = cellSize * 2;
         const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
         const treeMapSize = treeMapRes * treeCellSize;
         const maxTreesPerSector = treeMapRes * treeMapRes;
-        const sectorCount = mapSize * mapSize;
+        const sectorCount = sectorRes * sectorRes;
         const maxTrees = maxTreesPerSector * sectorCount;
         const matrix = new Matrix4();
         const worldPos = new Vector3();
@@ -133,8 +133,8 @@ export class Trees extends Component<TreesProps> {
                     };
                 });
 
-                for (let i = 0; i < mapSize; ++i) {
-                    for (let j = 0; j < mapSize; ++j) {
+                for (let i = 0; i < sectorRes; ++i) {
+                    for (let j = 0; j < sectorRes; ++j) {
                         const sectorX = j;
                         const sectorY = i;
                         const sector = sectors.get(`${sectorX},${sectorY}`);
