@@ -13,7 +13,7 @@ export const config = {
         atlasTileCount: 37
     },
     game: {
-        cellSize: 1,
+        cellSize: 2,
         mapRes: 16,
         elevationStep: .2,
     },

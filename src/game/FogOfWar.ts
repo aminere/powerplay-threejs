@@ -15,8 +15,8 @@ class FogOfWar {
     private _circleCache = new Map<number, boolean[]>();
 
     public init(sectorRes: number) {        
-        const cellRes = mapRes * sectorRes;        
-        const cellCount = cellRes * cellRes;        
+        const cellRes = mapRes * sectorRes;
+        const cellCount = cellRes * cellRes;
         const textureData = new Uint8Array(cellCount * 4);
         const texture = new DataTexture(textureData, cellRes, cellRes, RGBAFormat);        
         texture.minFilter = LinearFilter;
@@ -40,7 +40,7 @@ class FogOfWar {
 
         const plane = new Mesh(new PlaneGeometry(), material);
         plane.name = "fogOfWar";
-        const offset = mapRes + mapRes / 2;
+        const offset = (mapRes + mapRes / 2) * cellSize;
         plane.position.set(offset, 0, offset);
         plane.rotation.x = -Math.PI / 2;
         plane.position.y = 0.01;
