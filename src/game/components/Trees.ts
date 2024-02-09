@@ -9,6 +9,7 @@ import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
 import { textures } from "../../engine/resources/Textures";
+import { cmdShowUI } from "../../Events";
 
 export class TreesProps extends ComponentProps {
 
@@ -31,6 +32,22 @@ treeNoise2.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 const { cellSize, mapRes, elevationStep } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
+const dummyTree = new Object3D();
+dummyTree.name = "Tree";
+
+const trees = [
+    "palm-high",
+    // "palm-round",
+    "palm-big",
+    "palm"
+];
+
+function preloadTrees() {
+    return Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)))
+        .then(treeMeshes => {
+            return treeMeshes.map(m => m[0].geometry);
+        });
+}
 
 export class Trees extends Component<TreesProps> {
     constructor(props?: Partial<TreesProps>) {
@@ -38,12 +55,6 @@ export class Trees extends Component<TreesProps> {
     }
 
     override start(owner: Object3D) {
-        const trees = [
-            "palm-high",
-            // "palm-round",
-            "palm-big",
-            "palm"
-        ];
 
         const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
         const perlin = textures.load("/images/perlin.png");
@@ -56,7 +67,7 @@ export class Trees extends Component<TreesProps> {
 
         Object.defineProperty(treeMaterial, "onBeforeCompile", {
             enumerable: false,
-            value: (shader: Shader) => { 
+            value: (shader: Shader) => {
                 const uniforms = {
                     time: { value: 0 },
                     strength: { value: this.props.strength },
@@ -69,7 +80,7 @@ export class Trees extends Component<TreesProps> {
                     ...uniforms
                 };
                 treeMaterial.userData.shader = shader;
-    
+
                 shader.vertexShader = `               
                 uniform float time;
                 uniform float strength;
@@ -78,7 +89,7 @@ export class Trees extends Component<TreesProps> {
                 uniform sampler2D perlin;
                 ${shader.vertexShader}
                 `;
-    
+
                 shader.vertexShader = shader.vertexShader.replace(
                     `#include <begin_vertex>`,
                     `#include <begin_vertex>
@@ -112,15 +123,12 @@ export class Trees extends Component<TreesProps> {
         const verticesPerRow = mapRes + 1;
         const { sectors } = gameMapState;
 
-        Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)))
-            .then(treeMeshes => {
-
-                treeNoise.SetFrequency(.05);
-                treeNoise2.SetFrequency(.05 * .5);
-
-                const treeGeometries = treeMeshes.map(m => m[0].geometry);
+        treeNoise.SetFrequency(.05);
+        treeNoise2.SetFrequency(.05 * .5);
+        preloadTrees()
+            .then(treeGeometries => {
                 const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
-                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);                    
+                    const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);
                     instancedMesh.name = `${trees[index]}`;
                     instancedMesh.castShadow = true;
                     instancedMesh.frustumCulled = false;
@@ -168,16 +176,20 @@ export class Trees extends Component<TreesProps> {
                                     const treeSample2 = treeNoise2.GetNoise(noiseX, noiseY);
                                     if (treeSample > 0 && treeSample2 > 0) {
                                         const treeIndex = MathUtils.randInt(0, treeInstancedMeshes.length - 1);
-                                        worldPos.setY(_minHeight * elevationStep);                                        
+                                        worldPos.setY(_minHeight * elevationStep);
                                         const minScale = 0.3;
                                         const maxScale = 0.5;
-                                        scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
+                                        scale.setScalar(minScale + (maxScale - minScale) * Math.random());
                                         quaternion.setFromAxisAngle(up, MathUtils.randFloat(0, Math.PI * 2));
                                         matrix.compose(worldPos, quaternion, scale);
                                         const treeMesh = treeInstancedMeshes[treeIndex];
                                         const count = treeMesh.count;
                                         treeMesh.instancedMesh.setMatrixAt(count, matrix);
                                         treeMesh.count = count + 1;
+
+                                        cell.resource = dummyTree;
+                                        cell.isEmpty = false;
+                                        cell.flowFieldCost = 0xffff;
                                     }
                                 }
                             }
@@ -188,7 +200,9 @@ export class Trees extends Component<TreesProps> {
                 for (const treeMesh of treeInstancedMeshes) {
                     treeMesh.instancedMesh.count = treeMesh.count;
                 }
-            });
+
+                cmdShowUI.post("gamemap");
+            })
     }
 
     override update(owner: Object3D) {

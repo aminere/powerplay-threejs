@@ -1,4 +1,4 @@
-import { DataTexture, LinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
+import { DataTexture, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
@@ -9,21 +9,22 @@ const circlePos = new Vector2();
 
 class FogOfWar {
 
-    private _cellRes = 0;
+    private _texRes = 0;
     private _texture!: DataTexture;
     private _textureData!: Uint8Array;
     private _circleCache = new Map<number, boolean[]>();
 
     public init(sectorRes: number) {        
-        const cellRes = mapRes * sectorRes;
-        const cellCount = cellRes * cellRes;
-        const textureData = new Uint8Array(cellCount * 4);
-        const texture = new DataTexture(textureData, cellRes, cellRes, RGBAFormat);        
+        const texRes = mapRes * sectorRes;        
+        const texResPow2 = MathUtils.ceilPowerOfTwo(texRes);
+        const pixelCount = texResPow2 * texResPow2;
+        const textureData = new Uint8Array(pixelCount * 4);
+        const texture = new DataTexture(textureData, texResPow2, texResPow2, RGBAFormat);        
         texture.minFilter = LinearFilter;
         texture.magFilter = LinearFilter;
-        for (let i = 0; i < cellRes; ++i) {
-            for (let j = 0; j < cellRes; ++j) {
-                const cellIndex = i * cellRes + j;
+        for (let i = 0; i < texRes; ++i) {
+            for (let j = 0; j < texRes; ++j) {
+                const cellIndex = i * texResPow2 + j;
                 const stride = cellIndex * 4;
                 textureData[stride] = 0;
                 textureData[stride + 1] = 0;
@@ -38,16 +39,19 @@ class FogOfWar {
             depthTest: false
         });
 
-        const plane = new Mesh(new PlaneGeometry(), material);
+        const geometry = new PlaneGeometry();
+        geometry.rotateX(-Math.PI / 2);
+        geometry.translate(.5, 0, .5);
+        const plane = new Mesh(geometry, material);
         plane.name = "fogOfWar";
-        const offset = (mapRes + mapRes / 2) * cellSize;
-        plane.position.set(offset, 0, offset);
-        plane.rotation.x = -Math.PI / 2;
-        plane.position.y = 0.01;
-        plane.scale.set(mapSize, -mapSize, 1).multiplyScalar(sectorRes);
+        const offset = -mapRes / 2;
+        plane.position.set(offset, 0, offset + texResPow2).multiplyScalar(cellSize);
+        plane.position.y = .01;
+        const uvFactor = texResPow2 / texRes;
+        plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
         engine.scene!.add(plane);
 
-        this._cellRes = cellRes;
+        this._texRes = texResPow2;
         this._textureData = textureData;
         this._texture = texture;
     }
@@ -80,7 +84,7 @@ class FogOfWar {
                 }
                 cell.viewCount++;
                 if (cell.viewCount === 1) {
-                    const cellIndex = y * this._cellRes + x;
+                    const cellIndex = y * this._texRes + x;
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 0;
                 }
@@ -111,7 +115,7 @@ class FogOfWar {
                 if (oldCell) {
                     oldCell.viewCount--;
                     if (oldCell.viewCount === 0) {
-                        const cellIndex = circlePos.y * this._cellRes + circlePos.x;
+                        const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
                         this._textureData[stride + 3] = 128;
                     }
@@ -125,7 +129,7 @@ class FogOfWar {
                     }
                     newCell.viewCount++;
                     if (newCell.viewCount === 1) {
-                        const cellIndex = circlePos.y * this._cellRes + circlePos.x;
+                        const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
                         this._textureData[stride + 3] = 0;
                     }                

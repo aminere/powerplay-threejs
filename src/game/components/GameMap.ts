@@ -15,7 +15,6 @@ import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { Car } from "./Car";
 import { time } from "../../engine/core/Time";
-import gsap from "gsap";
 import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";
 import { Flock } from "./Flock";
@@ -23,6 +22,7 @@ import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 import { Trees } from "./Trees";
 import { fogOfWar } from "../FogOfWar";
+import gsap from "gsap";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -47,6 +47,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.setState({
             sectorsRoot: utils.createObject(root, "sectors"),
             sectors: new Map<string, any>(),
+            sectorRes: this.props.size,
             action: null,
             previousRoad: [],
             previousRail: [],
@@ -95,13 +96,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.state.tileSelector.visible = false;
         root.add(this.state.tileSelector);
 
-        this.onKeyUp = this.onKeyUp.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
-        this.onCursorOverUI = this.onCursorOverUI.bind(this);
-        document.addEventListener("keyup", this.onKeyUp);
-        document.addEventListener("keydown", this.onKeyDown);
-        evtCursorOverUI.attach(this.onCursorOverUI);
-        cmdShowUI.post("gamemap");
         railFactory.preload();
 
         const flocks = engineState.getComponents(Flock);
@@ -111,6 +105,13 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 component.load(owner);
             }
         }
+
+        this.onKeyUp = this.onKeyUp.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        document.addEventListener("keyup", this.onKeyUp);
+        document.addEventListener("keydown", this.onKeyDown);
+        this.onCursorOverUI = this.onCursorOverUI.bind(this);
+        evtCursorOverUI.attach(this.onCursorOverUI);
     }
 
     override dispose() {

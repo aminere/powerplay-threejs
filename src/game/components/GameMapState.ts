@@ -6,6 +6,7 @@ import { Action } from "../GameDefinitions";
 export interface IGameMapState {
     sectorsRoot: Object3D;
     sectors: Map<string, ISector>;
+    sectorRes: number;
     bounds?: Box2;
     action: Action | null;
     initialDragAxis?: "x" | "z";
@@ -47,6 +48,7 @@ export class GameMapState {
     public get previousRoad() { return this._instance!.previousRoad; }
     public get previousRail() { return this._instance!.previousRail; }
     public get selectionInProgress() { return this._instance!.selectionInProgress; }
+    public get sectorRes() { return this._instance!.sectorRes; }
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
     public set action(value: Action | null) { this._instance!.action = value; }    

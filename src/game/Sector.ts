@@ -8,7 +8,7 @@ import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 
 export class Sector {
     public static create(props: ITerrainPatch) {
-        console.log(`creating sector ${props.sectorX},${props.sectorY}`);
+        // console.log(`creating sector ${props.sectorX},${props.sectorY}`);
         const { sectorX: x, sectorY: y } = props;
         const { mapRes, cellSize } = config.game;
 

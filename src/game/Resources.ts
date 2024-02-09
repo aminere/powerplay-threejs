@@ -44,8 +44,6 @@ class Resources {
         resource.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
         cell.resource = resource;
         cell.isEmpty = false;
-
-        // update cost field
         cell.flowFieldCost = 0xffff;
     }
 

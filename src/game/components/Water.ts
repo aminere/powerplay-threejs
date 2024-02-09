@@ -47,7 +47,6 @@ export class Water extends Component<WaterProps> {
                     time: { value: 0 },
                     strength: { value: this.props.strength },
                     frequency: { value: this.props.frequency },
-                    color: { value: new Color(0x5199DB) },
                     perlin: { value: perlin }
                 };
                 shader.uniforms = {

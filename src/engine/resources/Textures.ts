@@ -7,7 +7,7 @@ class Textures {
     public load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {
-            console.log(`returning cached texture for ${path}`);
+            // console.log(`returning cached texture for ${path}`);
             return cached;
         }
         const texture = this._loader.load(path);
