@@ -78,7 +78,6 @@ class FogOfWar {
                 if (cell.viewCount < 0) {
                     cell.viewCount = 0;
                 }
-
                 cell.viewCount++;
                 if (cell.viewCount === 1) {
                     const cellIndex = y * this._cellRes + x;
@@ -121,6 +120,9 @@ class FogOfWar {
                 circlePos.set(x + dx, y + dy);
                 const newCell = GameUtils.getCell(circlePos);
                 if (newCell) {
+                    if (newCell.viewCount < 0) {
+                        newCell.viewCount = 0;
+                    }
                     newCell.viewCount++;
                     if (newCell.viewCount === 1) {
                         const cellIndex = circlePos.y * this._cellRes + circlePos.x;

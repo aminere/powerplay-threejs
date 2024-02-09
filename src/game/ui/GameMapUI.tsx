@@ -8,6 +8,7 @@ import { evtCursorOverUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
+import { Minimap } from "./Minimap";
 
 function isPointInRect(x: number, y: number, rect: DOMRect) {
     return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
@@ -115,6 +116,7 @@ export function GameMapUI(props: IGameUIProps) {
         </div>
         <HealthBars />
         <SelectionRect />
+        <Minimap />
     </div>
 }
 
