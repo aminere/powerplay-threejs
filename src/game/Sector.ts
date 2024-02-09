@@ -26,7 +26,7 @@ export class Sector {
             const cell: ICell = {
                 isEmpty: true,
                 flowFieldCost: 1,
-                viewCount: 0
+                viewCount: -1
             };
             return cell;
         })

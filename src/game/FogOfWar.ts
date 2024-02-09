@@ -75,6 +75,10 @@ class FogOfWar {
                     continue;
                 }
 
+                if (cell.viewCount < 0) {
+                    cell.viewCount = 0;
+                }
+
                 cell.viewCount++;
                 if (cell.viewCount === 1) {
                     const cellIndex = y * this._cellRes + x;
