@@ -15,7 +15,7 @@ class FogOfWar {
     private _circleCache = new Map<number, boolean[]>();
 
     public init(sectorRes: number) {        
-        const texRes = mapRes * sectorRes;        
+        const texRes = mapRes * sectorRes;
         const texResPow2 = MathUtils.ceilPowerOfTwo(texRes);
         const pixelCount = texResPow2 * texResPow2;
         const textureData = new Uint8Array(pixelCount * 4);
