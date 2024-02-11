@@ -52,6 +52,21 @@ class FogOfWar {
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
         engine.scene!.add(plane);
 
+        const edgeMaterial = new MeshBasicMaterial({ color: 0x000000, depthTest: false });
+        const edgeGeometry = new PlaneGeometry();
+        edgeGeometry.translate(.5, .5, 0);
+        const topPlane = new Mesh(edgeGeometry, edgeMaterial);
+        topPlane.position.set(offset, 0, offset).multiplyScalar(cellSize);
+        topPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
+        topPlane.name = "fogOfWarTopEdge";
+        engine.scene!.add(topPlane);
+        const leftPlane = new Mesh(edgeGeometry, edgeMaterial);
+        leftPlane.rotateY(Math.PI / 2);
+        leftPlane.position.set(offset, 0, offset + mapRes * sectorRes).multiplyScalar(cellSize);
+        leftPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
+        leftPlane.name = "fogOfWarLeftEdge";
+        engine.scene!.add(leftPlane);
+
         this._texRes = texResPow2;
         this._textureData = textureData;
         this._texture = texture;

@@ -151,6 +151,15 @@ export class Trees extends Component<TreesProps> {
                         const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
                         for (let k = 0; k < treeMapRes; ++k) {
                             for (let l = 0; l < treeMapRes; ++l) {
+                                const leftEdge = j === 0 && l < 2;
+                                if (leftEdge) {
+                                    continue;
+                                }
+                                const topEdge = i === 0 && k < 2;
+                                if (topEdge) {
+                                    continue;
+                                }                                
+
                                 const localX = MathUtils.randFloat(0, treeCellSize);
                                 const localY = MathUtils.randFloat(0, treeCellSize);
                                 const plantSectorX = sectorX * treeMapSize;
