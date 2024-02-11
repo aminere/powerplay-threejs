@@ -23,22 +23,22 @@ export class GameUtils {
 
     public static rayCaster = new Raycaster();
 
-    public static worldToScreen(worldPos: Vector3, camera: Camera, screenPos: Vector3) {
+    public static worldToScreen(worldPos: Vector3, camera: Camera, screenPosOut: Vector3) {
         const { width, height } = engine.screenRect;
         normalizedPos.copy(worldPos).project(camera);
-        screenPos.x = (normalizedPos.x + 1) / 2 * width;
-        screenPos.y = -(normalizedPos.y - 1) / 2 * height;
-        return screenPos;
+        screenPosOut.x = (normalizedPos.x + 1) / 2 * width;
+        screenPosOut.y = -(normalizedPos.y - 1) / 2 * height;
+        return screenPosOut;
     }
 
-    public static mapToWorld(mapCoords: Vector2, worldPos: Vector3) {
-        return worldPos.set(mapCoords.x * cellSize + cellOffset, 0, mapCoords.y * cellSize + cellOffset);
+    public static mapToWorld(mapCoords: Vector2, worldPosOut: Vector3) {
+        return worldPosOut.set(mapCoords.x * cellSize + cellOffset, 0, mapCoords.y * cellSize + cellOffset);
     }
 
-    public static worldToMap(worldPos: Vector3, out: Vector2) {
+    public static worldToMap(worldPos: Vector3, mapCoordsOut: Vector2) {
         const halfRes = mapRes / 2;
-        out.set(Math.floor(worldPos.x / cellSize) + halfRes, Math.floor(worldPos.z / cellSize) + halfRes);
-        return out;
+        mapCoordsOut.set(Math.floor(worldPos.x / cellSize) + halfRes, Math.floor(worldPos.z / cellSize) + halfRes);
+        return mapCoordsOut;
     }
 
     public static getCell(mapCoords: Vector2, sectorCoordsOut?: Vector2, localCoordsOut?: Vector2) {
