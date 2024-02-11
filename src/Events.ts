@@ -13,3 +13,11 @@ export const cmdStartSelection = new AsyncEvent<Vector2>();
 export const cmdEndSelection = new AsyncEvent<void>();
 export const cmdUpdateUI = new SyncEvent<void>();
 
+export interface IMinimapFog {
+    x: number;
+    y: number;
+    visible: boolean;
+}
+
+export const cmdUpdateMinimapFog = new AsyncEvent<IMinimapFog>();
+

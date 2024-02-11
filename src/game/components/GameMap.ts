@@ -83,7 +83,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         
         gameMapState.instance = this.state;
 
-        this.createSectors();
+        this.initMap();
+
         this.state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
         this.state.camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
         this.state.cameraPivot = this.state.camera.parent!;
@@ -96,15 +97,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.state.tileSelector.visible = false;
         root.add(this.state.tileSelector);
 
-        railFactory.preload();
-
-        const flocks = engineState.getComponents(Flock);
-        for (const flock of flocks) {
-            const { owner, component } = flock;
-            if (component.props.active) {
-                component.load(owner);
-            }
-        }
+        railFactory.preload();        
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -112,6 +105,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         document.addEventListener("keydown", this.onKeyDown);
         this.onCursorOverUI = this.onCursorOverUI.bind(this);
         evtCursorOverUI.attach(this.onCursorOverUI);
+
+
     }
 
     override dispose() {
@@ -349,8 +344,39 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         return sector;
     }
 
-    public createSectors() {
+    public initMap() {
+        this.createSectors();
 
+        // water
+        const water = utils.createObject(engine.scene!, "water");
+        water.matrixAutoUpdate = false;
+        water.matrixWorldAutoUpdate = false;
+        water.position.setY(-.75);
+        water.updateMatrix();
+        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));        
+
+        // env props
+        const props = utils.createObject(engine.scene!, "env-props");
+        engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
+
+        fogOfWar.init(this.props.size);
+
+        const trees = utils.createObject(engine.scene!, "trees");
+        const treesComponent = new Trees({ sectorRes: this.props.size });        
+        engineState.setComponent(trees, treesComponent);
+        
+        const flocks = engineState.getComponents(Flock);
+        const flock = flocks[0];
+
+        Promise.all([
+            treesComponent.load(trees),
+            flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve()
+        ]).then(() => {
+            cmdShowUI.post("gamemap");
+        });
+    }
+
+    public createSectors() {
         if (this.state.sectors.size > 0) {
             this.disposeSectors();
         }
@@ -360,27 +386,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             for (let j = 0; j < size; ++j) {
                 this.createSector(new Vector2(j, i));                
             }
-        }
-
-        // water
-        const water = utils.createObject(engine.scene!, "water");
-        water.matrixAutoUpdate = false;
-        water.matrixWorldAutoUpdate = false;
-        water.position.setY(-.75);
-        water.updateMatrix();
-        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));
-
-        // trees
-        const trees = utils.createObject(engine.scene!, "trees");
-        engineState.setComponent(trees, new Trees({ sectorRes: this.props.size }));
-        // trees.visible = false;
-
-        // env props
-        const props = utils.createObject(engine.scene!, "env-props");
-        engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
-
-        // Fog of war
-        fogOfWar.init(this.props.size);
+        }       
     }
 
     private disposeSectors() {

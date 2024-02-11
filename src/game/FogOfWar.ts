@@ -2,6 +2,7 @@ import { DataTexture, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeo
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
+import { cmdUpdateMinimapFog } from "../Events";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -87,6 +88,7 @@ class FogOfWar {
                     const cellIndex = y * this._texRes + x;
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 0;
+                    cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
                 }
             }
         }
@@ -118,6 +120,7 @@ class FogOfWar {
                         const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
                         this._textureData[stride + 3] = 128;
+                        cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: false });
                     }
                 }
 
@@ -132,6 +135,7 @@ class FogOfWar {
                         const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
                         this._textureData[stride + 3] = 0;
+                        cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
                     }                
                 }
             }

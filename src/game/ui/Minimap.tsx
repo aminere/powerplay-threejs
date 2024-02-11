@@ -1,120 +1,174 @@
-import { useEffect, useRef, useState } from "react";
-import { cmdUpdateUI } from "../../Events";
+import { useEffect, useRef } from "react";
+import { IMinimapFog, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { Mesh } from "three";
+import { engineState } from "../../engine/EngineState";
+import { Flock } from "../components/Flock";
 
 const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
 
+const canvasStyle = {
+    imageRendering: "pixelated",
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    left: "0",
+    top: "0",
+} as const;
+
 export function Minimap() {
 
-    const container = useRef<HTMLDivElement | null>(null);
+    const root = useRef<HTMLDivElement | null>(null);
     const envRef = useRef<HTMLCanvasElement | null>(null);
+    const unitsRef = useRef<HTMLCanvasElement | null>(null);
+    const fogRef = useRef<HTMLCanvasElement | null>(null);
+    const resourcesRef = useRef<HTMLCanvasElement | null>(null);
     const envPixelsRef = useRef<ImageData | null>(null);
-    const [envDirty, setEnvDirty] = useState(true);
+    const unitsPixelsRef = useRef<ImageData | null>(null);
+    const fogPixelsRef = useRef<ImageData | null>(null);
+    const resourcePixelsRef = useRef<ImageData | null>(null);
+    const initialized = useRef(false);
 
     useEffect(() => {
+        if (initialized.current) {
+            return;
+        }
+
+        const { sectorRes, sectors } = gameMapState;
+        const texRes = mapRes * sectorRes;
+        const size = Math.min(texRes, 300);
+        root.current!.style.width = `${size}px`;
+        root.current!.style.height = `${size}px`;
+
+        const envCanvas = envRef.current!;
+        envCanvas.width = texRes;
+        envCanvas.height = texRes;                
+        const envCtx = envCanvas.getContext("2d")!;
+        const envPixels = envCtx.createImageData(envCanvas.width, envCanvas.height);
+        envPixelsRef.current = envPixels;        
+
+        const resourcesCanvas = resourcesRef.current!;
+        resourcesCanvas.width = texRes / 2;
+        resourcesCanvas.height = texRes / 2;
+        const resourcesCtx = resourcesCanvas.getContext("2d")!;
+        const resourcesPixels = resourcesCtx.createImageData(resourcesCanvas.width, resourcesCanvas.height);
+        resourcePixelsRef.current = resourcesPixels;
+
+        const unitsCanvas = unitsRef.current!;
+        unitsCanvas.width = texRes / 4;
+        unitsCanvas.height = texRes / 4;
+        const unitsCtx = unitsCanvas.getContext("2d")!;
+        const unitsPixels = unitsCtx.createImageData(unitsCanvas.width, unitsCanvas.height);
+        unitsPixelsRef.current = unitsPixels;
+
+        const fogCanvas = fogRef.current!;
+        fogCanvas.width = texRes;
+        fogCanvas.height = texRes;
+        const fogCtx = fogCanvas.getContext("2d")!;
+        const fogPixels = fogCtx.createImageData(fogCanvas.width, fogCanvas.height);
+        fogPixelsRef.current = fogPixels;
+
+        for (let i = 0; i < sectorRes; ++i) {
+            for (let j = 0; j < sectorRes; ++j) {
+                const sector = sectors.get(`${j},${i}`)!;
+                const terrain = sector.layers.terrain as Mesh;
+                const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                for (let k = 0; k < mapRes; k++) {
+                    for (let l = 0; l < mapRes; l++) {
+                        const startVertexIndex = k * verticesPerRow + l;
+                        const _height1 = position.getY(startVertexIndex);
+                        const _height2 = position.getY(startVertexIndex + 1);
+                        const _height3 = position.getY(startVertexIndex + verticesPerRow);
+                        const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+                        const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
+                        const _minHeight = Math.min(_height1, _height2, _height3, _height4);
+                        const averageHeight = (_maxHeight + _minHeight) / 2;
+                        const isWater = averageHeight < 0;
+                        const cellIndex = k * mapRes + l;
+                        const cell = sector.cells[cellIndex];
+                        const x = j * mapRes + l;
+                        const y = i * mapRes + k;
+                        const index = (y * texRes + x) * 4;
+                        if (isWater) {
+                            envPixels.data.set([81, 153, 219, 255], index);
+                        } else if (cell.resource) {
+                            const xr = Math.floor(x / texRes * resourcesPixels.width);
+                            const yr = Math.floor(y / texRes * resourcesPixels.height);
+                            const resourcesIndex = (yr * resourcesPixels.width + xr) * 4;
+                            resourcesPixels.data.set([0, 255, 0, 255], resourcesIndex);
+                        } else {
+                            envPixels.data.set([196, 146, 111, 255], index); // sand
+                        }
+
+                        if (cell.viewCount < 0) {
+                            fogPixels.data.set([0, 0, 0, 255], index);
+                        }
+                    }
+                }
+
+            }
+        }
+        envCtx.putImageData(envPixels, 0, 0);
+        resourcesCtx.putImageData(resourcesPixels, 0, 0);
+        fogCtx.putImageData(fogPixels, 0, 0);   
+
+        initialized.current = true;
+    }, []);
+
+    useEffect(() => {
+        console.assert(initialized.current);
         const updateUI = () => {
             if (!gameMapState.instance) {
                 return;
             }
 
-            if (envDirty) {
-                const { sectorRes, sectors } = gameMapState;
-                const texRes = mapRes * sectorRes;                
+            const { sectorRes } = gameMapState;
+            const texRes = mapRes * sectorRes;
 
-                if (!envRef.current) {
-                    const root = container.current!.parentElement!;
-                    root.style.width = `${texRes}px`;
-                    root.style.height = `${texRes}px`;
-
-                    const canvas = document.createElement("canvas");
-                    canvas.style.imageRendering = "pixelated";
-                    canvas.style.width = `100%`;
-                    canvas.style.height = `100%`;
-                    canvas.style.position = "absolute";
-                    canvas.style.left = "0";
-                    canvas.style.top = "0";
-                    canvas.style.zIndex = "1";
-                    canvas.width = texRes;
-                    canvas.height = texRes;
-                    envRef.current = canvas;
-                    container.current!.appendChild(canvas);
-                    const ctx = canvas.getContext("2d")!;
-                    const pixels = ctx.createImageData(texRes, texRes);
-                    pixels.data.fill(255);
-                    envPixelsRef.current = pixels;
-                }
-
-                console.log("drawing env");
-                // ctx.clearRect(0, 0, canvas.width, canvas.height);                
-                // ctx.fillStyle = "#c4926f"; // sand
-                // ctx.fillRect(0, 0, texRes, texRes);
-                const pixels = envPixelsRef.current!;
-                
-                for (let i = 0; i < sectorRes; ++i) {
-                    for (let j = 0; j < sectorRes; ++j) {
-
-                        const sector = sectors.get(`${j},${i}`)!;
-                        const terrain = sector.layers.terrain as Mesh;
-                        const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;                        
-
-                        for (let k = 0; k < mapRes; k++) {
-                            for (let l = 0; l < mapRes; l++) {
-                                const cellIndex = k * mapRes + l;
-                                const cell = sector.cells[cellIndex];
-                                const x = j * mapRes + l;
-                                const y = i * mapRes + k;
-                                const index = (y * texRes + x) * 4;
-
-                                // if (cell.viewCount < 0) {                                                                        
-                                //     pixels.data.set([0, 0, 0], index);
-                                //     // ctx.fillStyle = "#000000"; // fog                                    
-                                //     // ctx.fillRect(x, y, cellSize, cellSize);
-                                //     continue;
-                                // }
-
-                                const startVertexIndex = k * verticesPerRow + l;
-                                const _height1 = position.getY(startVertexIndex);
-                                const _height2 = position.getY(startVertexIndex + 1);
-                                const _height3 = position.getY(startVertexIndex + verticesPerRow);
-                                const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
-                                const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
-                                const _minHeight = Math.min(_height1, _height2, _height3, _height4);                                
-                                const averageHeight = (_maxHeight + _minHeight) / 2;
-                                const isWater = averageHeight < 0;                                
-                                if (isWater) {                                    
-                                    pixels.data.set([81, 153, 219], index);
-                                    // ctx.fillStyle = "#5199DB"; // water
-                                    // ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-                                } else if (cell.resource) {
-                                    pixels.data.set([0, 255, 0], index);
-                                } else {
-                                    pixels.data.set([196,146,111], index); // sand
-                                }
-                            }
-                        }
-
-                    }
-                }
-
-                const canvas = envRef.current!;
-                const ctx = canvas.getContext("2d")!;
-                ctx.putImageData(pixels, 0, 0);
-                setEnvDirty(false);
+            const flocks = engineState.getComponents(Flock);
+            const flock = flocks[0];
+            const units = flock.component.state.units;
+            const unitsPixels = unitsPixelsRef.current!;
+            unitsPixels.data.fill(0);
+            for (const unit of units) {
+                const { x, y } = unit.coords.mapCoords;
+                const xu = Math.floor(x / texRes * unitsPixels.width);
+                const yu = Math.floor(y / texRes * unitsPixels.height);
+                const index = (yu * unitsPixels.width + xu) * 4;
+                unitsPixels.data.set([0, 0, 255, 255], index);
             }
+            
+            const unitsCtx = unitsRef.current!.getContext("2d")!;
+            unitsCtx.putImageData(unitsPixels, 0, 0);           
+
+            const fogCtx = fogRef.current!.getContext("2d")!;
+            fogCtx.putImageData(fogPixelsRef.current!, 0, 0);
         };
 
+        const updateFog = (fog: IMinimapFog) => {
+            const fogPixels = fogPixelsRef.current!;
+            const index = (fog.y * fogPixels.width + fog.x) * 4;
+            fogPixels.data.set([0, 0, 0, fog.visible ? 0 : 128], index);
+        };
+        
         cmdUpdateUI.attach(updateUI);
+        cmdUpdateMinimapFog.attach(updateFog);
         return () => {
             cmdUpdateUI.detach(updateUI);
+            cmdUpdateMinimapFog.detach(updateFog);
         }
 
-    }, [envDirty]);
+    }, []);    
 
-    return <div style={{ position: "absolute", left: "0", top: "0" }}>
-        <div ref={container} style={{ position: "relative", height: "100%" }}></div>
+    return <div ref={root} style={{ position: "absolute", left: "0", top: "0" }}>
+        <div style={{ position: "relative", height: "100%" }}>
+            <canvas ref={envRef} style={{ ...canvasStyle, zIndex: 1 }} />
+            <canvas ref={resourcesRef} style={{ ...canvasStyle, zIndex: 2 }} />
+            <canvas ref={unitsRef} style={{ ...canvasStyle, zIndex: 3 }} />
+            <canvas ref={fogRef} style={{ ...canvasStyle, zIndex: 4 }} />
+        </div>
     </div>   
 }
 

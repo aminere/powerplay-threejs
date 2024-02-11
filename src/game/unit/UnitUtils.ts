@@ -66,8 +66,8 @@ class UnitUtils {
                         unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
                         unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
 
-                        coords.sector!.flowfieldViewer.update(motionId, coords.sector!, coords.sectorCoords);
-                        coords.sector!.flowfieldViewer.visible = true;
+                        // coords.sector!.flowfieldViewer.update(motionId, coords.sector!, coords.sectorCoords);
+                        // coords.sector!.flowfieldViewer.visible = true;
                     } else {
                         console.assert(false);
                         cellDirection3.set(0, 0, 0);

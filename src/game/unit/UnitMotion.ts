@@ -111,14 +111,14 @@ class UnitMotion {
             unit.fsm.switchState(nextState);
         }
         
-        for (const sector of gameMapState.sectors.values()) {
-            sector.flowfieldViewer.visible = false;
-        }
-        for (const sectorCoords of sectors) {
-            const sector = GameUtils.getSector(sectorCoords)!;
-            sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-            sector.flowfieldViewer.visible = true;
-        }
+        // for (const sector of gameMapState.sectors.values()) {
+        //     sector.flowfieldViewer.visible = false;
+        // }
+        // for (const sectorCoords of sectors) {
+        //     const sector = GameUtils.getSector(sectorCoords)!;
+        //     sector.flowfieldViewer.update(motionId, sector, sectorCoords);
+        //     sector.flowfieldViewer.visible = true;
+        // }
     }    
 
     private moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {

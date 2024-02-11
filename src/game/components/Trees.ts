@@ -9,7 +9,6 @@ import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
 import { textures } from "../../engine/resources/Textures";
-import { cmdShowUI } from "../../Events";
 
 export class TreesProps extends ComponentProps {
 
@@ -54,7 +53,7 @@ export class Trees extends Component<TreesProps> {
         super(new TreesProps(props));
     }
 
-    override start(owner: Object3D) {
+    public load(owner: Object3D) {
 
         const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
         const perlin = textures.load("/images/perlin.png");
@@ -106,27 +105,29 @@ export class Trees extends Component<TreesProps> {
             }
         });
 
-        const { sectorRes } = this.props;
-        const treeCellSize = cellSize * 2;
-        const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
-        const treeMapSize = treeMapRes * treeCellSize;
-        const maxTreesPerSector = treeMapRes * treeMapRes;
-        const sectorCount = sectorRes * sectorRes;
-        const maxTrees = maxTreesPerSector * sectorCount;
-        const matrix = new Matrix4();
-        const worldPos = new Vector3();
-        const quaternion = new Quaternion();
-        const scale = new Vector3(1, 1, 1);
-        const up = new Vector3(0, 1, 0);
-        const mapCoords = new Vector2();
-        const localCoords = new Vector2();
-        const verticesPerRow = mapRes + 1;
-        const { sectors } = gameMapState;
-
         treeNoise.SetFrequency(.05);
         treeNoise2.SetFrequency(.05 * .5);
-        preloadTrees()
+
+        return preloadTrees()
             .then(treeGeometries => {
+
+                const { sectorRes } = this.props;
+                const treeCellSize = cellSize * 2;
+                const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
+                const treeMapSize = treeMapRes * treeCellSize;
+                const maxTreesPerSector = treeMapRes * treeMapRes;
+                const sectorCount = sectorRes * sectorRes;
+                const maxTrees = maxTreesPerSector * sectorCount;
+                const matrix = new Matrix4();
+                const worldPos = new Vector3();
+                const quaternion = new Quaternion();
+                const scale = new Vector3(1, 1, 1);
+                const up = new Vector3(0, 1, 0);
+                const mapCoords = new Vector2();
+                const localCoords = new Vector2();
+                const verticesPerRow = mapRes + 1;
+                const { sectors } = gameMapState;
+
                 const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
                     const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);
                     instancedMesh.name = `${trees[index]}`;
@@ -200,9 +201,7 @@ export class Trees extends Component<TreesProps> {
                 for (const treeMesh of treeInstancedMeshes) {
                     treeMesh.instancedMesh.count = treeMesh.count;
                 }
-
-                cmdShowUI.post("gamemap");
-            })
+            });
     }
 
     override update(owner: Object3D) {
