@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Mesh, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
@@ -55,6 +55,7 @@ interface IFlockState extends IComponentState {
 }
 
 const { mapRes } = config.game;
+const verticesPerRow = mapRes + 1;
 
 export class Flock extends Component<FlockProps, IFlockState> {
     constructor(props?: Partial<FlockProps>) {
@@ -417,24 +418,44 @@ export class Flock extends Component<FlockProps, IFlockState> {
             .expandByPoint(headOffset)
             .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, new Vector3(1, 1, 1)));
 
+        const sector0 = gameMapState.sectors.get(`0,0`)!;
+        const terrain = sector0.layers.terrain as Mesh;
+        const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
         const radius = this.props.radius;
-        for (let i = 0; i < this.props.count; i++) {
-            const mesh = sharedSkinnedMesh.clone();
-            mesh.boundingBox = boundingBox;
-            mesh.position.set(
-                Math.random() * radius * 2 - radius,
-                0,
-                Math.random() * radius * 2 - radius,
-            );
-            createUnit({
-                id: i,
-                obj: mesh,
-                type: UnitType.Worker,
-                states: [new MiningState()],
-                animation: initIdleAnim(mesh)
-            });
-            // const box3Helper = new Box3Helper(boundingBox);
-            // mesh.add(box3Helper);
+        const mapCoords = pools.vec2.getOne();
+        let unitCount = 0;
+        for (let j = 0; j < mapRes; ++j) {
+            for (let k = 0; k < mapRes; ++k) {
+                const startVertexIndex = j * verticesPerRow + k;
+                const _height1 = position.getY(startVertexIndex);
+                const _height2 = position.getY(startVertexIndex + 1);
+                const _height3 = position.getY(startVertexIndex + verticesPerRow);
+                const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+                const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
+                const _minHeight = Math.min(_height1, _height2, _height3, _height4);
+                if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
+                    const mesh = sharedSkinnedMesh.clone();
+                    mesh.boundingBox = boundingBox;
+                    mapCoords.set(k, j);
+                    GameUtils.mapToWorld(mapCoords, mesh.position);
+                    createUnit({
+                        id: unitCount,
+                        obj: mesh,
+                        type: UnitType.Worker,
+                        states: [new MiningState()],
+                        animation: initIdleAnim(mesh)
+                    });
+                    // const box3Helper = new Box3Helper(boundingBox);
+                    // mesh.add(box3Helper);
+                    ++unitCount;
+                    if (unitCount >= this.props.count) {
+                        break;
+                    }
+                }
+            }
+            if (unitCount >= this.props.count) {
+                break;
+            }
         }
 
         const npcObj = await objects.load("/models/characters/NPC.json");

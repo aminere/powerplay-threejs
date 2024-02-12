@@ -86,9 +86,15 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.initMap();
 
         this.state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
-        this.state.camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as Camera;
+
+        const camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;
+        this.state.camera = camera;
         this.state.cameraPivot = this.state.camera.parent!;
-        this.state.light = this.state.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
+
+        const light = this.state.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
+        this.state.light = light;
+        light.shadow.camera.far = camera.far;
+
         const [, rotationY] = config.camera.rotation;
         this.state.cameraAngleRad = MathUtils.degToRad(rotationY);
         this.updateCameraSize();
@@ -552,9 +558,17 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     private updateCameraSize() {
         const { width, height } = engine.screenRect;        
         const aspect = width / height;
-        const { orthoSize, shadowRange } = config.camera;
-        (this.state.camera as OrthographicCamera).zoom = 1 / this.state.cameraZoom;
-        (this.state.camera as OrthographicCamera).updateProjectionMatrix();
+        const { orthoSize, shadowRange } = config.camera;        
+        
+        const orthoCamera = (this.state.camera as OrthographicCamera);
+        orthoCamera.zoom = 1 / this.state.cameraZoom;
+        // const zoom = this.state.cameraZoom;
+        // orthoCamera.left = -orthoSize * aspect * zoom;
+        // orthoCamera.right = orthoSize * aspect * zoom;
+        // orthoCamera.top = orthoSize * zoom;
+        // orthoCamera.bottom = -orthoSize * zoom;
+        orthoCamera.updateProjectionMatrix();
+
         this.updateCameraBounds();
         const cameraLeft = -orthoSize * this.state.cameraZoom * aspect;
         const _shadowRange = Math.max(Math.abs(cameraLeft) * shadowRange, 10);

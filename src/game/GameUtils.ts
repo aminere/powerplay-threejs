@@ -1,7 +1,6 @@
 
-import { Camera, Vector2, Vector3, Raycaster } from "three";
+import { Camera, Vector2, Vector3, Raycaster, Plane, Line3 } from "three";
 import { config } from "./config";
-import { pools } from "../engine/core/Pools";
 import { engine } from "../powerplay";
 import { gameMapState } from "./components/GameMapState";
 
@@ -11,6 +10,10 @@ const halfMapSize = mapSize / 2;
 const halfCellSize = cellSize / 2;
 const cellOffset =  -halfMapSize + halfCellSize;
 const normalizedPos = new Vector3();
+const normalizedPos2d = new Vector2();
+const ground = new Plane();
+const line = new Line3();
+const rayEnd = new Vector3();
 
 export class GameUtils {
 
@@ -118,16 +121,12 @@ export class GameUtils {
     
     public static screenCastOnPlane(camera: Camera, screenPos: Vector2, yHeight: number, intersectionOut: Vector3) {
         const { width, height } = engine.screenRect;
-        const normalizedPos = pools.vec2.getOne();
-        const { up } = GameUtils.vec3;
-        const ground = pools.plane.getOne();
-        const line = pools.line3.getOne();
-        const rayEnd = pools.vec3.getOne();
-        normalizedPos.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
-        GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
+        normalizedPos2d.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
+        GameUtils.rayCaster.setFromCamera(normalizedPos2d, camera);
         const { ray } = GameUtils.rayCaster;
-        ground.set(up, -yHeight);
-        rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
+        const { up } = GameUtils.vec3;
+        ground.set(up, -yHeight);        
+        rayEnd.copy(ray.origin).addScaledVector(ray.direction, 999);
         line.set(ray.origin, rayEnd);
         return ground.intersectLine(line, intersectionOut) !== null;
     }

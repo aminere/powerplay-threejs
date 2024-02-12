@@ -2,7 +2,7 @@
 export const config = {
     camera: {
         rotation: [-30, 45],
-        orthoSize: 2,
+        orthoSize: 10,
         zoomRange: [0.3, 8],
         zoomSpeed: .001,
         panMargin: 0.01,

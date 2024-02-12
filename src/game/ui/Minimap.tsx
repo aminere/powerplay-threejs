@@ -177,8 +177,8 @@ export function Minimap() {
             unitsPixels.data.fill(0);
             for (const unit of units) {
                 const { x, y } = unit.coords.mapCoords;
-                const xu = Math.floor(x / texRes * unitsPixels.width);
-                const yu = Math.floor(y / texRes * unitsPixels.height);
+                const xu = Math.min(Math.round(x / texRes * unitsPixels.width), unitsPixels.width - 1);
+                const yu = Math.min(Math.round(y / texRes * unitsPixels.height), unitsPixels.height - 1);
                 const index = (yu * unitsPixels.width + xu) * 4;
                 unitsPixels.data.set([0, 0, 255, 255], index);
             }
