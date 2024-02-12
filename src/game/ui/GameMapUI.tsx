@@ -4,21 +4,15 @@ import { Action, Actions } from "../GameDefinitions";
 import styles from './GameMapUI.module.css';
 import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
-import { evtCursorOverUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 
-function isPointInRect(x: number, y: number, rect: DOMRect) {
-    return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
-}
-
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
     const hoveredElement = useRef<HTMLElement | null>(null);
     const hoveredElementOnDown = useRef<HTMLElement | null>(null);
-    const cursorOverUI = useRef(false);
     const actions = useRef<Record<string, HTMLElement>>({});
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
@@ -37,18 +31,11 @@ export function GameMapUI(props: IGameUIProps) {
             return;
         }
         const onGamePointerMove = () => {
-            const rect = actionsElem.current!.getBoundingClientRect();
-            const { rawPointerPos } = props;
-            const _cursorOverUI = isPointInRect(rawPointerPos.x, rawPointerPos.y, rect);
-            if (cursorOverUI.current !== _cursorOverUI) {
-                evtCursorOverUI.post(_cursorOverUI);
-                cursorOverUI.current = _cursorOverUI;
-            }
-
             if (utils.isPointerLocked()) {
                 hoveredElement.current = null;
+                const { rawPointerPos } = props;
                 for (const [, elem] of Object.entries(actions.current)) {
-                    const hovered = isPointInRect(rawPointerPos.x, rawPointerPos.y, elem.getBoundingClientRect());
+                    const hovered = utils.isPointInRect(rawPointerPos.x, rawPointerPos.y, elem.getBoundingClientRect());
                     if (hovered) {
                         hoveredElement.current = elem;
                         elem.classList.add("hovered");
@@ -94,7 +81,12 @@ export function GameMapUI(props: IGameUIProps) {
     }, [setAction]);
 
     return <div className={styles.root}>
-        <div ref={actionsElem} className={styles.actions}>
+        <div 
+            ref={actionsElem} 
+            className={styles.actions}
+            onPointerEnter={() => gameMapState.cursorOverUI = true}
+            onPointerLeave={() => gameMapState.cursorOverUI = false}
+        >
             {Actions.map(action => {
                 const selected = selectedAction === action;
                 return <div

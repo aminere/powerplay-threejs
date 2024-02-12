@@ -5,7 +5,6 @@ import { MiningState } from "./MiningState";
 import { IUnit } from "./IUnit";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { GameUtils } from "../GameUtils";
-import { gameMapState } from "../components/GameMapState";
 import { computeUnitAddr } from "./UnitAddr";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";

@@ -9,7 +9,7 @@ import { pools } from "./core/Pools";
 import { serialization } from "./serialization/Serialization";
 import { time } from "./core/Time";
 import { utils } from "./Utils";
-import { cmdUpdateUI, evtScreenResized } from "../Events";
+import { cmdRenderUI, cmdUpdateUI, evtScreenResized } from "../Events";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -60,13 +60,14 @@ class Engine {
         pools.flush();
         input.update();
         this.updateComponents();
+        cmdUpdateUI.post();
         input.postUpdate();
     }
 
     public render(camera: Camera) {
         this._renderer!.clear();
         this._renderer!.render(this._scene!, camera);
-        cmdUpdateUI.post();
+        cmdRenderUI.post();
     }
 
     public async loadScene(path: string, onLoaded: (props: ISceneInfo) => void) {

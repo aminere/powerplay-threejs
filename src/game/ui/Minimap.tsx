@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { IMinimapFog, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
+import { IMinimapFog, cmdRenderUI, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
@@ -7,9 +7,11 @@ import { engineState } from "../../engine/EngineState";
 import { Flock } from "../components/Flock";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
+import { GameMap } from "../components/GameMap";
+import { input } from "../../engine/Input";
 
 const { mapRes, cellSize } = config.game;
-const mapOffset = -mapRes / 2 * cellSize;
+const mapOffset = mapRes / 2 * cellSize;
 const verticesPerRow = mapRes + 1;
 const screenPos = new Vector2();
 const worldPos = new Vector3();
@@ -36,6 +38,13 @@ const crispCanvasStyle = {
     ...canvasStyle
 } as const;
 
+function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number) {
+    const { left, top } = engine.screenRect;
+    mapCoords.set(clientX - left, clientY - top).applyMatrix3(transform);
+    const cameraPos = worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
+    gamemap.setCameraPos(cameraPos);
+}
+
 export function Minimap() {
 
     const root = useRef<HTMLDivElement | null>(null);
@@ -48,6 +57,9 @@ export function Minimap() {
     const fogPixelsRef = useRef<ImageData | null>(null);
     const resourcePixelsRef = useRef<ImageData | null>(null);
     const cameraRef = useRef<HTMLCanvasElement | null>(null);
+    const gamemapRef = useRef<GameMap | null>(null);
+    const flockRef = useRef<Flock | null>(null);
+    const touchPressed = useRef(false);
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -92,6 +104,9 @@ export function Minimap() {
         const cameraCanvas = cameraRef.current!;
         cameraCanvas.width = texRes;
         cameraCanvas.height = texRes;
+        const cameraCtx = cameraCanvas.getContext("2d")!;
+        cameraCtx.strokeStyle = "white";
+        cameraCtx.lineWidth = 1;
 
         for (let i = 0; i < sectorRes; ++i) {
             for (let j = 0; j < sectorRes; ++j) {
@@ -136,22 +151,28 @@ export function Minimap() {
         envCtx.putImageData(envPixels, 0, 0);
         resourcesCtx.putImageData(resourcesPixels, 0, 0);
         fogCtx.putImageData(fogPixels, 0, 0);
+
+        const flocks = engineState.getComponents(Flock);
+        flockRef.current = flocks[0].component;
+        const gamemaps = engineState.getComponents(GameMap);
+        gamemapRef.current = gamemaps[0].component;
+
         initialized.current = true;
     }, []);
 
     useEffect(() => {
         console.assert(initialized.current);
-        const updateUI = () => {
+
+        const renderUI = () => {
             if (!gameMapState.instance) {
                 return;
             }
 
             const { sectorRes } = gameMapState;
             const texRes = mapRes * sectorRes;
-
-            const flocks = engineState.getComponents(Flock);
-            const flock = flocks[0];
-            const units = flock.component.state.units;
+            
+            const flock = flockRef.current!;
+            const units = flock.state.units;
             const unitsPixels = unitsPixelsRef.current!;
             unitsPixels.data.fill(0);
             for (const unit of units) {
@@ -168,18 +189,14 @@ export function Minimap() {
             const fogCtx = fogRef.current!.getContext("2d")!;
             fogCtx.putImageData(fogPixelsRef.current!, 0, 0);
 
-
+            const cameraCanvas = cameraRef.current!;
             const cameraCtx = cameraRef.current!.getContext("2d")!;
-            cameraCtx.clearRect(0, 0, texRes, texRes);
-            cameraCtx.strokeStyle = "white";
-            cameraCtx.lineWidth = 2;
+            cameraCtx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
             cameraCtx.beginPath();
-
             const worldSize = mapRes * sectorRes * cellSize;
             const worldToMap = (worldCoord: number) => {
-                return (worldCoord - mapOffset) / worldSize * texRes;
+                return (worldCoord + mapOffset) / worldSize * texRes;
             };
-
             const { camera } = gameMapState;
             const { width: screenWidth, height: screenHeight } = engine.screenRect;
             screenPos.set(0, 0);
@@ -208,14 +225,22 @@ export function Minimap() {
             fogPixels.data.set([0, 0, 0, fog.visible ? 0 : 128], index);
         };
 
+        const updateUI = () => {
+            if (input.touchJustReleased) {
+                touchPressed.current = false;
+            }
+        };
+
         cmdUpdateUI.attach(updateUI);
+        cmdRenderUI.attach(renderUI);
         cmdUpdateMinimapFog.attach(updateFog);
         return () => {
             cmdUpdateUI.detach(updateUI);
+            cmdRenderUI.detach(renderUI);
             cmdUpdateMinimapFog.detach(updateFog);
         }
 
-    }, []);
+    }, []);    
 
     return <div ref={root} style={{ position: "absolute", left: "0", top: "0" }}>
         <div
@@ -227,11 +252,16 @@ export function Minimap() {
                 border: "1px solid white",
                 pointerEvents: "all"
             }}
-            onClick={e => {
-                const { left, top } = engine.screenRect;                
-                mapCoords.set(e.clientX - left, e.clientY - top).applyMatrix3(transform);                
-                console.log(mapCoords);
-                // TODO
+            onPointerEnter={() => gameMapState.cursorOverUI = true}
+            onPointerLeave={() => gameMapState.cursorOverUI = false}
+            onPointerDown={e => {
+                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY);
+                touchPressed.current = true
+            }}
+            onPointerMove={e => {
+                if (touchPressed.current) {
+                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY);
+                }                
             }}
         >
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />

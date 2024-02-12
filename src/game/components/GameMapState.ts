@@ -49,11 +49,18 @@ export class GameMapState {
     public get previousRail() { return this._instance!.previousRail; }
     public get selectionInProgress() { return this._instance!.selectionInProgress; }
     public get sectorRes() { return this._instance!.sectorRes; }
+    public get cursorOverUI() { return this._instance!.cursorOverUI; }
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
     public set action(value: Action | null) { this._instance!.action = value; }    
     public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
     public set selectionInProgress(value: boolean) { this._instance!.selectionInProgress = value; }
+    public set cursorOverUI(value: boolean) { 
+        this._instance!.cursorOverUI = value;
+        if (this._instance!.action) {
+            this._instance!.tileSelector.visible = !value;
+        }
+    }
     
     private _instance: IGameMapState | null = null;
 }

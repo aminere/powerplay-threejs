@@ -68,75 +68,80 @@ export class Flock extends Component<FlockProps, IFlockState> {
             return;
         }
 
-        if (input.touchJustPressed) {    
-            this.state.touchPressed = true;                
-            this.state.selectionStart.copy(input.touchPos);
+        if (input.touchJustPressed) {
+            if (!gameMapState.cursorOverUI) {
+                this.state.touchPressed = true;                
+                this.state.selectionStart.copy(input.touchPos);
+            }
 
         } else if (input.touchJustReleased) {
-            this.state.touchPressed = false;     
-            if (input.touchButton === 0) {
 
-                if (gameMapState.selectionInProgress) {
-                    cmdEndSelection.post();
-                    gameMapState.selectionInProgress = false;
+            if (this.state.touchPressed) {
+                this.state.touchPressed = false; 
+                if (input.touchButton === 0) {
 
-                } else {
-                    const { width, height } = engine.screenRect;
-                    const normalizedPos = pools.vec2.getOne();
-                    normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                    const { rayCaster } = GameUtils;
-                    rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+                    if (gameMapState.selectionInProgress) {
+                        cmdEndSelection.post();
+                        gameMapState.selectionInProgress = false;
     
-                    const { units } = this.state;
-                    const intersections: Array<{ unit: Unit; distance: number; }> = [];
-                    const intersection = pools.vec3.getOne();
-                    for (let i = 0; i < units.length; ++i) {
-                        const unit = units[i];
-                        const { obj, type } = unit;
-                        if (type === UnitType.NPC) {
-                            continue;
-                        }
-                        if (!unit.isAlive) {
-                            continue;
-                        }
-                        this._inverseMatrix.copy(obj.matrixWorld).invert();
-                        this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
-                        const boundingBox = obj.boundingBox;
-                        if (this._localRay.intersectBox(boundingBox, intersection)) {
-                            intersections.push({ unit, distance: this._localRay.origin.distanceTo(intersection) });
-                        }
-                    }
-                    
-                    if (intersections.length > 0) {
-                        intersections.sort((a, b) => a.distance - b.distance);
-                        this.state.selectedUnits = [intersections[0].unit];
                     } else {
-                        this.state.selectedUnits.length = 0;
-                    }
-    
-                    cmdSetSeletedUnits.post(this.state.selectedUnits);
-                }                
-
-            } else if (input.touchButton === 2) {
-                if (this.state.selectedUnits.length > 0) {                    
-                    const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                    const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
-                    if (targetCell) {
-                        // group units per sector
-                        const groups = this.state.selectedUnits.reduce((prev, cur) => {
-                            const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                            let units = prev[key];
-                            if (!units) {
-                                units = [cur];
-                                prev[key] = units;
-                            } else {
-                                units.push(cur);
+                        const { width, height } = engine.screenRect;
+                        const normalizedPos = pools.vec2.getOne();
+                        normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                        const { rayCaster } = GameUtils;
+                        rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+        
+                        const { units } = this.state;
+                        const intersections: Array<{ unit: Unit; distance: number; }> = [];
+                        const intersection = pools.vec3.getOne();
+                        for (let i = 0; i < units.length; ++i) {
+                            const unit = units[i];
+                            const { obj, type } = unit;
+                            if (type === UnitType.NPC) {
+                                continue;
                             }
-                            return prev;
-                        }, {} as Record<string, Unit[]>);
+                            if (!unit.isAlive) {
+                                continue;
+                            }
+                            this._inverseMatrix.copy(obj.matrixWorld).invert();
+                            this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
+                            const boundingBox = obj.boundingBox;
+                            if (this._localRay.intersectBox(boundingBox, intersection)) {
+                                intersections.push({ unit, distance: this._localRay.origin.distanceTo(intersection) });
+                            }
+                        }
                         
-                        for (const units of Object.values(groups)) {
-                            unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);                            
+                        if (intersections.length > 0) {
+                            intersections.sort((a, b) => a.distance - b.distance);
+                            this.state.selectedUnits = [intersections[0].unit];
+                        } else {
+                            this.state.selectedUnits.length = 0;
+                        }
+        
+                        cmdSetSeletedUnits.post(this.state.selectedUnits);
+                    }                
+    
+                } else if (input.touchButton === 2) {
+                    if (this.state.selectedUnits.length > 0) {                    
+                        const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
+                        const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
+                        if (targetCell) {
+                            // group units per sector
+                            const groups = this.state.selectedUnits.reduce((prev, cur) => {
+                                const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+                                let units = prev[key];
+                                if (!units) {
+                                    units = [cur];
+                                    prev[key] = units;
+                                } else {
+                                    units.push(cur);
+                                }
+                                return prev;
+                            }, {} as Record<string, Unit[]>);
+                            
+                            for (const units of Object.values(groups)) {
+                                unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);                            
+                            }
                         }
                     }
                 }

@@ -107,6 +107,10 @@ class Utils {
         array[index] = lastElem;
         array.length--;
     }
+
+    public isPointInRect(x: number, y: number, rect: DOMRect) {
+        return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+    }
 }
 
 export const utils = new Utils();

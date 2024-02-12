@@ -8,7 +8,7 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
-import { cmdHideUI, cmdShowUI, evtCursorOverUI } from "../../Events";
+import { cmdHideUI, cmdShowUI } from "../../Events";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
@@ -103,16 +103,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.onKeyDown = this.onKeyDown.bind(this);
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
-        this.onCursorOverUI = this.onCursorOverUI.bind(this);
-        evtCursorOverUI.attach(this.onCursorOverUI);
-
-
     }
 
     override dispose() {
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
-        evtCursorOverUI.detach(this.onCursorOverUI);
         cmdHideUI.post("gamemap");
         gameMapState.instance = null;
     }
@@ -389,6 +384,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         }       
     }
 
+    public setCameraPos(pos: Vector3) {
+        this.state.cameraRoot.position.copy(pos);
+        this.updateCameraBounds();
+    }
+
     private disposeSectors() {
         const { sectors } = this.state;
         for (const sector of sectors.values()) {
@@ -564,12 +564,5 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.state.light.shadow.camera.bottom = -_shadowRange;
         this.state.light.shadow.camera.updateProjectionMatrix();
     }
-
-    private onCursorOverUI(over: boolean) {
-        this.state.cursorOverUI = over;
-        if (this.state.action) {
-            this.state.tileSelector.visible = !over;
-        }
-    }    
 }
 
