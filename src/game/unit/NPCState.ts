@@ -7,6 +7,7 @@ import { time } from "../../engine/core/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
+import { unitMotion } from "./UnitMotion";
 
 enum NpcStep {
     Idle,
@@ -83,26 +84,24 @@ export class NPCState extends State<IUnit> {
         }
     }
 
-    private follow(_unit: IUnit, _target: IUnit) {
-        console.assert(false, "Not implemented");
-        // if (flowField.compute(target.coords.mapCoords)) {
-        //     switch (this._step) {
-        //         case NpcStep.Attack: {
-        //             unitUtils.moveTo(unit, target.coords.mapCoords, false);
-        //             unitUtils.setAnimation(unit, "run", {
-        //                 transitionDuration: .3,
-        //                 scheduleCommonAnim: true
-        //             });
-        //         }
-        //             break;
+    private follow(unit: IUnit, target: IUnit) {
+        const targetCell = target.coords.sector!.cells[target.coords.cellIndex];        
+        switch (this._step) {
+            case NpcStep.Attack: {
+                unitMotion.move([unit], target.coords.sectorCoords, target.coords.mapCoords, targetCell, false);
+                unitAnimation.setAnimation(unit, "run", {
+                    transitionDuration: .3,
+                    scheduleCommonAnim: true
+                });                
+            }
+                break;
 
-        //         default:
-        //             unitUtils.moveTo(unit, target.coords.mapCoords);                    
-        //             break;
-        //     }
-        //     this._step = NpcStep.Follow;
-        //     this._target = target;
-        // }
+            default:
+                unitMotion.move([unit], target.coords.sectorCoords, target.coords.mapCoords, targetCell);
+                break;
+        }
+        this._step = NpcStep.Follow;
+        this._target = target;
     }
 
     private goToIdle(unit: IUnit) {

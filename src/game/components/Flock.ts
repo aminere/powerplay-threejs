@@ -57,6 +57,8 @@ interface IFlockState extends IComponentState {
 
 const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
+const localRay = new Ray();
+const inverseMatrix = new Matrix4();
 
 function onUnitArrived(unit: IUnit) {
     flowField.onUnitArrived(unit.motionId);
@@ -65,12 +67,11 @@ function onUnitArrived(unit: IUnit) {
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
+
     constructor(props?: Partial<FlockProps>) {
         super(new FlockProps(props));
     }
 
-    private _localRay = new Ray();
-    private _inverseMatrix = new Matrix4();
     override update(_owner: Object3D) {
         if (!this.state) {
             return;
@@ -111,11 +112,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             if (!unit.isAlive) {
                                 continue;
                             }
-                            this._inverseMatrix.copy(obj.matrixWorld).invert();
-                            this._localRay.copy(rayCaster.ray).applyMatrix4(this._inverseMatrix);
+                            inverseMatrix.copy(obj.matrixWorld).invert();
+                            localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
                             const boundingBox = obj.boundingBox;
-                            if (this._localRay.intersectBox(boundingBox, intersection)) {
-                                intersections.push({ unit, distance: this._localRay.origin.distanceTo(intersection) });
+                            if (localRay.intersectBox(boundingBox, intersection)) {
+                                intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
                             }
                         }
                         
@@ -500,7 +501,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 animation: initIdleAnim(npcMesh),
                 speed: .7
             });
-            npc.fsm.switchState(ArcherNPCState);
+            npc.fsm.switchState(NPCState);
         }
 
         for (let i = 0; i < this.props.npcCount; ++i) {
