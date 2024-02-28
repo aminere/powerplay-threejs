@@ -27,6 +27,7 @@ export class Unit implements IUnit {
     public get obj() { return this._obj; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
+    public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
     public get isColliding() { return this._isColliding; }
     public get isAlive() { return this._isAlive; }
     public get isIdle() { return this._isIdle; }
@@ -48,7 +49,13 @@ export class Unit implements IUnit {
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set rotationVelocity(value: number) { this._rotationVelocity = value; }
-    public set motionId(value: number) { this._motionId = value; }
+    public set motionId(value: number) { 
+        if (value === 0 && this._motionId > 0) {
+            this._lastCompletedMotionId = this._motionId;
+        }
+        this._motionId = value;
+    }
+
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }
@@ -94,6 +101,7 @@ export class Unit implements IUnit {
         cellIndex: 0
     };
     private _motionId = 0;
+    private _lastCompletedMotionId = 0;
     private _isColliding = false;
     private _isAlive = true;
     private _isIdle = true;

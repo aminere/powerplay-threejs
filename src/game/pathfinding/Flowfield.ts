@@ -51,9 +51,11 @@ type FlowFieldMap = Map<string, TFlowField[]>;
 
 class FlowField {    
 
-    // private _cache = new Map<string, TFlowField[]>();
     private _motionId = 1;
-    private _motions = new Map<number, FlowFieldMap>();
+    private _motions = new Map<number, {
+        unitCount: number;
+        flowfields: FlowFieldMap;
+    }>();
 
     public compute(targetCoords: Vector2, sectors: Vector2[]) {
 
@@ -179,7 +181,7 @@ class FlowField {
         let minCost = 0xffff;
         let toNeighborX = 0;
         let toNeighborY = 0;        
-        const flowfields = this.getFlowfields(motionId);        
+        const flowfields = this.getMotion(motionId);        
         
         lateralCellBlocked[0] = false;
         lateralCellBlocked[1] = false;
@@ -191,7 +193,7 @@ class FlowField {
                 continue;
             }
 
-            const flowField = flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`);
+            const flowField = flowfields.flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`);
             if (!flowField) {
                 continue;
             }
@@ -216,7 +218,7 @@ class FlowField {
                 continue;
             }
 
-            const flowField = flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`);
+            const flowField = flowfields.flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`);
             if (!flowField) {
                 continue;
             }
@@ -249,7 +251,7 @@ class FlowField {
                 continue;
             }
 
-            const flowField = flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`)!;
+            const flowField = flowfields.flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`)!;
             if (!flowField) {
                 continue;
             }
@@ -303,15 +305,33 @@ class FlowField {
         directionOut.copy(directionPalette[index]);
     }
 
-    public getFlowfields(motionId: number) {
+    public getMotion(motionId: number) {
         return this._motions.get(motionId)!;
     }
 
     public register(flowfields: FlowFieldMap) {
         const motionId = this._motionId;
-        this._motions.set(motionId, flowfields);
+        this._motions.set(motionId, {
+            unitCount: 0,
+            flowfields
+        });
         this._motionId++
         return motionId;
+    }
+
+    public setMotionUnitCount(motionId: number, count: number) {
+        const motion = this._motions.get(motionId)!;
+        motion.unitCount = count;
+    }
+
+    public onUnitArrived(motionId: number) {
+        const motion = this._motions.get(motionId)!;
+        console.assert(motion);
+        console.assert(motion.unitCount > 0);
+        motion.unitCount--;
+        if (motion.unitCount === 0) {
+            this._motions.delete(motionId);
+        }    
     }
 }
 

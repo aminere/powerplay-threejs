@@ -30,7 +30,7 @@ class UnitUtils {
         const { motionId, desiredPosValid, desiredPos, coords, obj } = unit;
         if (motionId > 0) {
             if (!desiredPosValid) {   
-                const flowfields = flowField.getFlowfields(motionId);            
+                const flowfields = flowField.getMotion(motionId).flowfields;            
                 const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
                 if (_flowField) {
                     const currentCellIndex = coords.cellIndex;

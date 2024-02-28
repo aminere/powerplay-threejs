@@ -12,6 +12,7 @@ import { unitAnimation } from "./UnitAnimation";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
+import { gameMapState } from "../components/GameMapState";
 
 const { mapRes } = config.game;
 const oneSector = [new Vector2()];
@@ -27,6 +28,19 @@ function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTarge
     }
     return null;
 }    
+
+function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
+    if (unit.motionId > 0) {
+        flowField.onUnitArrived(unit.motionId);
+    }
+    unit.motionId = motionId;    
+    unit.collidable = true;
+    computeUnitAddr(mapCoords, unit.targetCell);
+    engineState.removeComponent(unit.obj, UnitCollisionAnim);
+    if (bindSkeleton) {
+        unitAnimation.setAnimation(unit, "run");
+    }
+}
 
 class UnitMotion {
 
@@ -95,39 +109,41 @@ class UnitMotion {
         }
 
         const flowfields = flowField.compute(targetCellCoords, sectors)!;
-        console.assert(flowfields);
-        const motionId = flowField.register(flowfields);
+        console.assert(flowfields);        
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;
+        let unitCount = 0;
+        let motionId: number | null = null;
         for (const unit of units) {
             if (!unit.isAlive) {
                 continue;
             }
             if (unit.coords.mapCoords.equals(targetCellCoords)) {
                 continue;
-            }            
-            this.moveTo(unit, motionId, targetCellCoords);
-            unit.fsm.switchState(nextState);
-        }
-        
-        // for (const sector of gameMapState.sectors.values()) {
-        //     sector.flowfieldViewer.visible = false;
-        // }
-        // for (const sectorCoords of sectors) {
-        //     const sector = GameUtils.getSector(sectorCoords)!;
-        //     sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-        //     sector.flowfieldViewer.visible = true;
-        // }
-    }    
+            }
 
-    private moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
-        unit.motionId = motionId;
-        unit.collidable = true;
-        computeUnitAddr(mapCoords, unit.targetCell);
-        engineState.removeComponent(unit.obj, UnitCollisionAnim);
-        if (bindSkeleton) {
-            unitAnimation.setAnimation(unit, "run");
+            if (motionId === null) {
+                motionId = flowField.register(flowfields);
+            }
+
+            moveTo(unit, motionId, targetCellCoords);
+            unit.fsm.switchState(nextState);
+            ++unitCount;
         }
+
+        if (motionId !== null) {
+            console.assert(unitCount > 0);
+            flowField.setMotionUnitCount(motionId, unitCount);
+
+            for (const sector of gameMapState.sectors.values()) {
+                sector.flowfieldViewer.visible = false;
+            }
+            for (const sectorCoords of sectors) {
+                const sector = GameUtils.getSector(sectorCoords)!;
+                sector.flowfieldViewer.update(motionId, sector, sectorCoords);
+                sector.flowfieldViewer.visible = true;
+            }
+        }        
     }
 }
 

@@ -57,7 +57,7 @@ export class FlowfieldViewer extends Object3D {
     public update(motionId: number, sector: ISector, sectorCoords: Vector2) {        
         const cells = sector.cells;
         linePoints.length = 0;
-        const flowFields = flowField.getFlowfields(motionId);
+        const flowFields = flowField.getMotion(motionId).flowfields;
         const _flowField = flowFields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
@@ -91,7 +91,7 @@ export class FlowfieldViewer extends Object3D {
         points.geometry.computeBoundingSphere();
         this.position.copy(sector.root.position).negate();
 
-        const flowfields = flowField.getFlowfields(motionId);
+        const flowfields = flowField.getMotion(motionId).flowfields;
         const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
         const flowfield = flowfields.get(sectorId)!;
         const texts = this.children[2];

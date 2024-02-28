@@ -19,7 +19,7 @@ import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
-import { UnitType } from "../unit/IUnit";
+import { IUnit, UnitType } from "../unit/IUnit";
 import { objects } from "../../engine/resources/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { NPCState } from "../unit/NPCState";
@@ -29,6 +29,7 @@ import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
 import { fogOfWar } from "../FogOfWar";
+import { flowField } from "../pathfinding/Flowfield";
 
 export class FlockProps extends ComponentProps {
 
@@ -56,6 +57,12 @@ interface IFlockState extends IComponentState {
 
 const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
+
+function onUnitArrived(unit: IUnit) {
+    flowField.onUnitArrived(unit.motionId);
+    unit.motionId = 0;
+    unitAnimation.setAnimation(unit, "idle");
+}
 
 export class Flock extends Component<FlockProps, IFlockState> {
     constructor(props?: Partial<FlockProps>) {
@@ -213,8 +220,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount * unit.speed);
-            const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
-            const otherUnits = cell.units;
+            // const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+            const otherUnits = units; //cell.units;
             for (const otherUnit of otherUnits) {
                 if (otherUnit === unit) {
                     continue;
@@ -255,7 +262,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         if (unit.motionId > 0) {
                             const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            otherDesiredPos.add(toTarget);                            
+                            otherDesiredPos.add(toTarget); 
+                            
+                            // if other unit was part of my motion, stop
+                            if (otherUnit.lastCompletedMotionId === unit.motionId) {
+                                onUnitArrived(unit);
+                            }
+
                         } else {
                             // move away from each other
                             const moveAmount = Math.min((separationDist - dist) / 2 + repulsion, avoidanceSteerAmount);
@@ -373,8 +386,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             if (!unit.fsm.currentState) {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
-                                    unit.motionId = 0;
-                                    unitAnimation.setAnimation(unit, "idle");
+                                    onUnitArrived(unit);
                                 }
                             }
                         }
