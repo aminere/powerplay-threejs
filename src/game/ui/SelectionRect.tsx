@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { cmdEndSelection, cmdStartSelection, cmdUpdateUI } from "../../Events";
+import { cmdEndSelection, cmdStartSelection, cmdRenderUI } from "../../Events";
 import { Vector2 } from "three";
 import { input } from "../../engine/Input";
 
@@ -10,7 +10,7 @@ export function SelectionRect() {
     const selectionInProgress = useRef(false);
 
     useEffect(() => {
-        const updateUI = () => {
+        const renderUI = () => {
             if (input.touchJustMoved) {
                 if (selectionInProgress.current) {
                     const startX = Math.min(input.touchPos.x, selectionStart.current.x);
@@ -42,11 +42,11 @@ export function SelectionRect() {
 
         cmdStartSelection.attach(onStartSelection);
         cmdEndSelection.attach(onEndSelection);
-        cmdUpdateUI.attach(updateUI);
+        cmdRenderUI.attach(renderUI);
         return () => {            
             cmdStartSelection.detach(onStartSelection);
             cmdEndSelection.detach(onEndSelection);
-            cmdUpdateUI.detach(updateUI);
+            cmdRenderUI.detach(renderUI);
         }
     }, []);
 

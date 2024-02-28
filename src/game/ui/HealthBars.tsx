@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { cmdSetSeletedUnits, cmdUpdateUI, evtScreenResized } from "../../Events";
+import { cmdSetSeletedUnits, cmdRenderUI, evtScreenResized } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { Color, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
@@ -11,11 +11,13 @@ const empty = new Color(0xc01c06);
 const color = new Color();
 const parts = 5;
 const step = 1 / parts;
-const partWidth = 12;
-const partHeight = 12;
+const partWidth = 8;
+const partHeight = 8;
 const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
+const headOffset = 2;
+
 export function HealthBars() {
 
     const selectedUnitsRef = useRef<IUnit[]>([]);
@@ -26,7 +28,7 @@ export function HealthBars() {
             selectedUnitsRef.current = units;
         };
 
-        const updateUI = () => {
+        const renderUI = () => {
             if (!gameMapState.instance) {
                 return;
             }
@@ -45,7 +47,7 @@ export function HealthBars() {
                 if (!isAlive) {
                     continue;
                 }
-                worldPos.copy(obj.position).addScaledVector(obj.up, 1.7);
+                worldPos.copy(obj.position).addScaledVector(obj.up, headOffset);
                 GameUtils.worldToScreen(worldPos, camera, screenPos);
 
                 const barX = Math.round(screenPos.x - totalWidth / 2);
@@ -82,12 +84,12 @@ export function HealthBars() {
             canvasRef.current!.height = height;
         };
 
-        cmdUpdateUI.attach(updateUI);
+        cmdRenderUI.attach(renderUI);
         cmdSetSeletedUnits.attach(onSelectedUnits);
         evtScreenResized.attach(onResize);
         return () => {
             cmdSetSeletedUnits.detach(onSelectedUnits);
-            cmdUpdateUI.detach(updateUI);
+            cmdRenderUI.detach(renderUI);
             evtScreenResized.detach(onResize);
         }
     }, []);
