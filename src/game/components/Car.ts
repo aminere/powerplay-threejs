@@ -1,11 +1,10 @@
-import { BufferGeometry, Color, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector2, Vector3 } from "three";
+import { BufferGeometry, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
-import { Axis, ICell, ISector } from "../GameTypes";
+import { Axis } from "../GameTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
-import { Sector } from "../Sector";
-import { gameMapState } from "./GameMapState";
+// import { Sector } from "../Sector";
 import { time } from "../../engine/core/Time";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engine } from "../../engine/Engine";
@@ -17,11 +16,11 @@ enum MotionState {
     MoveToNextCell
 }
 
-interface ICellInfo {
-    cell: ICell;
-    sector: ISector;
-    localCoords: Vector2;
-}
+// interface ICellInfo {
+//     cell: ICell;
+//     sector: ISector;
+//     localCoords: Vector2;
+// }
 
 interface IMotionSegment {
     axis: Axis | "both";
@@ -90,7 +89,7 @@ export class Car extends Component<CarProps> {
     private _motion: IMotionSegment[] = [];
     private _currentMotionSegment = 0;
     private _breakingForTurn = false;
-    private _currentCell?: ICellInfo;
+    // private _currentCell?: ICellInfo;
     private _motionState: MotionState = MotionState.None;
     private _cellWaittimer = 0;
     private _owner!: Object3D;
@@ -168,9 +167,9 @@ export class Car extends Component<CarProps> {
                     if (this._speed < 0) {
                         this._speed = 0;
                         this._motionState = MotionState.None;
-                        GameUtils.mapToWorld(this.props.coords, owner.position);
-                        // GameUtils.worldToMap(visual.node.position, this.props.coords);
-                        console.assert(GameUtils.getCell(this.props.coords)!.unit === owner);
+                        GameUtils.mapToWorld(this.props.coords, owner.position);                        
+                        // TODO
+                        // console.assert(GameUtils.getCell(this.props.coords)!.unit === owner);
                         return;
                     }
                 }
@@ -181,29 +180,30 @@ export class Car extends Component<CarProps> {
                 nextMapPos.set(this.props.coords.x + Math.sign(segment.direction.x), this.props.coords.y + Math.sign(segment.direction.z));
                 const nextCell = GameUtils.getCell(nextMapPos, nextSectorCoords, nextLocalCoords)!;
                 if (nextCell) {
-                    if (nextCell.unit) {
-                        this._motionState = MotionState.WaitForNextCell;
-                        GameUtils.mapToWorld(this.props.coords, owner.position);
-                        canStep = false;
-                    } else {
-                        const nextWorldPos = pools.vec3.getOne().copy(owner.position).addScaledVector(segment.direction, stepDistance);
-                        const potentialNextMapPos = GameUtils.worldToMap(nextWorldPos, pools.vec2.getOne());
-                        if (potentialNextMapPos.equals(nextMapPos)) {
-                            // switch to next cell
-                            this.props.coords.copy(nextMapPos);
-                            const { cell: oldCell, sector: oldSector, localCoords: oldLocalCoords } = this._currentCell!;
-                            console.assert(oldCell.unit === owner);
-                            delete oldCell.unit;
-                            console.assert(nextCell.unit === undefined);
-                            nextCell.unit = owner;
-                            Sector.updateHighlightTexture(oldSector, oldLocalCoords, new Color(0xffffff));
-                            const nextSector = gameMapState.sectors.get(`${nextSectorCoords.x},${nextSectorCoords.y}`)!;
-                            Sector.updateHighlightTexture(nextSector, nextLocalCoords, new Color(0xff0000));
-                            this._currentCell!.cell = nextCell;
-                            this._currentCell!.sector = nextSector;
-                            this._currentCell!.localCoords.copy(nextLocalCoords);
-                        }
-                    }
+                    // TODO
+                    // if (nextCell.unit) {
+                    //     this._motionState = MotionState.WaitForNextCell;
+                    //     GameUtils.mapToWorld(this.props.coords, owner.position);
+                    //     canStep = false;
+                    // } else {
+                    //     const nextWorldPos = pools.vec3.getOne().copy(owner.position).addScaledVector(segment.direction, stepDistance);
+                    //     const potentialNextMapPos = GameUtils.worldToMap(nextWorldPos, pools.vec2.getOne());
+                    //     if (potentialNextMapPos.equals(nextMapPos)) {
+                    //         // switch to next cell
+                    //         this.props.coords.copy(nextMapPos);
+                    //         const { cell: oldCell, sector: oldSector, localCoords: oldLocalCoords } = this._currentCell!;
+                    //         console.assert(oldCell.unit === owner);
+                    //         delete oldCell.unit;
+                    //         console.assert(nextCell.unit === undefined);
+                    //         nextCell.unit = owner;
+                    //         Sector.updateHighlightTexture(oldSector, oldLocalCoords, new Color(0xffffff));
+                    //         const nextSector = gameMapState.sectors.get(`${nextSectorCoords.x},${nextSectorCoords.y}`)!;
+                    //         Sector.updateHighlightTexture(nextSector, nextLocalCoords, new Color(0xff0000));
+                    //         this._currentCell!.cell = nextCell;
+                    //         this._currentCell!.sector = nextSector;
+                    //         this._currentCell!.localCoords.copy(nextLocalCoords);
+                    //     }
+                    // }
                 }
 
                 if (canStep) {
@@ -267,7 +267,9 @@ export class Car extends Component<CarProps> {
                     return cost;
                 },
                 isWalkable: (cell) => {
-                    return !(cell.building || cell.rail || cell.unit);
+                    // TODO
+                    // return !(cell.building || cell.rail || cell.unit);
+                    return cell.isEmpty;
                 },
                 diagonals: cell => {
                     if (cell.roadTile !== undefined) {
@@ -350,13 +352,13 @@ export class Car extends Component<CarProps> {
         this._breakingForTurn = false;
         alignToSegment(this._motion[0], this._owner);
         this._cellWaittimer = 0;
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
-        const cell = GameUtils.getCell(this.props.coords, sectorCoords, localCoords)!;
-        this._currentCell = {
-            cell,
-            sector: gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!,
-            localCoords: localCoords.clone()
-        };
+        // const [sectorCoords, localCoords] = pools.vec2.get(2);
+        // const cell = GameUtils.getCell(this.props.coords, sectorCoords, localCoords)!;
+        // this._currentCell = {
+        //     cell,
+        //     sector: gameMapState.sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!,
+        //     localCoords: localCoords.clone()
+        // };
         this._motionState = MotionState.MoveToNextCell;
 
         // debug

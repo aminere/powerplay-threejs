@@ -22,6 +22,7 @@ export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
+    speed: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
     obj: SkinnedMesh;

@@ -30,7 +30,7 @@ class FogOfWar {
                 textureData[stride] = 0;
                 textureData[stride + 1] = 0;
                 textureData[stride + 2] = 0;
-                textureData[stride + 3] = 255;
+                textureData[stride + 3] = 0; //255;
             }
         }
         texture.needsUpdate = true;

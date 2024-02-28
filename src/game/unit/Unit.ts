@@ -124,6 +124,10 @@ export class Unit implements IUnit {
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
+
+        const cell = GameUtils.getCell(this._coords.mapCoords)!;
+        console.assert(cell, `unit ${this._id} created at invalid position ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
+        cell.units.push(this);
     }
 }
 

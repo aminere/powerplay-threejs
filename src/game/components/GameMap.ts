@@ -1,4 +1,4 @@
-import { Box2, Camera, Color, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Box2, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component"
 import { Sector } from "../Sector";
 import { config } from "../config";
@@ -252,18 +252,20 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         
                                 case "car": {                                    
                                     if (input.touchButton === 0) {
-                                        if (!cell.unit) {
-                                            const { sectors, layers } = this.state;
-                                            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+
+                                        // TODO
+                                        // if (!cell.unit) {
+                                        //     const { sectors, layers } = this.state;
+                                        //     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
                                             
-                                            const car = utils.createObject(layers.cars, "car");
-                                            engineState.setComponent(car, new Car({
-                                                coords: this.state.selectedCellCoords.clone()
-                                            }));
+                                        //     const car = utils.createObject(layers.cars, "car");
+                                        //     engineState.setComponent(car, new Car({
+                                        //         coords: this.state.selectedCellCoords.clone()
+                                        //     }));
             
-                                            Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
-                                            cell.unit = car;
-                                        }
+                                        //     Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
+                                        //     cell.unit = car;
+                                        // }
         
                                     } else if (input.touchButton === 2) {
                                         const cars = engineState.getComponents(Car);

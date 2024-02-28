@@ -6,7 +6,7 @@ export const config = {
         zoomRange: [0.3, 8],
         zoomSpeed: .001,
         panMargin: 0.01,
-        panSpeed: 6,
+        panSpeed: 30,
         shadowRange: 2
     },
     terrain: {

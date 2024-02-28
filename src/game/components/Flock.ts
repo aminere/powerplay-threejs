@@ -213,8 +213,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             const desiredPos = unitUtils.computeDesiredPos(unit, steerAmount * unit.speed);
-            for (let j = i + 1; j < units.length; ++j) {
-                const otherUnit = units[j];
+            const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+            const otherUnits = cell.units;
+            for (const otherUnit of otherUnits) {
+                if (otherUnit === unit) {
+                    continue;
+                }
+
                 if (!otherUnit.isAlive) {
                     continue;
                 }
@@ -336,8 +341,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 GameUtils.worldToMap(nextPos, nextMapCoords);
                 if (!nextMapCoords.equals(unit.coords.mapCoords)) {
                     const nextCell = GameUtils.getCell(nextMapCoords);
-                    const emptyCell = nextCell !== null && nextCell.isEmpty;
-                    if (emptyCell) {
+                    const validCell = nextCell !== null && nextCell.isEmpty;
+                    if (validCell) {
                         unitUtils.updateRotation(unit, unit.obj.position, nextPos);
                         unit.obj.position.copy(nextPos);
 
@@ -348,6 +353,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         localCoords.y += dy;
                         
                         fogOfWar.moveCircle(unit.coords.mapCoords, 10, dx, dy);
+                        
+                        const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
+                        const unitIndex = currentCell.units.indexOf(unit);
+                        console.assert(unitIndex >= 0);                        
+                        utils.fastDelete(currentCell.units, unitIndex);
+                        console.assert(!nextCell.units.includes(unit));
+                        nextCell.units.push(unit);
 
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector
@@ -426,6 +438,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
         let unitCount = 0;
         for (let j = 0; j < mapRes; ++j) {
             for (let k = 0; k < mapRes; ++k) {
+
+                if (j < 6) {
+                    continue;
+                }
+
                 const startVertexIndex = j * verticesPerRow + k;
                 const _height1 = position.getY(startVertexIndex);
                 const _height2 = position.getY(startVertexIndex + 1);

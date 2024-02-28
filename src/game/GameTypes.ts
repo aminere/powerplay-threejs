@@ -1,6 +1,7 @@
 import { Object3D, Vector2 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
+import { IUnit } from "./unit/IUnit";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
@@ -21,10 +22,10 @@ export interface ICell {
                 [direction: string]: ICell;
             }
         };
-        obj?: THREE.Object3D;        
+        obj?: THREE.Object3D;
     };
     
-    unit?: THREE.Object3D;    
+    units: IUnit[];
     flowFieldCost: number;
     isEmpty: boolean;
     viewCount: number;
