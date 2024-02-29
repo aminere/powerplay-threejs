@@ -22,7 +22,8 @@ export interface IUnit {
     id: number;
     desiredPosValid: boolean;
     desiredPos: Vector3;
-    speed: number;
+    velocity: Vector3;
+    speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
     obj: SkinnedMesh;
@@ -35,7 +36,6 @@ export interface IUnit {
     type: UnitType;
     fsm: StateMachine<IUnit>;
     lookAt: Quaternion;
-    rotationVelocity: number;
     rotation: Quaternion;
     health: number;
     attackers: IUnit[];

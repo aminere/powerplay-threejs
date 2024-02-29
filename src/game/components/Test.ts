@@ -21,7 +21,6 @@ export class TestProps extends ComponentProps {
 
 interface ITestState {
     target: Object3D;
-    velocity: Vector3;
 }
 
 export class Test extends Component<TestProps, ITestState> {
@@ -32,8 +31,7 @@ export class Test extends Component<TestProps, ITestState> {
     override start() {
         const target = utils.createObject(engine.scene!, "target");
         this.setState({ 
-            target,
-            velocity: new Vector3()
+            target
         });
     }
 
@@ -42,14 +40,7 @@ export class Test extends Component<TestProps, ITestState> {
         const toTarget = targetPos.clone().normalize();
         const matrix = new Matrix4();
         const lookAt = new Quaternion().setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, toTarget.negate(), GameUtils.vec3.up));
-        this.state.velocity.x = mathUtils.smoothDampQuat(
-            owner.quaternion,
-            lookAt,
-            this.state.velocity.x,
-            this.props.dampDuration,
-            this.props.maxSpeed,
-            time.deltaTime
-        )
+        mathUtils.smoothDampQuat(owner.quaternion, lookAt, this.props.dampDuration, time.deltaTime);
     }
 }
 

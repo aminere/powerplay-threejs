@@ -2,12 +2,12 @@ import { engineState } from "../../engine/EngineState";
 import { Flock } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { unitUtils } from "./UnitUtils";
 import { time } from "../../engine/core/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
 import { unitMotion } from "./UnitMotion";
+import { flowField } from "../pathfinding/Flowfield";
 
 enum NpcStep {
     Idle,
@@ -44,7 +44,10 @@ export class NPCState extends State<IUnit> {
                     } else {
                         const dist = target.obj.position.distanceTo(unit.obj.position);
                         if (dist < flock.component.props.separation + .2) {
-                            unit.motionId = 0;
+                            // arrived
+                            console.assert(unit.motionId > 0);
+                            flowField.onUnitArrived(unit.motionId);
+                            unit.motionId = 0;                            
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
                             unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
@@ -62,7 +65,7 @@ export class NPCState extends State<IUnit> {
                     const dist = target.obj.position.distanceTo(unit.obj.position);
                     const inRange = dist < flock.component.props.separation + .4;
                     if (inRange) {
-                        unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
+                        unitMotion.updateRotation(unit, unit.obj.position, target.obj.position);
                         this._hitTimer -= time.deltaTime;
                         if (this._hitTimer < 0) {
                             // TODO hit feedback                     
@@ -85,19 +88,18 @@ export class NPCState extends State<IUnit> {
     }
 
     private follow(unit: IUnit, target: IUnit) {
-        const targetCell = target.coords.sector!.cells[target.coords.cellIndex];        
         switch (this._step) {
             case NpcStep.Attack: {
-                unitMotion.move([unit], target.coords.sectorCoords, target.coords.mapCoords, targetCell, false);
+                unitMotion.npcMove(unit, target.coords.sectorCoords, target.coords.mapCoords, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
-                });                
+                });
             }
                 break;
 
             default:
-                unitMotion.move([unit], target.coords.sectorCoords, target.coords.mapCoords, targetCell);
+                unitMotion.npcMove(unit, target.coords.sectorCoords, target.coords.mapCoords);
                 break;
         }
         this._step = NpcStep.Follow;

@@ -20,7 +20,7 @@ import { engineState } from "../../engine/EngineState";
 import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
-import { Trees } from "./Trees";
+// import { Trees } from "./Trees";
 import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
 
@@ -364,15 +364,15 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         fogOfWar.init(this.props.size);
 
-        const trees = utils.createObject(engine.scene!, "trees");
-        const treesComponent = new Trees({ sectorRes: this.props.size });        
-        engineState.setComponent(trees, treesComponent);
+        // const trees = utils.createObject(engine.scene!, "trees");
+        // const treesComponent = new Trees({ sectorRes: this.props.size });        
+        // engineState.setComponent(trees, treesComponent);
         
         const flocks = engineState.getComponents(Flock);
         const flock = flocks[0];
 
         Promise.all([
-            treesComponent.load(trees),
+            // treesComponent.load(trees),
             flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve()
         ]).then(() => {
             cmdShowUI.post("gamemap");

@@ -135,7 +135,7 @@ export class Terrain {
                     + erosionHeight * props.erosionGain * props.erosionWeight
                 );
 
-                const height = _height; // * 0;
+                const height = _height * 0;
                 const vertexIndex = i * verticesPerRow + j;
                 position.setY(vertexIndex, height);
 

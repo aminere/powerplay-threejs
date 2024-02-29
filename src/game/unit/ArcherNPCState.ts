@@ -1,6 +1,5 @@
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { unitUtils } from "./UnitUtils";
 import { npcUtils } from "./NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../engine/Engine";
@@ -8,6 +7,7 @@ import gsap from "gsap";
 import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
+import { unitMotion } from "./UnitMotion";
 
 enum NpcStep {
     Idle,
@@ -56,7 +56,8 @@ export class ArcherNPCState extends State<IUnit> {
                 break;
 
             case NpcStep.Follow: {
-                const target = this._target!;
+                const target = this._target!;                
+
                 if (target.isAlive) {
                     if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                         this.follow(unit, target);
@@ -79,7 +80,7 @@ export class ArcherNPCState extends State<IUnit> {
                     const dist = target.obj.position.distanceTo(unit.obj.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        unitUtils.updateRotation(unit, unit.obj.position, target.obj.position);
+                        unitMotion.updateRotation(unit, unit.obj.position, target.obj.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               

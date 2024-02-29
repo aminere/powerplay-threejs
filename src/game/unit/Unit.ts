@@ -43,12 +43,10 @@ export class Unit implements IUnit {
     public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
-    public get rotationVelocity() { return this._rotationVelocity; }
     public get fsm() { return this._fsm; }   
-    public get speed() { return this._speed; }
+    public get speedFactor() { return this._speedFactor; }
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
-    public set rotationVelocity(value: number) { this._rotationVelocity = value; }
     public set motionId(value: number) { 
         if (value === 0 && this._motionId > 0) {
             this._lastCompletedMotionId = this._motionId;
@@ -116,17 +114,16 @@ export class Unit implements IUnit {
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
     private _velocity = new Vector3();
-    private _rotationVelocity = 0;    
     private _fsm: StateMachine<IUnit>;
     private _id: number;    
-    private _speed: number;
+    private _speedFactor: number;
 
     constructor(props: IUnitProps) {
         this._obj = props.obj;
         this._type = props.type;
         this._id = props.id;
         this._fsm = new UnitFSM({ states: props.states, owner: this });
-        this._speed = props.speed ?? 1;
+        this._speedFactor = props.speed ?? 1;
         this._animation = props.animation;
 
         GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
