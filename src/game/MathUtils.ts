@@ -1,10 +1,6 @@
 
 import { Quaternion, MathUtils as TMathUtils, Vector3 } from "three";
 
-export interface ISmoothDampResult {    
-    velocity: number;
-}
-
 const _2PI = Math.PI * 2;
 
 class MathUtils {
@@ -13,42 +9,19 @@ class MathUtils {
         return a + (b - a) * factor;
     }
 
-    // Based on Game Programming Gems 4 Chapter 1.10
-    public smoothDamp(current: number, _target: number, velocity: number, _smoothTime: number, maxSpeed: number, deltaTime: number, result: ISmoothDampResult) {
-        const smoothTime = Math.max(0.0001, _smoothTime);
-        const omega = 2. / smoothTime;
-        const x = omega * deltaTime;
-        const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
-        let change = current - _target;
-        const originalTo = _target;
-        const maxChange = maxSpeed * smoothTime;
-        change = TMathUtils.clamp(change, -maxChange, maxChange);
-        const target = current - change;
-        const temp = (velocity + omega * change) * deltaTime;
-        let outputVelocity = (velocity - omega * temp) * exp;
-        let output = target + (change + temp) * exp;
-        // Prevent overshooting
-        if ((originalTo - current) > 0.0 === (output > originalTo)) {
-            output = originalTo;
-            outputVelocity = (output - originalTo) / deltaTime;
-        }
-        result.velocity = outputVelocity;
-        return output;
-    }
+    public smoothDamp(a: number, b: number, halfLife: number, dt: number) {
+        return b + (a - b) * Math.pow(2, -dt / halfLife);        
+    }    
 
-    public smoothDampAngle(current: number, target: number, velocity: number, smoothTime: number, maxSpeed: number, deltaTime: number, result: ISmoothDampResult) {
+    public smoothDampAngle(current: number, target: number, smoothTime: number, deltaTime: number) {
         const targetAngle = current + this.deltaAngle(current, target);
-        return this.smoothDamp(current, targetAngle, velocity, smoothTime, maxSpeed, deltaTime, result);
-    }
+        return this.smoothDamp(current, targetAngle, smoothTime, deltaTime);
+    }   
 
-    private _smoothDampVec3ResultX = { velocity: 0 };
-    private _smoothDampVec3ResultY = { velocity: 0 };
-    private _smoothDampVec3ResultZ = { velocity: 0 };
-    public smoothDampVec3(current: Vector3, target: Vector3, velocity: Vector3, smoothTime: number, maxSpeed: number, deltaTime: number) {       
-        current.x = this.smoothDamp(current.x, target.x, velocity.x, smoothTime, maxSpeed, deltaTime, this._smoothDampVec3ResultX);
-        current.y = this.smoothDamp(current.y, target.y, velocity.y, smoothTime, maxSpeed, deltaTime, this._smoothDampVec3ResultY);
-        current.z = this.smoothDamp(current.z, target.z, velocity.z, smoothTime, maxSpeed, deltaTime, this._smoothDampVec3ResultZ);
-        velocity.set(this._smoothDampVec3ResultX.velocity, this._smoothDampVec3ResultY.velocity, this._smoothDampVec3ResultZ.velocity);
+    public smoothDampVec3(current: Vector3, target: Vector3, smoothTime: number, deltaTime: number) {       
+        current.x = this.smoothDamp(current.x, target.x, smoothTime, deltaTime);
+        current.y = this.smoothDamp(current.y, target.y, smoothTime, deltaTime);
+        current.z = this.smoothDamp(current.z, target.z, smoothTime, deltaTime);
     }
 
     // Calculates the shortest difference between two given angles.
@@ -58,25 +31,15 @@ class MathUtils {
             delta -= _2PI;
         }
         return delta;
-    }
+    }    
 
-    private _smoothDampQuatResult = { velocity: 0 };
-    public smoothDampQuat(
-        current: Quaternion, 
-        target: Quaternion, 
-        velocity: number, 
-        smoothTime: number, 
-        maxSpeed: number, 
-        deltaTime: number        
-    ) {
+    public smoothDampQuat(current: Quaternion, target: Quaternion, smoothTime: number, deltaTime: number) {
         const delta = current.angleTo(target);
         if (delta > 0) {
-            let t = this.smoothDampAngle(delta, 0, velocity, smoothTime, maxSpeed, deltaTime, this._smoothDampQuatResult);
+            let t = this.smoothDampAngle(delta, 0, smoothTime, deltaTime);
             t = 1.0 - (t / delta);
             current.slerp(target, t);
-            return this._smoothDampQuatResult.velocity;
         }
-        return velocity;
     }
 
     // Loops the value t, so that it is never larger than length and never smaller than 0.
