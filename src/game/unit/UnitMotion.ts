@@ -112,6 +112,8 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
     cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
     mathUtils.smoothDampVec3(unit.velocity, cellDirection3, .1, time.deltaTime);
+    unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
+    unit.desiredPosValid = true;
 }
 
 class UnitMotion {
@@ -191,7 +193,12 @@ class UnitMotion {
             if (!desiredPosValid) { 
                 
                 if (unit.arriving) {
-                    mathUtils.smoothDampVec3(unit.velocity, zero, .2, time.deltaTime);
+
+                    if (!unit.fsm.currentState) {
+                        mathUtils.smoothDampVec3(unit.velocity, zero, .2, time.deltaTime);
+                        unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
+                        unit.desiredPosValid = true;                    
+                    }                    
 
                 } else {
                     const flowfields = flowField.getMotion(motionId).flowfields;            
@@ -199,7 +206,7 @@ class UnitMotion {
                     if (_flowField) {
                         const currentCellIndex = coords.cellIndex;
                         const flowfieldInfo = _flowField[currentCellIndex];
-                        steerFromFlowfield(unit, flowfieldInfo, steerAmount);                        
+                        steerFromFlowfield(unit, flowfieldInfo, steerAmount); 
                         
                         if (!unit.lastKnownFlowfield) {
                             unit.lastKnownFlowfield = {
@@ -234,13 +241,13 @@ class UnitMotion {
                         } else {
                             console.assert(false);                            
                             unit.velocity.set(0, 0, 0);
+                            desiredPos.copy(obj.position);
+                            unit.desiredPosValid = true;
                         }                    
                     }
                 }                
-                
-                desiredPos.addVectors(obj.position, unit.velocity);
-                unit.desiredPosValid = true;
             }
+
         } else {
             if (!desiredPosValid) {
                 unit.velocity.set(0, 0, 0);

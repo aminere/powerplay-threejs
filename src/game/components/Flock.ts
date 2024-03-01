@@ -389,11 +389,15 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 } else {
                     unitMotion.updateRotation(unit, unit.obj.position, nextPos);
                     unit.obj.position.copy(nextPos);
-                    if (unit.arriving) {
-                        if (unit.velocity.lengthSq() < 0.01) {
-                            onUnitArrived(unit);
+
+                    if (!unit.fsm.currentState) {
+                        if (unit.arriving) {
+                            if (unit.velocity.lengthSq() < 0.01) {
+                                onUnitArrived(unit);
+                            }
                         }
                     }
+                                        
                 }
             }
         }
