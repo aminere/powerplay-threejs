@@ -13,15 +13,15 @@ class MathUtils {
         return b + (a - b) * Math.pow(2, -dt / halfLife);        
     }    
 
-    public smoothDampAngle(current: number, target: number, smoothTime: number, deltaTime: number) {
+    public smoothDampAngle(current: number, target: number, halfLife: number, deltaTime: number) {
         const targetAngle = current + this.deltaAngle(current, target);
-        return this.smoothDamp(current, targetAngle, smoothTime, deltaTime);
+        return this.smoothDamp(current, targetAngle, halfLife, deltaTime);
     }   
 
-    public smoothDampVec3(current: Vector3, target: Vector3, smoothTime: number, deltaTime: number) {       
-        current.x = this.smoothDamp(current.x, target.x, smoothTime, deltaTime);
-        current.y = this.smoothDamp(current.y, target.y, smoothTime, deltaTime);
-        current.z = this.smoothDamp(current.z, target.z, smoothTime, deltaTime);
+    public smoothDampVec3(current: Vector3, target: Vector3, halfLife: number, deltaTime: number) {       
+        current.x = this.smoothDamp(current.x, target.x, halfLife, deltaTime);
+        current.y = this.smoothDamp(current.y, target.y, halfLife, deltaTime);
+        current.z = this.smoothDamp(current.z, target.z, halfLife, deltaTime);
     }
 
     // Calculates the shortest difference between two given angles.
@@ -33,10 +33,10 @@ class MathUtils {
         return delta;
     }    
 
-    public smoothDampQuat(current: Quaternion, target: Quaternion, smoothTime: number, deltaTime: number) {
+    public smoothDampQuat(current: Quaternion, target: Quaternion, halfLife: number, deltaTime: number) {
         const delta = current.angleTo(target);
         if (delta > 0) {
-            let t = this.smoothDampAngle(delta, 0, smoothTime, deltaTime);
+            let t = this.smoothDampAngle(delta, 0, halfLife, deltaTime);
             t = 1.0 - (t / delta);
             current.slerp(target, t);
         }

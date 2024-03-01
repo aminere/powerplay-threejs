@@ -64,7 +64,9 @@ export class ArcherNPCState extends State<IUnit> {
                     } else {
                         const dist = target.obj.position.distanceTo(unit.obj.position);
                         if (dist < vision) {
-                            unit.motionId = 0;
+                            if (unit.motionId > 0) {
+                                unitMotion.onUnitArrived(unit);    
+                            }
                             this.attack(unit);
                         }
                     }
@@ -175,6 +177,9 @@ export class ArcherNPCState extends State<IUnit> {
     private goToIdle(unit: IUnit) {
         const target = this._target!;
         const transitionDuration = .3;
+        if (unit.motionId > 0) {
+            unitMotion.onUnitArrived(unit);    
+        }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration,
             scheduleCommonAnim: true
@@ -185,7 +190,6 @@ export class ArcherNPCState extends State<IUnit> {
             utils.fastDelete(target.attackers, index);
         }
         this._target = null;
-        unit.motionId = 0;
         this._step = NpcStep.Idle;
         this._idleTimer = transitionDuration; 
     }

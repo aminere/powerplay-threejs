@@ -18,10 +18,11 @@ import { time } from "../../engine/core/Time";
 
 const { mapRes } = config.game;
 const oneSector = [new Vector2()];
-const cellDirection = new Vector2()
+const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
+const zero = new Vector3();
 
 function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
     const resource = desiredTargetCell.resource?.name;
@@ -95,18 +96,22 @@ function getSrcMapCoords(srcMapCoords: Vector2, sectors: Vector2[]) {
     return null;
 }
 
-function getFlowDirection(motionId: number, mapCoords: Vector2, _flowfield: TFlowField, directionOut: Vector2) {
-    const { directionIndex } = _flowfield;
+function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: number) {
+    const { directionIndex } = _flowfield;    
     if (directionIndex < 0) {
-        const computed = flowField.computeDirection(motionId, mapCoords, directionOut);
+        const mapCoords = unit.coords.mapCoords;
+        const computed = flowField.computeDirection(unit.motionId, mapCoords, cellDirection);
         console.assert(computed, "flowfield direction not valid");                        
-        const index = flowField.computeDirectionIndex(directionOut);
-        flowField.getDirection(index, directionOut);
+        const index = flowField.computeDirectionIndex(cellDirection);
+        flowField.getDirection(index, cellDirection);
         _flowfield.directionIndex = index;
 
     } else {
-        flowField.getDirection(directionIndex, directionOut);                        
+        flowField.getDirection(directionIndex, cellDirection);                        
     }
+
+    cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
+    mathUtils.smoothDampVec3(unit.velocity, cellDirection3, .1, time.deltaTime);
 }
 
 class UnitMotion {
@@ -183,56 +188,62 @@ class UnitMotion {
     public steer(unit: IUnit, steerAmount: number) {
         const { motionId, desiredPosValid, desiredPos, coords, obj } = unit;
         if (motionId > 0) {
-            if (!desiredPosValid) {   
-                const flowfields = flowField.getMotion(motionId).flowfields;            
-                const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                if (_flowField) {
-                    const currentCellIndex = coords.cellIndex;
-                    const flowfieldInfo = _flowField[currentCellIndex];
-                    getFlowDirection(motionId, coords.mapCoords, flowfieldInfo, cellDirection);
-                    cellDirection3.set(cellDirection.x, 0, cellDirection.y);
-                    
-                    if (!unit.lastKnownFlowfield) {
-                        unit.lastKnownFlowfield = {
-                            cellIndex: currentCellIndex,
-                            sectorCoords: coords.sectorCoords.clone()
-                        };
-                    } else {
-                        unit.lastKnownFlowfield.cellIndex = currentCellIndex;
-                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-                    }
-                } else {
-
-                    console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                    if (unit.lastKnownFlowfield) {
-                        const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
-                        const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
-                        console.assert(_flowField);
-                        console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
-                        const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
-                        const neighborDist = _flowField[neighborCellIndex].integration;
-                        const cell = coords.sector!.cells[coords.cellIndex];
-                        const cellDist = neighborDist + cell.flowFieldCost;
-                        const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
-                        flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
-                        const flowfieldInfo = newFlowfield[coords.cellIndex];
-                        getFlowDirection(motionId, coords.mapCoords, flowfieldInfo, cellDirection);
-                        cellDirection3.set(cellDirection.x, 0, cellDirection.y);
-                        unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
-                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-                        // coords.sector!.flowfieldViewer.update(motionId, coords.sector!, coords.sectorCoords);
-                        // coords.sector!.flowfieldViewer.visible = true;
-                    } else {
-                        console.assert(false);
-                        cellDirection3.set(0, 0, 0);
-                    }                    
-                }
+            if (!desiredPosValid) { 
                 
-                desiredPos.addVectors(obj.position, cellDirection3.multiplyScalar(steerAmount));
+                if (unit.arriving) {
+                    mathUtils.smoothDampVec3(unit.velocity, zero, .2, time.deltaTime);
+
+                } else {
+                    const flowfields = flowField.getMotion(motionId).flowfields;            
+                    const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+                    if (_flowField) {
+                        const currentCellIndex = coords.cellIndex;
+                        const flowfieldInfo = _flowField[currentCellIndex];
+                        steerFromFlowfield(unit, flowfieldInfo, steerAmount);                        
+                        
+                        if (!unit.lastKnownFlowfield) {
+                            unit.lastKnownFlowfield = {
+                                cellIndex: currentCellIndex,
+                                sectorCoords: coords.sectorCoords.clone()
+                            };
+                        } else {
+                            unit.lastKnownFlowfield.cellIndex = currentCellIndex;
+                            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+                        }
+                    } else {
+    
+                        console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+                        if (unit.lastKnownFlowfield) {
+                            const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
+                            const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
+                            console.assert(_flowField);
+                            console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
+                            const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
+                            const neighborDist = _flowField[neighborCellIndex].integration;
+                            const cell = coords.sector!.cells[coords.cellIndex];
+                            const cellDist = neighborDist + cell.flowFieldCost;
+                            const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
+                            flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
+                            const flowfieldInfo = newFlowfield[coords.cellIndex];
+                            steerFromFlowfield(unit,flowfieldInfo, steerAmount);
+
+                            unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
+                            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+                            // coords.sector!.flowfieldViewer.update(motionId, coords.sector!, coords.sectorCoords);
+                            // coords.sector!.flowfieldViewer.visible = true;
+                        } else {
+                            console.assert(false);                            
+                            unit.velocity.set(0, 0, 0);
+                        }                    
+                    }
+                }                
+                
+                desiredPos.addVectors(obj.position, unit.velocity);
                 unit.desiredPosValid = true;
             }
         } else {
             if (!desiredPosValid) {
+                unit.velocity.set(0, 0, 0);
                 desiredPos.copy(obj.position);
                 unit.desiredPosValid = true;
             }
@@ -244,13 +255,20 @@ class UnitMotion {
         deltaPos.subVectors(toPos, fromPos);
         const deltaPosLen = deltaPos.length();
         if (deltaPosLen > 0.01) {
-            cellDirection3.copy(deltaPos).divideScalar(deltaPosLen);
-            unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, cellDirection3.negate(), GameUtils.vec3.up));
+            deltaPos.divideScalar(deltaPosLen);
+            unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
             const rotationDamp = 0.1;
             mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, rotationDamp, time.deltaTime);
             unit.obj.quaternion.copy(unit.rotation);
         }
     }    
+
+    public onUnitArrived(unit: IUnit) {
+        flowField.onUnitArrived(unit.motionId);
+        unit.motionId = 0;
+        unit.arriving = false;
+        unit.velocity.set(0, 0, 0);
+    }
 }
 
 export const unitMotion = new UnitMotion();

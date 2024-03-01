@@ -23,6 +23,7 @@ export interface IUnit {
     desiredPosValid: boolean;
     desiredPos: Vector3;
     velocity: Vector3;
+    arriving: boolean;
     speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;

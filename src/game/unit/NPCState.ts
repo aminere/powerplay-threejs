@@ -46,8 +46,7 @@ export class NPCState extends State<IUnit> {
                         if (dist < flock.component.props.separation + .2) {
                             // arrived
                             console.assert(unit.motionId > 0);
-                            flowField.onUnitArrived(unit.motionId);
-                            unit.motionId = 0;                            
+                            unitMotion.onUnitArrived(unit);                            
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
                             unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
@@ -108,6 +107,9 @@ export class NPCState extends State<IUnit> {
 
     private goToIdle(unit: IUnit) {
         const target = this._target!;
+        if (unit.motionId > 0) {
+            unitMotion.onUnitArrived(unit);
+        }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration: 1,
             scheduleCommonAnim: true
@@ -117,7 +119,6 @@ export class NPCState extends State<IUnit> {
             utils.fastDelete(target.attackers, index);
         }
         this._target = null;
-        unit.motionId = 0;
         this._step = NpcStep.Idle;
     }
 }

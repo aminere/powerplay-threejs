@@ -5,6 +5,7 @@ import { pools } from "../../engine/core/Pools";
 import { time } from "../../engine/core/Time";
 import { unitAnimation } from "./UnitAnimation";
 import { IUnitAddr, copyUnitAddr } from "./UnitAddr";
+import { unitMotion } from "./UnitMotion";
 
 enum MiningStep {
     GoToResource,
@@ -38,7 +39,9 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToResource: {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unit.motionId = 0;
+                    if (unit.motionId > 0) {
+                        unitMotion.onUnitArrived(unit);    
+                    }
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
                     this._miningTimer = 1;                    
@@ -50,7 +53,9 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToBase: {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
-                    unit.motionId = 0;
+                    if (unit.motionId > 0) {
+                        unitMotion.onUnitArrived(unit);    
+                    }
                     this._step = MiningStep.GoToResource;                    
                     // TODO
                     // unitUtils.moveTo(unit, this._targetResource.mapCoords);

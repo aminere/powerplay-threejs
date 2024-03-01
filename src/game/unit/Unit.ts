@@ -22,6 +22,8 @@ export interface IUnitProps {
 export class Unit implements IUnit {
     public get desiredPosValid() { return this._desiredPosValid; }
     public get desiredPos() { return this._desiredPos; }
+    public get velocity() { return this._velocity; }    
+    public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
     public get obj() { return this._obj; }    
@@ -40,13 +42,13 @@ export class Unit implements IUnit {
     public get skeleton() { return this._skeleton; }
     public get unitsInRange() { return this._unitsInRange; }
 
-    public get velocity() { return this._velocity; }    
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
     public get fsm() { return this._fsm; }   
     public get speedFactor() { return this._speedFactor; }
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
+    public set arriving(value: boolean) { this._arriving = value; }
     public set motionId(value: number) { 
         if (value === 0 && this._motionId > 0) {
             this._lastCompletedMotionId = this._motionId;
@@ -84,6 +86,8 @@ export class Unit implements IUnit {
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();
+    private _velocity = new Vector3();
+    private _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell: IUnitAddr = {
         mapCoords: new Vector2(),
@@ -113,7 +117,6 @@ export class Unit implements IUnit {
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
-    private _velocity = new Vector3();
     private _fsm: StateMachine<IUnit>;
     private _id: number;    
     private _speedFactor: number;

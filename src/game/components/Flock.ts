@@ -28,7 +28,6 @@ import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
 import { fogOfWar } from "../FogOfWar";
-import { flowField } from "../pathfinding/Flowfield";
 
 export class FlockProps extends ComponentProps {
 
@@ -60,8 +59,7 @@ const localRay = new Ray();
 const inverseMatrix = new Matrix4();
 
 function onUnitArrived(unit: IUnit) {
-    flowField.onUnitArrived(unit.motionId);
-    unit.motionId = 0;
+    unitMotion.onUnitArrived(unit);
     unitAnimation.setAnimation(unit, "idle");
 }
 
@@ -381,7 +379,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             if (!unit.fsm.currentState) {
                                 const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (arrived) {
-                                    onUnitArrived(unit);
+                                    console.assert(unit.arriving === false);
+                                    unit.arriving = true;
                                 }
                             }
                         }
@@ -390,6 +389,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 } else {
                     unitMotion.updateRotation(unit, unit.obj.position, nextPos);
                     unit.obj.position.copy(nextPos);
+                    if (unit.arriving) {
+                        if (unit.velocity.lengthSq() < 0.01) {
+                            onUnitArrived(unit);
+                        }
+                    }
                 }
             }
         }
