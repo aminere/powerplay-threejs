@@ -10,11 +10,11 @@ export const config = {
         shadowRange: 2
     },
     terrain: {
-        atlasTileCount: 37
+        atlasTileCount: 35
     },
     game: {
         cellSize: 2,
-        mapRes: 30,
+        mapRes: 32,
         elevationStep: .2,
     },
     train: {
@@ -26,3 +26,4 @@ export const config = {
         cellWaitTime: .3
     }
 };
+

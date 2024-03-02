@@ -184,6 +184,11 @@ export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProp
 }
 
 export function onEndDrag() { // map coords
+
+    if (gameMapState.previousRoad.length > 0) {
+        console.assert(gameMapState.action === "road");
+        Roads.onEndDrag(gameMapState.previousRoad);
+    }
     gameMapState.previousRoad.length = 0;
 
     if (gameMapState.previousRail.length > 0) {

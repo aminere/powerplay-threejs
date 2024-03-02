@@ -195,10 +195,10 @@ class UnitMotion {
                 if (unit.arriving) {
 
                     if (!unit.fsm.currentState) {
-                        mathUtils.smoothDampVec3(unit.velocity, zero, .2, time.deltaTime);
+                        mathUtils.smoothDampVec3(unit.velocity, zero, .15, time.deltaTime);
                         unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
-                        unit.desiredPosValid = true;                    
-                    }                    
+                        unit.desiredPosValid = true;
+                    }
 
                 } else {
                     const flowfields = flowField.getMotion(motionId).flowfields;            

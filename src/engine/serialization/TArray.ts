@@ -10,7 +10,7 @@ export class TArray<T> {
     private get createItem() { return (this as any)["_createItem"] as () => T; }    
     private get copyInternal() { return (this as any)["_copy"] as (data: T[]) => void; }
 
-    constructor(ctor: new() => T) {
+    constructor(ctor: new() => T, data?: T[]) {
         Object.defineProperty(this, '_createItem', { 
             enumerable: false, 
             value: (value?: T) => {
@@ -43,6 +43,12 @@ export class TArray<T> {
                 }
             }
         });
+
+        if (data) {
+            for (const item of data) {
+                this.grow(item);
+            }
+        }
     }
 
     public grow(value?: T) {

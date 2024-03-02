@@ -30,6 +30,7 @@ export interface IUnit {
     obj: SkinnedMesh;
     coords: IUnitAddr;
     motionId: number;
+    lastCompletedMotionId: number;
     isColliding: boolean;
     isAlive: boolean;
     isIdle: boolean;

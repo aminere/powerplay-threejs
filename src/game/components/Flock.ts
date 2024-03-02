@@ -57,10 +57,43 @@ const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
+const unitNeighbors = new Array<IUnit>();
 
 function onUnitArrived(unit: IUnit) {
     unitMotion.onUnitArrived(unit);
     unitAnimation.setAnimation(unit, "idle");
+}
+
+const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+const neighbordMapCoords = new Vector2();
+
+function getUnitNeighbors(unit: IUnit) {
+    const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+    unitNeighbors.length = 0;
+    for (const neighbor of cell.units) {
+        if (!neighbor.isAlive) {
+            continue;
+        }
+        if (neighbor !== unit) {
+            unitNeighbors.push(neighbor);
+        }
+    }
+    
+    for (const [dx, dy] of cellNeighbors) {
+        neighbordMapCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
+        const neighborCell = GameUtils.getCell(neighbordMapCoords);
+        if (!neighborCell) {
+            continue;
+        }
+        for (const neighbor of neighborCell.units) {
+            if (!neighbor.isAlive) {
+                continue;
+            }
+            unitNeighbors.push(neighbor);
+        }
+    }
+
+    return unitNeighbors;
 }
 
 export class Flock extends Component<FlockProps, IFlockState> {
@@ -218,27 +251,19 @@ export class Flock extends Component<FlockProps, IFlockState> {
             }
 
             const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
-            // const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
-            const otherUnits = units; //cell.units;
-            for (const otherUnit of otherUnits) {
-                if (otherUnit === unit) {
-                    continue;
-                }
+            const neighbors = getUnitNeighbors(unit);
+            for (const neighbor of neighbors) {                
 
-                if (!otherUnit.isAlive) {
-                    continue;
-                }
-
-                const otherDesiredPos = unitMotion.steer(otherUnit, steerAmount * otherUnit.speedFactor);
-                if (!(unit.collidable && otherUnit.collidable)) {
+                const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
+                if (!(unit.collidable && neighbor.collidable)) {
                     continue;
                 }
 
                 const dist = otherDesiredPos.distanceTo(desiredPos);
                 if (dist < separationDist) {
                     unit.isColliding = true;
-                    otherUnit.isColliding = true;
-                    if (otherUnit.motionId > 0) {
+                    neighbor.isColliding = true;
+                    if (neighbor.motionId > 0) {
                         if (unit.motionId > 0) {
                             // move away from each other
                             const moveAmount = Math.min((separationDist - dist) / 2, avoidanceSteerAmount);
@@ -258,7 +283,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             otherDesiredPos.add(toTarget); 
                             
                             // if other unit was part of my motion, stop
-                            if (otherUnit.lastCompletedMotionId === unit.motionId) {
+                            if (neighbor.lastCompletedMotionId === unit.motionId) {
                                 onUnitArrived(unit);
                             }
 
@@ -377,10 +402,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
                         if (unit.motionId > 0) {
                             if (!unit.fsm.currentState) {
-                                const arrived = unit.targetCell.mapCoords.equals(nextMapCoords);
-                                if (arrived) {
+                                const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                                if (reachedTarget) {
                                     console.assert(unit.arriving === false);
                                     unit.arriving = true;
+                                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
                                 }
                             }
                         }
@@ -392,12 +418,12 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
                     if (!unit.fsm.currentState) {
                         if (unit.arriving) {
-                            if (unit.velocity.lengthSq() < 0.01) {
+                            if (unit.velocity.length() < 0.01) {
                                 onUnitArrived(unit);
                             }
                         }
                     }
-                                        
+
                 }
             }
         }

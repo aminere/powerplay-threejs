@@ -30,6 +30,7 @@ export interface IGameMapState {
     touchDragged: boolean;
     cursorOverUI: boolean;
     selectionInProgress: boolean;
+    buildingSize: number;
     layers: {
         rails: Object3D;
         trains: Object3D;
@@ -52,7 +53,17 @@ export class GameMapState {
     public get cursorOverUI() { return this._instance!.cursorOverUI; }
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
-    public set action(value: Action | null) { this._instance!.action = value; }    
+    public set action(action: Action | null) { 
+        this._instance!.action = action; 
+        if (action) {
+            if (action === "building") {
+                this._instance!.tileSelector.size = this._instance!.buildingSize;
+            } else {
+                this._instance!.tileSelector.size = 1;
+            }
+        }
+    }    
+
     public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
     public set selectionInProgress(value: boolean) { this._instance!.selectionInProgress = value; }
     public set cursorOverUI(value: boolean) { 

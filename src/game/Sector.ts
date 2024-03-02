@@ -68,11 +68,11 @@ export class Sector {
         const tileCount = atlasTileCount;
         const lastTileIndex = tileCount - 1;
         const tileIndexNormalized = tileIndex / lastTileIndex;
-        const previousTile = sector.textureData.terrain.at(cellIndex);
-        sector.textureData.terrain.set([tileIndexNormalized * 255], cellIndex);        
+        const rawTileIndex = Math.round(tileIndexNormalized * 255);
+        sector.textureData.terrain.set([rawTileIndex], cellIndex);        
         const uniforms = ((sector.layers.terrain as THREE.Mesh).material as THREE.Material).userData.shader.uniforms as TerrainUniforms;
         uniforms.cellTexture.value.needsUpdate = true;
-        return previousTile;
+        return rawTileIndex;
     }
 
     public static updateCellTextureRaw(sector: ISector, localCoords: Vector2, rawTile: number) {

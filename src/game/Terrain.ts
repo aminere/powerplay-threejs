@@ -3,6 +3,7 @@ import { config } from './config';
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Sphere, Texture, Vector2, Vector3 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/resources/Textures';
+import { TileTypes } from './GameDefinitions';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -170,10 +171,10 @@ export class Terrain {
         for (let i = 0; i < cellCount; ++i) {
              // const stride = i * 4;
             const stride = i;
-            const indexNormalized = (32 + 0) / lastTileIndex;
-            // const indexNormalized = (32 + TileTypes.indexOf("sand")) / lastTileIndex;            
-            cellTextureData[stride] = indexNormalized * 255;          
-        }
+            let indexNormalized = (32 + TileTypes.indexOf("rock")) / lastTileIndex;            
+            indexNormalized = 0 / lastTileIndex;
+            cellTextureData[stride] = indexNormalized * 255;
+        }             
 
         const cellTexture = new DataTexture(cellTextureData, mapRes, mapRes, RedFormat);
         cellTexture.magFilter = NearestFilter;

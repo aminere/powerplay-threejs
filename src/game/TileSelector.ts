@@ -6,59 +6,36 @@ import { pools } from "../engine/core/Pools";
 import { gameMapState } from "./components/GameMapState";
 import { textures } from "../engine/resources/Textures";
 
+const { cellSize, mapRes } = config.game;
+
 export class TileSector extends Object3D {
 
     public get size() { return this._size; }
+    public set size(value: number) {
+        this._size = value;
+        this.initGeometry();
+    }
 
     private _size = 2;
+    private _material: MeshBasicMaterial;
+
     constructor() {
         super();
-
-        const { cellSize } = config.game;
-        const yOffset = 0.01;
 
         const texture = textures.load('images/tile-selected.png');
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
-        const material = new MeshBasicMaterial({ 
+        this._material = new MeshBasicMaterial({ 
             color: 0xffff00,
             map: texture,
             transparent: true,
             depthTest: false,
         });
 
-        const createMesh = (x: number, y: number) => {
-            const geometry = new BufferGeometry()
-                .setAttribute('position', new BufferAttribute(new Float32Array([
-                    0, 0, 0,
-                    cellSize, 0, 0,
-                    cellSize, 0, cellSize,
-                    0, 0, cellSize
-                ]), 3))
-                .setAttribute("uv", new BufferAttribute(new Float32Array([
-                    0, 0,
-                    1, 0,
-                    1, 1,
-                    0, 1
-                ]), 2))
-                .setIndex([0, 2, 1, 0, 3, 2]);
-
-            const mesh = new Mesh(geometry, material).translateY(yOffset);
-            const { elevationStep } = config.game;
-            mesh.scale.set(1, elevationStep, 1);
-            mesh.position.set(x * cellSize, 0.001, y * cellSize);
-            return mesh;
-        };
-        
-        for (let i = 0; i < this._size; ++i) {
-            for (let j = 0; j < this._size; ++j) {
-                this.add(createMesh(j, i));                
-            }
-        }
+        this.initGeometry();
     }
 
     public setPosition(mapCoords: Vector2) {
-        const { cellSize, mapRes } = config.game;
         const offset = -mapRes / 2;
         this.position.set((mapCoords.x + offset) * cellSize, 0, (mapCoords.y + offset) * cellSize);
         this.fit(mapCoords);
@@ -98,6 +75,43 @@ export class TileSector extends Object3D {
             for (let j = 0; j < this._size; ++j) {
                 fitTile(mapCoords.x + j, mapCoords.y + i, tileIndex);
                 ++tileIndex;              
+            }
+        }
+    }
+
+    private initGeometry() {
+
+        const createMesh = (x: number, y: number) => {
+            const geometry = new BufferGeometry()
+                .setAttribute('position', new BufferAttribute(new Float32Array([
+                    0, 0, 0,
+                    cellSize, 0, 0,
+                    cellSize, 0, cellSize,
+                    0, 0, cellSize
+                ]), 3))
+                .setAttribute("uv", new BufferAttribute(new Float32Array([
+                    0, 0,
+                    1, 0,
+                    1, 1,
+                    0, 1
+                ]), 2))
+                .setIndex([0, 2, 1, 0, 3, 2]);
+
+            const yOffset = 0.01;
+            const mesh = new Mesh(geometry, this._material).translateY(yOffset);
+            const { elevationStep } = config.game;
+            mesh.scale.set(1, elevationStep, 1);
+            mesh.position.set(x * cellSize, 0.001, y * cellSize);
+            return mesh;
+        };
+        
+        if (this.children.length > 0) {
+            this.clear();
+        }       
+
+        for (let i = 0; i < this._size; ++i) {
+            for (let j = 0; j < this._size; ++j) {
+                this.add(createMesh(j, i));                
             }
         }
     }

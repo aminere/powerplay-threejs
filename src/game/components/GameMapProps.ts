@@ -17,6 +17,8 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(MineralTypes)
     mineralType: MineralType = "aluminium";
 
+    buildingSize = 1;
+
     @Attributes.command("save")
     saveCommand = true;
 
@@ -30,7 +32,26 @@ export class GameMapProps extends ComponentProps {
     erosionWeight = 0.4;
     continentGain = 1;
     erosionGain = 1;
-    continent = new TArray(Vector2);
-    erosion = new TArray(Vector2);
+    continent = new TArray(Vector2, [
+        new Vector2(-1, 0),
+        new Vector2(0, 0),
+        new Vector2(0, 0),
+        new Vector2(0, 0),
+        new Vector2(.4, 1),
+        new Vector2(.5, 5),
+        new Vector2(.6, 18),
+        new Vector2(1, 20)
+
+    ]);
+    erosion = new TArray(Vector2, [
+        new Vector2(-1, 0),
+        new Vector2(-.5, 0),
+        new Vector2(-.5, 0),
+        new Vector2(0, 0),
+        new Vector2(.4, 1),
+        new Vector2(.45, 1),
+        new Vector2(.5, 10),
+        new Vector2(1, 30)
+    ]);
 }
 

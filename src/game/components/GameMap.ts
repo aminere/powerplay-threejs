@@ -74,6 +74,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             touchDragged: false,
             cursorOverUI: false,
             selectionInProgress: false,
+            buildingSize: this.props.buildingSize,
             layers: {
                 rails,
                 trains,

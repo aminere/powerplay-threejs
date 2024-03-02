@@ -8,6 +8,7 @@ export type Axis = "x" | "z";
 
 export interface ICell {
     roadTile?: number;
+    previewRoadTile?: number;
 
     building?: THREE.Object3D;
     resource?: THREE.Object3D;
