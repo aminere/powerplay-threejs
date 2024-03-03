@@ -8,11 +8,11 @@ import { gameMapState } from "./components/GameMapState";
 export class Elevation {
 
     private static _elevatedCells = new Map<ISector, Set<number>>();
-    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, size: number) {
+    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, size: Vector2) {
         Elevation._elevatedCells.clear();
         const cellCoords = pools.vec2.getOne();        
-        for (let i = 0; i < size; ++i) {
-            for (let j = 0; j < size; ++j) {
+        for (let i = 0; i < size.y; ++i) {
+            for (let j = 0; j < size.x; ++j) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
@@ -21,63 +21,66 @@ export class Elevation {
             }
         }        
 
-        const { mapRes, elevationStep, cellSize } = config.game;
-        const floorStep = cellSize;
-        const verticesPerRow = mapRes + 1;
-        for (const [sector, cells] of Elevation._elevatedCells) {
-            for (const cellIndex of cells) {
-                const building = sector.cells[cellIndex].building;
-                if (!building) {
-                    continue;
-                }
-                const buildingGeometry = (building as THREE.Mesh).geometry as THREE.BufferGeometry;
-                const vertices = buildingGeometry.getAttribute("position") as THREE.BufferAttribute;
-                const cellY = Math.floor(cellIndex / mapRes);
-                const cellX = cellIndex - cellY * mapRes;
-                const startVertexIndex = cellY * verticesPerRow + cellX;
+        // fit building geometry to elevation
+        // const { mapRes, elevationStep, cellSize } = config.game;
+        // const floorStep = cellSize;
+        // const verticesPerRow = mapRes + 1;
+        // const buildings = gameMapState.instance!.buildings;
+        // for (const [sector, cells] of Elevation._elevatedCells) {
+        //     for (const cellIndex of cells) {
+        //         const buildingId = sector.cells[cellIndex].buildingId;
+        //         if (!buildingId) {
+        //             continue;
+        //         }
+        //         const building = buildings.get(buildingId)!;
+        //         const buildingGeometry = (building.obj as THREE.Mesh).geometry as THREE.BufferGeometry;
+        //         const vertices = buildingGeometry.getAttribute("position") as THREE.BufferAttribute;
+        //         const cellY = Math.floor(cellIndex / mapRes);
+        //         const cellX = cellIndex - cellY * mapRes;
+        //         const startVertexIndex = cellY * verticesPerRow + cellX;
 
-                const sectorGeometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-                const sectorVertices = sectorGeometry.getAttribute("position") as THREE.BufferAttribute;
-                const height0 = sectorVertices.getY(startVertexIndex) * elevationStep;
-                const height1 = sectorVertices.getY(startVertexIndex + 1) * elevationStep;
-                const height2 = sectorVertices.getY(startVertexIndex + verticesPerRow) * elevationStep;
-                const height3 = sectorVertices.getY(startVertexIndex + verticesPerRow + 1) * elevationStep;
-                const roof = Math.max(height0, height1, height2, height3);
+        //         const sectorGeometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
+        //         const sectorVertices = sectorGeometry.getAttribute("position") as THREE.BufferAttribute;
+        //         const height0 = sectorVertices.getY(startVertexIndex) * elevationStep;
+        //         const height1 = sectorVertices.getY(startVertexIndex + 1) * elevationStep;
+        //         const height2 = sectorVertices.getY(startVertexIndex + verticesPerRow) * elevationStep;
+        //         const height3 = sectorVertices.getY(startVertexIndex + verticesPerRow + 1) * elevationStep;
+        //         const roof = Math.max(height0, height1, height2, height3);
 
-                vertices.setY(0, roof + floorStep);
-                vertices.setY(1, roof + floorStep);
-                vertices.setY(2, height3);
-                vertices.setY(3, height2);
+        //         vertices.setY(0, roof + floorStep);
+        //         vertices.setY(1, roof + floorStep);
+        //         vertices.setY(2, height3);
+        //         vertices.setY(3, height2);
 
-                vertices.setY(4, roof + floorStep);
-                vertices.setY(5, roof + floorStep);
-                vertices.setY(6, height1);
-                vertices.setY(7, height3);
+        //         vertices.setY(4, roof + floorStep);
+        //         vertices.setY(5, roof + floorStep);
+        //         vertices.setY(6, height1);
+        //         vertices.setY(7, height3);
 
-                vertices.setY(8, roof + floorStep);
-                vertices.setY(9, roof + floorStep);
-                vertices.setY(10, height0);
-                vertices.setY(11, height1);
+        //         vertices.setY(8, roof + floorStep);
+        //         vertices.setY(9, roof + floorStep);
+        //         vertices.setY(10, height0);
+        //         vertices.setY(11, height1);
 
-                vertices.setY(12, roof + floorStep);
-                vertices.setY(13, roof + floorStep);
-                vertices.setY(14, height2);
-                vertices.setY(15, height0);
+        //         vertices.setY(12, roof + floorStep);
+        //         vertices.setY(13, roof + floorStep);
+        //         vertices.setY(14, height2);
+        //         vertices.setY(15, height0);
 
-                vertices.setY(16, roof + floorStep);
-                vertices.setY(17, roof + floorStep);
-                vertices.setY(18, roof + floorStep);
-                vertices.setY(19, roof + floorStep);
+        //         vertices.setY(16, roof + floorStep);
+        //         vertices.setY(17, roof + floorStep);
+        //         vertices.setY(18, roof + floorStep);
+        //         vertices.setY(19, roof + floorStep);
 
-                vertices.setY(20, height2 + .01);
-                vertices.setY(21, height3 + .01);
-                vertices.setY(22, height1 + .01);
-                vertices.setY(23, height0 + .01);
+        //         vertices.setY(20, height2 + .01);
+        //         vertices.setY(21, height3 + .01);
+        //         vertices.setY(22, height1 + .01);
+        //         vertices.setY(23, height0 + .01);
 
-                vertices.needsUpdate = true;
-                buildingGeometry.computeVertexNormals();
-            }
-        }
+        //         vertices.needsUpdate = true;
+        //         buildingGeometry.computeVertexNormals();
+        //     }
+        // }
     }
 
     private static elevateCell(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number) {

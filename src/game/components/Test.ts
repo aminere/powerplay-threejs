@@ -1,5 +1,5 @@
 
-import { Matrix4, Object3D, Quaternion, Vector3 } from "three";
+import { Matrix4, Object3D, Quaternion } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { utils } from "../../engine/Utils";

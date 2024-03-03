@@ -8,6 +8,12 @@ import { gameMapState } from "../components/GameMapState";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
+import { engineState } from "../../engine/EngineState";
+import { GameMap } from "../components/GameMap";
+import { config } from "../config";
+import { Vector2 } from "three";
+
+const sizeOne = new Vector2(1, 1);
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -23,6 +29,16 @@ export function GameMapUI(props: IGameUIProps) {
         } else {
             gameMapState.action = newAction;
             setSelectedAction(newAction);
+
+            if (newAction === "building") {
+                const gamemap = engineState.getComponents(GameMap)[0];
+                const buildingId = gamemap.component.props.buildingId;
+                const building = config.buildings[buildingId];
+                gameMapState.instance!.tileSelector.size = building.size;
+            } else {
+                gameMapState.instance!.tileSelector.size = sizeOne;
+            }
+
         }
     }, [selectedAction]);
 

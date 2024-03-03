@@ -10,7 +10,8 @@ import { resources } from "../Resources";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
 import { ResourceType } from "../GameDefinitions";
-import { Buildings } from "../Buildings";
+import { buildings } from "../Buildings";
+import { GameUtils } from "../GameUtils";
 
 export class GameMapLoaderProps extends ComponentProps {
 
@@ -46,14 +47,18 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
 
         const obj = utils.createObject(owner.parent!, this.props.path);
         const gameMap = engineState.setComponent(obj, new GameMap());
-        const localCoords = pools.vec2.getOne();
+        const [_sectorCoords, localCoords] = pools.vec2.get(2);        
         for (const sector of data.sectors) {
+
+            const sectorCoords = (() => {
+                const [x, y] = sector.key.split(",").map(i => parseInt(i));
+                _sectorCoords.set(x, y);
+                return _sectorCoords;
+            })();
+
             const sectorInstance = (() => {
-                if (sector.key !== "0,0") {
-                    const [x, y] = sector.key.split(",").map(i => parseInt(i));
-                    gameMap.createSector(new Vector2(x , y));                    
-                }
-                return gameMap.state.sectors.get(sector.key)!;
+                const instance = gameMap.state.sectors.get(sector.key);
+                return instance ?? gameMap.createSector(sectorCoords);
             })();
 
             for (let i = 0; i < sector.cells.length; i++) {
@@ -68,17 +73,19 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                     calcLocalCoords(cell.index, localCoords);
                     resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
                 }
-
-                if (cell.building !== undefined) {
-                    calcLocalCoords(cell.index, localCoords);
-                    Buildings.create(sectorInstance, localCoords, cellInstance);
-                }
             }
 
             const geometry = (sectorInstance.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
             const position = geometry.getAttribute("position") as THREE.BufferAttribute;
             for (const elevation of sector.elevation) {
                 position.setY(elevation.vertexIndex, elevation.height);
+            }
+        }
+
+        for (const [buildingId, mapCoordsList] of Object.entries(data.buildings)) {
+            for (const mapCoords of mapCoordsList) {
+                GameUtils.getCell(mapCoords, _sectorCoords, localCoords);
+                buildings.create(buildingId, _sectorCoords, localCoords);
             }
         }
     }

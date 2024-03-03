@@ -11,12 +11,12 @@ const { cellSize, mapRes } = config.game;
 export class TileSector extends Object3D {
 
     public get size() { return this._size; }
-    public set size(value: number) {
-        this._size = value;
+    public set size(value: Vector2) {
+        this._size.copy(value);
         this.initGeometry();
     }
 
-    private _size = 2;
+    private _size = new Vector2(1, 1);
     private _material: MeshBasicMaterial;
 
     constructor() {
@@ -71,8 +71,8 @@ export class TileSector extends Object3D {
         };
 
         let tileIndex = 0;    
-        for (let i = 0; i < this._size; ++i) {
-            for (let j = 0; j < this._size; ++j) {
+        for (let i = 0; i < this._size.y; ++i) {
+            for (let j = 0; j < this._size.x; ++j) {
                 fitTile(mapCoords.x + j, mapCoords.y + i, tileIndex);
                 ++tileIndex;              
             }
@@ -109,8 +109,8 @@ export class TileSector extends Object3D {
             this.clear();
         }       
 
-        for (let i = 0; i < this._size; ++i) {
-            for (let j = 0; j < this._size; ++j) {
+        for (let i = 0; i < this._size.y; ++i) {
+            for (let j = 0; j < this._size.x; ++j) {
                 this.add(createMesh(j, i));                
             }
         }

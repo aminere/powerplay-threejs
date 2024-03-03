@@ -23,6 +23,8 @@ import { EnvProps } from "./EnvProps";
 // import { Trees } from "./Trees";
 import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
+import { IBuildingInstance } from "../GameTypes";
+import { buildings } from "../Buildings";
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -74,12 +76,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             touchDragged: false,
             cursorOverUI: false,
             selectionInProgress: false,
-            buildingSize: this.props.buildingSize,
             layers: {
                 rails,
                 trains,
                 cars
-            }            
+            },
+            buildings: new Map<string, IBuildingInstance>()           
         });
         
         gameMapState.instance = this.state;
@@ -237,7 +239,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                 break;
         
                                 case "building": {
-                                    onBuilding(sectorCoords, localCoords, cell, input.touchButton);
+                                    onBuilding(sectorCoords, localCoords, cell, input.touchButton, this.props.buildingId);
                                 }
                                 break;
 
@@ -374,7 +376,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         Promise.all([
             // treesComponent.load(trees),
-            flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve()
+            flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve(),
+            buildings.preload()
         ]).then(() => {
             cmdShowUI.post("gamemap");
         });

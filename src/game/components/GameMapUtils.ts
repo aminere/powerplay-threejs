@@ -10,10 +10,10 @@ import { MineralType, TileType, TileTypes } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
 import { Roads } from "../Roads";
 import { Rails } from "../Rails";
-import { Buildings } from "../Buildings";
 import { resources } from "../Resources";
 import { Sector } from "../Sector";
 import { GameMapProps } from "./GameMapProps";
+import { buildings } from "../Buildings";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
@@ -211,7 +211,7 @@ export function onCancelDrag() {
     gameMapState.previousRail.length = 0;
 }
 
-export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: number, button: number) {
+export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
     if (button === 0) {
         Elevation.elevate(mapCoords, sectorCoords, localCoords, 1, radius);
     } else if (button === 2) {
@@ -231,16 +231,29 @@ export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     }
 }
 
-export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
-    const { sectors } = gameMapState;
-    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, buildingId: string) {
     if (button === 0) {
-        if (cell.isEmpty && cell.roadTile === undefined) {
-            Buildings.create(sector, localCoords, cell);
+        const building = config.buildings[buildingId];
+        const allowed = (() => {
+            const mapCoords = pools.vec2.getOne();
+            for (let i = 0; i < building.size.y; ++i) {
+                for (let j = 0; j < building.size.x; ++j) {
+                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
+                    const _cell = GameUtils.getCell(mapCoords);
+                    if (!_cell || !_cell.isEmpty || _cell.roadTile !== undefined) {
+                        return false;
+                    }
+                }                
+            }
+            return true;
+        })();
+        if (allowed) {
+            buildings.create(buildingId, sectorCoords, localCoords);
         }
+        
     } else if (button === 2) {
-        if (cell.building) {
-            Buildings.clear(sector, cell);
+        if (cell.buildingId) {
+            buildings.clear(cell.buildingId);
         }
     }
 }

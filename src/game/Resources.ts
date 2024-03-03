@@ -50,9 +50,8 @@ class Resources {
     public clear(sector: ISector, cell: ICell) {
         sector.layers.resources.remove(cell.resource!);
         delete cell.resource;
-        if (!cell.building) {
-            cell.isEmpty = true;
-        }
+        console.assert(!cell.buildingId);
+        cell.isEmpty = true;
         cell.flowFieldCost = 1;
     }
 }

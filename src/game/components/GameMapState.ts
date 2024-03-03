@@ -1,5 +1,5 @@
 import { Box2, Camera, DirectionalLight, Object3D, Vector2, Vector3 } from "three";
-import { ICell, ISector } from "../GameTypes";
+import { IBuildingInstance, ICell, ISector } from "../GameTypes";
 import { TileSector } from "../TileSelector";
 import { Action } from "../GameDefinitions";
 
@@ -30,12 +30,12 @@ export interface IGameMapState {
     touchDragged: boolean;
     cursorOverUI: boolean;
     selectionInProgress: boolean;
-    buildingSize: number;
     layers: {
         rails: Object3D;
         trains: Object3D;
         cars: Object3D;
-    }
+    },
+    buildings: Map<string, IBuildingInstance>;
 }
 
 export class GameMapState {   
@@ -54,14 +54,7 @@ export class GameMapState {
 
     public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
     public set action(action: Action | null) { 
-        this._instance!.action = action; 
-        if (action) {
-            if (action === "building") {
-                this._instance!.tileSelector.size = this._instance!.buildingSize;
-            } else {
-                this._instance!.tileSelector.size = 1;
-            }
-        }
+        this._instance!.action = action;        
     }    
 
     public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }

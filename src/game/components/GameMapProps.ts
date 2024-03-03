@@ -17,7 +17,7 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(MineralTypes)
     mineralType: MineralType = "aluminium";
 
-    buildingSize = 1;
+    buildingId = "building1";
 
     @Attributes.command("save")
     saveCommand = true;

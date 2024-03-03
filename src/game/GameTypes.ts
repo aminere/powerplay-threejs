@@ -1,4 +1,4 @@
-import { Object3D, Vector2 } from "three";
+import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
@@ -6,16 +6,23 @@ import { IUnit } from "./unit/IUnit";
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
 
+export interface IBuildingInstance {
+    id: string;
+    buildingId: string;
+    obj: Object3D;
+    mapCoords: Vector2;
+}
+
 export interface ICell {
     roadTile?: number;
     previewRoadTile?: number;
 
-    building?: THREE.Object3D;
-    resource?: THREE.Object3D;
+    buildingId?: string;
+    resource?: Object3D;
     rail?: {        
         axis: Axis;        
         tip: RailTip;
-        worldPos: THREE.Vector3;
+        worldPos: Vector3;
         mapCoords: Vector2;
         endCell?: ICell;
         neighbors?: {
@@ -23,7 +30,7 @@ export interface ICell {
                 [direction: string]: ICell;
             }
         };
-        obj?: THREE.Object3D;
+        obj?: Object3D;
     };
     
     units: IUnit[];
