@@ -7,7 +7,7 @@ import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
-import { cmdStartSelection, cmdSetSeletedUnits } from "../../Events";
+import { cmdStartSelection, cmdSetSelectedElems } from "../../Events";
 import { config} from "../../game/config";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
@@ -143,7 +143,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             }
                         }
 
-                        cmdSetSeletedUnits.post(selectedUnits);
+                        cmdSetSelectedElems.post({ units: selectedUnits });
 
                     } else {
 

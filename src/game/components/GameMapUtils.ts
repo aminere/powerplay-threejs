@@ -240,7 +240,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
                 for (let j = 0; j < building.size.x; ++j) {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
                     const _cell = GameUtils.getCell(mapCoords);
-                    if (!_cell || !_cell.isEmpty || _cell.roadTile !== undefined) {
+                    if (!_cell || !_cell.isEmpty || _cell.roadTile !== undefined || _cell.units.length > 0) {
                         return false;
                     }
                 }                

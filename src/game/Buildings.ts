@@ -47,6 +47,7 @@ class Buildings {
 
         const { prefab, boundingBox }  = this._buildings.get(buildingId)!;
         const obj = prefab.clone();
+        obj.scale.multiplyScalar(cellSize);
         obj.name = `${buildingId}-${instanceId}`;
         
         const box3Helper = new Box3Helper(boundingBox);

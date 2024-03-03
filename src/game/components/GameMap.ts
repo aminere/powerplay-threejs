@@ -8,7 +8,7 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
-import { cmdEndSelection, cmdHideUI, cmdSetSeletedUnits, cmdShowUI } from "../../Events";
+import { cmdEndSelection, cmdHideUI, cmdSetSelectedElems, cmdShowUI } from "../../Events";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
@@ -314,110 +314,109 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         onEndDrag();
                     }
                 } else {
+
+
                     const flock = engineState.getComponents(Flock)[0];
-                    const flockState = flock.component.state;
+                    const flockState = flock?.component.state;
+                    if (flockState) {
+                        if (input.touchButton === 0) {
 
-                    if (input.touchButton === 0) {
-
-                        if (this.state.selectionInProgress) {
-                            cmdEndSelection.post();
-                            gameMapState.selectionInProgress = false;
-
-                        } else {
-
-                            const { width, height } = engine.screenRect;
-                            const normalizedPos = pools.vec2.getOne();
-                            normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                            rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
-
-                            const { units } = flockState;
-                            const intersections: Array<{ 
-                                unit?: IUnit; 
-                                building?: IBuildingInstance;
-                                distance: number; 
-                            }> = [];
-
-                            const intersection = pools.vec3.getOne();
-                            for (let i = 0; i < units.length; ++i) {
-                                const unit = units[i];
-                                const { obj, type } = unit;
-                                if (type === UnitType.NPC) {
-                                    continue;
+                            if (this.state.selectionInProgress) {
+                                cmdEndSelection.post();
+                                gameMapState.selectionInProgress = false;
+    
+                            } else {
+    
+                                const { width, height } = engine.screenRect;
+                                const normalizedPos = pools.vec2.getOne();
+                                normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                                rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+    
+                                const { units } = flockState;
+                                const intersections: Array<{ 
+                                    unit?: IUnit; 
+                                    building?: IBuildingInstance;
+                                    distance: number; 
+                                }> = [];
+    
+                                const intersection = pools.vec3.getOne();
+                                for (let i = 0; i < units.length; ++i) {
+                                    const unit = units[i];
+                                    const { obj, type } = unit;
+                                    if (type === UnitType.NPC) {
+                                        continue;
+                                    }
+                                    if (!unit.isAlive) {
+                                        continue;
+                                    }
+                                    inverseMatrix.copy(obj.matrixWorld).invert();
+                                    localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                    const boundingBox = obj.boundingBox;
+                                    if (localRay.intersectBox(boundingBox, intersection)) {
+                                        intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
+                                    }
                                 }
-                                if (!unit.isAlive) {
-                                    continue;
+    
+                                for (const [, building] of this.state.buildings) {
+                                    inverseMatrix.copy(building.obj.matrixWorld).invert();
+                                    localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                    const buildingId = building.buildingId;
+                                    const boundingBox = buildings.getBoundingBox(buildingId);
+                                    if (localRay.intersectBox(boundingBox, intersection)) {                                    
+                                        intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
+                                    }
                                 }
-                                inverseMatrix.copy(obj.matrixWorld).invert();
-                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                const boundingBox = obj.boundingBox;
-                                if (localRay.intersectBox(boundingBox, intersection)) {
-                                    intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
-                                }
-                            }
+    
+                                if (intersections.length > 0) {
+                                    intersections.sort((a, b) => a.distance - b.distance);
+    
+                                    const { unit, building }  = intersections[0];
+                                    if (unit) {
+                                        flockState.selectedUnits = [unit];
+                                        cmdSetSelectedElems.post({ units: flockState.selectedUnits });
+    
+                                    } else if (building) {    
+                                        if (flockState.selectedUnits.length > 0) {
+                                            flockState.selectedUnits.length = 0;
+                                        }
 
-                            for (const [, building] of this.state.buildings) {
-                                inverseMatrix.copy(building.obj.matrixWorld).invert();
-                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                const buildingId = building.buildingId;
-                                const boundingBox = buildings.getBoundingBox(buildingId);
-                                if (localRay.intersectBox(boundingBox, intersection)) {                                    
-                                    intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
-                                }
-                            }
-
-                            if (intersections.length > 0) {
-                                intersections.sort((a, b) => a.distance - b.distance);
-
-                                const { unit, building }  = intersections[0];
-                                if (unit) {
-                                    flockState.selectedUnits = [unit];
-                                    cmdSetSeletedUnits.post(flockState.selectedUnits);
-
-                                } else if (building) {
-
+                                        cmdSetSelectedElems.post({ building });
+                                    }
+                                    
+                                } else {    
                                     if (flockState.selectedUnits.length > 0) {
                                         flockState.selectedUnits.length = 0;
-                                        cmdSetSeletedUnits.post(flockState.selectedUnits);
                                     }
-
-                                    
-                                }
-                                
-                            } else {
-
-                                if (flockState.selectedUnits.length > 0) {
-                                    flockState.selectedUnits.length = 0;
-                                    cmdSetSeletedUnits.post(flockState.selectedUnits);
+                                    cmdSetSelectedElems.post({ });
                                 }
                             }
-                        }
-
-                    } else if (input.touchButton === 2) {
-
-                        if (flockState.selectedUnits.length > 0) {
-                            const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                            const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
-                            if (targetCell) {
-                                // group units per sector
-                                const groups = flockState.selectedUnits.reduce((prev, cur) => {
-                                    const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                                    let units = prev[key];
-                                    if (!units) {
-                                        units = [cur];
-                                        prev[key] = units;
-                                    } else {
-                                        units.push(cur);
+    
+                        } else if (input.touchButton === 2) {
+    
+                            if (flockState.selectedUnits.length > 0) {
+                                const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
+                                const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
+                                if (targetCell) {
+                                    // group units per sector
+                                    const groups = flockState.selectedUnits.reduce((prev, cur) => {
+                                        const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+                                        let units = prev[key];
+                                        if (!units) {
+                                            units = [cur];
+                                            prev[key] = units;
+                                        } else {
+                                            units.push(cur);
+                                        }
+                                        return prev;
+                                    }, {} as Record<string, IUnit[]>);
+    
+                                    for (const units of Object.values(groups)) {
+                                        unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
                                     }
-                                    return prev;
-                                }, {} as Record<string, IUnit[]>);
-
-                                for (const units of Object.values(groups)) {
-                                    unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
                                 }
                             }
                         }
                     }
-                    
                 }
             }
         }
