@@ -176,14 +176,14 @@ class UnitMotion {
             console.assert(unitCount > 0);
             flowField.setMotionUnitCount(motionId, unitCount);
 
-            for (const sector of gameMapState.sectors.values()) {
-                sector.flowfieldViewer.visible = false;
-            }
-            for (const sectorCoords of sectors) {
-                const sector = GameUtils.getSector(sectorCoords)!;
-                sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-                sector.flowfieldViewer.visible = true;
-            }
+            // for (const sector of gameMapState.sectors.values()) {
+            //     sector.flowfieldViewer.visible = false;
+            // }
+            // for (const sectorCoords of sectors) {
+            //     const sector = GameUtils.getSector(sectorCoords)!;
+            //     sector.flowfieldViewer.update(motionId, sector, sectorCoords);
+            //     sector.flowfieldViewer.visible = true;
+            // }
         }        
     }
 

@@ -11,13 +11,16 @@ import { Minimap } from "./Minimap";
 import { engineState } from "../../engine/EngineState";
 import { GameMap } from "../components/GameMap";
 import { config } from "../config";
+import { IBuildingInstance } from "../GameTypes";
+import { cmdSetSelectedElems } from "../../Events";
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
     const hoveredElement = useRef<HTMLElement | null>(null);
-    const hoveredElementOnDown = useRef<HTMLElement | null>(null);
+    const hoveredElementOnDown = useRef<HTMLElement | null>(null);    
     const actions = useRef<Record<string, HTMLElement>>({});
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+    const buildingRef = useRef<HTMLDivElement>(null);
 
     const setAction = useCallback((newAction: Action) => {
         if (newAction === selectedAction) {
@@ -93,6 +96,26 @@ export function GameMapUI(props: IGameUIProps) {
         };
     }, [setAction]);
 
+    useEffect(() => {
+
+        const onSelectedElems = ({ building }: {
+            building?: IBuildingInstance;
+        }) => {
+            const buildingUi = buildingRef.current!;
+            if (building) {
+                buildingUi.style.display = "block";
+            } else {
+                buildingUi.style.display = "none";
+            }
+        };
+
+        cmdSetSelectedElems.attach(onSelectedElems);
+        return () => {
+            cmdSetSelectedElems.detach(onSelectedElems);
+        }
+
+    }, []);
+
     return <div className={styles.root}>
         <div 
             ref={actionsElem} 
@@ -119,6 +142,35 @@ export function GameMapUI(props: IGameUIProps) {
                 </div>
             })}
         </div>
+
+        <div
+            ref={buildingRef}
+            style={{
+                position: "absolute",
+                right: "1rem",
+                bottom: ".5rem",
+                pointerEvents: "all",
+                display: "none"
+            }}
+            onPointerEnter={() => gameMapState.cursorOverUI = true}
+            onPointerLeave={() => gameMapState.cursorOverUI = false}
+        >
+            <div
+                className={`${styles.action} clickable`}
+                style={{
+                    width: "4rem",
+                    height: "4rem",
+                }}
+                onClick={() => {
+                    console.log("spawn");
+                }}
+            >
+                <div>
+                    unit
+                </div>
+            </div>
+        </div>        
+
         <HealthBars />
         <SelectionRect />
         <Minimap />

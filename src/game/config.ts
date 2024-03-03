@@ -58,7 +58,7 @@ export const config: IConfig = {
         atlasTileCount: 35
     },
     game: {
-        cellSize: 1,
+        cellSize: 2,
         mapRes: 32,
         elevationStep: .2,
     },
