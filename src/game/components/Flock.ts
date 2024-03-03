@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Mesh, Object3D, Ray, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
@@ -7,9 +7,7 @@ import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
-import { engine } from "../../engine/Engine";
-import { cmdStartSelection, cmdEndSelection, cmdSetSeletedUnits } from "../../Events";
-import { raycastOnCells } from "./GameMapUtils";
+import { cmdStartSelection, cmdSetSeletedUnits } from "../../Events";
 import { config} from "../../game/config";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
@@ -48,15 +46,13 @@ export class FlockProps extends ComponentProps {
 
 interface IFlockState extends IComponentState {
     units: Unit[];
-    selectedUnits: Unit[];
+    selectedUnits: IUnit[];
     selectionStart: Vector2;
     touchPressed: boolean;
 }
 
 const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
-const localRay = new Ray();
-const inverseMatrix = new Matrix4();
 const unitNeighbors = new Array<IUnit>();
 
 function onUnitArrived(unit: IUnit) {
@@ -116,74 +112,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         } else if (input.touchJustReleased) {
 
             if (this.state.touchPressed) {
-                this.state.touchPressed = false; 
-                if (input.touchButton === 0) {
-
-                    if (gameMapState.selectionInProgress) {
-                        cmdEndSelection.post();
-                        gameMapState.selectionInProgress = false;
-    
-                    } else {
-                        const { width, height } = engine.screenRect;
-                        const normalizedPos = pools.vec2.getOne();
-                        normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                        const { rayCaster } = GameUtils;
-                        rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
-        
-                        const { units } = this.state;
-                        const intersections: Array<{ unit: Unit; distance: number; }> = [];
-                        const intersection = pools.vec3.getOne();
-                        for (let i = 0; i < units.length; ++i) {
-                            const unit = units[i];
-                            const { obj, type } = unit;
-                            if (type === UnitType.NPC) {
-                                continue;
-                            }
-                            if (!unit.isAlive) {
-                                continue;
-                            }
-                            inverseMatrix.copy(obj.matrixWorld).invert();
-                            localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                            const boundingBox = obj.boundingBox;
-                            if (localRay.intersectBox(boundingBox, intersection)) {
-                                intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
-                            }
-                        }
-                        
-                        if (intersections.length > 0) {
-                            intersections.sort((a, b) => a.distance - b.distance);
-                            this.state.selectedUnits = [intersections[0].unit];
-                        } else {
-                            this.state.selectedUnits.length = 0;
-                        }
-        
-                        cmdSetSeletedUnits.post(this.state.selectedUnits);
-                    }                
-    
-                } else if (input.touchButton === 2) {
-                    if (this.state.selectedUnits.length > 0) {                    
-                        const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                        const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
-                        if (targetCell) {
-                            // group units per sector
-                            const groups = this.state.selectedUnits.reduce((prev, cur) => {
-                                const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                                let units = prev[key];
-                                if (!units) {
-                                    units = [cur];
-                                    prev[key] = units;
-                                } else {
-                                    units.push(cur);
-                                }
-                                return prev;
-                            }, {} as Record<string, Unit[]>);
-                            
-                            for (const units of Object.values(groups)) {
-                                unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);                            
-                            }
-                        }
-                    }
-                }
+                this.state.touchPressed = false;                
             }
         }
 

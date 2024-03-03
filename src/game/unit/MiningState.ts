@@ -6,6 +6,7 @@ import { time } from "../../engine/core/Time";
 import { unitAnimation } from "./UnitAnimation";
 import { IUnitAddr, copyUnitAddr } from "./UnitAddr";
 import { unitMotion } from "./UnitMotion";
+import { gameMapState } from "../components/GameMapState";
 
 enum MiningStep {
     GoToResource,
@@ -66,11 +67,11 @@ export class MiningState extends State<IUnit> {
             case MiningStep.Mine:
                 this._miningTimer -= time.deltaTime;
                 if (this._miningTimer < 0) {
-                    const sector = unit.coords.sector!;
+                    const { layers } = gameMapState;
                     let distToClosestBuilding = 999999;
                     let closestBuilding: Object3D | null = null;
                     const worldPos = pools.vec3.getOne();
-                    for (const building of sector.layers.buildings.children) {
+                    for (const building of layers.buildings.children) {
                         building.getWorldPosition(worldPos);
                         const dist = worldPos.distanceTo(unit.obj.position);
                         if (dist < distToClosestBuilding) {

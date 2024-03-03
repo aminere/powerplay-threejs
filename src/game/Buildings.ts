@@ -1,4 +1,4 @@
-import { Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { IBuildingInstance } from "./GameTypes";
 import { gameMapState } from "./components/GameMapState";
@@ -7,31 +7,50 @@ import { pools } from "../engine/core/Pools";
 import { objects } from "../engine/resources/Objects";
 
 const { cellSize, mapRes } = config.game;
+const mapSize = mapRes * cellSize;
+const sectorOffset = -mapSize / 2;
 
 class Buildings {
 
-    private _buildings = new Map<string, Object3D>();
+    private _instanceId = 1;
+    private _buildings = new Map<string, {
+        prefab: Object3D;
+        boundingBox: Box3;
+    }>();
 
     public preload() {
         return Promise.all(Object.keys(config.buildings).map(buildingId => objects.load(`/models/buildings/${buildingId}.json`)))
             .then(buildings => {
                 buildings.forEach((building, i) => {
-                    const buildingId = Object.keys(config.buildings)[i];
-                    this._buildings.set(buildingId, building);
+                    const buildingEntry = Object.entries(config.buildings)[i];
+                    const [buildingId, buildingConfig] = buildingEntry;
+                    const boundingBox = new Box3().setFromObject(building);
+                    boundingBox.max.y = buildingConfig.size.y;
+                    this._buildings.set(buildingId, {
+                        prefab: building,
+                        boundingBox
+                    });
                 });
             });
     }
 
+    public getBoundingBox(buildingId: string) {
+        return this._buildings.get(buildingId)!.boundingBox;
+    }
+
     public create(buildingId: string, sectorCoords: Vector2, localCoords: Vector2) {
 
-        const { sectors } = gameMapState;
-        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;        
+        const { layers } = gameMapState;
 
-        const instanceId = `${sector.layers.buildings.children.length}`;
-        const buildingPrefab = this._buildings.get(buildingId)!;
-        const obj = buildingPrefab.clone();
+        const instanceId = `${this._instanceId}`;
+        this._instanceId++;
+
+        const { prefab, boundingBox }  = this._buildings.get(buildingId)!;
+        const obj = prefab.clone();
         obj.name = `${buildingId}-${instanceId}`;
-        obj.position.set(localCoords.x * cellSize, 0, localCoords.y * cellSize);        
+        
+        const box3Helper = new Box3Helper(boundingBox);
+        obj.add(box3Helper);
 
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
@@ -42,11 +61,18 @@ class Buildings {
 
         const buildings = gameMapState.instance!.buildings;
         buildings.set(instanceId, buildingInstance);
-        sector.layers.buildings.add(obj);
+
+        obj.position.set(
+            sectorCoords.x * mapSize + localCoords.x * cellSize + sectorOffset, 
+            0,
+            sectorCoords.y * mapSize + localCoords.y * cellSize + sectorOffset
+        );
+
+        layers.buildings.add(obj);
 
         const buildingConfig = config.buildings[buildingId];
         const mapCoords = pools.vec2.getOne();
-        for (let i = 0; i < buildingConfig.size.y; i++) {
+        for (let i = 0; i < buildingConfig.size.z; i++) {
             for (let j = 0; j < buildingConfig.size.x; j++) {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
@@ -67,7 +93,7 @@ class Buildings {
         const mapCoords = pools.vec2.getOne();
         const buildingId = instance.buildingId;
         const buildingConfig = config.buildings[buildingId];
-        for (let i = 0; i < buildingConfig.size.y; i++) {
+        for (let i = 0; i < buildingConfig.size.z; i++) {
             for (let j = 0; j < buildingConfig.size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;

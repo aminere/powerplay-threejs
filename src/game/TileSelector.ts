@@ -11,10 +11,6 @@ const { cellSize, mapRes } = config.game;
 export class TileSector extends Object3D {
 
     public get size() { return this._size; }
-    public set size(value: Vector2) {
-        this._size.copy(value);
-        this.initGeometry();
-    }
 
     private _size = new Vector2(1, 1);
     private _material: MeshBasicMaterial;
@@ -32,6 +28,11 @@ export class TileSector extends Object3D {
             depthTest: false,
         });
 
+        this.initGeometry();
+    }
+
+    public setSize(x: number, z: number) {
+        this.size.set(x, z);
         this.initGeometry();
     }
 

@@ -1,4 +1,4 @@
-import { Box2, DirectionalLight, Euler, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Box2, DirectionalLight, Euler, MathUtils, Matrix4, Object3D, OrthographicCamera, Ray, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component"
 import { Sector } from "../Sector";
 import { config } from "../config";
@@ -8,7 +8,7 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
-import { cmdHideUI, cmdShowUI } from "../../Events";
+import { cmdEndSelection, cmdHideUI, cmdSetSeletedUnits, cmdShowUI } from "../../Events";
 import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
@@ -25,6 +25,12 @@ import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
 import { IBuildingInstance } from "../GameTypes";
 import { buildings } from "../Buildings";
+import { IUnit, UnitType } from "../unit/IUnit";
+import { unitMotion } from "../unit/UnitMotion";
+
+const localRay = new Ray();
+const inverseMatrix = new Matrix4();
+const { rayCaster } = GameUtils;
 
 export class GameMap extends Component<GameMapProps, IGameMapState> {
 
@@ -34,17 +40,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
     override start() {
 
-        const rails = new Object3D();
-        rails.name = "rails";
-        const trains = new Object3D();
-        trains.name = "trains";
-        const cars = new Object3D();
-        cars.name = "cars";
-
         const root = engine.scene!;
-        root.add(rails);
-        root.add(trains);
-        root.add(cars);
+        const rails = utils.createObject(root, "rails");
+        const trains = utils.createObject(root, "trains");
+        const cars = utils.createObject(root, "cars");
+        const buildings = utils.createObject(root, "buildings");
 
         this.setState({
             sectorsRoot: utils.createObject(root, "sectors"),
@@ -79,11 +79,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             layers: {
                 rails,
                 trains,
-                cars
+                cars,
+                buildings
             },
-            buildings: new Map<string, IBuildingInstance>()           
+            buildings: new Map<string, IBuildingInstance>()
         });
-        
+
         gameMapState.instance = this.state;
 
         this.initMap();
@@ -106,7 +107,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.state.tileSelector.visible = false;
         root.add(this.state.tileSelector);
 
-        railFactory.preload();        
+        railFactory.preload();
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -136,7 +137,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 if (this.state.action) {
                     const [cellCoords] = pools.vec2.get(1);
                     raycastOnCells(input.touchPos, this.state.camera, cellCoords);
-                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {                        
+                    if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
                         this.state.tileSelector.setPosition(cellCoords!);
                         this.state.selectedCellCoords.copy(cellCoords!);
                         // default rail preview was here                        
@@ -165,7 +166,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             this.state.cameraZoom = newZoom;
             this.updateCameraSize();
         }
-        
+
         if (input.touchJustPressed) {
             if (!this.state.cursorOverUI) {
                 if (this.state.action !== null) {
@@ -179,7 +180,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 if (!this.state.cursorOverUI) {
                     if (this.state.action) {
                         const cellCoords = pools.vec2.getOne();
-                        if (!this.state.touchDragged) {                            
+                        if (!this.state.touchDragged) {
                             if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
                                 if (cellCoords?.equals(this.state.touchStartCoords) === false) {
                                     this.state.touchDragged = true;
@@ -199,25 +200,26 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 }
             }
         } else if (input.touchJustReleased) {
+
             const wasDragged = this.state.touchDragged;
             this.state.touchDragged = false;
             let canceled = false;
 
             if (this.state.cursorOverUI) {
                 if (wasDragged) {
-                    onCancelDrag();                    
+                    onCancelDrag();
                 }
-                canceled = true;           
+                canceled = true;
             }
 
             if (!canceled) {
                 if (this.state.action) {
                     if (!wasDragged) {
-                        
+
                         const [sectorCoords, localCoords] = pools.vec2.get(2);
                         const cell = GameUtils.getCell(this.state.selectedCellCoords, sectorCoords, localCoords);
                         if (!cell) {
-                            this.createSector(sectorCoords.clone());                            
+                            this.createSector(sectorCoords.clone());
                             this.updateCameraBounds();
                         } else {
                             const mapCoords = this.state.selectedCellCoords;
@@ -226,50 +228,50 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     onElevation(mapCoords, sectorCoords, localCoords, this.state.tileSelector.size, input.touchButton);
                                     this.state.tileSelector.fit(mapCoords);
                                 }
-                                break;
+                                    break;
 
                                 case "terrain": {
                                     onTerrain(mapCoords, this.props.tileType);
                                 }
-                                break;
-        
+                                    break;
+
                                 case "road": {
                                     onRoad(mapCoords, cell, input.touchButton);
                                 }
-                                break;
-        
+                                    break;
+
                                 case "building": {
                                     onBuilding(sectorCoords, localCoords, cell, input.touchButton, this.props.buildingId);
                                 }
-                                break;
+                                    break;
 
                                 case "mineral": {
                                     onMineral(sectorCoords, localCoords, cell, input.touchButton, this.props.mineralType);
                                 }
-                                break;
+                                    break;
 
                                 case "tree": {
                                     onTree(sectorCoords, localCoords, cell, input.touchButton);
                                 }
-                                break;
-        
-                                case "car": {                                    
+                                    break;
+
+                                case "car": {
                                     if (input.touchButton === 0) {
 
                                         // TODO
                                         // if (!cell.unit) {
                                         //     const { sectors, layers } = this.state;
                                         //     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-                                            
+
                                         //     const car = utils.createObject(layers.cars, "car");
                                         //     engineState.setComponent(car, new Car({
                                         //         coords: this.state.selectedCellCoords.clone()
                                         //     }));
-            
+
                                         //     Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
                                         //     cell.unit = car;
                                         // }
-        
+
                                     } else if (input.touchButton === 2) {
                                         const cars = engineState.getComponents(Car);
                                         if (cars) {
@@ -287,14 +289,14 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     }
                                 }
                                     break;
-        
+
                                 case "train": {
                                     if (input.touchButton === 0) {
                                         if (cell.rail) {
                                             const { layers } = this.state;
                                             const wagonLength = 2;
                                             const numWagons = 4;
-                                            const gap = .3;                                            
+                                            const gap = .3;
                                             const train = utils.createObject(layers.trains, "train");
                                             engineState.setComponent(train, new Train({
                                                 cell,
@@ -305,18 +307,123 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         }
                                     }
                                 }
-                                break;
+                                    break;
                             }
-                        }                        
+                        }
                     } else {
                         onEndDrag();
                     }
-                } 
+                } else {
+                    const flock = engineState.getComponents(Flock)[0];
+                    const flockState = flock.component.state;
+
+                    if (input.touchButton === 0) {
+
+                        if (this.state.selectionInProgress) {
+                            cmdEndSelection.post();
+                            gameMapState.selectionInProgress = false;
+
+                        } else {
+
+                            const { width, height } = engine.screenRect;
+                            const normalizedPos = pools.vec2.getOne();
+                            normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                            rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+
+                            const { units } = flockState;
+                            const intersections: Array<{ 
+                                unit?: IUnit; 
+                                building?: IBuildingInstance;
+                                distance: number; 
+                            }> = [];
+
+                            const intersection = pools.vec3.getOne();
+                            for (let i = 0; i < units.length; ++i) {
+                                const unit = units[i];
+                                const { obj, type } = unit;
+                                if (type === UnitType.NPC) {
+                                    continue;
+                                }
+                                if (!unit.isAlive) {
+                                    continue;
+                                }
+                                inverseMatrix.copy(obj.matrixWorld).invert();
+                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                const boundingBox = obj.boundingBox;
+                                if (localRay.intersectBox(boundingBox, intersection)) {
+                                    intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
+                                }
+                            }
+
+                            for (const [, building] of this.state.buildings) {
+                                inverseMatrix.copy(building.obj.matrixWorld).invert();
+                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                const buildingId = building.buildingId;
+                                const boundingBox = buildings.getBoundingBox(buildingId);
+                                if (localRay.intersectBox(boundingBox, intersection)) {                                    
+                                    intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
+                                }
+                            }
+
+                            if (intersections.length > 0) {
+                                intersections.sort((a, b) => a.distance - b.distance);
+
+                                const { unit, building }  = intersections[0];
+                                if (unit) {
+                                    flockState.selectedUnits = [unit];
+                                    cmdSetSeletedUnits.post(flockState.selectedUnits);
+
+                                } else if (building) {
+
+                                    if (flockState.selectedUnits.length > 0) {
+                                        flockState.selectedUnits.length = 0;
+                                        cmdSetSeletedUnits.post(flockState.selectedUnits);
+                                    }
+
+                                    
+                                }
+                                
+                            } else {
+
+                                if (flockState.selectedUnits.length > 0) {
+                                    flockState.selectedUnits.length = 0;
+                                    cmdSetSeletedUnits.post(flockState.selectedUnits);
+                                }
+                            }
+                        }
+
+                    } else if (input.touchButton === 2) {
+
+                        if (flockState.selectedUnits.length > 0) {
+                            const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
+                            const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
+                            if (targetCell) {
+                                // group units per sector
+                                const groups = flockState.selectedUnits.reduce((prev, cur) => {
+                                    const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+                                    let units = prev[key];
+                                    if (!units) {
+                                        units = [cur];
+                                        prev[key] = units;
+                                    } else {
+                                        units.push(cur);
+                                    }
+                                    return prev;
+                                }, {} as Record<string, IUnit[]>);
+
+                                for (const units of Object.values(groups)) {
+                                    unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
+                                }
+                            }
+                        }
+                    }
+                    
+                }
             }
         }
-    }    
+    }
 
-    public createSector(coords: Vector2) {        
+    public createSector(coords: Vector2) {
 
         const sector = Sector.create({
             sectorX: coords.x,
@@ -359,7 +466,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         water.matrixWorldAutoUpdate = false;
         water.position.setY(-.75);
         water.updateMatrix();
-        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));        
+        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));
 
         // env props
         const props = utils.createObject(engine.scene!, "env-props");
@@ -370,7 +477,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         // const trees = utils.createObject(engine.scene!, "trees");
         // const treesComponent = new Trees({ sectorRes: this.props.size });        
         // engineState.setComponent(trees, treesComponent);
-        
+
         const flocks = engineState.getComponents(Flock);
         const flock = flocks[0];
 
@@ -391,9 +498,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const size = this.props.size;
         for (let i = 0; i < size; ++i) {
             for (let j = 0; j < size; ++j) {
-                this.createSector(new Vector2(j, i));                
+                this.createSector(new Vector2(j, i));
             }
-        }       
+        }
     }
 
     public setCameraPos(pos: Vector3) {
@@ -562,10 +669,10 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     }
 
     private updateCameraSize() {
-        const { width, height } = engine.screenRect;        
+        const { width, height } = engine.screenRect;
         const aspect = width / height;
-        const { orthoSize, shadowRange } = config.camera;        
-        
+        const { orthoSize, shadowRange } = config.camera;
+
         const orthoCamera = (this.state.camera as OrthographicCamera);
         orthoCamera.zoom = 1 / this.state.cameraZoom;
         // const zoom = this.state.cameraZoom;

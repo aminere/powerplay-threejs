@@ -34,7 +34,6 @@ export class Sector {
 
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);
-        const buildings = utils.createObject(sectorRoot, "buildings");
         const resources = utils.createObject(sectorRoot, "resources");
         const envProps = utils.createObject(sectorRoot, "props");
 
@@ -45,7 +44,6 @@ export class Sector {
             root: sectorRoot,
             layers: {
                 terrain,
-                buildings,
                 resources,
                 props: envProps
             },

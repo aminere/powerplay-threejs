@@ -1,4 +1,4 @@
-import { Vector2 } from "three";
+import { Vector3 } from "three";
 
 interface ICameraConfig {
     rotation: number[];
@@ -32,7 +32,7 @@ interface IPathfindingConfig {
 }
 
 interface IBuildingConfig {
-    size: Vector2;
+    size: Vector3;
 }
 
 interface IConfig {
@@ -72,7 +72,7 @@ export const config: IConfig = {
     },
     buildings: {
         "building1": {
-            size: new Vector2(10, 5)
+            size: new Vector3(10, 7, 5)
         }
     }
 };

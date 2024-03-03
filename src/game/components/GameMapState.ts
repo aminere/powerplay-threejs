@@ -34,6 +34,7 @@ export interface IGameMapState {
         rails: Object3D;
         trains: Object3D;
         cars: Object3D;
+        buildings: Object3D;
     },
     buildings: Map<string, IBuildingInstance>;
 }

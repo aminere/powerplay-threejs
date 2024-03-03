@@ -11,9 +11,6 @@ import { Minimap } from "./Minimap";
 import { engineState } from "../../engine/EngineState";
 import { GameMap } from "../components/GameMap";
 import { config } from "../config";
-import { Vector2 } from "three";
-
-const sizeOne = new Vector2(1, 1);
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -34,9 +31,9 @@ export function GameMapUI(props: IGameUIProps) {
                 const gamemap = engineState.getComponents(GameMap)[0];
                 const buildingId = gamemap.component.props.buildingId;
                 const building = config.buildings[buildingId];
-                gameMapState.instance!.tileSelector.size = building.size;
+                gameMapState.instance!.tileSelector.setSize(building.size.x, building.size.z);
             } else {
-                gameMapState.instance!.tileSelector.size = sizeOne;
+                gameMapState.instance!.tileSelector.setSize(1, 1);
             }
 
         }

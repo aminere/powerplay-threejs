@@ -236,7 +236,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
         const building = config.buildings[buildingId];
         const allowed = (() => {
             const mapCoords = pools.vec2.getOne();
-            for (let i = 0; i < building.size.y; ++i) {
+            for (let i = 0; i < building.size.z; ++i) {
                 for (let j = 0; j < building.size.x; ++j) {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
                     const _cell = GameUtils.getCell(mapCoords);
