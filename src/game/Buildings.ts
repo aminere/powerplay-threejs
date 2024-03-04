@@ -52,6 +52,7 @@ class Buildings {
         
         const box3Helper = new Box3Helper(boundingBox);
         obj.add(box3Helper);
+        box3Helper.visible = false;
 
         const buildingInstance: IBuildingInstance = {
             id: instanceId,

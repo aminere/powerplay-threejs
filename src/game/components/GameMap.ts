@@ -82,7 +82,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 cars,
                 buildings
             },
-            buildings: new Map<string, IBuildingInstance>()
+            buildings: new Map<string, IBuildingInstance>(),
+            selectedBuilding: null
         });
 
         gameMapState.instance = this.state;
@@ -373,12 +374,15 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     const { unit, building }  = intersections[0];
                                     if (unit) {
                                         flockState.selectedUnits = [unit];
+                                        this.state.selectedBuilding = null;
+
                                         cmdSetSelectedElems.post({ units: flockState.selectedUnits });
     
                                     } else if (building) {    
                                         if (flockState.selectedUnits.length > 0) {
                                             flockState.selectedUnits.length = 0;
                                         }
+                                        this.state.selectedBuilding = building;
 
                                         cmdSetSelectedElems.post({ building });
                                     }
@@ -387,6 +391,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     if (flockState.selectedUnits.length > 0) {
                                         flockState.selectedUnits.length = 0;
                                     }
+                                    this.state.selectedBuilding = null;
                                     cmdSetSelectedElems.post({ });
                                 }
                             }
@@ -505,6 +510,13 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     public setCameraPos(pos: Vector3) {
         this.state.cameraRoot.position.copy(pos);
         this.updateCameraBounds();
+    }
+
+    public spawnUnitRequest() {
+        const { selectedBuilding } = this.state;
+        console.assert(selectedBuilding);
+        const flock = engineState.getComponents(Flock)[0];
+        flock.component.spawnUnitRequest(selectedBuilding!);
     }
 
     private disposeSectors() {

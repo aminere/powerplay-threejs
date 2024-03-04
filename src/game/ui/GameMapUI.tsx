@@ -162,7 +162,8 @@ export function GameMapUI(props: IGameUIProps) {
                     height: "4rem",
                 }}
                 onClick={() => {
-                    console.log("spawn");
+                    const gamemap = engineState.getComponents(GameMap)[0];
+                    gamemap.component.spawnUnitRequest();
                 }}
             >
                 <div>

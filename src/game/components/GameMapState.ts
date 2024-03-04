@@ -37,6 +37,7 @@ export interface IGameMapState {
         buildings: Object3D;
     },
     buildings: Map<string, IBuildingInstance>;
+    selectedBuilding: IBuildingInstance | null;
 }
 
 export class GameMapState {   
