@@ -20,7 +20,7 @@ const mapCoords = new Vector2();
 
 const transform = new Matrix3();
 transform.rotate(-45 * MathUtils.DEG2RAD);
-transform.scale(1, .7);
+transform.scale(1, .5);
 transform.translate(220, 10);
 transform.invert();
 
@@ -69,7 +69,7 @@ export function Minimap() {
 
         const { sectorRes, sectors } = gameMapState;
         const texRes = mapRes * sectorRes;
-        const size = Math.min(texRes, 300);
+        const size = texRes; // Math.min(texRes, 300);
         root.current!.style.width = `${size}px`;
         root.current!.style.height = `${size}px`;
 
@@ -106,7 +106,7 @@ export function Minimap() {
         cameraCanvas.height = texRes;
         const cameraCtx = cameraCanvas.getContext("2d")!;
         cameraCtx.strokeStyle = "white";
-        cameraCtx.lineWidth = 1;
+        cameraCtx.lineWidth = 2;
 
         for (let i = 0; i < sectorRes; ++i) {
             for (let j = 0; j < sectorRes; ++j) {
@@ -247,7 +247,7 @@ export function Minimap() {
             style={{
                 position: "relative",
                 height: "100%",
-                transform: "translate(220px, 10px) scaleY(.7) rotate(45deg)",
+                transform: "translate(220px, 10px) scaleY(.5) rotate(45deg)",
                 transformOrigin: "0 0",
                 border: "1px solid white",
                 pointerEvents: "all"
