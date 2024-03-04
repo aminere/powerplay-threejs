@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Box3Helper, MathUtils, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
@@ -178,34 +178,14 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { repulsion } = this.props;
-        const { units, spawnUnitRequest } = this.state;
+        const { units } = this.state;
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
         const avoidanceSteerAmount = this.props.avoidanceSpeed * time.deltaTime;
         const [toTarget] = pools.vec3.get(1);
 
         skeletonPool.update();
-
-        if (spawnUnitRequest) {
-            const { mesh: sharedMesh, boundingBox } = this.state.sharedSkinnedMesh;
-            const mesh = sharedMesh.clone();
-            mesh.boundingBox = boundingBox;
-
-            const spawnCoords = pools.vec2.getOne();
-            spawnCoords.copy(spawnUnitRequest.mapCoords);
-            spawnCoords.x -= 1;
-            spawnCoords.y -= 1;
-            GameUtils.mapToWorld(spawnCoords, mesh.position);
-
-            this.createUnit(owner, units, {
-                id: units.length,
-                obj: mesh,
-                type: UnitType.Worker,
-                states: [new MiningState()],
-                animation: initIdleAnim(mesh)
-            });
-            this.state.spawnUnitRequest = null;
-        }
+        this.handleSpawnRequests(owner);
 
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
@@ -450,8 +430,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         states: [new MiningState()],
                         animation: initIdleAnim(mesh)
                     });
-                    // const box3Helper = new Box3Helper(boundingBox);
-                    // mesh.add(box3Helper);
+
                     ++unitCount;
                     if (unitCount >= this.props.count) {
                         break;
@@ -512,7 +491,59 @@ export class Flock extends Component<FlockProps, IFlockState> {
         units.push(unit);
         owner.add(obj);
         fogOfWar.addCircle(unit.coords.mapCoords, 10);
+        const box3Helper = new Box3Helper(obj.boundingBox);
+        obj.add(box3Helper);
+        box3Helper.visible = false;
         return unit;
     };
+
+    private handleSpawnRequests(owner: Object3D) {
+        const { spawnUnitRequest, units } = this.state;
+        if (!spawnUnitRequest) {
+            return;
+        }
+
+        const { mesh: sharedMesh, boundingBox } = this.state.sharedSkinnedMesh;
+        const mesh = sharedMesh.clone();
+        mesh.boundingBox = boundingBox;
+
+        const spawnCoords = pools.vec2.getOne();
+        spawnCoords.copy(spawnUnitRequest.mapCoords);
+        const buildingId = spawnUnitRequest.buildingId;
+        const buildingSize = config.buildings[buildingId].size;
+        spawnCoords.x += buildingSize.x / 2;
+        spawnCoords.y += buildingSize.z;        
+        GameUtils.mapToWorld(spawnCoords, mesh.position);
+
+        // if cell is occupied, move its units to a nearby cell
+        const cell = GameUtils.getCell(spawnCoords)!;
+        if (cell.units.length > 0) {
+            const targetSectorCoords = pools.vec2.getOne();
+            const randomCellSelector = MathUtils.randInt(0, 4);
+            const [dx, dy] = (() => {
+                switch (randomCellSelector) {
+                    case 0: return [-1, 0];
+                    case 1: return [1, 0];
+                    case 2: return [-1, 1];
+                    case 3: return [0, 1];
+                    default: return [1, 1];
+                }                
+            })();
+            
+            spawnCoords.x += dx;
+            spawnCoords.y += dy;
+            const targetCell = GameUtils.getCell(spawnCoords, targetSectorCoords)!;
+            unitMotion.move(cell.units, targetSectorCoords, spawnCoords, targetCell);
+        }
+
+        this.createUnit(owner, units, {
+            id: units.length,
+            obj: mesh,
+            type: UnitType.Worker,
+            states: [new MiningState()],
+            animation: initIdleAnim(mesh)
+        });
+        this.state.spawnUnitRequest = null;
+    }
 }
 
