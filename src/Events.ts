@@ -25,4 +25,5 @@ export interface IMinimapFog {
 }
 
 export const cmdUpdateMinimapFog = new AsyncEvent<IMinimapFog>();
+export const cmdRotateMinimap = new AsyncEvent<number>();
 

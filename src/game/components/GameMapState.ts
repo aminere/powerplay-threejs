@@ -35,6 +35,7 @@ export interface IGameMapState {
         trains: Object3D;
         cars: Object3D;
         buildings: Object3D;
+        conveyors: Object3D;
     },
     buildings: Map<string, IBuildingInstance>;
     selectedBuilding: IBuildingInstance | null;

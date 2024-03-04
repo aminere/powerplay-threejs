@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { IMinimapFog, cmdRenderUI, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
+import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
@@ -19,10 +19,14 @@ const mapCoordsTopLeft = new Vector2();
 const mapCoords = new Vector2();
 
 const transform = new Matrix3();
-transform.rotate(-45 * MathUtils.DEG2RAD);
-transform.scale(1, .5);
-transform.translate(220, 10);
-transform.invert();
+function makeCameraTransform(angle: number, offset: number) {
+    transform.identity();
+    transform.translate(-offset, -offset);
+    transform.rotate(-angle * MathUtils.DEG2RAD);
+    transform.scale(1, .5);
+    transform.translate(85, -30);
+    transform.invert();
+}
 
 const canvasStyle = {
     width: "100%",
@@ -38,9 +42,9 @@ const crispCanvasStyle = {
     ...canvasStyle
 } as const;
 
-function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number) {
+function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, offset: number) {
     const { left, top } = engine.screenRect;
-    mapCoords.set(clientX - left, clientY - top).applyMatrix3(transform);
+    mapCoords.set(clientX - offset - left, clientY - offset - top).applyMatrix3(transform);
     const cameraPos = worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
     gamemap.setCameraPos(cameraPos);
 }
@@ -157,6 +161,7 @@ export function Minimap() {
         const gamemaps = engineState.getComponents(GameMap);
         gamemapRef.current = gamemaps[0].component;
 
+        makeCameraTransform(45, texRes / 2);
         initialized.current = true;
     }, []);
 
@@ -231,13 +236,23 @@ export function Minimap() {
             }
         };
 
+        const onRotateMinimap = (angle: number) => {
+            const { sectorRes } = gameMapState;
+            const texRes = mapRes * sectorRes;
+            makeCameraTransform(angle, texRes / 2);
+            const container = root.current?.firstChild as HTMLDivElement;
+            container.style.transform = `translate(85px, -30px) scaleY(.5) rotate(${angle}deg)`;
+        };
+
         cmdUpdateUI.attach(updateUI);
         cmdRenderUI.attach(renderUI);
         cmdUpdateMinimapFog.attach(updateFog);
+        cmdRotateMinimap.attach(onRotateMinimap);
         return () => {
             cmdUpdateUI.detach(updateUI);
             cmdRenderUI.detach(renderUI);
             cmdUpdateMinimapFog.detach(updateFog);
+            cmdRotateMinimap.detach(onRotateMinimap);
         }
 
     }, []);    
@@ -247,20 +262,24 @@ export function Minimap() {
             style={{
                 position: "relative",
                 height: "100%",
-                transform: "translate(220px, 10px) scaleY(.5) rotate(45deg)",
-                transformOrigin: "0 0",
+                transform: `translate(85px, -30px) scaleY(.5) rotate(${45}deg)`,
+                transformOrigin: "center",
                 border: "1px solid white",
                 pointerEvents: "all"
             }}
             onPointerEnter={() => gameMapState.cursorOverUI = true}
             onPointerLeave={() => gameMapState.cursorOverUI = false}
             onPointerDown={e => {
-                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY);
+                const { sectorRes } = gameMapState;
+                const texRes = mapRes * sectorRes;        
+                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, texRes / 2);
                 touchPressed.current = true
             }}
             onPointerMove={e => {
                 if (touchPressed.current) {
-                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY);
+                    const { sectorRes } = gameMapState;
+                    const texRes = mapRes * sectorRes;
+                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, texRes / 2);
                 }                
             }}
         >

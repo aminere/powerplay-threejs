@@ -8,8 +8,8 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
-import { cmdEndSelection, cmdHideUI, cmdSetSelectedElems, cmdShowUI } from "../../Events";
-import { onBeginDrag, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
+import { cmdEndSelection, cmdHideUI, cmdRotateMinimap, cmdSetSelectedElems, cmdShowUI } from "../../Events";
+import { onBeginDrag, onConveyor, onBuilding, onCancelDrag, onDrag, onElevation, onEndDrag, onMineral, onRoad, onTerrain, onTree, raycastOnCells } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
@@ -23,7 +23,7 @@ import { EnvProps } from "./EnvProps";
 // import { Trees } from "./Trees";
 import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
-import { IBuildingInstance } from "../GameTypes";
+import { IBuildingInstance, ISector } from "../GameTypes";
 import { buildings } from "../Buildings";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { unitMotion } from "../unit/UnitMotion";
@@ -45,10 +45,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const trains = utils.createObject(root, "trains");
         const cars = utils.createObject(root, "cars");
         const buildings = utils.createObject(root, "buildings");
+        const conveyors = utils.createObject(root, "conveyors");
 
         this.setState({
             sectorsRoot: utils.createObject(root, "sectors"),
-            sectors: new Map<string, any>(),
+            sectors: new Map<string, ISector>(),
             sectorRes: this.props.size,
             action: null,
             previousRoad: [],
@@ -80,7 +81,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 rails,
                 trains,
                 cars,
-                buildings
+                buildings,
+                conveyors
             },
             buildings: new Map<string, IBuildingInstance>(),
             selectedBuilding: null
@@ -309,6 +311,11 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     }
                                 }
                                     break;
+
+                                case "belt": {
+                                    onConveyor(mapCoords, cell, input.touchButton);
+                                }
+                                break;
                             }
                         }
                     } else {
@@ -655,8 +662,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                     onUpdate: () => {
                         const [rotationX] = config.camera.rotation;
                         this.state.cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this.state.cameraAngleRad, 0, 'YXZ'));
+                        cmdRotateMinimap.post(MathUtils.radToDeg(this.state.cameraAngleRad));
                     },
-                    onComplete: () => {
+                    onComplete: () => {                        
                         this.state.cameraTween = null;
 
                         // rotate camera bounds

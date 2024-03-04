@@ -38,7 +38,7 @@ class CellPathfinder {
         };
 
         let iteration = 0;
-        const maxIterations = 500;
+        const maxIterations = 2048;
         while (true) {
             let nodeWithLowestFCost = -1;
             let lowestFCost = Infinity;            

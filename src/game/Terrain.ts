@@ -219,7 +219,7 @@ export class Terrain {
                     cellTexture: { value: cellTexture },
                     highlightTexture: { value: highlightTexture },
                     gridTexture: { value: gridTexture },
-                    showGrid: { value: true }
+                    showGrid: { value: false }
                 };
                 shader.uniforms = {
                     ...shader.uniforms,

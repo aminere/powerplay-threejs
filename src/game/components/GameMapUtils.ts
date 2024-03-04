@@ -14,6 +14,7 @@ import { resources } from "../Resources";
 import { Sector } from "../Sector";
 import { GameMapProps } from "./GameMapProps";
 import { buildings } from "../Buildings";
+import { conveyors } from "../Conveyors";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
@@ -298,3 +299,14 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
     Sector.updateCellTexture(sector, localCoords, tileIndex);
 }
 
+export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
+    if (button === 0) {
+        if (cell.isEmpty) {
+            conveyors.create(mapCoords);
+        }
+    } else if (button === 2) {
+        if (cell.conveyor !== undefined) {
+            conveyors.clear(mapCoords);
+        }
+    }
+}
