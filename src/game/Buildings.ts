@@ -18,20 +18,20 @@ class Buildings {
         boundingBox: Box3;
     }>();
 
-    public preload() {
-        return Promise.all(Object.keys(config.buildings).map(buildingId => objects.load(`/models/buildings/${buildingId}.json`)))
-            .then(buildings => {
-                buildings.forEach((building, i) => {
-                    const buildingEntry = Object.entries(config.buildings)[i];
-                    const [buildingId, buildingConfig] = buildingEntry;
-                    const boundingBox = new Box3().setFromObject(building);
-                    boundingBox.max.y = buildingConfig.size.y;
-                    this._buildings.set(buildingId, {
-                        prefab: building,
-                        boundingBox
-                    });
-                });
+    public async preload() {
+        const buildindIds = Object.keys(config.buildings);
+        const buildings = await Promise.all(buildindIds.map(buildingId => objects.load(`/models/buildings/${buildingId}.json`)));
+        for (let i = 0; i < buildings.length; i++) {
+            const building = buildings[i];
+            const buildingId = buildindIds[i];
+            const buildingConfig = config.buildings[buildingId];
+            const boundingBox = new Box3().setFromObject(building);
+            boundingBox.max.y = buildingConfig.size.y;
+            this._buildings.set(buildingId, {
+                prefab: building,
+                boundingBox
             });
+        }
     }
 
     public getBoundingBox(buildingId: string) {

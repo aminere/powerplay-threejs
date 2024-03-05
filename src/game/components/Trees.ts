@@ -41,11 +41,9 @@ const trees = [
     "palm"
 ];
 
-function preloadTrees() {
-    return Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)))
-        .then(treeMeshes => {
-            return treeMeshes.map(m => m[0].geometry);
-        });
+async function preloadTrees() {
+    const treeMeshes = await Promise.all(trees.map(s => meshes.load(`/models/trees/${s}.fbx`)));
+    return treeMeshes.map(m => m[0].geometry);
 }
 
 export class Trees extends Component<TreesProps> {

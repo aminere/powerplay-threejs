@@ -27,6 +27,7 @@ import { IBuildingInstance, ISector } from "../GameTypes";
 import { buildings } from "../Buildings";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { unitMotion } from "../unit/UnitMotion";
+import { conveyors } from "../Conveyors";
 
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -495,7 +496,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         Promise.all([
             // treesComponent.load(trees),
             flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve(),
-            buildings.preload()
+            buildings.preload(),
+            conveyors.preload()
         ]).then(() => {
             cmdShowUI.post("gamemap");
         });
