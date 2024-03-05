@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
@@ -18,16 +18,6 @@ const worldPos = new Vector3();
 const mapCoordsTopLeft = new Vector2();
 const mapCoords = new Vector2();
 
-const transform = new Matrix3();
-function makeCameraTransform(angle: number, offset: number) {
-    transform.identity();
-    transform.translate(-offset, -offset);
-    transform.rotate(-angle * MathUtils.DEG2RAD);
-    transform.scale(1, .5);
-    transform.translate(85, -30);
-    transform.invert();
-}
-
 const canvasStyle = {
     width: "100%",
     height: "100%",
@@ -36,15 +26,24 @@ const canvasStyle = {
     top: "0",
 } as const;
 
-
 const crispCanvasStyle = {
     imageRendering: "pixelated",
     ...canvasStyle
 } as const;
 
+const minimapTransform = new Matrix3();
+function makeMinimapTransform(angleDeg: number, offset: number) {
+    minimapTransform.identity();
+    minimapTransform.translate(-offset, -offset);
+    minimapTransform.rotate(-angleDeg * MathUtils.DEG2RAD);
+    minimapTransform.scale(1, .5);
+    minimapTransform.translate(85, -30);
+    minimapTransform.invert();
+}
+
 function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, offset: number) {
     const { left, top } = engine.screenRect;
-    mapCoords.set(clientX - offset - left, clientY - offset - top).applyMatrix3(transform);
+    mapCoords.set(clientX - offset - left, clientY - offset - top).applyMatrix3(minimapTransform);
     const cameraPos = worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
     gamemap.setCameraPos(cameraPos);
 }
@@ -64,10 +63,10 @@ export function Minimap() {
     const gamemapRef = useRef<GameMap | null>(null);
     const flockRef = useRef<Flock | null>(null);
     const touchPressed = useRef(false);
-    const initialized = useRef(false);
+    const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
-        if (initialized.current) {
+        if (initialized) {
             return;
         }
 
@@ -161,12 +160,15 @@ export function Minimap() {
         const gamemaps = engineState.getComponents(GameMap);
         gamemapRef.current = gamemaps[0].component;
 
-        makeCameraTransform(45, texRes / 2);
-        initialized.current = true;
+        makeMinimapTransform(45, texRes / 2);
+        setInitialized(true);
+        
     }, []);
 
     useEffect(() => {
-        console.assert(initialized.current);
+        if (!initialized) {
+            return;
+        }
 
         const renderUI = () => {
             if (!gameMapState.instance) {
@@ -236,26 +238,28 @@ export function Minimap() {
             }
         };
 
-        const onRotateMinimap = (angle: number) => {
+        const onRotateMinimap = (angleDeg: number) => {
             const { sectorRes } = gameMapState;
             const texRes = mapRes * sectorRes;
-            makeCameraTransform(angle, texRes / 2);
+            makeMinimapTransform(angleDeg, texRes / 2);
             const container = root.current?.firstChild as HTMLDivElement;
-            container.style.transform = `translate(85px, -30px) scaleY(.5) rotate(${angle}deg)`;
+            container.style.transform = `translate(85px, -30px) scaleY(.5) rotate(${angleDeg}deg)`;
         };
 
+        console.log("attaching minimap");
         cmdUpdateUI.attach(updateUI);
         cmdRenderUI.attach(renderUI);
         cmdUpdateMinimapFog.attach(updateFog);
         cmdRotateMinimap.attach(onRotateMinimap);
         return () => {
+            console.log("detaching minimap");
             cmdUpdateUI.detach(updateUI);
             cmdRenderUI.detach(renderUI);
             cmdUpdateMinimapFog.detach(updateFog);
             cmdRotateMinimap.detach(onRotateMinimap);
         }
 
-    }, []);    
+    }, [initialized]);    
 
     return <div ref={root} style={{ position: "absolute", left: "0", top: "0" }}>
         <div

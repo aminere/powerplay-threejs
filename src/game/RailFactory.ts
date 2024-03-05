@@ -90,7 +90,7 @@ class RailFactory {
                     .add(offset)
                     .addScaledVector(bitangent, -vertices.getX(i) * cellSize)
                     .addScaledVector(GameUtils.vec3.up, vertices.getY(i));
-                vertices.setXYZ(i, curvedPos.x, curvedPos.y + .01, curvedPos.z);
+                vertices.setXYZ(i, curvedPos.x, curvedPos.y, curvedPos.z);
             }
 
             vertices.needsUpdate = true;

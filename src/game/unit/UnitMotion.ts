@@ -12,7 +12,6 @@ import { unitAnimation } from "./UnitAnimation";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
-import { gameMapState } from "../components/GameMapState";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 
@@ -22,7 +21,6 @@ const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
-const zero = new Vector3();
 
 function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
     const resource = desiredTargetCell.resource?.name;
@@ -195,7 +193,7 @@ class UnitMotion {
                 if (unit.arriving) {
 
                     if (!unit.fsm.currentState) {
-                        mathUtils.smoothDampVec3(unit.velocity, zero, .15, time.deltaTime);
+                        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
                         unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
                         unit.desiredPosValid = true;
                     }

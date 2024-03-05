@@ -62,10 +62,13 @@ export class GameMapState {
 
     public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
     public set selectionInProgress(value: boolean) { this._instance!.selectionInProgress = value; }
-    public set cursorOverUI(value: boolean) { 
-        this._instance!.cursorOverUI = value;
-        if (this._instance!.action) {
-            this._instance!.tileSelector.visible = !value;
+    public set cursorOverUI(value: boolean) {
+        if (!this._instance) {
+            return;
+        }
+        this._instance.cursorOverUI = value;
+        if (this._instance.action) {
+            this._instance.tileSelector.visible = !value;
         }
     }
     

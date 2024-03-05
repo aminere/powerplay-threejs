@@ -6,7 +6,7 @@ import { IBuildingInstance } from "./game/GameTypes";
 
 export const evtScreenResized = new AsyncEvent<void>();
 export const cmdShowUI = new AsyncEvent<UIType>();
-export const cmdHideUI = new AsyncEvent<UIType>();
+export const cmdHideUI = new SyncEvent<UIType>();
 
 export const cmdSetSelectedElems = new AsyncEvent<{
     units?: IUnit[];

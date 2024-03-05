@@ -97,7 +97,22 @@ export class Elevation {
             position.getY(startVertexIndex + verticesPerRow),
             position.getY(startVertexIndex + verticesPerRow + 1)
         ].sort((a, b) => a - b);
-        const height = direction > 0 ? minHeight + 1 : maxHeight - 1;
+        // const height = direction > 0 ? minHeight + 1 : maxHeight - 1;
+        const height = (() => {
+            if (direction > 0) {
+                if (minHeight < maxHeight) {
+                    return maxHeight;
+                } else {
+                    return maxHeight + 1;
+                }
+            } else {
+                if (maxHeight > minHeight) {
+                    return minHeight;
+                } else {
+                    return minHeight - 1;                
+                }
+            }
+        })();
 
         this._vertexOperations.clear();
         let allowed = true;

@@ -16,7 +16,11 @@ export interface IBuildingInstance {
 export interface ICell {
     roadTile?: number;
     previewRoadTile?: number;
-    conveyor?: boolean;
+    conveyor?: {
+        angle: number;
+        attached: boolean;
+        instanceIndex: number;
+    };
 
     buildingId?: string;
     resource?: Object3D;
