@@ -323,8 +323,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         onEndDrag();
                     }
                 } else {
-
-
                     const flock = engineState.getComponents(Flock)[0];
                     const flockState = flock?.component.state;
                     if (flockState) {
@@ -433,6 +431,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 }
             }
         }
+
+        conveyors.update();
     }
 
     public createSector(coords: Vector2) {

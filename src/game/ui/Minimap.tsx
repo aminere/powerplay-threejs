@@ -246,13 +246,11 @@ export function Minimap() {
             container.style.transform = `translate(85px, -30px) scaleY(.5) rotate(${angleDeg}deg)`;
         };
 
-        console.log("attaching minimap");
         cmdUpdateUI.attach(updateUI);
         cmdRenderUI.attach(renderUI);
         cmdUpdateMinimapFog.attach(updateFog);
         cmdRotateMinimap.attach(onRotateMinimap);
         return () => {
-            console.log("detaching minimap");
             cmdUpdateUI.detach(updateUI);
             cmdRenderUI.detach(renderUI);
             cmdUpdateMinimapFog.detach(updateFog);

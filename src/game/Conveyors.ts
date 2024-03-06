@@ -1,10 +1,11 @@
-import { BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, Quaternion, Vector2, Vector3 } from "three";
+import { BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Shader, Texture, Vector2, Vector3 } from "three";
 import { gameMapState } from "./components/GameMapState";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { pools } from "../engine/core/Pools";
 import { ICell } from "./GameTypes";
+import { time } from "../engine/core/Time";
 
 const conveyorHeight = .3;
 const maxConveyors = 500;
@@ -42,6 +43,9 @@ function getAngleFromDirection(direction: Vector2) {
 class Conveyors {
     private _conveyors!: InstancedMesh;
     private _conveyorTops!: InstancedMesh;
+    private _cells: ICell[] = [];
+    private _topTexture!: Texture;
+    private _loaded = false;
 
     public async preload() {
         const [conveyor, conveyorTop] = await Promise.all([
@@ -56,6 +60,11 @@ class Conveyors {
         const conveyorTopInstances = createInstancedMesh("conveyors-tops", conveyorTop.geometry, conveyorTop.material);       
         gameMapState.layers.conveyors.add(conveyorTopInstances);
         this._conveyorTops = conveyorTopInstances;
+
+        const topTexture = (conveyorTop.material as MeshBasicMaterial).map!;
+        topTexture.wrapT = RepeatWrapping;
+        this._topTexture = topTexture;
+        this._loaded = true;
     }
 
     public create(mapCoords: Vector2) {
@@ -113,6 +122,38 @@ class Conveyors {
     }
 
     public clear(mapCoords: Vector2) {
+        const cell = GameUtils.getCell(mapCoords)!;
+        const instanceIndex = cell.conveyor!.instanceIndex;
+        const count = this._conveyors.count;
+        const newCount = count - 1;
+        for (let i = instanceIndex; i < newCount; i++) {
+            this._conveyors.getMatrixAt(i + 1, matrix);
+            this._conveyors.setMatrixAt(i, matrix);
+            this._conveyorTops.getMatrixAt(i + 1, matrix);
+            this._conveyorTops.setMatrixAt(i, matrix);            
+        }
+
+        this._cells.splice(instanceIndex, 1);
+        for (let i = instanceIndex; i < newCount; i++) {
+            const cell = this._cells[i];
+            cell.conveyor!.instanceIndex--;
+        }
+
+        this._conveyors.count = newCount;
+        this._conveyorTops.count = newCount;
+        this._conveyors.instanceMatrix.needsUpdate = true;
+        this._conveyorTops.instanceMatrix.needsUpdate = true;
+        delete cell.conveyor;
+        cell.isEmpty = true;
+        cell.flowFieldCost = 1;
+    }
+
+    public update() {
+        if (!this._loaded) {
+            return;
+        }
+
+        this._topTexture.offset.y -= time.deltaTime;
     }
 
     private createConveyor(cell: ICell, mapCoords: Vector2, direction?: Vector2) {
@@ -142,6 +183,7 @@ class Conveyors {
         };
         cell.isEmpty = false;
         cell.flowFieldCost = 0xffff;
+        this._cells.push(cell);
     }
 
 }
