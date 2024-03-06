@@ -93,6 +93,7 @@ export class Roads {
             const cellIndex = localCoords.y * mapRes + localCoords.x;
             const rawTileIndex = sector.textureData.terrain.at(cellIndex);            
             cell.roadTile = rawTileIndex;
+            delete cell.previewRoadTile;
         }
     }
 

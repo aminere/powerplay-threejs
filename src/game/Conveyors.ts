@@ -4,7 +4,7 @@ import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { pools } from "../engine/core/Pools";
-import { ICell } from "./GameTypes";
+import { Axis, ICell } from "./GameTypes";
 import { time } from "../engine/core/Time";
 
 const conveyorHeight = .3;
@@ -43,7 +43,7 @@ function getAngleFromDirection(direction: Vector2) {
 class Conveyors {
     private _conveyors!: InstancedMesh;
     private _conveyorTops!: InstancedMesh;
-    private _cells: ICell[] = [];
+    private _cells!: ICell[];
     private _topTexture!: Texture;
     private _loaded = false;
 
@@ -64,6 +64,7 @@ class Conveyors {
         const topTexture = (conveyorTop.material as MeshBasicMaterial).map!;
         topTexture.wrapT = RepeatWrapping;
         this._topTexture = topTexture;
+        this._cells = [];
         this._loaded = true;
     }
 
@@ -148,12 +149,53 @@ class Conveyors {
         cell.flowFieldCost = 1;
     }
 
+    public onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
+        const currentPos = pools.vec2.getOne();
+        const scan = (_start: Vector2, direction: Vector2, iterations: number) => {
+            console.assert(iterations >= 0);
+            for (let i = 0; i <= iterations; ++i) {
+                currentPos.copy(_start).addScaledVector(direction, i);
+                const cell = GameUtils.getCell(currentPos);
+                if (!cell || !cell.isEmpty || cell.roadTile !== undefined) {
+                    continue;
+                }
+                const cellCoords = currentPos.clone();
+                cellsOut.push(cellCoords);
+                this.create(cellCoords);
+            }
+        };
+
+        if (dragAxis === "x") {
+            const direction = new Vector2(Math.sign(current.x - start.x), 0);
+            const iterations = Math.abs(current.x - start.x);
+            scan(start, direction, iterations);
+            if (current.y !== start.y) {
+                const offset2 = new Vector2(0, Math.sign(current.y - start.y));
+                const start2 = new Vector2().copy(start).addScaledVector(direction, iterations).add(offset2);
+                scan(start2, offset2, Math.abs(current.y - start.y) - 1);
+            }
+        } else {
+            const direction = new Vector2(0, Math.sign(current.y - start.y));
+            const iterations = Math.abs(current.y - start.y);
+            scan(start, direction, iterations);
+            if (current.x !== start.x) {
+                const offset2 = new Vector2(Math.sign(current.x - start.x), 0);
+                const start2 = new Vector2().copy(start).addScaledVector(direction, iterations).add(offset2);
+                scan(start2, offset2, Math.abs(current.x - start.x) - 1);
+            }
+        }
+    }
+
     public update() {
         if (!this._loaded) {
             return;
         }
 
         this._topTexture.offset.y -= time.deltaTime;
+    }
+
+    public dispose() {
+        this._loaded = false;
     }
 
     private createConveyor(cell: ICell, mapCoords: Vector2, direction?: Vector2) {

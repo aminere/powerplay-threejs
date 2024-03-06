@@ -55,6 +55,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             action: null,
             previousRoad: [],
             previousRail: [],
+            previousConveyors: [],
             cameraZoom: 1,
             cameraAngleRad: 0,
             cameraTween: null,
@@ -123,6 +124,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
         cmdHideUI.post("gamemap");
+        conveyors.dispose();
         gameMapState.instance = null;
     }
 

@@ -152,6 +152,14 @@ export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { 
         case "terrain": {
             onTerrain(current, props.tileType);
         } break;
+
+        case "belt": {
+            for (const cell of gameMapState.previousConveyors) {
+                conveyors.clear(cell);
+            }
+            gameMapState.previousConveyors.length = 0;
+            conveyors.onDrag(start, current, gameMapState.previousConveyors, gameMapState.initialDragAxis!);
+        } break;
     }
 }
 
@@ -184,32 +192,40 @@ export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProp
     onDrag(start, current, props);
 }
 
-export function onEndDrag() { // map coords
-
+export function onEndDrag() {
     if (gameMapState.previousRoad.length > 0) {
         console.assert(gameMapState.action === "road");
         Roads.onEndDrag(gameMapState.previousRoad);
-    }
-    gameMapState.previousRoad.length = 0;
+        gameMapState.previousRoad.length = 0;
+    }    
 
     if (gameMapState.previousRail.length > 0) {
         console.assert(gameMapState.action === "rail");
         Rails.onEndDrag(gameMapState.previousRail);
+        gameMapState.previousRail.length = 0;
     }
 
-    gameMapState.previousRail.length = 0;
+    if (gameMapState.previousConveyors.length > 0) {
+        console.assert(gameMapState.action === "belt");
+        gameMapState.previousConveyors.length = 0;
+    }    
 }
 
 export function onCancelDrag() {
-    for (const cell of gameMapState.previousRoad) {
-        Roads.clear(cell);
+    if (gameMapState.previousRoad.length > 0) {
+        gameMapState.previousRoad.forEach(Roads.clear);
+        gameMapState.previousRoad.length = 0;
     }
-    gameMapState.previousRoad.length = 0;
 
-    for (const cell of gameMapState.previousRail) {
-        Rails.clear(cell);
+    if (gameMapState.previousRail.length > 0) {
+        gameMapState.previousRail.forEach(Rails.clear);
+        gameMapState.previousRail.length = 0;
     }
-    gameMapState.previousRail.length = 0;
+
+    if (gameMapState.previousConveyors.length > 0) {
+        gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
+        gameMapState.previousConveyors.length = 0;
+    }
 }
 
 export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {

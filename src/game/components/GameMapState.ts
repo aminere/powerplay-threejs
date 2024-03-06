@@ -12,6 +12,7 @@ export interface IGameMapState {
     initialDragAxis?: "x" | "z";
     previousRoad: Vector2[];
     previousRail: ICell[];
+    previousConveyors: Vector2[];
     cameraZoom: number;
     cameraAngleRad: number;
     cameraTween: gsap.core.Tween | null;
@@ -51,6 +52,7 @@ export class GameMapState {
     public get camera() { return this._instance!.camera; }
     public get previousRoad() { return this._instance!.previousRoad; }
     public get previousRail() { return this._instance!.previousRail; }
+    public get previousConveyors() { return this._instance!.previousConveyors; }
     public get selectionInProgress() { return this._instance!.selectionInProgress; }
     public get sectorRes() { return this._instance!.sectorRes; }
     public get cursorOverUI() { return this._instance!.cursorOverUI; }
