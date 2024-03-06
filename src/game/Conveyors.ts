@@ -13,7 +13,6 @@ const worldPos = new Vector3();
 const rotation = new Quaternion();
 const { cellSize } = config.game;
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
-const up = new Vector3(0, 1, 0);
 
 function createInstancedMesh(name: string, geometry: BufferGeometry, material: Material | Material[]) {
     const mesh = new InstancedMesh(geometry, material, maxConveyors);
@@ -24,6 +23,20 @@ function createInstancedMesh(name: string, geometry: BufferGeometry, material: M
     mesh.matrixWorldAutoUpdate = false;
     mesh.count = 0;
     return mesh;
+}
+
+function getAngleFromDirection(direction: Vector2) {    
+    if (direction.x === 0) {
+        if (direction.y > 0) {
+            return 0;
+        }
+        return Math.PI;
+    } else {
+        if (direction.x > 0) {
+            return Math.PI / 2;
+        }
+        return -Math.PI / 2;
+    }
 }
 
 class Conveyors {
@@ -47,49 +60,62 @@ class Conveyors {
 
     public create(mapCoords: Vector2) {
         const cell = GameUtils.getCell(mapCoords)!;
-        console.assert(cell.isEmpty);
-        
-        const neighborInfo = (() => {
-            let neighborCell: ICell | null = null;
-            const [neighborCoord, neighborConveyorCoord] = pools.vec2.get(2);
-            for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-                neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
-                const _cell = GameUtils.getCell(neighborCoord);
-                if (_cell?.conveyor) {
-                    if (_cell.conveyor.attached) {
-                        return [_cell, neighborCoord] as const;
-                    } else {
-                        neighborCell = _cell;
-                        neighborConveyorCoord.copy(neighborCoord);
-                    }
+        console.assert(cell.isEmpty);        
+
+        let direction: Vector2 | null = null;
+        let neighborConveyorCell: ICell | null = null;
+        const [neighborCoord, neighborConveyorCoord] = pools.vec2.get(2);
+        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
+            const neighborCell = GameUtils.getCell(neighborCoord);
+            if (neighborCell?.conveyor) {
+                neighborConveyorCell = neighborCell;
+                neighborConveyorCoord.copy(neighborCoord);
+                if (neighborCell.conveyor.direction) {
+                    direction = neighborCell.conveyor.direction;
+                    break;
                 }
             }
-            if (neighborCell) {
-                return [neighborCell, neighborConveyorCoord] as const;
+        }
+
+        if (!direction) {
+            if (neighborConveyorCell) {
+                const neighborConveyor = neighborConveyorCell.conveyor!;
+                const dx = mapCoords.x - neighborConveyorCoord.x;
+                const dy = mapCoords.y - neighborConveyorCoord.y;
+                console.assert(!neighborConveyor.direction);
+                neighborConveyor.direction = new Vector2(dx, dy);
+                this.createConveyor(cell, mapCoords, neighborConveyor.direction);
+
+                // update neighbor
+                GameUtils.mapToWorld(neighborConveyorCoord, worldPos);
+                worldPos.y = conveyorHeight * cellSize;
+                const angle = getAngleFromDirection(neighborConveyor.direction);
+                rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
+                matrix.compose(worldPos, rotation, scale);
+                this._conveyorTops.setMatrixAt(neighborConveyor.instanceIndex, matrix);
+                this._conveyorTops.instanceMatrix.needsUpdate = true;
             } else {
-                return null;
+                this.createConveyor(cell, mapCoords);
             }
-        })();
-
-        const angle = (() => {
-            if (neighborInfo) {
-                const [, neighborCoord] = neighborInfo;
-                const dx = neighborCoord.x - mapCoords.x;
-                const dy = neighborCoord.y - mapCoords.y;
-                if (dx === 0) {
-                    if (dy < 0) {
-                        return Math.PI;
-                    }
-                } else {
-                    if (dx < 0) {
-                        return -Math.PI / 2;
-                    }
-                    return Math.PI / 2;
-                }
+        } else {            
+            const dx = mapCoords.x - neighborConveyorCoord.x;
+            const dy = mapCoords.y - neighborConveyorCoord.y;
+            const perpendicular = Math.abs(direction.x) !== dx;
+            if (perpendicular) {
+                const newDirection = pools.vec2.getOne();
+                newDirection.set(dx, dy);
+                this.createConveyor(cell, mapCoords, newDirection);
+            } else {
+                this.createConveyor(cell, mapCoords, direction);
             }
-            return 0;
-        })();
+        }
+    }
 
+    public clear(mapCoords: Vector2) {
+    }
+
+    private createConveyor(cell: ICell, mapCoords: Vector2, direction?: Vector2) {
         GameUtils.mapToWorld(mapCoords, worldPos);
         worldPos.x -= cellSize / 2;
         worldPos.z -= cellSize / 2;
@@ -102,35 +128,22 @@ class Conveyors {
         worldPos.x += cellSize / 2;
         worldPos.z += cellSize / 2;
         worldPos.y = conveyorHeight * cellSize;
-        rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
+        if (direction) {
+            const angle = getAngleFromDirection(direction);
+            rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
+        }
         matrix.compose(worldPos, rotation, scale);
         this._conveyorTops.setMatrixAt(count, matrix);
         this._conveyorTops.count = count + 1;
         this._conveyorTops.instanceMatrix.needsUpdate = true;
-
         cell.conveyor = {
-            angle,
-            attached: neighborInfo !== null,
+            direction: direction?.clone(),
             instanceIndex: count
         };
-
-        if (neighborInfo) {
-            const [neighborCell, neighborCoord] = neighborInfo;
-            console.assert(neighborCell.conveyor);
-            const neighborConveyor = neighborCell.conveyor!;            
-            neighborConveyor.angle = angle;
-            neighborConveyor.attached = true;
-            GameUtils.mapToWorld(neighborCoord, worldPos);
-            worldPos.y = conveyorHeight * cellSize;
-            rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
-            matrix.compose(worldPos, rotation, scale);
-            this._conveyorTops.setMatrixAt(neighborConveyor.instanceIndex, matrix);
-            this._conveyorTops.instanceMatrix.needsUpdate = true;
-        }
+        cell.isEmpty = false;
+        cell.flowFieldCost = 0xffff;
     }
 
-    public clear(mapCoords: Vector2) {
-    }
 }
 
 export const conveyors = new Conveyors();

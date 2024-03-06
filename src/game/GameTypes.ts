@@ -17,9 +17,8 @@ export interface ICell {
     roadTile?: number;
     previewRoadTile?: number;
     conveyor?: {
-        angle: number;
-        attached: boolean;
         instanceIndex: number;
+        direction?: Vector2;
     };
 
     buildingId?: string;

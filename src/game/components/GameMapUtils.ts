@@ -301,7 +301,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
 
 export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
-        if (cell.isEmpty) {
+        if (cell.isEmpty && cell.roadTile === undefined) {
             conveyors.create(mapCoords);
         }
     } else if (button === 2) {
