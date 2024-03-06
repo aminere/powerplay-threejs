@@ -5,6 +5,8 @@ import { BezierPath } from "./BezierPath";
 import { IRail } from "./GameTypes";
 import { meshes } from "../engine/resources/Meshes";
 import { pools } from "../engine/core/Pools";
+const { cellSize } = config.game;
+const halfCell = cellSize / 2;
 
 class RailFactory {
 
@@ -21,7 +23,6 @@ class RailFactory {
     }
 
     public makeRail(length: number, rotation: number) {
-        const { cellSize } = config.game;
         const container = new Object3D();
         const mesh = this._railMesh.clone();
         mesh.position.set(0, .01, -cellSize / 2);
@@ -48,8 +49,6 @@ class RailFactory {
                 rotation: rotationY
             } as IRail;
         } else {
-            const { cellSize } = config.game;
-            const halfCell = cellSize / 2;
             const x1 = 0;
             const x2 = (cellSize * turnRadius / 2 - halfCell) * directionX;
             const x3 = (cellSize * turnRadius - halfCell) * directionX;
