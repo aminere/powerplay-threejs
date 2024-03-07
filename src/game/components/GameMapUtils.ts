@@ -159,6 +159,7 @@ export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { 
             }
             gameMapState.previousConveyors.length = 0;
             conveyors.onDrag(start, current, gameMapState.previousConveyors, gameMapState.initialDragAxis!);
+            console.log(`conveyor drag: ${gameMapState.previousConveyors}`)
         } break;
     }
 }
