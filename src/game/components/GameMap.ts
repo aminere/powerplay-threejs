@@ -74,6 +74,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             previousTouchPos: new Vector2(),
             tileSelector: null!,
             selectedCellCoords: new Vector2(),
+            highlightedCellCoords: new Vector2(),
             touchStartCoords: new Vector2(),
             touchHoveredCoords: new Vector2(),
             touchDragged: false,
@@ -139,14 +140,17 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
             if (!input.touchPos.equals(this.state.previousTouchPos)) {
                 this.state.previousTouchPos.copy(input.touchPos);
-
+                const cellCoords = pools.vec2.getOne();
+                raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                 if (this.state.action) {
-                    const [cellCoords] = pools.vec2.get(1);
-                    raycastOnCells(input.touchPos, this.state.camera, cellCoords);
                     if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
                         this.state.tileSelector.setPosition(cellCoords!);
                         this.state.selectedCellCoords.copy(cellCoords!);
                         // default rail preview was here                        
+                    }
+                } else {
+                    if (cellCoords?.equals(this.state.highlightedCellCoords) === false) {                        
+                        this.state.highlightedCellCoords.copy(cellCoords!);
                     }
                 }
             }
@@ -399,12 +403,24 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         cmdSetSelectedElems.post({ building });
                                     }
                                     
-                                } else {    
+                                } else {
+
                                     if (flockState.selectedUnits.length > 0) {
                                         flockState.selectedUnits.length = 0;
                                     }
+
                                     this.state.selectedBuilding = null;
-                                    cmdSetSelectedElems.post({ });
+                                    const cell = GameUtils.getCell(this.state.highlightedCellCoords);
+                                    if (cell?.conveyor) {
+
+                                        // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });   
+
+                                        // Add item to conveyor
+
+
+                                    } else {
+                                        cmdSetSelectedElems.post({ });
+                                    }
                                 }
                             }
     

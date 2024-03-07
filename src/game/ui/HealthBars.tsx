@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems } from "../../Events";
 import { gameMapState } from "../components/GameMapState";
-import { Color, Vector3 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { IUnit } from "../unit/IUnit";
@@ -19,11 +19,11 @@ const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
 const headOffset = 2;
-const { cellSize } = config.game;
+const { cellSize, conveyorHeight } = config.game;
 
-function drawBar(ctx: CanvasRenderingContext2D, health: number) {
+function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number) {
     const camera = gameMapState.camera;
-    GameUtils.worldToScreen(worldPos, camera, screenPos);
+    GameUtils.worldToScreen(position, camera, screenPos);
     const barX = Math.round(screenPos.x - totalWidth / 2);
     const barY = Math.round(screenPos.y);
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -56,24 +56,22 @@ export function HealthBars() {
     const selectedUnitsRef = useRef<IUnit[]>([]);
     const selectedBuildingRef = useRef<IBuildingInstance | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const selectedConveyorRef = useRef<Vector2 | null>(null);
 
     useEffect(() => {
 
-        const onSelectedElems = ({ units, building }: {
+        const onSelectedElems = ({ units, building, conveyor }: {
             units?: IUnit[];
             building?: IBuildingInstance;
+            conveyor?: Vector2;
         }) => {
             if (units) {
                 selectedUnitsRef.current = units;
             } else {
                 selectedUnitsRef.current.length = 0;
             }
-
-            if (building) {
-                selectedBuildingRef.current = building;
-            } else {
-                selectedBuildingRef.current = null;
-            }
+            selectedBuildingRef.current = building ?? null;
+            selectedConveyorRef.current = conveyor ?? null;
         };
 
         const renderUI = () => {
@@ -89,6 +87,7 @@ export function HealthBars() {
             
             const selectedUnits = selectedUnitsRef.current;
             const selectedBuilding = selectedBuildingRef.current;
+            const selectedConveyor = selectedConveyorRef.current;
             if (selectedUnits.length > 0) {
                 for (let i = 0; i < selectedUnits.length; i++) {  
                     const unit = selectedUnits[i];              
@@ -97,7 +96,7 @@ export function HealthBars() {
                         continue;
                     }
                     worldPos.copy(obj.position).addScaledVector(obj.up, headOffset);                    
-                    drawBar(ctx, selectedUnits[i].health);
+                    drawBar(ctx, worldPos, selectedUnits[i].health);
                 }
             } else if (selectedBuilding) {
                 const { obj, buildingId } = selectedBuilding;
@@ -105,9 +104,12 @@ export function HealthBars() {
                 worldPos.copy(obj.position).addScaledVector(obj.up, buildingConfig.size.y * cellSize);
                 worldPos.x += buildingConfig.size.x / 2 * cellSize;
                 worldPos.z += buildingConfig.size.z / 2 * cellSize;
-                drawBar(ctx, 1);
+                drawBar(ctx, worldPos, 1);
+            } else if (selectedConveyor) {
+                GameUtils.mapToWorld(selectedConveyor, worldPos);
+                worldPos.y += conveyorHeight * cellSize;
+                drawBar(ctx, worldPos, 1);
             }
-            
         };
 
         const onResize = () => {

@@ -26,6 +26,7 @@ export interface IGameMapState {
     previousTouchPos: Vector2;
     tileSelector: TileSector;
     selectedCellCoords: Vector2;
+    highlightedCellCoords: Vector2;
     touchStartCoords:  Vector2;
     touchHoveredCoords: Vector2;
     touchDragged: boolean;

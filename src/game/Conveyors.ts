@@ -1,4 +1,4 @@
-import { BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
+import { BufferGeometry, DoubleSide, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
 import { gameMapState } from "./components/GameMapState";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
@@ -8,20 +8,18 @@ import { Axis, ICell, IConveyorConfig } from "./GameTypes";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
 
-const conveyorHeight = .3;
 const scaleX = .6;
 const maxConveyors = 500;
 const matrix = new Matrix4();
 const worldPos = new Vector3();
 const rotation = new Quaternion();
-const { cellSize } = config.game;
+const { cellSize, conveyorHeight } = config.game;
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
 const neighborCoords = new Vector2();
 
 function createInstancedMesh(name: string, geometry: BufferGeometry, material: Material | Material[]) {
     const mesh = new InstancedMesh(geometry, material, maxConveyors);
     mesh.name = name;
-    mesh.castShadow = true;
     mesh.frustumCulled = false;
     mesh.matrixAutoUpdate = false;
     mesh.matrixWorldAutoUpdate = false;
@@ -139,16 +137,14 @@ function getCornerExitCoords(cell: ICell, mapCoords: Vector2) {
     const { startAxis, direction } = cell.conveyor!.config!;
     const sx = startAxis === "x" ? 0 : 1;
     const sy = 1 - sx;
-    neighborCoords.set(mapCoords.x + direction.x * sx, mapCoords.y + direction.y * sy);
-    return neighborCoords;
+    return neighborCoords.set(mapCoords.x + direction.x * sx, mapCoords.y + direction.y * sy);
 }
 
 function getCornerEntryCoords(cell: ICell, mapCoords: Vector2) {
     const { startAxis, direction } = cell.conveyor!.config!;
     const sy = startAxis === "x" ? 0 : 1;
     const sx = 1 - sy;
-    neighborCoords.set(mapCoords.x - direction.x * sx, mapCoords.y - direction.y * sy);
-    return neighborCoords;
+    return neighborCoords.set(mapCoords.x - direction.x * sx, mapCoords.y - direction.y * sy);
 }
 
 function isCornerExit(cell: ICell, mapCoords: Vector2) {
@@ -198,6 +194,16 @@ class Conveyors {
             return;
         }
 
+        
+        const baseMaterial = conveyor.material as MeshBasicMaterial;
+        baseMaterial.transparent = true;
+        baseMaterial.opacity = .9;
+        baseMaterial.side = DoubleSide;
+        const curvedBaseMaterial = curvedConveyor0.material as MeshBasicMaterial;
+        curvedBaseMaterial.transparent = true;
+        curvedBaseMaterial.opacity = .9;
+        curvedBaseMaterial.side = DoubleSide;
+
         conveyor.geometry.scale(scaleX, 1, 1);
         const conveyorInstances = createInstancedMesh("conveyors", conveyor.geometry, conveyor.material);
         gameMapState.layers.conveyors.add(conveyorInstances);
@@ -221,7 +227,7 @@ class Conveyors {
         this._loaded = true;
     }
 
-    public create(mapCoords: Vector2) {
+    public create(mapCoords: Vector2, isDragging = false) {
         const cell = GameUtils.getCell(mapCoords)!;
         console.assert(cell.isEmpty);
 
@@ -307,7 +313,8 @@ class Conveyors {
 
                             this.createStraightConveyor(cell, mapCoords, { direction: newDirection, startAxis });
 
-                            if (neighborConveyorCell.previewConveyor) {
+                            const canAffectNeighbor = !isDragging || neighborConveyorCell.previewConveyor;
+                            if (canAffectNeighbor) {
                                 this.curveStraightConveyor(neighborConveyorCell, neighborConveyorCoords, newDirection, neighborIsEntry);                            
                             }
 
@@ -333,7 +340,8 @@ class Conveyors {
                 const config: IConveyorConfig = { direction: new Vector2(dx, dy), startAxis: dx === 0 ? "z" : "x" };
                 this.createStraightConveyor(cell, mapCoords, config);
 
-                if (neighborConveyorCell.previewConveyor) {
+                const canAffectNeighbor = !isDragging || neighborConveyorCell.previewConveyor;
+                if (canAffectNeighbor) {
                     // update neighbor
                     console.assert(!neighborConveyor.config);
                     neighborConveyor.config = { direction: config.direction.clone(), startAxis: config.startAxis };
@@ -380,7 +388,7 @@ class Conveyors {
                 cell.previewConveyor = true;
                 const cellCoords = currentPos.clone();
                 cellsOut.push(cellCoords);
-                this.create(cellCoords);
+                this.create(cellCoords, true);
             }
         };
 

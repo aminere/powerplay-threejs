@@ -11,6 +11,7 @@ export const cmdHideUI = new SyncEvent<UIType>();
 export const cmdSetSelectedElems = new AsyncEvent<{
     units?: IUnit[];
     building?: IBuildingInstance;
+    conveyor?: Vector2;
 }>();
 
 export const cmdStartSelection = new AsyncEvent<Vector2>();
