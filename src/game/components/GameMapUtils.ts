@@ -207,6 +207,7 @@ export function onEndDrag() {
 
     if (gameMapState.previousConveyors.length > 0) {
         console.assert(gameMapState.action === "belt");
+        conveyors.onEndDrag(gameMapState.previousConveyors);
         gameMapState.previousConveyors.length = 0;
     }    
 }

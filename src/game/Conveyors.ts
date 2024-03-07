@@ -306,7 +306,10 @@ class Conveyors {
                             })();
 
                             this.createStraightConveyor(cell, mapCoords, { direction: newDirection, startAxis });
-                            this.curveStraightConveyor(neighborConveyorCell, neighborConveyorCoords, newDirection, neighborIsEntry);                            
+
+                            if (neighborConveyorCell.previewConveyor) {
+                                this.curveStraightConveyor(neighborConveyorCell, neighborConveyorCoords, newDirection, neighborIsEntry);                            
+                            }
 
                         } else {
 
@@ -330,19 +333,21 @@ class Conveyors {
                 const config: IConveyorConfig = { direction: new Vector2(dx, dy), startAxis: dx === 0 ? "z" : "x" };
                 this.createStraightConveyor(cell, mapCoords, config);
 
-                // update neighbor
-                console.assert(!neighborConveyor.config);
-                neighborConveyor.config = { direction: config.direction.clone(), startAxis: config.startAxis };
-                GameUtils.mapToWorld(neighborConveyorCoords, worldPos);
-                const angle = getAngleFromDirection(neighborConveyor.config.direction);
-                rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
-                matrix.compose(worldPos, rotation, scale);
-                this._conveyors.setMatrixAt(neighborConveyor.instanceIndex, matrix);
-                this._conveyors.instanceMatrix.needsUpdate = true;
-                worldPos.y = conveyorHeight * cellSize;
-                matrix.setPosition(worldPos);
-                this._conveyorTops.setMatrixAt(neighborConveyor.instanceIndex, matrix);
-                this._conveyorTops.instanceMatrix.needsUpdate = true;
+                if (neighborConveyorCell.previewConveyor) {
+                    // update neighbor
+                    console.assert(!neighborConveyor.config);
+                    neighborConveyor.config = { direction: config.direction.clone(), startAxis: config.startAxis };
+                    GameUtils.mapToWorld(neighborConveyorCoords, worldPos);
+                    const angle = getAngleFromDirection(neighborConveyor.config.direction);
+                    rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
+                    matrix.compose(worldPos, rotation, scale);
+                    this._conveyors.setMatrixAt(neighborConveyor.instanceIndex, matrix);
+                    this._conveyors.instanceMatrix.needsUpdate = true;
+                    worldPos.y = conveyorHeight * cellSize;
+                    matrix.setPosition(worldPos);
+                    this._conveyorTops.setMatrixAt(neighborConveyor.instanceIndex, matrix);
+                    this._conveyorTops.instanceMatrix.needsUpdate = true;
+                }                
             }
         } else {
             this.createStraightConveyor(cell, mapCoords);
@@ -357,6 +362,7 @@ class Conveyors {
             this.deleteStraightConveyor(cell);
         }
         delete cell.conveyor;
+        delete cell.previewConveyor;
         cell.isEmpty = true;
         cell.flowFieldCost = 1;
     }
@@ -371,6 +377,7 @@ class Conveyors {
                 if (!cell || !cell.isEmpty || cell.roadTile !== undefined) {
                     continue;
                 }
+                cell.previewConveyor = true;
                 const cellCoords = currentPos.clone();
                 cellsOut.push(cellCoords);
                 this.create(cellCoords);
@@ -395,6 +402,14 @@ class Conveyors {
                 const start2 = new Vector2().copy(start).addScaledVector(direction, iterations).add(offset2);
                 scan(start2, offset2, Math.abs(current.x - start.x) - 1);
             }
+        }
+    }
+
+    public onEndDrag(cells: Vector2[]) {
+        for (const coord of cells) {
+            const cell = GameUtils.getCell(coord)!;
+            console.assert(cell.previewConveyor);
+            delete cell.previewConveyor;
         }
     }
 

@@ -27,6 +27,7 @@ export interface ICell {
         mesh?: Object3D;
         config?: IConveyorConfig;
     };
+    previewConveyor?: boolean;
 
     buildingId?: string;
     resource?: Object3D;
