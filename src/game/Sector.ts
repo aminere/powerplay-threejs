@@ -22,8 +22,9 @@ export class Sector {
         sectorRoot.updateMatrix();
 
         const grid = [...Array(mapRes * mapRes)];
-        const cells = grid.map(() => {
+        const cells = grid.map((_, i) => {
             const cell: ICell = {
+                id: `${x},${y}-${i}`,
                 isEmpty: true,
                 flowFieldCost: 1,
                 viewCount: -1,

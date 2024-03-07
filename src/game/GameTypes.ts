@@ -19,6 +19,7 @@ export interface IConveyorConfig {
 }
 
 export interface ICell {
+    id: string;
     roadTile?: number;
     previewRoadTile?: number;
     conveyor?: {
