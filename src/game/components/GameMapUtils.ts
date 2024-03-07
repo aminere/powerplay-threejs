@@ -154,13 +154,11 @@ export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { 
         } break;
 
         case "belt": {
-            console.log(`conveyor before drag: ${gameMapState.previousConveyors.toString()}`);
             for (const cell of gameMapState.previousConveyors) {
                 conveyors.clear(cell);
             }
             gameMapState.previousConveyors.length = 0;
             conveyors.onDrag(start, current, gameMapState.previousConveyors, gameMapState.initialDragAxis!);
-            console.log(`conveyor after drag: ${gameMapState.previousConveyors.toString()}`);
         } break;
     }
 }
