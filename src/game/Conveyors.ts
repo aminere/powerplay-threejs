@@ -1,15 +1,15 @@
-import { BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Shader, Texture, Vector2, Vector3 } from "three";
+import { BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
 import { gameMapState } from "./components/GameMapState";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { pools } from "../engine/core/Pools";
-import { Axis, ICell } from "./GameTypes";
+import { Axis, ICell, IConveyorConfig } from "./GameTypes";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
 
 const conveyorHeight = .3;
-const scaleX = .7;
+const scaleX = .6;
 const maxConveyors = 500;
 const matrix = new Matrix4();
 const worldPos = new Vector3();
@@ -42,15 +42,16 @@ function getAngleFromDirection(direction: Vector2) {
     }
 }
 
-function makeCurvedConveyor(mesh: Mesh) {
-    mesh.geometry = (mesh.geometry as THREE.BufferGeometry).clone();
-    mesh.geometry.computeBoundingBox();
-    const minZ = mesh.geometry.boundingBox!.min.z;
-    const maxZ = mesh.geometry.boundingBox!.max.z;
-    const halfCell = cellSize / 2;
+function makeCurvedConveyor(mesh: Mesh, xDir: number) {
+    const curvedMesh = mesh.clone();
+    curvedMesh.geometry = (curvedMesh.geometry as THREE.BufferGeometry).clone();
+    curvedMesh.geometry.computeBoundingBox();
+    const minZ = curvedMesh.geometry.boundingBox!.min.z;
+    const maxZ = curvedMesh.geometry.boundingBox!.max.z;
+    const halfCell = 1 / 2;
     const x1 = 0;
-    const x2 = halfCell / 2;
-    const x3 = halfCell;
+    const x2 = halfCell / 2 * xDir;
+    const x3 = halfCell * xDir;
     const z1 = 0;
     const z2 = halfCell / 2;
     const z3 = halfCell;
@@ -62,7 +63,7 @@ function makeCurvedConveyor(mesh: Mesh) {
         new Vector3(x3, 0, z3)
     ]);
 
-    const vertices = mesh.geometry.getAttribute("position") as THREE.BufferAttribute;
+    const vertices = curvedMesh.geometry.getAttribute("position") as THREE.BufferAttribute;
     const [point, bitangent, curvedPos, offset] = pools.vec3.get(4);
     offset.set(0, 0, -halfCell);
     for (let i = 0; i < vertices.count; ++i) {
@@ -71,52 +72,32 @@ function makeCurvedConveyor(mesh: Mesh) {
         curve.evaluateBitangent(t, bitangent);
         curvedPos.copy(point)
             .add(offset)
-            .addScaledVector(bitangent, -vertices.getX(i) * cellSize * scaleX)
-            .addScaledVector(GameUtils.vec3.up, vertices.getY(i) * cellSize);
+            .addScaledVector(bitangent, -vertices.getX(i) * scaleX)
+            .addScaledVector(GameUtils.vec3.up, vertices.getY(i));
         vertices.setXYZ(i, curvedPos.x, curvedPos.y, curvedPos.z);
     }
 
-    mesh.geometry.computeVertexNormals();
+    curvedMesh.geometry.computeVertexNormals();
     vertices.needsUpdate = true;
+    return curvedMesh;
 }
 
 function isCornerConveyor(cell: ICell) {
-    const direction = cell.conveyor!.direction;
-    if (direction) {       
-        return Math.abs(direction.x) + Math.abs(direction.y) > 1;
+    const config = cell.conveyor!.config;
+    if (config) {       
+        return Math.abs(config.direction.x) + Math.abs(config.direction.y) > 1;
     }
     return false;
-}
-
-function deleteConveyor(cell: ICell, baseMesh: InstancedMesh, topMesh: InstancedMesh, cells: ICell[]) {
-    const instanceIndex = cell.conveyor!.instanceIndex;
-    const count = baseMesh.count;
-    const newCount = count - 1;
-    for (let i = instanceIndex; i < newCount; i++) {
-        baseMesh.getMatrixAt(i + 1, matrix);
-        baseMesh.setMatrixAt(i, matrix);
-        topMesh.getMatrixAt(i + 1, matrix);
-        topMesh.setMatrixAt(i, matrix);
-    }
-
-    cells.splice(instanceIndex, 1);
-    for (let i = instanceIndex; i < newCount; i++) {
-        const cell = cells[i];
-        cell.conveyor!.instanceIndex--;
-    }
-    baseMesh.count = newCount;
-    baseMesh.instanceMatrix.needsUpdate = true;
-    topMesh.count = newCount;
-    topMesh.instanceMatrix.needsUpdate = true;
 }
 
 class Conveyors {
     private _conveyors!: InstancedMesh;
     private _conveyorTops!: InstancedMesh;
-    private _curvedConveyors!: InstancedMesh;
-    private _curvedConveyorTops!: InstancedMesh;
+    private _curvedConveyor!: Mesh;
+    private _invCurvedConveyor!: Mesh;
+    private _curvedConveyorTop!: Mesh;
+    private _invCurvedConveyorTop!: Mesh;
     private _straightCells: ICell[] = [];
-    private _curvedCells: ICell[] = [];
     private _topTexture!: Texture;
     private _loaded = false;
     private _disposed = false;
@@ -125,13 +106,11 @@ class Conveyors {
         if (this._loaded) {
             gameMapState.layers.conveyors.add(this._conveyors);
             gameMapState.layers.conveyors.add(this._conveyorTops);
-            gameMapState.layers.conveyors.add(this._curvedConveyors);
-            gameMapState.layers.conveyors.add(this._curvedConveyorTops);
             return;
         }
 
         this._disposed = false;
-        const [conveyor, conveyorTop, curvedConveyor, curvedConveyorTop] = await Promise.all([
+        const [conveyor, conveyorTop, curvedConveyor0, curvedConveyorTop0] = await Promise.all([
             objects.load(`/models/conveyor.json`),            
             objects.load(`/models/conveyor-top.json`),
             objects.load(`/models/conveyor-curved.json`),
@@ -150,20 +129,17 @@ class Conveyors {
         conveyorTop.geometry.scale(scaleX, 1, 1);
         const conveyorTopInstances = createInstancedMesh("conveyors-tops", conveyorTop.geometry, conveyorTop.material);
         gameMapState.layers.conveyors.add(conveyorTopInstances);
-        this._conveyorTops = conveyorTopInstances;        
+        this._conveyorTops = conveyorTopInstances;
 
-        makeCurvedConveyor(curvedConveyor);
-        const conveyorCurvedInstances = createInstancedMesh("conveyors-curved", curvedConveyor.geometry, conveyor.material);
-        gameMapState.layers.conveyors.add(conveyorCurvedInstances);
-        this._curvedConveyors = conveyorCurvedInstances;
-
-        makeCurvedConveyor(curvedConveyorTop);
-        const conveyorCurvedTopInstances = createInstancedMesh("conveyors-curved-tops", curvedConveyorTop.geometry, conveyorTop.material);
-        gameMapState.layers.conveyors.add(conveyorCurvedTopInstances);
-        this._curvedConveyorTops = conveyorCurvedTopInstances;
+        this._curvedConveyor = makeCurvedConveyor(curvedConveyor0, 1);
+        this._invCurvedConveyor = makeCurvedConveyor(curvedConveyor0, -1);
+        this._curvedConveyorTop = makeCurvedConveyor(curvedConveyorTop0, 1);
+        this._invCurvedConveyorTop = makeCurvedConveyor(curvedConveyorTop0, -1);
+        this._curvedConveyorTop.material = conveyorTop.material;
+        this._invCurvedConveyorTop.material = conveyorTop.material;
 
         const topTexture = (conveyorTop.material as MeshBasicMaterial).map!;
-        topTexture.wrapT = RepeatWrapping;
+        topTexture.wrapT = RepeatWrapping;        
         this._topTexture = topTexture;
         this._loaded = true;
     }
@@ -172,7 +148,7 @@ class Conveyors {
         const cell = GameUtils.getCell(mapCoords)!;
         console.assert(cell.isEmpty);
 
-        let direction: Vector2 | null = null;
+        let config: IConveyorConfig | null = null;
         let neighborConveyorCell: ICell | null = null;
         const [neighborCoord, neighborConveyorCoord] = pools.vec2.get(2);
         for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
@@ -181,25 +157,28 @@ class Conveyors {
             if (neighborCell?.conveyor) {
                 neighborConveyorCell = neighborCell;
                 neighborConveyorCoord.copy(neighborCoord);
-                if (neighborCell.conveyor.direction) {
-                    direction = neighborCell.conveyor.direction;
+                if (neighborCell.conveyor.config) {
+                    config = neighborCell.conveyor.config;
                     break;
                 }
             }
         }
 
-        if (!direction) {
+        if (!config) {
             if (neighborConveyorCell) {
                 const neighborConveyor = neighborConveyorCell.conveyor!;
                 const dx = mapCoords.x - neighborConveyorCoord.x;
                 const dy = mapCoords.y - neighborConveyorCoord.y;
-                console.assert(!neighborConveyor.direction);
-                neighborConveyor.direction = new Vector2(dx, dy);
-                this.createConveyor(cell, mapCoords, neighborConveyor.direction);
+                console.assert(!neighborConveyor.config);
+                neighborConveyor.config = {
+                    direction: new Vector2(dx, dy),
+                    startAxis: dx === 0 ? "z" : "x"
+                };
+                this.createStraightConveyor(cell, mapCoords, neighborConveyor.config);
 
                 // update neighbor
                 GameUtils.mapToWorld(neighborConveyorCoord, worldPos);
-                const angle = getAngleFromDirection(neighborConveyor.direction);
+                const angle = getAngleFromDirection(neighborConveyor.config.direction);
                 rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
                 matrix.compose(worldPos, rotation, scale);
                 this._conveyors.setMatrixAt(neighborConveyor.instanceIndex, matrix);
@@ -210,43 +189,77 @@ class Conveyors {
                 this._conveyorTops.instanceMatrix.needsUpdate = true;
 
             } else {
-                this.createConveyor(cell, mapCoords);
+                this.createStraightConveyor(cell, mapCoords);
             }
         } else {
             const dx = mapCoords.x - neighborConveyorCoord.x;
             const dy = mapCoords.y - neighborConveyorCoord.y;
-            const perpendicular = Math.abs(direction.x) !== dx;
+            const perpendicular = Math.abs(config.direction.x) !== dx;
             if (perpendicular) {
                 const newDirection = pools.vec2.getOne();
                 newDirection.set(dx, dy);
-                this.createConveyor(cell, mapCoords, newDirection);
+                
+                this.createStraightConveyor(cell, mapCoords, {
+                    direction: newDirection,
+                    startAxis: config.startAxis === "x" ? "z" : "x"
+                });
 
                 // make neighbor into a corner
                 this.deleteStraightConveyor(neighborConveyorCell!);
 
+                const neighborConfig = neighborConveyorCell!.conveyor!.config!;
+                neighborConfig.direction.add(newDirection);
                 GameUtils.mapToWorld(neighborConveyorCoord, worldPos);
-                rotation.identity();
-                // if (direction) {
-                //     const angle = getAngleFromDirection(direction);
-                //     rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
-                // }
-                matrix.compose(worldPos, rotation, GameUtils.vec3.one);
-                const count = this._curvedConveyors.count;
-                this._curvedConveyors.setMatrixAt(count, matrix);
-                this._curvedConveyors.count = count + 1;
-                this._curvedConveyors.instanceMatrix.needsUpdate = true;
-                worldPos.y = conveyorHeight * cellSize;
-                matrix.setPosition(worldPos);
-                this._curvedConveyorTops.setMatrixAt(count, matrix);
-                this._curvedConveyorTops.count = count + 1;
-                this._curvedConveyorTops.instanceMatrix.needsUpdate = true;
-                neighborConveyorCell!.conveyor!.direction!.add(newDirection);
+                
+                const [invertedMesh, angle] = (() => {
+                    if (neighborConfig.direction.x > 0) {
+                        if (neighborConfig.direction.y < 0) {
+                            if (neighborConfig.startAxis === "x") {
+                                return [false, Math.PI / 2];
+                            } else {
+                                return [true, Math.PI];
+                            }
+                        } else {
+                            if (neighborConfig.startAxis === "x") {
+                                return [true, Math.PI / 2];
+                            } else {
+                                return [false, 0];
+                            }
+                        }
+                    } else {
+                        if (neighborConfig.direction.y < 0) {
+                            if (neighborConfig.startAxis === "x") {
+                                return [true, -Math.PI / 2];
+                            } else {
+                                return [false, Math.PI];
+                            }                            
+                        } else {
+                            if (neighborConfig.startAxis === "x") {
+                                return [false, -Math.PI / 2];
+                            } else {
+                                return [true, 0];
+                            }
+                        }
+                    }                    
+                })();
+               
+                const baseMesh = invertedMesh ? this._invCurvedConveyor.clone() : this._curvedConveyor.clone();
+                const topMesh = invertedMesh ? this._invCurvedConveyorTop.clone() : this._curvedConveyorTop.clone();
+                baseMesh.position.copy(worldPos);
+                if (angle !== 0) {
+                    baseMesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);
+                }
+                baseMesh.scale.copy(scale);
+                baseMesh.add(topMesh);
+                topMesh.position.y = conveyorHeight;
+                gameMapState.layers.conveyors.add(baseMesh);
+                
                 console.assert(isCornerConveyor(neighborConveyorCell!));
-                neighborConveyorCell!.conveyor!.instanceIndex = count;
-                this._curvedCells.push(neighborConveyorCell!);                
+                neighborConveyorCell!.conveyor!.instanceIndex = -1;
+                neighborConveyorCell!.conveyor!.mesh = baseMesh;
 
             } else {
-                this.createConveyor(cell, mapCoords, direction);
+                this.createStraightConveyor(cell, mapCoords, config);
             }
         }
     }
@@ -313,18 +326,15 @@ class Conveyors {
         this._disposed = true;
         this._conveyors.count = 0;
         this._conveyorTops.count = 0;
-        this._curvedConveyors.count = 0;
-        this._curvedConveyorTops.count = 0;
         this._straightCells.length = 0;
-        this._curvedCells.length = 0;
     }
 
-    private createConveyor(cell: ICell, mapCoords: Vector2, direction?: Vector2) {
+    private createStraightConveyor(cell: ICell, mapCoords: Vector2, config?: IConveyorConfig) {
         GameUtils.mapToWorld(mapCoords, worldPos);
 
         rotation.identity();
-        if (direction) {
-            const angle = getAngleFromDirection(direction);
+        if (config) {
+            const angle = getAngleFromDirection(config.direction);
             rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
         }
         matrix.compose(worldPos, rotation, scale);
@@ -338,7 +348,7 @@ class Conveyors {
         this._conveyorTops.count = count + 1;
         this._conveyorTops.instanceMatrix.needsUpdate = true;
         cell.conveyor = {
-            direction: direction?.clone(),
+            config,
             instanceIndex: count
         };
         cell.isEmpty = false;
@@ -347,10 +357,29 @@ class Conveyors {
     }    
 
     private deleteStraightConveyor(cell: ICell) {
-        deleteConveyor(cell, this._conveyors, this._conveyorTops, this._straightCells);
+        const instanceIndex = cell.conveyor!.instanceIndex;
+        const count = this._conveyors.count;
+        const newCount = count - 1;
+        for (let i = instanceIndex; i < newCount; i++) {
+            this._conveyors.getMatrixAt(i + 1, matrix);
+            this._conveyors.setMatrixAt(i, matrix);
+            this._conveyorTops.getMatrixAt(i + 1, matrix);
+            this._conveyorTops.setMatrixAt(i, matrix);
+        }
+
+        this._straightCells.splice(instanceIndex, 1);
+        for (let i = instanceIndex; i < newCount; i++) {
+            const cell = this._straightCells[i];
+            cell.conveyor!.instanceIndex--;
+        }
+        this._conveyors.count = newCount;
+        this._conveyors.instanceMatrix.needsUpdate = true;
+        this._conveyorTops.count = newCount;
+        this._conveyorTops.instanceMatrix.needsUpdate = true;
     }
+
     private deleteCurvedConveyor(cell: ICell) {
-        deleteConveyor(cell, this._curvedConveyors, this._curvedConveyorTops, this._curvedCells);
+        cell.conveyor!.mesh!.removeFromParent();
     }
 }
 

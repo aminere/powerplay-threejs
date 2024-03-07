@@ -182,29 +182,33 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 }
             }
         } else if (input.touchPressed) {
-            if (input.touchJustMoved) {
-                if (!this.state.cursorOverUI) {
-                    if (this.state.action) {
-                        const cellCoords = pools.vec2.getOne();
-                        if (!this.state.touchDragged) {
-                            if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
-                                if (cellCoords?.equals(this.state.touchStartCoords) === false) {
-                                    this.state.touchDragged = true;
-                                    this.state.touchHoveredCoords.copy(cellCoords!);
-                                    onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+
+            if (input.touchButton === 0) {
+                if (input.touchJustMoved) {
+                    if (!this.state.cursorOverUI) {
+                        if (this.state.action) {
+                            const cellCoords = pools.vec2.getOne();
+                            if (!this.state.touchDragged) {
+                                if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                    if (cellCoords?.equals(this.state.touchStartCoords) === false) {
+                                        this.state.touchDragged = true;
+                                        this.state.touchHoveredCoords.copy(cellCoords!);
+                                        onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                    }
                                 }
-                            }
-                        } else {
-                            if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
-                                if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
-                                    this.state.touchHoveredCoords.copy(cellCoords!);
-                                    onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                            } else {
+                                if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                    if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
+                                        this.state.touchHoveredCoords.copy(cellCoords!);
+                                        onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            
         } else if (input.touchJustReleased) {
 
             const wasDragged = this.state.touchDragged;

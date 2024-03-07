@@ -13,12 +13,18 @@ export interface IBuildingInstance {
     mapCoords: Vector2;
 }
 
+export interface IConveyorConfig {
+    direction: Vector2;
+    startAxis: Axis;
+}
+
 export interface ICell {
     roadTile?: number;
     previewRoadTile?: number;
     conveyor?: {
         instanceIndex: number;
-        direction?: Vector2;
+        mesh?: Object3D;
+        config?: IConveyorConfig;
     };
 
     buildingId?: string;
