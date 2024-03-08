@@ -19,6 +19,8 @@ interface IGameConfig {
     mapRes: number;
     elevationStep: number;
     conveyorHeight: number;
+    conveyorWidth: number;
+    maxConveyors: number;
 }
 
 interface ITrainConfig {
@@ -61,7 +63,9 @@ export const config: IConfig = {
         cellSize: 2,
         mapRes: 32,
         elevationStep: .2,
-        conveyorHeight: .3
+        conveyorHeight: .3,
+        conveyorWidth: .6,        
+        maxConveyors: 500
     },
     train: {
         maxSpeed: 40,

@@ -412,11 +412,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     this.state.selectedBuilding = null;
                                     const cell = GameUtils.getCell(this.state.highlightedCellCoords);
                                     if (cell?.conveyor) {
-
-                                        // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });   
-
-                                        // Add item to conveyor
-
+                                        // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
+                                        conveyors.addItem(cell, this.state.highlightedCellCoords);
 
                                     } else {
                                         cmdSetSelectedElems.post({ });

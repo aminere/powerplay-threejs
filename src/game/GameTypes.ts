@@ -18,6 +18,11 @@ export interface IConveyorConfig {
     startAxis: Axis;
 }
 
+interface IConveyorItem {
+    size: number;
+    obj: Object3D;
+}
+
 export interface ICell {
     id: string;
     roadTile?: number;
@@ -26,6 +31,7 @@ export interface ICell {
         instanceIndex: number;
         mesh?: Object3D;
         config?: IConveyorConfig;
+        items: IConveyorItem[];
     };
     previewConveyor?: boolean;
 
