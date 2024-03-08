@@ -30,7 +30,7 @@ class FogOfWar {
                 textureData[stride] = 0;
                 textureData[stride + 1] = 0;
                 textureData[stride + 2] = 0;
-                textureData[stride + 3] = 0; //255;
+                textureData[stride + 3] = 255;
             }
         }
         texture.needsUpdate = true;
@@ -51,21 +51,22 @@ class FogOfWar {
         const uvFactor = texResPow2 / texRes;
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
         engine.scene!.add(plane);
-
-        const edgeMaterial = new MeshBasicMaterial({ color: 0x000000, depthTest: false });
-        const edgeGeometry = new PlaneGeometry();
-        edgeGeometry.translate(.5, .5, 0);
-        const topPlane = new Mesh(edgeGeometry, edgeMaterial);
-        topPlane.position.set(offset, 0, offset).multiplyScalar(cellSize);
-        topPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
-        topPlane.name = "fogOfWarTopEdge";
-        engine.scene!.add(topPlane);
-        const leftPlane = new Mesh(edgeGeometry, edgeMaterial);
-        leftPlane.rotateY(Math.PI / 2);
-        leftPlane.position.set(offset, 0, offset + mapRes * sectorRes).multiplyScalar(cellSize);
-        leftPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
-        leftPlane.name = "fogOfWarLeftEdge";
-        engine.scene!.add(leftPlane);
+        
+        // bad hack do not bring back!
+        // const edgeMaterial = new MeshBasicMaterial({ color: 0x000000, depthTest: false });
+        // const edgeGeometry = new PlaneGeometry();
+        // edgeGeometry.translate(.5, .5, 0);
+        // const topPlane = new Mesh(edgeGeometry, edgeMaterial);
+        // topPlane.position.set(offset, 0, offset).multiplyScalar(cellSize);
+        // topPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
+        // topPlane.name = "fogOfWarTopEdge";
+        // engine.scene!.add(topPlane);
+        // const leftPlane = new Mesh(edgeGeometry, edgeMaterial);
+        // leftPlane.rotateY(Math.PI / 2);
+        // leftPlane.position.set(offset, 0, offset + mapRes * sectorRes).multiplyScalar(cellSize);
+        // leftPlane.scale.set(mapSize, 1, mapSize).multiplyScalar(sectorRes);
+        // leftPlane.name = "fogOfWarLeftEdge";
+        // engine.scene!.add(leftPlane);
 
         this._texRes = texResPow2;
         this._textureData = textureData;
@@ -104,6 +105,40 @@ class FogOfWar {
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 0;
                     cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
+                }
+            }
+        }
+        this._texture.needsUpdate = true;
+    }
+
+    public removeCircle(mapCoords: Vector2, radius: number) {
+        const startX = mapCoords.x - radius;
+        const startY = mapCoords.y - radius;
+        const radius2 = radius + radius;
+        const circle = this.getCircle(radius);
+        let index = 0;
+        for (let i = 0; i < radius2; ++i) {
+            for (let j = 0; j < radius2; ++j) {
+                if (!circle[index]) {
+                    index++;
+                    continue;
+                }
+                index++;
+
+                const x = startX + j;
+                const y = startY + i;
+                circlePos.set(x, y);
+                const cell = GameUtils.getCell(circlePos);
+                if (!cell) {
+                    continue;
+                }
+
+                cell.viewCount--;
+                if (cell.viewCount === 0) {
+                    const cellIndex = circlePos.y * this._texRes + circlePos.x;
+                    const stride = cellIndex * 4;
+                    this._textureData[stride + 3] = 128;
+                    cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: false });
                 }
             }
         }

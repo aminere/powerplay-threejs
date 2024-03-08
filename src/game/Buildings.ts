@@ -5,6 +5,7 @@ import { gameMapState } from "./components/GameMapState";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
 import { objects } from "../engine/resources/Objects";
+import { fogOfWar } from "./FogOfWar";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -76,14 +77,17 @@ class Buildings {
         const mapCoords = pools.vec2.getOne();
         for (let i = 0; i < buildingConfig.size.z; i++) {
             for (let j = 0; j < buildingConfig.size.x; j++) {
-                mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
+                mapCoords.set(buildingInstance.mapCoords.x + j, buildingInstance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
                 console.assert(cell);
                 cell.buildingId = instanceId;
                 cell.isEmpty = false;
                 cell.flowFieldCost = 0xffff;
             }
-        }        
+        }
+        
+        mapCoords.set(buildingInstance.mapCoords.x + Math.round(buildingConfig.size.x / 2), buildingInstance.mapCoords.y + Math.round(buildingConfig.size.z / 2));
+        fogOfWar.addCircle(mapCoords, 20);
     }
 
     public clear(instanceId: string) {
@@ -107,6 +111,9 @@ class Buildings {
                 }
             }
         }
+
+        mapCoords.set(instance.mapCoords.x + Math.round(buildingConfig.size.x / 2), instance.mapCoords.y + Math.round(buildingConfig.size.z / 2));
+        fogOfWar.removeCircle(mapCoords, 20);
     }
 }
 
