@@ -219,7 +219,7 @@ class Conveyors {
             if (i === 0) {
 
                 // ensure straight alignment
-                const { direction: neighborDir, startAxis: neighborStartAxis } = neighborCell.conveyor!.config;
+                const { direction: neighborDir, startAxis: neighborStartAxis, endAxis: neighborEndAxis } = neighborCell.conveyor!.config;
                 const { direction, startAxis } = cell.conveyor!.config;
                 const { visual } = cell.conveyor!;
                 const dx = mapCoords.x - neighborCoords.x;
@@ -256,17 +256,30 @@ class Conveyors {
                 // align neighbor
                 const { neighborCount } = neighborInfo;
                 const { visual: neighborVisual } = neighborCell.conveyor!;
-                if (neighborCount === 0) {
-                    if (neighborStartAxis !== newAxis) {
-                        neighborDir.copy(direction);
-                        neighborCell.conveyor!.config.startAxis = newAxis;
-                        GameUtils.mapToWorld(neighborCoords, worldPos);
-                        this.setStraightTransform(worldPos, neighborDir, neighborVisual.instanceIndex!);
-                    }
+                const neighborIsCorner = neighborEndAxis !== undefined;
+                if (neighborCount === 0) {                    
+                    if (neighborIsCorner) {
+                        // nothing to do                        
+                    } else {                        
+                        if (neighborStartAxis !== newAxis) {
+                            neighborDir.copy(direction);
+                            neighborCell.conveyor!.config.startAxis = newAxis;
+                            GameUtils.mapToWorld(neighborCoords, worldPos);
+                            this.setStraightTransform(worldPos, neighborDir, neighborVisual.instanceIndex!);
+                        }
+                    }                    
 
                 } else {
                     console.assert(neighborCount === 1);
-                    console.log("todo");
+                    if (neighborIsCorner) {
+
+                    } else {
+                        if (neighborStartAxis !== newAxis) {
+                            this.clearStraightConveyor(neighborCell);
+                            const newNeighborAxis = neighborInfo.isEntry ? newAxis : ConveyorUtils.getPerpendicularAxis(newAxis);
+                            this.create(neighborCell, neighborCoords, neighborDir, newNeighborAxis, ConveyorUtils.getPerpendicularAxis(newNeighborAxis));
+                        }
+                    }
                 }
 
             } else {
@@ -431,11 +444,44 @@ class Conveyors {
     public clear(mapCoords: Vector2) {
         const cell = GameUtils.getCell(mapCoords)!;
         const { endAxis } = cell.conveyor!.config;
-        if (endAxis !== undefined) {
-            this.deleteCurvedConveyor(cell);
+        const isCorner = endAxis !== undefined;
+        if (isCorner) {
+            this.clearCurvedConveyor(cell);
         } else {            
-            this.deleteStraightConveyor(cell);
+            this.clearStraightConveyor(cell);
+        }        
+    }
+
+    public clearCurvedConveyor(cell: ICell) {
+        const { visual } = cell.conveyor!;
+        visual.mesh!.removeFromParent();
+        delete cell.conveyor;
+        cell.isEmpty = true;
+        cell.flowFieldCost = 1;
+    }
+
+    public clearStraightConveyor(cell: ICell) {
+        const { visual } = cell.conveyor!;
+        const instanceIndex = visual.instanceIndex!;
+        const count = this._conveyors.count;
+        const newCount = count - 1;
+        for (let i = instanceIndex; i < newCount; i++) {
+            this._conveyors.getMatrixAt(i + 1, matrix);
+            this._conveyors.setMatrixAt(i, matrix);
+            this._conveyorTops.getMatrixAt(i + 1, matrix);
+            this._conveyorTops.setMatrixAt(i, matrix);
         }
+
+        this._straightCells.splice(instanceIndex, 1);
+        for (let i = instanceIndex; i < newCount; i++) {
+            const cell = this._straightCells[i];
+            const { visual: cellVisual } = cell.conveyor!;
+            cellVisual.instanceIndex = cellVisual.instanceIndex! - 1;
+        }
+        this._conveyors.count = newCount;
+        this._conveyors.instanceMatrix.needsUpdate = true;
+        this._conveyorTops.count = newCount;
+        this._conveyorTops.instanceMatrix.needsUpdate = true;
         delete cell.conveyor;
         cell.isEmpty = true;
         cell.flowFieldCost = 1;
@@ -618,35 +664,6 @@ class Conveyors {
         cell.conveyor!.instanceIndex = -1;
         cell.conveyor!.mesh = baseMesh;
     }*/
-
-    private deleteStraightConveyor(cell: ICell) {
-        const { visual } = cell.conveyor!;
-        const instanceIndex = visual.instanceIndex!;
-        const count = this._conveyors.count;
-        const newCount = count - 1;
-        for (let i = instanceIndex; i < newCount; i++) {
-            this._conveyors.getMatrixAt(i + 1, matrix);
-            this._conveyors.setMatrixAt(i, matrix);
-            this._conveyorTops.getMatrixAt(i + 1, matrix);
-            this._conveyorTops.setMatrixAt(i, matrix);
-        }
-
-        this._straightCells.splice(instanceIndex, 1);
-        for (let i = instanceIndex; i < newCount; i++) {
-            const cell = this._straightCells[i];
-            const { visual: cellVisual } = cell.conveyor!;
-            cellVisual.instanceIndex = cellVisual.instanceIndex! - 1;
-        }
-        this._conveyors.count = newCount;
-        this._conveyors.instanceMatrix.needsUpdate = true;
-        this._conveyorTops.count = newCount;
-        this._conveyorTops.instanceMatrix.needsUpdate = true;
-    }
-
-    private deleteCurvedConveyor(cell: ICell) {
-        const { visual } = cell.conveyor!;
-        visual.mesh!.removeFromParent();
-    }
 }
 
 export const conveyors = new Conveyors();
