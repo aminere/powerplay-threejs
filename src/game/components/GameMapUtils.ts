@@ -129,21 +129,22 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     return cell;
 }
 
+function clearPreviousConveyors() {
+    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));        
+    gameMapState.previousConveyors.length = 0;
+}
+
 export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
     switch (gameMapState.action) {
         case "road": {
-            for (const cell of gameMapState.previousRoad) {
-                Roads.clear(cell);
-            }
+            gameMapState.previousRoad.forEach(Roads.clear);
             gameMapState.previousRoad.length = 0;
             Roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
         }
             break;
 
-        case "rail": {
-            for (const cell of gameMapState.previousRail) {
-                Rails.clear(cell);
-            }
+        case "rail": {            
+            gameMapState.previousRail.forEach(Rails.clear);
             gameMapState.previousRail.length = 0;
             Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousRail);
 
@@ -154,12 +155,10 @@ export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { 
         } break;
 
         case "belt": {
-            for (const cell of gameMapState.previousConveyors) {
-                conveyors.clear(cell);
-            }
-            gameMapState.previousConveyors.length = 0;
-            conveyors.onDrag(start, current, gameMapState.previousConveyors, gameMapState.initialDragAxis!);
-        } break;
+            clearPreviousConveyors();
+            conveyors.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousConveyors);
+        } 
+        break;
     }
 }
 
@@ -212,20 +211,11 @@ export function onEndDrag() {
 }
 
 export function onCancelDrag() {
-    if (gameMapState.previousRoad.length > 0) {
-        gameMapState.previousRoad.forEach(Roads.clear);
-        gameMapState.previousRoad.length = 0;
-    }
-
-    if (gameMapState.previousRail.length > 0) {
-        gameMapState.previousRail.forEach(Rails.clear);
-        gameMapState.previousRail.length = 0;
-    }
-
-    if (gameMapState.previousConveyors.length > 0) {
-        gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
-        gameMapState.previousConveyors.length = 0;
-    }
+    gameMapState.previousRoad.forEach(Roads.clear);
+    gameMapState.previousRoad.length = 0;
+    gameMapState.previousRail.forEach(Rails.clear);
+    gameMapState.previousRail.length = 0;
+    clearPreviousConveyors();
 }
 
 export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
@@ -318,7 +308,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
 export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
         if (cell.isEmpty && cell.roadTile === undefined) {
-            conveyors.createAndFit(mapCoords);
+            conveyors.createAndFit(cell, mapCoords);
         }
     } else if (button === 2) {
         if (cell.conveyor !== undefined) {
