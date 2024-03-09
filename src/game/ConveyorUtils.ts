@@ -7,17 +7,25 @@ import { config } from "./config";
 
 const { conveyorWidth, maxConveyors } = config.game;
 const neighborCoords = new Vector2();
+const halfPi = Math.PI / 2;
 
 // [flipX, rotation]
 const cornerTransforms = {
     "1,1,z": [false, 0],
-    "1,1,x": [true, Math.PI / 2],
+    "1,1,x": [true, halfPi],
     "1,-1,z": [true, Math.PI],    
-    "1,-1,x": [false, Math.PI / 2],    
+    "1,-1,x": [false, halfPi],    
     "-1,-1,z": [false, Math.PI],
-    "-1,-1,x": [true, -Math.PI / 2],    
+    "-1,-1,x": [true, -halfPi],    
     "-1,1,z": [true, 0],
-    "-1,1,x": [false, -Math.PI / 2]    
+    "-1,1,x": [false, -halfPi]    
+};
+
+const directionToAngle = {
+    "0,1": 0,
+    "0,-1": Math.PI,
+    "1,0": halfPi,
+    "-1,0": -halfPi
 };
 
 export class ConveyorUtils {
@@ -31,23 +39,18 @@ export class ConveyorUtils {
         return mesh;
     }
     
-    public static getAngleFromDirection(direction: Vector2) {
-        if (direction.x === 0) {
-            if (direction.y > 0) {
-                return 0;
-            }
-            return Math.PI;
-        } else {
-            if (direction.x > 0) {
-                return Math.PI / 2;
-            }
-            return -Math.PI / 2;
-        }
+    public static getAngle(direction: Vector2) {
+        const key = `${direction.x},${direction.y}` as keyof typeof directionToAngle;
+        const angle = directionToAngle[key];
+        console.assert(angle !== undefined, `Invalid direction: ${direction.x},${direction.y}`);
+        return angle;
     }
     
     public static getConveyorTransform(direction: Vector2, startAxis: Axis) {
         const key = `${direction.x},${direction.y},${startAxis}` as keyof typeof cornerTransforms;
-        return cornerTransforms[key] as [boolean, number];        
+        const transform = cornerTransforms[key] as [boolean, number];
+        console.assert(transform !== undefined, `Invalid transform: ${direction.x},${direction.y},${startAxis}`);
+        return transform;
     }
     
     public static makeCurvedConveyor(mesh: Mesh, xDir: number) {
