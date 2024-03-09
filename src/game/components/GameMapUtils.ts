@@ -323,6 +323,7 @@ export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     } else if (button === 2) {
         if (cell.conveyor !== undefined) {
             conveyors.clear(mapCoords);
+            conveyors.clearLooseCorners(mapCoords);
         }
     }
 }

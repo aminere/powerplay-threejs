@@ -9,7 +9,7 @@ const { conveyorWidth, maxConveyors } = config.game;
 const neighborCoords = new Vector2();
 const halfPi = Math.PI / 2;
 
-// [flipX, rotation]
+// [flipX, angle]
 const cornerTransforms = {
     "1,1,z": [false, 0],
     "1,1,x": [true, halfPi],
@@ -105,32 +105,24 @@ export class ConveyorUtils {
         neighborCoords.subVectors(mapCoords, direction);
         const entry = GameUtils.getCell(neighborCoords);
         return !entry?.conveyor;
-    }
+    }    
     
-    public static getCornerExitCoords(cell: ICell, mapCoords: Vector2) {
+    public static isCornerExit(cell: ICell, mapCoords: Vector2) {
         const { startAxis, direction } = cell.conveyor!.config;
         const sx = startAxis === "x" ? 0 : 1;
         const sy = 1 - sx;
-        return neighborCoords.set(mapCoords.x + direction.x * sx, mapCoords.y + direction.y * sy);
-    }
-    
-    public static getCornerEntryCoords(cell: ICell, mapCoords: Vector2) {
-        const { startAxis, direction } = cell.conveyor!.config;
-        const sy = startAxis === "x" ? 0 : 1;
-        const sx = 1 - sy;
-        return neighborCoords.set(mapCoords.x - direction.x * sx, mapCoords.y - direction.y * sy);
-    }
-    
-    public static isCornerExit(cell: ICell, mapCoords: Vector2) {
-        const neighborCoords = ConveyorUtils.getCornerExitCoords(cell, mapCoords);
+        neighborCoords.set(mapCoords.x + direction.x * sx, mapCoords.y + direction.y * sy)        
         const exit = GameUtils.getCell(neighborCoords);
         return !exit?.conveyor;
     }
     
     public static isCornerEntry(cell: ICell, mapCoords: Vector2) {
-        const neighborCoords = ConveyorUtils.getCornerEntryCoords(cell, mapCoords);
+        const { startAxis, direction } = cell.conveyor!.config;
+        const sy = startAxis === "x" ? 0 : 1;
+        const sx = 1 - sy;
+        neighborCoords.set(mapCoords.x - direction.x * sx, mapCoords.y - direction.y * sy);
         const entry = GameUtils.getCell(neighborCoords);
-        return !entry?.conveyor;    
+        return !entry?.conveyor;
     }
     
     public static getPerpendicularAxis(axis: Axis) {
