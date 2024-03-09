@@ -166,11 +166,15 @@ class Conveyors {
             
             const neighborInfo = (() => {
                 const isCorner = conveyor.config.endAxis !== undefined;
-                console.assert(!isCorner);
-                const isExit = ConveyorUtils.isStraightExit(neighborCell, neighborCoords);
-                const isEntry = ConveyorUtils.isStraightEntry(neighborCell, neighborCoords);
-                const neighborCount = isExit ? (isEntry ? 0 : 1) : (isEntry ? 1 : 2);
-                return { neighborCount, isExit };
+                if (!isCorner) {
+                    const isExit = ConveyorUtils.isStraightExit(neighborCell, neighborCoords);
+                    const isEntry = ConveyorUtils.isStraightEntry(neighborCell, neighborCoords);
+                    const neighborCount = isExit ? (isEntry ? 0 : 1) : (isEntry ? 1 : 2);
+                    return { neighborCount, isExit };
+                } else {
+                    // assuming no loose corners exist
+                    return { neighborCount: 2, isExit: false };
+                }               
             })();
             
             const isEdge = neighborInfo.neighborCount < 2;
