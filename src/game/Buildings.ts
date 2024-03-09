@@ -5,7 +5,7 @@ import { gameMapState } from "./components/GameMapState";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
 import { objects } from "../engine/resources/Objects";
-import { fogOfWar } from "./FogOfWar";
+import { cmdFogAddCircle, cmdFogRemoveCircle } from "../Events";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -87,7 +87,7 @@ class Buildings {
         }
         
         mapCoords.set(buildingInstance.mapCoords.x + Math.round(buildingConfig.size.x / 2), buildingInstance.mapCoords.y + Math.round(buildingConfig.size.z / 2));
-        fogOfWar.addCircle(mapCoords, 20);
+        cmdFogAddCircle.post({ mapCoords, radius: 20 });
     }
 
     public clear(instanceId: string) {
@@ -113,7 +113,7 @@ class Buildings {
         }
 
         mapCoords.set(instance.mapCoords.x + Math.round(buildingConfig.size.x / 2), instance.mapCoords.y + Math.round(buildingConfig.size.z / 2));
-        fogOfWar.removeCircle(mapCoords, 20);
+        cmdFogRemoveCircle.post({ mapCoords, radius: 20 });
     }
 }
 

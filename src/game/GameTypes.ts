@@ -16,9 +16,10 @@ export interface IBuildingInstance {
 export interface IConveyorConfig {
     direction: Vector2;
     startAxis: Axis;
+    endAxis?: Axis;
 }
 
-interface IConveyorItem {
+export interface IConveyorItem {
     size: number;
     obj: Object3D;
 }
@@ -28,12 +29,13 @@ export interface ICell {
     roadTile?: number;
     previewRoadTile?: number;
     conveyor?: {
-        instanceIndex: number;
-        mesh?: Object3D;
-        config?: IConveyorConfig;
+        visual: {
+            instanceIndex?: number;
+            mesh?: Object3D;
+        };
+        config: IConveyorConfig;
         items: IConveyorItem[];
     };
-    previewConveyor?: boolean;
 
     buildingId?: string;
     resource?: Object3D;

@@ -2,7 +2,7 @@ import { DataTexture, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeo
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
-import { cmdUpdateMinimapFog } from "../Events";
+import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog } from "../Events";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -33,12 +33,12 @@ class FogOfWar {
                 textureData[stride + 3] = 255;
             }
         }
-        texture.needsUpdate = true;
+        texture.needsUpdate = true;        
         const material = new MeshBasicMaterial({ 
             map: texture, 
             transparent: true,
             depthTest: false
-        });
+        });        
 
         const geometry = new PlaneGeometry();
         geometry.rotateX(-Math.PI / 2);
@@ -71,9 +71,13 @@ class FogOfWar {
         this._texRes = texResPow2;
         this._textureData = textureData;
         this._texture = texture;
+
+        cmdFogAddCircle.attach(({ mapCoords, radius }) => this.addCircle(mapCoords, radius));
+        cmdFogMoveCircle.attach(({ mapCoords, radius, dx, dy }) => this.moveCircle(mapCoords, radius, dx, dy));
+        cmdFogRemoveCircle.attach(({ mapCoords, radius }) => this.removeCircle(mapCoords, radius));
     }
 
-    public addCircle(mapCoords: Vector2, radius: number) {
+    private addCircle(mapCoords: Vector2, radius: number) {
 
         const startX = mapCoords.x - radius;
         const startY = mapCoords.y - radius;
@@ -111,7 +115,8 @@ class FogOfWar {
         this._texture.needsUpdate = true;
     }
 
-    public removeCircle(mapCoords: Vector2, radius: number) {
+    private removeCircle(mapCoords: Vector2, radius: number) {        
+
         const startX = mapCoords.x - radius;
         const startY = mapCoords.y - radius;
         const radius2 = radius + radius;
@@ -145,7 +150,7 @@ class FogOfWar {
         this._texture.needsUpdate = true;
     }
 
-    public moveCircle(mapCoords: Vector2, radius: number, dx: number, dy: number) {
+    private moveCircle(mapCoords: Vector2, radius: number, dx: number, dy: number) {
 
         const startX = mapCoords.x - radius;
         const startY = mapCoords.y - radius;

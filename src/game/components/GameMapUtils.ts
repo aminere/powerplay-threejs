@@ -207,7 +207,6 @@ export function onEndDrag() {
 
     if (gameMapState.previousConveyors.length > 0) {
         console.assert(gameMapState.action === "belt");
-        conveyors.onEndDrag(gameMapState.previousConveyors);
         gameMapState.previousConveyors.length = 0;
     }    
 }
@@ -319,7 +318,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
 export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
         if (cell.isEmpty && cell.roadTile === undefined) {
-            conveyors.create(mapCoords);
+            conveyors.createAndFit(mapCoords);
         }
     } else if (button === 2) {
         if (cell.conveyor !== undefined) {

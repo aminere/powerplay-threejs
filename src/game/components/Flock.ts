@@ -7,7 +7,7 @@ import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
-import { cmdStartSelection, cmdSetSelectedElems } from "../../Events";
+import { cmdStartSelection, cmdSetSelectedElems, cmdFogAddCircle, cmdFogMoveCircle } from "../../Events";
 import { config} from "../../game/config";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
@@ -25,7 +25,6 @@ import { ArcherNPCState } from "../unit/ArcherNPCState";
 import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
-import { fogOfWar } from "../FogOfWar";
 import { IBuildingInstance } from "../GameTypes";
 
 export class FlockProps extends ComponentProps {
@@ -327,7 +326,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         localCoords.x += dx;
                         localCoords.y += dy;
                         
-                        fogOfWar.moveCircle(unit.coords.mapCoords, 10, dx, dy);
+                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
                         
                         const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
                         const unitIndex = currentCell.units.indexOf(unit);
@@ -490,7 +489,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const unit = new Unit(props);
         units.push(unit);
         owner.add(obj);
-        fogOfWar.addCircle(unit.coords.mapCoords, 10);
+        cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
         const box3Helper = new Box3Helper(obj.boundingBox);
         obj.add(box3Helper);
         box3Helper.visible = false;
