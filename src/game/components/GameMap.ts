@@ -21,13 +21,14 @@ import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 // import { Trees } from "./Trees";
-import { fogOfWar } from "../FogOfWar";
+// import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
 import { IBuildingInstance, ISector } from "../GameTypes";
 import { buildings } from "../Buildings";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
+import { conveyorItems } from "../ConveyorItems";
 
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -413,7 +414,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     const cell = GameUtils.getCell(this.state.highlightedCellCoords);
                                     if (cell?.conveyor) {
                                         // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
-                                        conveyors.addItem(cell, this.state.highlightedCellCoords);
+                                        conveyorItems.addItem(cell, this.state.highlightedCellCoords);
 
                                     } else {
                                         cmdSetSelectedElems.post({ });
@@ -503,7 +504,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const props = utils.createObject(engine.scene!, "env-props");
         engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
 
-        fogOfWar.init(this.props.size);
+        // fogOfWar.init(this.props.size);
 
         // const trees = utils.createObject(engine.scene!, "trees");
         // const treesComponent = new Trees({ sectorRes: this.props.size });        
