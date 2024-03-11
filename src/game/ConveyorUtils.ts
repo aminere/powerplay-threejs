@@ -60,11 +60,12 @@ export class ConveyorUtils {
         const minZ = curvedMesh.geometry.boundingBox!.min.z;
         const maxZ = curvedMesh.geometry.boundingBox!.max.z;
         const halfCell = 1 / 2;
+        const quarterCell = halfCell / 2;
         const x1 = 0;
-        const x2 = halfCell / 2 * xDir;
+        const x2 = quarterCell * xDir;
         const x3 = halfCell * xDir;
         const z1 = 0;
-        const z2 = halfCell / 2;
+        const z2 = quarterCell;
         const z3 = halfCell;
         const curve = new BezierPath();
         curve.setPoints([
