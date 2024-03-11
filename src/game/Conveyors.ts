@@ -12,7 +12,7 @@ import { conveyorItems } from "./ConveyorItems";
 const matrix = new Matrix4();
 const worldPos = new Vector3();
 const rotation = new Quaternion();
-const { cellSize, conveyorWidth, conveyorHeight } = config.game;
+const { cellSize, conveyorWidth, conveyorHeight, conveyorSpeed } = config.game;
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
 const neighborCoords = new Vector2();
 
@@ -460,7 +460,7 @@ class Conveyors {
             return;
         }
 
-        this._topTexture.offset.y -= time.deltaTime / cellSize;
+        this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
         conveyorItems.update();
     }
 

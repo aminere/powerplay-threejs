@@ -9,31 +9,53 @@ import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
 import { ConveyorUtils } from "./ConveyorUtils";
 
-const { conveyorHeight, cellSize } = config.game;
+const { conveyorHeight, cellSize, conveyorSpeed } = config.game;
 const halfCellSize = cellSize / 2;
 const worldPos = new Vector3();
 const curvePos = new Vector3();
 const neighborCoords = new Vector2();
 
 function makeCurve(xDir: number) {
-    const x1 = 0;
-    const x2 = .5;
-    const x3 = 1;
-    const z1 = 0;
-    const z2 = .5;
-    const z3 = 1;
     const curve = new BezierPath();
     curve.setPoints([
-        new Vector3(x1, 0, z1),
-        new Vector3(x1, 0, z2),
-        new Vector3(x2 * xDir, 0, z3),
-        new Vector3(x3 * xDir, 0, z3)
+        new Vector3(0, 0, 0),
+        new Vector3(0, 0, .5),
+        new Vector3(.5 * xDir, 0, 1),
+        new Vector3(1 * xDir, 0, 1)
     ]);
     return curve;
 }
 
 const curve = makeCurve(1);
 const curveFlipped = makeCurve(-1);
+
+function projectOnConveyor(item: IConveyorItem, localT: number) {
+    GameUtils.mapToWorld(item.mapCoords, worldPos);
+    const { direction, startAxis, endAxis } = item.owner.config;
+    const isCorner = endAxis !== undefined;
+    const { position } = item.obj;
+    if (isCorner) {
+        const [flipX, angle] = ConveyorUtils.getConveyorTransform(direction, startAxis);
+        const _curve = flipX ? curveFlipped : curve;
+        _curve.evaluate(localT, curvePos);
+        curvePos
+            .applyAxisAngle(GameUtils.vec3.up, angle)
+            .multiplyScalar(halfCellSize);
+
+        const sx = endAxis === "x" ? 0 : 1;
+        const sz = 1 - sx;
+        const startX = worldPos.x - direction.x * sx * halfCellSize;
+        const startZ = worldPos.z - direction.y * sz * halfCellSize;
+        position.x = startX + curvePos.x;
+        position.z = startZ + curvePos.z;
+
+    } else {
+        const startX = worldPos.x - direction.x * halfCellSize;
+        const startZ = worldPos.z - direction.y * halfCellSize;
+        position.x = startX + direction.x * localT * cellSize;
+        position.z = startZ + direction.y * localT * cellSize;
+    }
+}
 
 class ConveyorItems {
 
@@ -56,11 +78,11 @@ class ConveyorItems {
 
         for (const item of this._items) {
             console.assert(item.localT >= 0 && item.localT <= 1);
-            let newT = item.localT + time.deltaTime / cellSize;            
+            let newT = item.localT + time.deltaTime * conveyorSpeed / cellSize;
             const halfItemSize = item.size / 2;
             const { endAxis, direction } = item.owner.config;
             const isCorner = endAxis !== undefined;
-            const { obj } = item;
+            const { mapCoords } = item;
 
             if (newT > 1) {
 
@@ -70,10 +92,10 @@ class ConveyorItems {
                 if (isCorner) {
                     const sx = endAxis === "x" ? 1 : 0;
                     const sz = 1 - sx;
-                    neighborCoords.x = item.mapCoords.x + direction.x * sx;
-                    neighborCoords.y = item.mapCoords.y + direction.y * sz;
+                    neighborCoords.x = mapCoords.x + direction.x * sx;
+                    neighborCoords.y = mapCoords.y + direction.y * sz;
                 } else {
-                    neighborCoords.addVectors(item.mapCoords, direction);
+                    neighborCoords.addVectors(mapCoords, direction);
                 }
 
                 const nextConveyor = GameUtils.getCell(neighborCoords)!;
@@ -97,17 +119,16 @@ class ConveyorItems {
                 if (isCorner) {
                     const sx = endAxis === "x" ? 1 : 0;    
                     const sz = 1 - sx;
-                    neighborCoords.x = item.mapCoords.x + direction.x * sx;
-                    neighborCoords.y = item.mapCoords.y + direction.y * sz;
+                    neighborCoords.x = mapCoords.x + direction.x * sx;
+                    neighborCoords.y = mapCoords.y + direction.y * sz;
                 } else {
-                    neighborCoords.addVectors(item.mapCoords, direction);
+                    neighborCoords.addVectors(mapCoords, direction);
                 }
 
                 const nextConveyor = GameUtils.getCell(neighborCoords);
                 if (nextConveyor?.conveyor) {
                     const existingItems = nextConveyor?.conveyor!.items;
                     for (const existingItem of existingItems) {
-                        console.assert(existingItem.localT >= 0 && existingItem.localT <= 1);
                         const itemEdge = existingItem.localT - existingItem.size / 2;
                         if (itemEdge < dt) {
                             canAdvance = false;
@@ -124,7 +145,7 @@ class ConveyorItems {
 
             } else {
 
-                // check collision with other items in front of this one
+                // resolve collisions with other items in front of this one
                 const otherItems = item.owner.items;
                 for (const otherItem of otherItems) {
                     if (otherItem === item) {
@@ -139,35 +160,11 @@ class ConveyorItems {
                     const otherEdge = otherT - halfOtherItemSize;
                     if (newT + halfItemSize > otherEdge) {
                         newT = otherEdge - halfItemSize;
-                        break;
                     }
                 }
             }
 
-            GameUtils.mapToWorld(item.mapCoords, worldPos);
-            const { direction: currentDir, startAxis: currentStartAxis, endAxis: currentEndAxis } = item.owner.config;
-            const currentIsConer = currentEndAxis !== undefined;
-            if (currentIsConer) {                
-                const [flipX, angle] = ConveyorUtils.getConveyorTransform(currentDir, currentStartAxis);
-                const _curve = flipX ? curveFlipped : curve;
-                _curve.evaluate(newT, curvePos);
-                curvePos.applyAxisAngle(GameUtils.vec3.up, angle);
-                curvePos.multiplyScalar(halfCellSize);
-
-                const sx = currentEndAxis === "x" ? 0 : 1;
-                const sz = 1 - sx;
-                const startX = worldPos.x - currentDir.x * sx * halfCellSize;
-                const startZ = worldPos.z - currentDir.y * sz * halfCellSize;
-                obj.position.x = startX + curvePos.x;
-                obj.position.z = startZ + curvePos.z;
-
-            } else {
-                const startX = worldPos.x - currentDir.x * halfCellSize;
-                const startZ = worldPos.z - currentDir.y * halfCellSize;
-                obj.position.x = startX + currentDir.x * newT * cellSize;
-                obj.position.z = startZ + currentDir.y * newT * cellSize;
-            }
-
+            projectOnConveyor(item, newT);
             item.localT = newT;
         }
     }
@@ -192,6 +189,8 @@ class ConveyorItems {
         const box3Helper = new Box3Helper(bbox);
         box3Helper.visible = false;
         obj.add(box3Helper);
+        obj.scale.multiplyScalar(cellSize).multiplyScalar(itemSize);
+        obj.position.y = conveyorHeight * cellSize;
 
         const item: IConveyorItem = {
             size: itemSize,
@@ -200,21 +199,8 @@ class ConveyorItems {
             mapCoords: mapCoords.clone(),
             localT: lowestT
         };
-        obj.scale.multiplyScalar(cellSize).multiplyScalar(item.size);
 
-        GameUtils.mapToWorld(mapCoords, worldPos);
-        const { endAxis, direction } = cell.conveyor!.config;
-        const isCorner = endAxis !== undefined;
-        if (isCorner) {
-
-        } else {            
-            const startX = worldPos.x - direction.x * halfCellSize;
-            const startZ = worldPos.z - direction.y * halfCellSize;
-            obj.position.x = startX + direction.x * lowestT * cellSize;
-            obj.position.z = startZ + direction.y * lowestT * cellSize;
-        }
-
-        obj.position.y = conveyorHeight * cellSize;
+        projectOnConveyor(item, lowestT);
         this._itemsRoot.add(obj);
         cell.conveyor!.items.push(item);
         this._items.push(item);
