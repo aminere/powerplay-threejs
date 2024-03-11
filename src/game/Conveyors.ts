@@ -81,7 +81,6 @@ class Conveyors {
         const topTexture = topMaterial.map!;
         topTexture.wrapT = RepeatWrapping;
         this._topTexture = topTexture;
-        await conveyorItems.preload();
         this._loaded = true;
     }
 
@@ -96,7 +95,7 @@ class Conveyors {
                 endAxis
             },
             visual: {},
-            items: []
+            items: [],
         };
 
         GameUtils.mapToWorld(mapCoords, worldPos);

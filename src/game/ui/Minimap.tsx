@@ -156,12 +156,15 @@ export function Minimap() {
         fogCtx.putImageData(fogPixels, 0, 0);
 
         const flocks = engineState.getComponents(Flock);
-        flockRef.current = flocks[0].component;
-        const gamemaps = engineState.getComponents(GameMap);
-        gamemapRef.current = gamemaps[0].component;
+        const flock = flocks[0].component;
+        if (flock.props.active) {
+            flockRef.current = flock;
+            const gamemaps = engineState.getComponents(GameMap);
+            gamemapRef.current = gamemaps[0].component;
+            setInitialized(true);
+        }        
 
         makeMinimapTransform(45, texRes / 2);
-        setInitialized(true);
         
     }, []);
 

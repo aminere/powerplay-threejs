@@ -127,6 +127,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         document.removeEventListener("keydown", this.onKeyDown);
         cmdHideUI.post("gamemap");
         conveyors.dispose();
+        conveyorItems.dispose();
         gameMapState.instance = null;
     }
 
@@ -334,29 +335,30 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         onEndDrag();
                     }
                 } else {
+
                     const flock = engineState.getComponents(Flock)[0];
                     const flockState = flock?.component.state;
-                    if (flockState) {
-                        if (input.touchButton === 0) {
+                    if (input.touchButton === 0) {
 
-                            if (this.state.selectionInProgress) {
-                                cmdEndSelection.post();
-                                gameMapState.selectionInProgress = false;
-    
-                            } else {
-    
-                                const { width, height } = engine.screenRect;
-                                const normalizedPos = pools.vec2.getOne();
-                                normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                                rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
-    
+                        if (this.state.selectionInProgress) {
+                            cmdEndSelection.post();
+                            gameMapState.selectionInProgress = false;
+
+                        } else {
+
+                            const { width, height } = engine.screenRect;
+                            const normalizedPos = pools.vec2.getOne();
+                            normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+                            rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+
+                            const intersections: Array<{ 
+                                unit?: IUnit; 
+                                building?: IBuildingInstance;
+                                distance: number; 
+                            }> = [];
+                            
+                            if (flockState) {
                                 const { units } = flockState;
-                                const intersections: Array<{ 
-                                    unit?: IUnit; 
-                                    building?: IBuildingInstance;
-                                    distance: number; 
-                                }> = [];
-    
                                 const intersection = pools.vec3.getOne();
                                 for (let i = 0; i < units.length; ++i) {
                                     const unit = units[i];
@@ -384,46 +386,47 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
                                     }
                                 }
-    
-                                if (intersections.length > 0) {
-                                    intersections.sort((a, b) => a.distance - b.distance);
-    
-                                    const { unit, building }  = intersections[0];
-                                    if (unit) {
-                                        flockState.selectedUnits = [unit];
-                                        this.state.selectedBuilding = null;
+                            }
 
-                                        cmdSetSelectedElems.post({ units: flockState.selectedUnits });
-    
-                                    } else if (building) {    
-                                        if (flockState.selectedUnits.length > 0) {
-                                            flockState.selectedUnits.length = 0;
-                                        }
-                                        this.state.selectedBuilding = building;
+                            if (intersections.length > 0) {
+                                intersections.sort((a, b) => a.distance - b.distance);
 
-                                        cmdSetSelectedElems.post({ building });
-                                    }
-                                    
-                                } else {
+                                const { unit, building }  = intersections[0];
+                                if (unit) {                                    
+                                    flockState!.selectedUnits = [unit];
+                                    this.state.selectedBuilding = null;
+                                    cmdSetSelectedElems.post({ units: flockState.selectedUnits });
 
-                                    if (flockState.selectedUnits.length > 0) {
+                                } else if (building) {    
+                                    if (flockState && flockState.selectedUnits.length > 0) {
                                         flockState.selectedUnits.length = 0;
                                     }
+                                    this.state.selectedBuilding = building;
 
-                                    this.state.selectedBuilding = null;
-                                    const cell = GameUtils.getCell(this.state.highlightedCellCoords);
-                                    if (cell?.conveyor) {
-                                        // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
-                                        conveyorItems.addItem(cell, this.state.highlightedCellCoords);
+                                    cmdSetSelectedElems.post({ building });
+                                }
+                                
+                            } else {
 
-                                    } else {
-                                        cmdSetSelectedElems.post({ });
-                                    }
+                                if (flockState && flockState.selectedUnits.length > 0) {
+                                    flockState.selectedUnits.length = 0;
+                                }
+
+                                this.state.selectedBuilding = null;
+                                const cell = GameUtils.getCell(this.state.highlightedCellCoords);
+                                if (cell?.conveyor) {
+                                    // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
+                                    conveyorItems.addItem(cell, this.state.highlightedCellCoords);
+
+                                } else {
+                                    cmdSetSelectedElems.post({ });
                                 }
                             }
-    
-                        } else if (input.touchButton === 2) {
-    
+                        }
+
+                    } else if (input.touchButton === 2) {
+
+                        if (flockState) {
                             if (flockState.selectedUnits.length > 0) {
                                 const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
                                 const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
@@ -447,7 +450,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                 }
                             }
                         }
-                    }
+                        
+                    }                    
                 }
             }
         }
@@ -517,7 +521,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             // treesComponent.load(trees),
             flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve(),
             buildings.preload(),
-            conveyors.preload()
+            conveyors.preload(),
+            conveyorItems.preload()
         ]).then(() => {
             cmdShowUI.post("gamemap");
         });

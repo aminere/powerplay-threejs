@@ -11,7 +11,6 @@ const { conveyorHeight, cellSize } = config.game;
 const halfCellSize = cellSize / 2;
 const worldPos = new Vector3();
 const neighborCoords = new Vector2();
-const itemsToDelete = new Array<[number, ICell, ICell, Vector2]>();
 
 function getConveyorFreeSpace(cell: ICell) {
     const { items } = cell.conveyor!;
@@ -23,101 +22,166 @@ function getConveyorFreeSpace(cell: ICell) {
 }
 
 class ConveyorItems {
-    
-    private _items!: Object3D;
+
     private _item!: Mesh;
-    private _activeConveyors = new Map<string, {
-        cell: ICell;
-        mapCoords: Vector2;
-    }>();
+    private _itemsRoot!: Object3D;
+    private _items = new Array<IConveyorItem>();
 
     public async preload() {
-        this._items = utils.createObject(gameMapState.layers.conveyors, "items");
+        this._itemsRoot = utils.createObject(gameMapState.layers.conveyors, "items");
         const [item] = await meshes.load("/models/resources/iron-ore.glb");
+        item.castShadow = true;
         this._item = item;
     }
 
-    public update() {
-        for (const [, info] of this._activeConveyors) {
-            GameUtils.mapToWorld(info.mapCoords, worldPos);
-            const { items, config } = info.cell.conveyor!;
-            const { direction, startAxis, endAxis } = config;
-            const isCorner = endAxis !== undefined;
-            itemsToDelete.length = 0;
-            for (let i = 0; i < items.length; ++i) {
-                const item = items[i];
-                const { obj, size } = item;
-                if (isCorner) {
+    public dispose() {
+        this._items.length = 0;
+    }
 
+    public update() {
+
+        for (const item of this._items) {
+            console.assert(item.localT >= 0 && item.localT <= 1);
+            let newT = item.localT + time.deltaTime / cellSize;            
+            const halfItemSize = item.size / 2;
+
+            if (newT > 1) {
+
+                const dt = newT - 1;
+
+                // half the item passed to the next conveyor, time to transfer ownership
+                const { mapCoords } = item;
+                const { endAxis, direction } = item.owner.config;
+                const isCorner = endAxis !== undefined;
+                if (isCorner) {
+                    console.log("todo");
                 } else {
-                    if (startAxis === "x") {
-                        const dx = direction.x * time.deltaTime;
-                        const localX = obj.position.x - worldPos.x;
-                        const newLocalX = localX + dx;
-                        const newEdge = newLocalX + (size / 2) * direction.x;
-                        const outOfBounds = Math.abs(newEdge) > halfCellSize;
-                        if (outOfBounds) {
-                            // reached bound
-                            neighborCoords.addVectors(info.mapCoords, direction);
-                            const nextConveyor = GameUtils.getCell(neighborCoords);
-                            if (nextConveyor?.conveyor) {
-                                const freeSpace = getConveyorFreeSpace(nextConveyor);
-                                if (freeSpace - item.size > 0) {
-                                    itemsToDelete.push([i, info.cell, nextConveyor, neighborCoords.clone()]);
-                                }                                
+                    neighborCoords.addVectors(mapCoords, direction);
+                    const nextConveyor = GameUtils.getCell(neighborCoords)!;
+                    console.assert(nextConveyor);
+                    nextConveyor.conveyor!.items.push(item);
+                    item.mapCoords.copy(neighborCoords);
+
+                    const indexInCurrentOwner = item.owner.items.indexOf(item);
+                    console.assert(indexInCurrentOwner >= 0);
+                    item.owner.items.splice(indexInCurrentOwner, 1);
+                    item.owner = nextConveyor.conveyor!;
+                }
+
+                newT = dt;                
+
+            } else if (newT > 1 - halfItemSize) {
+
+                const dt = newT - (1 - halfItemSize);
+
+                // reached edge, check if space in next conveyor                
+                let canAdvance = true;
+                const { mapCoords } = item;
+                const { endAxis, direction } = item.owner.config;
+                const isCorner = endAxis !== undefined;
+                if (isCorner) {
+                    console.log("todo");
+                } else {
+                    neighborCoords.addVectors(mapCoords, direction);
+                    const nextConveyor = GameUtils.getCell(neighborCoords);                    
+                    if (nextConveyor?.conveyor) {
+                        const existingItems = nextConveyor?.conveyor!.items;
+                        for (const existingItem of existingItems) {
+                            console.assert(existingItem.localT >= 0 && existingItem.localT <= 1);
+                            const itemEdge = existingItem.localT - existingItem.size / 2;
+                            if (itemEdge < dt) {
+                                canAdvance = false;
+                                break;
                             }
-                        } else {
-                            obj.position.x += dx;
                         }
+                    } else {
+                        canAdvance = false;
+                    }
+                }     
+                
+                if (!canAdvance) {
+                    newT = 1 - halfItemSize;                    
+                }             
+
+            } else {
+
+                // check collision with other items in front of this one
+                const otherItems = item.owner.items;
+                for (const otherItem of otherItems) {
+                    if (otherItem === item) {
+                        continue;
+                    }
+                    const otherT = otherItem.localT;
+                    if (otherT < newT) {
+                        continue;
+                    }
+
+                    const halfOtherItemSize = otherItem.size / 2;
+                    const otherEdge = otherT - halfOtherItemSize;
+                    if (newT + halfItemSize > otherEdge) {
+                        newT = otherEdge - halfItemSize;
+                        break;
                     }
                 }
-            }            
-        }
-
-        for (const [index, conveyor, nextConveyor, mapCoords] of itemsToDelete) {
-            const { items } = conveyor.conveyor!;
-            const item = items[index];
-
-            items.splice(index, 1);
-            if (items.length === 0) {
-                console.log(`removing conveyor ${conveyor.id}`);
-                this._activeConveyors.delete(conveyor.id);
             }
 
-            nextConveyor.conveyor!.items.push(item);                
-            if (!this._activeConveyors.has(nextConveyor.id)) {
-                console.log(`activating conveyor ${nextConveyor.id}`);
-                this._activeConveyors.set(nextConveyor.id, {
-                    cell: nextConveyor,
-                    mapCoords
-                });
-            }
+            const { direction } = item.owner.config;
+            const { obj, mapCoords } = item;
+            GameUtils.mapToWorld(mapCoords, worldPos);
+            const startX = worldPos.x - direction.x * halfCellSize;
+            const startZ = worldPos.z - direction.y * halfCellSize;
+            obj.position.x = startX + direction.x * newT * cellSize;
+            obj.position.z = startZ + direction.y * newT * cellSize;
+            item.localT = newT;
         }
     }
 
     public addItem(cell: ICell, mapCoords: Vector2) {
+
+        const itemSize = 1 / 3;
+        const halfItemSize = itemSize / 2;
+        const lowestT = halfItemSize;
+        const edge = lowestT + halfItemSize;        
+        const existingItems = cell.conveyor!.items;
+        for (const item of existingItems) {
+            const itemEdge = item.localT - item.size / 2;
+            if (itemEdge < edge) {
+                console.log(`no space in conveyor ${cell.id}`);
+                return;
+            }
+        }
+        
         const obj = this._item.clone();
         const bbox = new Box3().setFromObject(obj);
         const box3Helper = new Box3Helper(bbox);
+        box3Helper.visible = false;
         obj.add(box3Helper);
 
         const item: IConveyorItem = {
-            size: 1 / 3,
-            obj: obj
+            size: itemSize,
+            obj: obj,
+            owner: cell.conveyor!,
+            mapCoords: mapCoords.clone(),
+            localT: lowestT
         };
         obj.scale.multiplyScalar(cellSize).multiplyScalar(item.size);
 
-        GameUtils.mapToWorld(mapCoords, obj.position);
-        obj.position.y = conveyorHeight * cellSize;
-        this._items.add(obj);
-        cell.conveyor!.items.push(item);
-
-        if (!this._activeConveyors.has(cell.id)) {
-            this._activeConveyors.set(cell.id, {
-                cell,
-                mapCoords: mapCoords.clone()
-            });
+        GameUtils.mapToWorld(mapCoords, worldPos);
+        const { endAxis, direction } = cell.conveyor!.config;
+        const isCorner = endAxis !== undefined;
+        if (isCorner) {
+            console.log("todo");
+        } else {            
+            const startX = worldPos.x - direction.x * halfCellSize;
+            const startZ = worldPos.z - direction.y * halfCellSize;
+            obj.position.x = startX + direction.x * lowestT * cellSize;
+            obj.position.z = startZ + direction.y * lowestT * cellSize;
         }
+
+        obj.position.y = conveyorHeight * cellSize;
+        this._itemsRoot.add(obj);
+        cell.conveyor!.items.push(item);
+        this._items.push(item);
     }
 }
 
