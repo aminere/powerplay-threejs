@@ -102,13 +102,22 @@ class ConveyorItems {
                 console.assert(nextConveyor);
                 nextConveyor.conveyor!.items.push(item);
                 item.mapCoords.copy(neighborCoords);
+                
+                newT = dt;
+                
+                if (!isCorner) {
+                    const nextIsPerpendicular = nextConveyor.conveyor!.config.startAxis !== item.owner.config.startAxis;                    
+                    if (nextIsPerpendicular) {
+                        // TODO check collisions
+                        newT = .5;
+                    }
+                }
 
                 const indexInCurrentOwner = item.owner.items.indexOf(item);
                 console.assert(indexInCurrentOwner >= 0);
                 item.owner.items.splice(indexInCurrentOwner, 1);
                 item.owner = nextConveyor.conveyor!;
 
-                newT = dt;                
 
             } else if (newT > 1 - halfItemSize) {
 
