@@ -48,12 +48,8 @@ class Conveyors {
         }
 
         const baseMaterial = conveyor.material as MeshBasicMaterial;
-        baseMaterial.transparent = true;
-        baseMaterial.opacity = .9;
         baseMaterial.side = DoubleSide;
         const curvedBaseMaterial = curvedConveyor0.material as MeshBasicMaterial;
-        curvedBaseMaterial.transparent = true;
-        curvedBaseMaterial.opacity = .9;
         curvedBaseMaterial.side = DoubleSide;
 
         conveyor.geometry.scale(conveyorWidth, 1, 1);

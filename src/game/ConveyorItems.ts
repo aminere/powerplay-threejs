@@ -76,9 +76,9 @@ class ConveyorItems {
 
     public update() {
 
+        const step = time.deltaTime * conveyorSpeed / cellSize;
         for (const item of this._items) {
-            console.assert(item.localT >= 0 && item.localT <= 1);
-            let newT = item.localT + time.deltaTime * conveyorSpeed / cellSize;
+            let newT = item.localT + step;
             const halfItemSize = item.size / 2;
             const { endAxis, direction } = item.owner.config;
             const isCorner = endAxis !== undefined;
@@ -96,35 +96,23 @@ class ConveyorItems {
                     neighborCoords.y = mapCoords.y + direction.y * sz;
                 } else {
                     neighborCoords.addVectors(mapCoords, direction);
-                }
-
-                const nextConveyor = GameUtils.getCell(neighborCoords)!;
-                console.assert(nextConveyor);
-                nextConveyor.conveyor!.items.push(item);
-                item.mapCoords.copy(neighborCoords);
-                
-                newT = dt;
-                
-                if (!isCorner) {
-                    const nextIsPerpendicular = nextConveyor.conveyor!.config.startAxis !== item.owner.config.startAxis;                    
-                    if (nextIsPerpendicular) {
-                        // TODO check collisions
-                        newT = .5;
-                    }
-                }
+                }            
 
                 const indexInCurrentOwner = item.owner.items.indexOf(item);
                 console.assert(indexInCurrentOwner >= 0);
                 item.owner.items.splice(indexInCurrentOwner, 1);
+                
+                const nextConveyor = GameUtils.getCell(neighborCoords)!;
+                nextConveyor.conveyor!.items.push(item);
+                item.mapCoords.copy(neighborCoords);
                 item.owner = nextConveyor.conveyor!;
-
+                newT = dt; 
 
             } else if (newT > 1 - halfItemSize) {
 
                 const dt = newT - (1 - halfItemSize);
 
                 // reached edge, check if space in next conveyor
-                let canAdvance = true;
                 if (isCorner) {
                     const sx = endAxis === "x" ? 1 : 0;    
                     const sz = 1 - sx;
@@ -134,21 +122,38 @@ class ConveyorItems {
                     neighborCoords.addVectors(mapCoords, direction);
                 }
 
+                let isBlocked = true;
                 const nextConveyor = GameUtils.getCell(neighborCoords);
                 if (nextConveyor?.conveyor) {
-                    const existingItems = nextConveyor?.conveyor!.items;
-                    for (const existingItem of existingItems) {
-                        const itemEdge = existingItem.localT - existingItem.size / 2;
-                        if (itemEdge < dt) {
-                            canAdvance = false;
-                            break;
-                        }
+                    const { startAxis, endAxis } = item.owner.config;
+                    const { startAxis: nextStartAxis, direction: nextDirection } = nextConveyor.conveyor.config;
+                    const aligned = isCorner ? endAxis === nextStartAxis : startAxis === nextStartAxis;
+                    if (aligned) {
+                        const sameDirection = (() => {
+                            const sx = nextStartAxis === "x" ? 1 : 0;
+                            const sy = 1 - sx;
+                            return (direction.x * sx === nextDirection.x * sx) && (direction.y * sy === nextDirection.y * sy);                                
+                        })();
+
+                        if (sameDirection) {
+                            const existingItems = nextConveyor?.conveyor!.items;                            
+                            let collisionFound = false;
+                            for (const existingItem of existingItems) {
+                                const itemEdge = existingItem.localT - existingItem.size / 2;
+                                if (itemEdge < dt) {
+                                    collisionFound = true;
+                                    break;
+                                }
+                            }
+
+                            if (!collisionFound) {
+                                isBlocked = false;
+                            }
+                        }                       
                     }
-                } else {
-                    canAdvance = false;
                 }
                 
-                if (!canAdvance) {
+                if (isBlocked) {
                     newT = 1 - halfItemSize;                    
                 }             
 
