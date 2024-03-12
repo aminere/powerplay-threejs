@@ -154,7 +154,7 @@ class ConveyorItems {
                 }
                 
                 if (isBlocked) {
-                    newT = 1 - halfItemSize;                    
+                    newT = Math.max(1 - halfItemSize, item.localT);
                 }             
 
             } else {
@@ -173,7 +173,7 @@ class ConveyorItems {
                     const halfOtherItemSize = otherItem.size / 2;
                     const otherEdge = otherT - halfOtherItemSize;
                     if (newT + halfItemSize > otherEdge) {
-                        newT = otherEdge - halfItemSize;
+                        newT = Math.max(otherEdge - halfItemSize, item.localT); 
                     }
                 }
             }
