@@ -38,10 +38,14 @@ export interface IConveyorItem {
 
 export interface ICell {
     id: string;
-    roadTile?: number;
-    previewRoadTile?: number;
-    conveyor?: IConveyor;
+    flowFieldCost: number;    
+    viewCount: number;
+    isEmpty: boolean;
+    isWalkable: boolean;
+    hasUnits: boolean;
 
+    roadTile?: number;
+    conveyor?: IConveyor;
     buildingId?: string;
     resource?: Object3D;
     rail?: {        
@@ -58,10 +62,7 @@ export interface ICell {
         obj?: Object3D;
     };
     
-    units: IUnit[];
-    flowFieldCost: number;
-    isEmpty: boolean;
-    viewCount: number;
+    units?: IUnit[];
 }
 
 export interface ISector {

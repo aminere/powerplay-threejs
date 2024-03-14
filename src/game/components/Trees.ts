@@ -196,8 +196,6 @@ export class Trees extends Component<TreesProps> {
                                         treeMesh.count = count + 1;
 
                                         cell.resource = dummyTree;
-                                        cell.isEmpty = false;
-                                        cell.flowFieldCost = 0xffff;
                                     }
                                 }
                             }

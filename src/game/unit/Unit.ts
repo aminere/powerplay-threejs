@@ -135,7 +135,11 @@ export class Unit implements IUnit {
 
         const cell = GameUtils.getCell(this._coords.mapCoords)!;
         console.assert(cell, `unit ${this._id} created at invalid position ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
-        cell.units.push(this);
+        if (cell.units) {
+            cell.units.push(this);
+        } else {
+            cell.units = [this];
+        }        
     }
 }
 

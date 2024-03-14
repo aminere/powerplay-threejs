@@ -3,11 +3,11 @@ import { gameMapState } from "./components/GameMapState";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
-import { pools } from "../engine/core/Pools";
 import { Axis, ICell } from "./GameTypes";
 import { time } from "../engine/core/Time";
 import { ConveyorUtils } from "./ConveyorUtils";
 import { conveyorItems } from "./ConveyorItems";
+import { pools } from "../engine/core/Pools";
 
 const matrix = new Matrix4();
 const worldPos = new Vector3();
@@ -117,10 +117,7 @@ class Conveyors {
             this._conveyorTops.count = count + 1;
             this._straightCells.push(cell);
             cell.conveyor!.visual.instanceIndex = count;
-        }
-
-        cell.isEmpty = false;
-        cell.flowFieldCost = 0xffff;
+        }        
     }
 
     private setStraightTransform(position: Vector3, direction: Vector2, instanceIndex: number) {
@@ -270,9 +267,7 @@ class Conveyors {
     public clearCurvedConveyor(cell: ICell) {
         const { visual } = cell.conveyor!;
         visual.mesh!.removeFromParent();
-        delete cell.conveyor;
-        cell.isEmpty = true;
-        cell.flowFieldCost = 1;
+        cell.conveyor = undefined;
     }
 
     public clearStraightConveyor(cell: ICell) {
@@ -297,11 +292,25 @@ class Conveyors {
         this._conveyors.instanceMatrix.needsUpdate = true;
         this._conveyorTops.count = newCount;
         this._conveyorTops.instanceMatrix.needsUpdate = true;
-        delete cell.conveyor;
-        cell.isEmpty = true;
-        cell.flowFieldCost = 1;
+        cell.conveyor = undefined;
     }
 
+    public update() {
+        if (!this._loaded) {
+            return;
+        }
+
+        this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
+        conveyorItems.update();
+    }
+
+    public dispose() {
+        this._disposed = true;
+        this._conveyors.count = 0;
+        this._conveyorTops.count = 0;
+        this._straightCells.length = 0;
+    }  
+    
     public onDrag(start: Vector2, end: Vector2, dragAxis: Axis, cellsOut: Vector2[]) {
         const [mapCoords, offset2, start2, dir, cornerDir] = pools.vec2.get(5);
 
@@ -450,22 +459,6 @@ class Conveyors {
             }
         }
     }
-
-    public update() {
-        if (!this._loaded) {
-            return;
-        }
-
-        this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
-        conveyorItems.update();
-    }
-
-    public dispose() {
-        this._disposed = true;
-        this._conveyors.count = 0;
-        this._conveyorTops.count = 0;
-        this._straightCells.length = 0;
-    }    
 }
 
 export const conveyors = new Conveyors();

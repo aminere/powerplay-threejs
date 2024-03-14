@@ -1,10 +1,11 @@
 import { Object3D, Vector2 } from "three";
 import { config } from "./config";
-import { ICell, ISector } from "./GameTypes";
+import { ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
 import { gameMapState } from "./components/GameMapState";
 import { utils } from "../engine/Utils";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
+import { Cell } from "./Cell";
 
 export class Sector {
     public static create(props: ITerrainPatch) {
@@ -22,16 +23,7 @@ export class Sector {
         sectorRoot.updateMatrix();
 
         const grid = [...Array(mapRes * mapRes)];
-        const cells = grid.map((_, i) => {
-            const cell: ICell = {
-                id: `${x},${y}-${i}`,
-                isEmpty: true,
-                flowFieldCost: 1,
-                viewCount: -1,
-                units: []
-            };
-            return cell;
-        })
+        const cells = grid.map((_, i) => new Cell(`${x},${y}-${i}`));
 
         // terrain
         const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);

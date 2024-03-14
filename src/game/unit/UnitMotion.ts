@@ -14,6 +14,7 @@ import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
+import { gameMapState } from "../components/GameMapState";
 
 const { mapRes } = config.game;
 const oneSector = [new Vector2()];
@@ -26,7 +27,7 @@ function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTarge
     const resource = desiredTargetCell.resource?.name;
     if (resource) {
         return desiredTargetCellCoords;
-    } else if (desiredTargetCell.isEmpty) {
+    } else if (desiredTargetCell.isWalkable) {
         return path[path.length - 1];
     } else if (path.length > 2) {
         return path[path.length - 2];
@@ -75,7 +76,7 @@ function getSrcMapCoords(srcMapCoords: Vector2, sectors: Vector2[]) {
             const y = dy > 0 ? 0 : mapRes - 1;
             for (let x = 0; x < mapRes; x++) {
                 const cellIndex = y * mapRes + x;
-                if (sector.cells[cellIndex].isEmpty) {
+                if (sector.cells[cellIndex].isWalkable) {
                     return pools.vec2.getOne().set(sector2.x * mapRes + x, sector2.y * mapRes + y);
                 }
             }
@@ -85,7 +86,7 @@ function getSrcMapCoords(srcMapCoords: Vector2, sectors: Vector2[]) {
             const x = dx > 0 ? 0 : mapRes - 1;
             for (let y = 0; y < mapRes; y++) {
                 const cellIndex = y * mapRes + x;
-                if (sector.cells[cellIndex].isEmpty) {
+                if (sector.cells[cellIndex].isWalkable) {
                     return pools.vec2.getOne().set(sector2.x * mapRes + x, sector2.y * mapRes + y);
                 }
             }
@@ -174,14 +175,14 @@ class UnitMotion {
             console.assert(unitCount > 0);
             flowField.setMotionUnitCount(motionId, unitCount);
 
-            // for (const sector of gameMapState.sectors.values()) {
-            //     sector.flowfieldViewer.visible = false;
-            // }
-            // for (const sectorCoords of sectors) {
-            //     const sector = GameUtils.getSector(sectorCoords)!;
-            //     sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-            //     sector.flowfieldViewer.visible = true;
-            // }
+            for (const sector of gameMapState.sectors.values()) {
+                sector.flowfieldViewer.visible = false;
+            }
+            for (const sectorCoords of sectors) {
+                const sector = GameUtils.getSector(sectorCoords)!;
+                sector.flowfieldViewer.update(motionId, sector, sectorCoords);
+                sector.flowfieldViewer.visible = false; //true;
+            }
         }        
     }
 

@@ -4,7 +4,6 @@ import { Axis } from "./GameTypes";
 import { Sector } from "./Sector";
 import { pools } from "../engine/core/Pools";
 import { gameMapState } from "./components/GameMapState";
-import { config } from "./config";
 
 const neighborCombinations: {
     [key: string]: number; // tileIndex
@@ -32,21 +31,52 @@ const neighborCombinations: {
     "1111": 15
 };
 
-const { mapRes } = config.game;
+function setRoadTile(sectorCoords: Vector2, localCoords: Vector2, roadTileIndex: number) {
+    const { sectors } = gameMapState;
+    const baseRoadTileIndex = 16;
+    const tileIndex = baseRoadTileIndex + roadTileIndex;
+    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    return Sector.updateCellTexture(sector, localCoords, tileIndex);
+}    
 
-export class Roads {
-    public static onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
+function getRoadTile(mapCoords: Vector2) {
+    const [neighborCoord, neighborSector, neighbordLocalCoords] = pools.vec2.get(3);
+    const getNeighbor = (dx: number, dy: number) => {
+        neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
+        const neighbor = GameUtils.getCell(neighborCoord, neighborSector, neighbordLocalCoords);
+        const hasRoadNeighbor = neighbor?.roadTile !== undefined;
+        return {
+            cell: hasRoadNeighbor ? neighbor : null,
+            coords: neighborCoord.clone(),
+            neighborSector: neighborSector.clone(),
+            neighbordLocalCoords: neighbordLocalCoords.clone()
+        }
+    };
+    const neighbors = [
+        getNeighbor(0, -1), // top
+        getNeighbor(1, 0), // right
+        getNeighbor(0, 1), // bottom
+        getNeighbor(-1, 0), // left
+    ];
+    const mask = neighbors.map(n => n.cell !== null ? "1" : "0").join("");
+    const tileIndex = neighborCombinations[mask];
+    return { tileIndex, neighbors };
+}
+
+class Roads {
+
+    public onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
         const [mapCoords, offset2, start2] = pools.vec2.get(3);
         const scan = (_start: Vector2, direction: Vector2, iterations: number) => {
             console.assert(iterations >= 0);
             for (let i = 0; i <= iterations; ++i) {
                 mapCoords.copy(_start).addScaledVector(direction, i);
                 const cell = GameUtils.getCell(mapCoords);
-                if (!cell || !cell.isEmpty || cell.roadTile !== undefined) {
+                if (!cell || !cell.isEmpty) {
                     continue;
                 }
                 cellsOut.push(mapCoords.clone());
-                Roads.create(mapCoords, false);
+                this.create(mapCoords);
             }
         };
 
@@ -69,94 +99,42 @@ export class Roads {
                 scan(start2, offset2, Math.abs(current.x - start.x) - 1);
             }
         }
-    }
+    }    
 
-    public static onEndDrag(cells: Vector2[]) { 
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
-        const { sectors } = gameMapState;    
-        for (const mapCoords of cells) {
-            const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
-            const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-            const cellIndex = localCoords.y * mapRes + localCoords.x;
-            const rawTileIndex = sector.textureData.terrain.at(cellIndex);            
-            cell.roadTile = rawTileIndex;
-            delete cell.previewRoadTile;
-        }
-    }
-
-    public static create(mapCoords: Vector2, persistent = true) {
+    public create(mapCoords: Vector2) {
         const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
-        const { tileIndex, neighbors } = Roads.getRoadTile(mapCoords);
-        const rawTileIndex = Roads.setRoadTile(sectorCoords, localCoords, tileIndex);
-        if (persistent) {
-            cell.roadTile = rawTileIndex;
-        } else {
-            cell.previewRoadTile = rawTileIndex;
-        }       
+        const { tileIndex, neighbors } = getRoadTile(mapCoords);
+        const rawTileIndex = setRoadTile(sectorCoords, localCoords, tileIndex);
+        cell.roadTile = rawTileIndex;  
         for (const neighbor of neighbors) {
             if (!neighbor.cell) {
                 continue;
             }
-            const { tileIndex: neighborTileIndex } = Roads.getRoadTile(neighbor.coords);
-            const rawTileIndex = Roads.setRoadTile(neighbor.neighborSector, neighbor.neighbordLocalCoords, neighborTileIndex);
-            if (persistent) {
-                neighbor.cell.roadTile = rawTileIndex;
-            } else {
-                neighbor.cell.previewRoadTile = rawTileIndex;
-            }
+            const { tileIndex: neighborTileIndex } = getRoadTile(neighbor.coords);
+            const rawTileIndex = setRoadTile(neighbor.neighborSector, neighbor.neighbordLocalCoords, neighborTileIndex);
+            neighbor.cell.roadTile = rawTileIndex;
         }
     }
 
-    public static clear(mapCoords: Vector2) {
+    public clear(mapCoords: Vector2) {
         const { sectors } = gameMapState;
         const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
-        delete cell.roadTile;
-        delete cell.previewRoadTile;
+        cell.roadTile = undefined;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         Sector.updateCellTexture(sector, localCoords, 0);
-        const { neighbors } = Roads.getRoadTile(mapCoords);
+        const { neighbors } = getRoadTile(mapCoords);
         for (const neighbor of neighbors) {
             if (neighbor.cell === null) {
                 continue;
             }
-            const { tileIndex } = Roads.getRoadTile(neighbor.coords);
-            const rawTile = Roads.setRoadTile(neighbor.neighborSector, neighbor.neighbordLocalCoords, tileIndex);            
+            const { tileIndex } = getRoadTile(neighbor.coords);
+            const rawTile = setRoadTile(neighbor.neighborSector, neighbor.neighbordLocalCoords, tileIndex);            
             neighbor.cell.roadTile = rawTile;
         }
-    }
-
-    private static setRoadTile(sectorCoords: Vector2, localCoords: Vector2, roadTileIndex: number) {
-        const { sectors } = gameMapState;
-        const baseRoadTileIndex = 16;
-        const tileIndex = baseRoadTileIndex + roadTileIndex;
-        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-        return Sector.updateCellTexture(sector, localCoords, tileIndex);
     }    
-
-    private static getRoadTile(mapCoords: Vector2) {
-        const [neighborCoord, neighborSector, neighbordLocalCoords] = pools.vec2.get(3);
-        const getNeighbor = (dx: number, dy: number) => {
-            neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
-            const neighbor = GameUtils.getCell(neighborCoord, neighborSector, neighbordLocalCoords);
-            const hasRoadNeighbor = neighbor?.roadTile !== undefined || neighbor?.previewRoadTile !== undefined;
-            return {
-                cell: hasRoadNeighbor ? neighbor : null,
-                coords: neighborCoord.clone(),
-                neighborSector: neighborSector.clone(),
-                neighbordLocalCoords: neighbordLocalCoords.clone()
-            }
-        };
-        const neighbors = [
-            getNeighbor(0, -1), // top
-            getNeighbor(1, 0), // right
-            getNeighbor(0, 1), // bottom
-            getNeighbor(-1, 0), // left
-        ];
-        const mask = neighbors.map(n => n.cell !== null ? "1" : "0").join("");
-        const tileIndex = neighborCombinations[mask];
-        return { tileIndex, neighbors };
-    }
 }
+
+export const roads = new Roads();
 

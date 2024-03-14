@@ -8,11 +8,10 @@ import { gameMapState } from "./GameMapState";
 import { Elevation } from "../Elevation";
 import { MineralType, TileType, TileTypes } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
-import { Roads } from "../Roads";
+import { roads } from "../Roads";
 import { Rails } from "../Rails";
 import { resources } from "../Resources";
 import { Sector } from "../Sector";
-import { GameMapProps } from "./GameMapProps";
 import { buildings } from "../Buildings";
 import { conveyors } from "../Conveyors";
 
@@ -129,40 +128,33 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     return cell;
 }
 
-function clearPreviousConveyors() {
-    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));        
-    gameMapState.previousConveyors.length = 0;
-}
+export function onDrag(start: Vector2, current: Vector2) { // map coords
 
-export function onDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
     switch (gameMapState.action) {
         case "road": {
-            gameMapState.previousRoad.forEach(Roads.clear);
+            gameMapState.previousRoad.forEach(road => roads.clear(road));
             gameMapState.previousRoad.length = 0;
-            Roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
+            roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
         }
             break;
 
-        case "rail": {            
+        case "rail": {
             gameMapState.previousRail.forEach(Rails.clear);
             gameMapState.previousRail.length = 0;
             Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousRail);
 
         } break;
 
-        case "terrain": {
-            onTerrain(current, props.tileType);
-        } break;
-
         case "belt": {
-            clearPreviousConveyors();
+            gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
+            gameMapState.previousConveyors.length = 0;
             conveyors.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousConveyors);
-        } 
-        break;
+            
+        } break;
     }
 }
 
-export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProps) { // map coords
+export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
     if (start.x === current.x) {
         gameMapState.initialDragAxis = "z";
     } else if (start.y === current.y) {
@@ -188,34 +180,31 @@ export function onBeginDrag(start: Vector2, current: Vector2, props: GameMapProp
         }
     }
 
-    onDrag(start, current, props);
+    onDrag(start, current);
 }
 
 export function onEndDrag() {
     if (gameMapState.previousRoad.length > 0) {
-        console.assert(gameMapState.action === "road");
-        Roads.onEndDrag(gameMapState.previousRoad);
         gameMapState.previousRoad.length = 0;
-    }    
+    }
 
     if (gameMapState.previousRail.length > 0) {
-        console.assert(gameMapState.action === "rail");
         Rails.onEndDrag(gameMapState.previousRail);
         gameMapState.previousRail.length = 0;
     }
 
     if (gameMapState.previousConveyors.length > 0) {
-        console.assert(gameMapState.action === "belt");
         gameMapState.previousConveyors.length = 0;
     }    
 }
 
 export function onCancelDrag() {
-    gameMapState.previousRoad.forEach(Roads.clear);
+    gameMapState.previousRoad.forEach(road => roads.clear(road));
     gameMapState.previousRoad.length = 0;
     gameMapState.previousRail.forEach(Rails.clear);
     gameMapState.previousRail.length = 0;
-    clearPreviousConveyors();
+    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));        
+    gameMapState.previousConveyors.length = 0;
 }
 
 export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
@@ -229,11 +218,11 @@ export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoor
 export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
         if (cell.isEmpty) {
-            Roads.create(mapCoords);
+            roads.create(mapCoords);
         }
     } else if (button === 2) {
         if (cell.roadTile !== undefined) {
-            Roads.clear(mapCoords);
+            roads.clear(mapCoords);
         }
     }
 }
@@ -246,8 +235,8 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
             for (let i = 0; i < building.size.z; ++i) {
                 for (let j = 0; j < building.size.x; ++j) {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
-                    const _cell = GameUtils.getCell(mapCoords);
-                    if (!_cell || !_cell.isEmpty || _cell.roadTile !== undefined || _cell.units.length > 0) {
+                    const _cell = GameUtils.getCell(mapCoords);                    
+                    if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
                         return false;
                     }
                 }                
@@ -269,7 +258,7 @@ export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICe
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
-        if (cell.isEmpty && cell.roadTile === undefined) {
+        if (cell.isEmpty) {
             resources.create(sector, localCoords, cell, type);
         }
     } else if (button === 2) {
@@ -283,7 +272,7 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
-        if (cell.isEmpty && cell.roadTile === undefined) {
+        if (cell.isEmpty) {
             resources.create(sector, localCoords, cell, "tree");
         }
     } else if (button === 2) {
@@ -307,7 +296,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
 
 export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
-        if (cell.isEmpty && cell.roadTile === undefined) {
+        if (cell.isEmpty) {
             conveyors.createAndFit(cell, mapCoords);
         }
     } else if (button === 2) {

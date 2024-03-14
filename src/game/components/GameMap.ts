@@ -148,10 +148,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                     if (cellCoords?.equals(this.state.selectedCellCoords) === false) {
                         this.state.tileSelector.setPosition(cellCoords!);
                         this.state.selectedCellCoords.copy(cellCoords!);
-                        // default rail preview was here                        
                     }
                 } else {
-                    if (cellCoords?.equals(this.state.highlightedCellCoords) === false) {                        
+                    if (cellCoords?.equals(this.state.highlightedCellCoords) === false) {
                         this.state.highlightedCellCoords.copy(cellCoords!);
                     }
                 }
@@ -195,18 +194,20 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         if (this.state.action) {
                             const cellCoords = pools.vec2.getOne();
                             if (!this.state.touchDragged) {
-                                if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                const cell = raycastOnCells(input.touchPos, this.state.camera, cellCoords);
+                                if (cell) {
                                     if (cellCoords?.equals(this.state.touchStartCoords) === false) {
                                         this.state.touchDragged = true;
                                         this.state.touchHoveredCoords.copy(cellCoords!);
-                                        onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                        onBeginDrag(this.state.touchStartCoords, this.state.touchHoveredCoords);
                                     }
                                 }
                             } else {
-                                if (raycastOnCells(input.touchPos, this.state.camera, cellCoords)) {
+                                const cell = raycastOnCells(input.touchPos, this.state.camera, cellCoords);
+                                if (cell) {
                                     if (cellCoords?.equals(this.state.touchHoveredCoords) === false) {
                                         this.state.touchHoveredCoords.copy(cellCoords!);
-                                        onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords, this.props);
+                                        onDrag(this.state.touchStartCoords, this.state.touchHoveredCoords);
                                     }
                                 }
                             }
@@ -214,7 +215,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                     }
                 }
             }
-            
+
         } else if (input.touchJustReleased) {
 
             const wasDragged = this.state.touchDragged;
@@ -230,8 +231,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
             if (!canceled) {
                 if (this.state.action) {
-                    if (!wasDragged) {
-
+                    if (wasDragged) {
+                        onEndDrag();
+                    } else {
                         const [sectorCoords, localCoords] = pools.vec2.get(2);
                         const cell = GameUtils.getCell(this.state.selectedCellCoords, sectorCoords, localCoords);
                         if (!cell) {
@@ -328,11 +330,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                 case "belt": {
                                     onConveyor(mapCoords, cell, input.touchButton);
                                 }
-                                break;
+                                    break;
                             }
                         }
-                    } else {
-                        onEndDrag();
                     }
                 } else {
 
@@ -351,12 +351,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                             normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
                             rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
 
-                            const intersections: Array<{ 
-                                unit?: IUnit; 
+                            const intersections: Array<{
+                                unit?: IUnit;
                                 building?: IBuildingInstance;
-                                distance: number; 
+                                distance: number;
                             }> = [];
-                            
+
                             if (flockState) {
                                 const { units } = flockState;
                                 const intersection = pools.vec3.getOne();
@@ -376,13 +376,13 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
                                     }
                                 }
-    
+
                                 for (const [, building] of this.state.buildings) {
                                     inverseMatrix.copy(building.obj.matrixWorld).invert();
                                     localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
                                     const buildingId = building.buildingId;
                                     const boundingBox = buildings.getBoundingBox(buildingId);
-                                    if (localRay.intersectBox(boundingBox, intersection)) {                                    
+                                    if (localRay.intersectBox(boundingBox, intersection)) {
                                         intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
                                     }
                                 }
@@ -391,13 +391,13 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                             if (intersections.length > 0) {
                                 intersections.sort((a, b) => a.distance - b.distance);
 
-                                const { unit, building }  = intersections[0];
-                                if (unit) {                                    
+                                const { unit, building } = intersections[0];
+                                if (unit) {
                                     flockState!.selectedUnits = [unit];
                                     this.state.selectedBuilding = null;
                                     cmdSetSelectedElems.post({ units: flockState.selectedUnits });
 
-                                } else if (building) {    
+                                } else if (building) {
                                     if (flockState && flockState.selectedUnits.length > 0) {
                                         flockState.selectedUnits.length = 0;
                                     }
@@ -405,7 +405,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
                                     cmdSetSelectedElems.post({ building });
                                 }
-                                
+
                             } else {
 
                                 if (flockState && flockState.selectedUnits.length > 0) {
@@ -419,7 +419,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                     conveyorItems.addItem(cell, this.state.highlightedCellCoords);
 
                                 } else {
-                                    cmdSetSelectedElems.post({ });
+                                    cmdSetSelectedElems.post({});
                                 }
                             }
                         }
@@ -443,15 +443,15 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                                         }
                                         return prev;
                                     }, {} as Record<string, IUnit[]>);
-    
+
                                     for (const units of Object.values(groups)) {
                                         unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
                                     }
                                 }
                             }
                         }
-                        
-                    }                    
+
+                    }
                 }
             }
         }
@@ -691,7 +691,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                         this.state.cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this.state.cameraAngleRad, 0, 'YXZ'));
                         cmdRotateMinimap.post(MathUtils.radToDeg(this.state.cameraAngleRad));
                     },
-                    onComplete: () => {                        
+                    onComplete: () => {
                         this.state.cameraTween = null;
 
                         // rotate camera bounds

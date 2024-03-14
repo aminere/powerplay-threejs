@@ -10,8 +10,8 @@ export interface IGameMapState {
     bounds?: Box2;
     action: Action | null;
     initialDragAxis?: "x" | "z";
-    previousRoad: Vector2[];
     previousRail: ICell[];
+    previousRoad: Vector2[];
     previousConveyors: Vector2[];
     cameraZoom: number;
     cameraAngleRad: number;

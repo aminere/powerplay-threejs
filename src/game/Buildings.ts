@@ -81,8 +81,6 @@ class Buildings {
                 const cell = GameUtils.getCell(mapCoords)!;
                 console.assert(cell);
                 cell.buildingId = instanceId;
-                cell.isEmpty = false;
-                cell.flowFieldCost = 0xffff;
             }
         }
         
@@ -103,12 +101,7 @@ class Buildings {
             for (let j = 0; j < buildingConfig.size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
-                if (cell) {
-                    delete cell.buildingId;
-                    console.assert(!cell.resource);
-                    cell.isEmpty = true;
-                    cell.flowFieldCost = 1;
-                }
+                cell.buildingId = undefined;
             }
         }
 

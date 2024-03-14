@@ -43,16 +43,11 @@ class Resources {
         }
         resource.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
         cell.resource = resource;
-        cell.isEmpty = false;
-        cell.flowFieldCost = 0xffff;
     }
 
     public clear(sector: ISector, cell: ICell) {
         sector.layers.resources.remove(cell.resource!);
-        delete cell.resource;
-        console.assert(!cell.buildingId);
-        cell.isEmpty = true;
-        cell.flowFieldCost = 1;
+        cell.resource = undefined;
     }
 }
 

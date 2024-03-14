@@ -34,7 +34,7 @@ class CellPathfinder {
             start: new Vector2().copy(startCell),
             end: new Vector2().copy(endCell),
             getCell: GameUtils.getCell,
-            isWalkable: cell => cell.isEmpty
+            isWalkable: cell => cell.isWalkable
         };
 
         let iteration = 0;

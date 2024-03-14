@@ -71,21 +71,23 @@ const neighbordMapCoords = new Vector2();
 function getUnitNeighbors(unit: IUnit) {
     const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
     unitNeighbors.length = 0;
-    for (const neighbor of cell.units) {
-        if (!neighbor.isAlive) {
-            continue;
+    if (cell.units) {
+        for (const neighbor of cell.units) {
+            if (!neighbor.isAlive) {
+                continue;
+            }
+            if (neighbor !== unit) {
+                unitNeighbors.push(neighbor);
+            }
         }
-        if (neighbor !== unit) {
-            unitNeighbors.push(neighbor);
-        }
-    }
+    }    
     
     for (const [dx, dy] of cellNeighbors) {
         neighbordMapCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
         const neighborCell = GameUtils.getCell(neighbordMapCoords);
-        if (!neighborCell) {
+        if (!neighborCell || !neighborCell.units) {
             continue;
-        }
+        }        
         for (const neighbor of neighborCell.units) {
             if (!neighbor.isAlive) {
                 continue;
@@ -259,8 +261,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
             if (needsMotion) {
                 GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
                 const newCell = GameUtils.getCell(nextMapCoords);
-                const emptyCell = newCell !== null && newCell.isEmpty;
-                if (!emptyCell) {
+                const walkableCell = newCell !== null && newCell.isWalkable;
+                if (!walkableCell) {
                     avoidedCell = true;
                     avoidedCellCoords.copy(nextMapCoords);
 
@@ -315,7 +317,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                 GameUtils.worldToMap(nextPos, nextMapCoords);
                 if (!nextMapCoords.equals(unit.coords.mapCoords)) {
                     const nextCell = GameUtils.getCell(nextMapCoords);
-                    const validCell = nextCell !== null && nextCell.isEmpty;
+                    const validCell = nextCell !== null && nextCell.isWalkable;
                     if (validCell) {
                         unitMotion.updateRotation(unit, unit.obj.position, nextPos);
                         unit.obj.position.copy(nextPos);
@@ -329,11 +331,15 @@ export class Flock extends Component<FlockProps, IFlockState> {
                         cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
                         
                         const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
-                        const unitIndex = currentCell.units.indexOf(unit);
+                        const unitIndex = currentCell.units!.indexOf(unit);
                         console.assert(unitIndex >= 0);                        
-                        utils.fastDelete(currentCell.units, unitIndex);
-                        console.assert(!nextCell.units.includes(unit));
-                        nextCell.units.push(unit);
+                        utils.fastDelete(currentCell.units!, unitIndex);
+                        if (nextCell.units) {
+                            console.assert(!nextCell.units.includes(unit));
+                            nextCell.units.push(unit);
+                        } else {
+                            nextCell.units = [unit];
+                        }                        
 
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector
@@ -516,7 +522,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
 
         // if cell is occupied, move its units to a nearby cell
         const cell = GameUtils.getCell(spawnCoords)!;
-        if (cell.units.length > 0) {
+        if (cell.hasUnits) {
             const targetSectorCoords = pools.vec2.getOne();
             const randomCellSelector = MathUtils.randInt(0, 4);
             const [dx, dy] = (() => {
@@ -532,7 +538,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
             spawnCoords.x += dx;
             spawnCoords.y += dy;
             const targetCell = GameUtils.getCell(spawnCoords, targetSectorCoords)!;
-            unitMotion.move(cell.units, targetSectorCoords, spawnCoords, targetCell);
+            unitMotion.move(cell.units!, targetSectorCoords, spawnCoords, targetCell);
         }
 
         this.createUnit(owner, units, {
