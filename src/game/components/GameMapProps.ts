@@ -6,9 +6,18 @@ import { Vector2 } from "three";
 
 export class GameMapProps extends ComponentProps {
 
+    public static get instance() { return this._props!; }
+
+    private static _props: GameMapProps | null = null;
+
     constructor(props?: Partial<GameMapProps>) {
         super();
         this.deserialize(props);
+        GameMapProps._props = this;
+    }
+
+    public dispose() {
+        GameMapProps._props = null;
     }
 
     @Attributes.enumOptions(TileTypes)

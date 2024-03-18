@@ -1,5 +1,4 @@
-import { Camera, Vector2 } from "three";
-import { input } from "../../engine/Input";
+import { Box2, Camera, Vector2 } from "three";
 import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
@@ -14,9 +13,14 @@ import { resources } from "../Resources";
 import { Sector } from "../Sector";
 import { buildings } from "../Buildings";
 import { conveyors } from "../Conveyors";
+import { engineState } from "../../engine/EngineState";
+import { Car } from "./Car";
+import { utils } from "../../engine/Utils";
+import { Train } from "./Train";
+import { GameMapProps } from "./GameMapProps";
 
 const { elevationStep, cellSize, mapRes } = config.game;
-export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Camera) {
+export function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorX},${sectorY}`);
     if (!sector) {
@@ -29,7 +33,7 @@ export function pickSectorTriangle(sectorX: number, sectorY: number, camera: Cam
     const [rayEnd, v1, v2, v3, intersection] = pools.vec3.get(5);
     const normalizedPos = pools.vec2.getOne();
     const { width, height } = engine.screenRect;
-    normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+    normalizedPos.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
     GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
     const { ray } = GameUtils.rayCaster;
     rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
@@ -71,13 +75,13 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
-    GameUtils.worldToMap(intersection, cellCoordsOut);    
+    GameUtils.worldToMap(intersection, cellCoordsOut);
 
     const sectorCoords = sectorCoordsOut ?? pools.vec2.getOne();
     let cell = GameUtils.getCell(cellCoordsOut, sectorCoords);
     let sectorX = sectorCoords.x;
     let sectorY = sectorCoords.y;
-    let selectedVertexIndex = cell ? pickSectorTriangle(sectorX, sectorY, camera) : -1;
+    let selectedVertexIndex = cell ? pickSectorTriangle(sectorX, sectorY, screenPos, camera) : -1;
 
     if (selectedVertexIndex < 0 && cell) {
         // check neighboring sectors, from closest to farthest
@@ -106,7 +110,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
             return cellToSectorDistA - cellToSectorDistB;
         });
         for (const [x, y] of neighborSectors) {
-            selectedVertexIndex = pickSectorTriangle(x, y, camera);
+            selectedVertexIndex = pickSectorTriangle(x, y, screenPos, camera);
             if (selectedVertexIndex >= 0) {
                 sectorX = x;
                 sectorY = y;
@@ -149,7 +153,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
             gameMapState.previousConveyors.length = 0;
             conveyors.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousConveyors);
-            
+
         } break;
     }
 }
@@ -195,7 +199,7 @@ export function onEndDrag() {
 
     if (gameMapState.previousConveyors.length > 0) {
         gameMapState.previousConveyors.length = 0;
-    }    
+    }
 }
 
 export function onCancelDrag() {
@@ -203,7 +207,7 @@ export function onCancelDrag() {
     gameMapState.previousRoad.length = 0;
     gameMapState.previousRail.forEach(Rails.clear);
     gameMapState.previousRail.length = 0;
-    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));        
+    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
     gameMapState.previousConveyors.length = 0;
 }
 
@@ -235,18 +239,18 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
             for (let i = 0; i < building.size.z; ++i) {
                 for (let j = 0; j < building.size.x; ++j) {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
-                    const _cell = GameUtils.getCell(mapCoords);                    
+                    const _cell = GameUtils.getCell(mapCoords);
                     if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
                         return false;
                     }
-                }                
+                }
             }
             return true;
         })();
         if (allowed) {
             buildings.create(buildingId, sectorCoords, localCoords);
         }
-        
+
     } else if (button === 2) {
         if (cell.buildingId) {
             buildings.clear(cell.buildingId);
@@ -306,3 +310,157 @@ export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
         }
     }
 }
+
+export function createSector(coords: Vector2) {
+    const state = gameMapState.instance!;
+    const props = GameMapProps.instance;
+
+    const sector = Sector.create({
+        sectorX: coords.x,
+        sectorY: coords.y,
+        continentFreq: props.continentFreq,
+        erosionFreq: props.erosionFreq,
+        continentWeight: props.continentWeight,
+        erosionWeight: props.erosionWeight,
+        continentGain: props.continentGain,
+        erosionGain: props.erosionGain,
+        continent: props.continent.data,
+        erosion: props.erosion.data
+    });
+
+    state.sectorsRoot.add(sector.root);
+
+    // update bounds
+    const { mapRes, cellSize } = config.game;
+    const mapSize = mapRes * cellSize;
+    const [min, max] = pools.vec2.get(2);
+    min.set(sector.root.position.x, sector.root.position.z);
+    max.set(min.x + mapSize, min.y + mapSize);
+    const { bounds } = state;
+    if (!bounds) {
+        state.bounds = new Box2(min.clone(), max.clone());
+    } else {
+        bounds.expandByPoint(min);
+        bounds.expandByPoint(max);
+    }
+
+    return sector;
+}
+
+export function updateCameraBounds() {
+    const state = gameMapState.instance!;
+    const worldPos = pools.vec3.getOne();
+    const [top, right, bottom, left] = state.cameraBounds;
+    const mapBounds = state.bounds;
+    GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.min.y), state.camera, top);
+    GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.max.y), state.camera, bottom);
+    GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.max.y), state.camera, left);
+    GameUtils.worldToScreen(worldPos.set(mapBounds!.max.x, 0, mapBounds!.min.y), state.camera, right);
+    utils.updateDirectionalLightTarget(state.light);
+}
+
+export function onClick(touchButton: number) {
+    const state = gameMapState.instance!;
+    const props = GameMapProps.instance;
+
+    const [sectorCoords, localCoords] = pools.vec2.get(2);
+    const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
+    if (!cell) {
+        createSector(sectorCoords.clone());
+        updateCameraBounds();
+    } else {
+        const mapCoords = state.selectedCellCoords;
+        switch (state.action) {
+            case "elevation": {
+                onElevation(mapCoords, sectorCoords, localCoords, state.tileSelector.size, touchButton);
+                state.tileSelector.fit(mapCoords);
+            }
+                break;
+
+            case "terrain": {
+                onTerrain(mapCoords, props.tileType);
+            }
+                break;
+
+            case "road": {
+                onRoad(mapCoords, cell, touchButton);
+            }
+                break;
+
+            case "building": {
+                onBuilding(sectorCoords, localCoords, cell, touchButton, props.buildingId);
+            }
+                break;
+
+            case "mineral": {
+                onMineral(sectorCoords, localCoords, cell, touchButton, props.mineralType);
+            }
+                break;
+
+            case "tree": {
+                onTree(sectorCoords, localCoords, cell, touchButton);
+            }
+                break;
+
+            case "car": {
+                if (touchButton === 0) {
+
+                    // TODO
+                    // if (!cell.unit) {
+                    //     const { sectors, layers } = this.state;
+                    //     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+
+                    //     const car = utils.createObject(layers.cars, "car");
+                    //     engineState.setComponent(car, new Car({
+                    //         coords: this.state.selectedCellCoords.clone()
+                    //     }));
+
+                    //     Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
+                    //     cell.unit = car;
+                    // }
+
+                } else if (touchButton === 2) {
+                    const cars = engineState.getComponents(Car);
+                    if (cars) {
+                        for (const car of cars) {
+                            // car.entity.setComponent(GroupMotion, {
+                            //     motion: groupMotion
+                            // });                             
+                            car.component.goTo(state.selectedCellCoords);
+                        }
+                    }
+
+                } else if (touchButton === 1) {
+                    console.log(cell);
+                    // console.log(Components.ofType(Car)?.filter(c => c.coords.equals(this._selectedCellCoords)));                                        
+                }
+            }
+                break;
+
+            case "train": {
+                if (touchButton === 0) {
+                    if (cell.rail) {
+                        const { layers } = state;
+                        const wagonLength = 2;
+                        const numWagons = 4;
+                        const gap = .3;
+                        const train = utils.createObject(layers.trains, "train");
+                        engineState.setComponent(train, new Train({
+                            cell,
+                            wagonLength,
+                            numWagons,
+                            gap
+                        }));
+                    }
+                }
+            }
+                break;
+
+            case "belt": {
+                onConveyor(mapCoords, cell, touchButton);
+            }
+                break;
+        }
+    }
+}
+
