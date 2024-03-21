@@ -92,8 +92,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         gameMapState.instance = this.state;
 
-        this.initMap();
-
         this.state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
 
         const camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;
@@ -106,7 +104,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         const [, rotationY] = config.camera.rotation;
         this.state.cameraAngleRad = MathUtils.degToRad(rotationY);
-        this.updateCameraSize();
 
         this.state.tileSelector = new TileSector();
         this.state.tileSelector.visible = false;
@@ -118,6 +115,12 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         this.onKeyDown = this.onKeyDown.bind(this);
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
+
+        if (this.props.initSelf) {
+            this.createSectors();
+            this.preload(this.props.size)
+                .then(() => this.init(this.props.size));            
+        }
     }
 
     override dispose() {
@@ -368,44 +371,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         }
 
         conveyors.update();
-    }    
-
-    public initMap() {
-        this.createSectors();
-
-        // water
-        const water = utils.createObject(engine.scene!, "water");
-        water.matrixAutoUpdate = false;
-        water.matrixWorldAutoUpdate = false;
-        water.position.setY(-.75);
-        water.updateMatrix();
-        engineState.setComponent(water, new Water({ sectorRes: this.props.size }));
-
-        // env props
-        const props = utils.createObject(engine.scene!, "env-props");
-        engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
-
-        fogOfWar.init(this.props.size);
-        const { mapRes } = config.game;
-        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
-
-        const trees = utils.createObject(engine.scene!, "trees");
-        const treesComponent = new Trees({ sectorRes: this.props.size });        
-        engineState.setComponent(trees, treesComponent);
-
-        const flocks = engineState.getComponents(Flock);
-        const flock = flocks[0];
-
-        Promise.all([
-            // treesComponent.load(trees),
-            flock.component.props.active ? flock.component.load(flock.owner) : Promise.resolve(),
-            buildings.preload(),
-            conveyors.preload(),
-            conveyorItems.preload()
-        ]).then(() => {
-            cmdShowUI.post("gamemap");
-        });
-    }
+    }   
 
     public createSectors() {
         if (this.state.sectors.size > 0) {
@@ -418,6 +384,50 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                 createSector(new Vector2(j, i));
             }
         }
+    }
+
+    public async preload(size: number) {
+        await buildings.preload();
+
+        const flocks = engineState.getComponents(Flock);
+        const flock = flocks[0];
+        if (flock.component.props.active) {
+            await flock.component.load(flock.owner);
+        }
+
+        fogOfWar.init(size);
+        const { mapRes } = config.game;
+        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
+    }
+
+    public init(size: number) {
+        this.state.sectorRes = size;
+
+        // water
+        const water = utils.createObject(engine.scene!, "water");
+        water.matrixAutoUpdate = false;
+        water.matrixWorldAutoUpdate = false;
+        water.position.setY(-.75);
+        water.updateMatrix();
+        engineState.setComponent(water, new Water({ sectorRes: size }));
+
+        // env props
+        const props = utils.createObject(engine.scene!, "env-props");
+        engineState.setComponent(props, new EnvProps({ sectorRes: size }));
+
+        const trees = utils.createObject(engine.scene!, "trees");
+        const treesComponent = new Trees({ sectorRes: size });        
+        engineState.setComponent(trees, treesComponent);
+
+        Promise.all([
+            // treesComponent.load(trees),
+            conveyors.preload(),
+            conveyorItems.preload()
+        ]).then(() => {
+            cmdShowUI.post("gamemap");
+        });
+
+        this.updateCameraSize();
     }
 
     public setCameraPos(pos: Vector3) {

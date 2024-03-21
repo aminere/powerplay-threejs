@@ -4,7 +4,7 @@ export interface ISerializedCell {
     index: number;
     roadTile?: number;
     resource?: string;
-    // rail TODO
+    unitCount?: number;
 }
 
 export interface ISerializedElevation {
@@ -19,6 +19,7 @@ export interface ISerializedSector {
 }
 
 export interface ISerializedGameMap {
+    size: number;
     sectors: ISerializedSector[];
     buildings: Record<string, Vector2[]>;
 }

@@ -28,7 +28,7 @@ export interface IMinimapFog {
 export const cmdUpdateMinimapFog = new AsyncEvent<IMinimapFog>();
 export const cmdRotateMinimap = new AsyncEvent<number>();
 
-export const cmdFogAddCircle = new AsyncEvent<{ mapCoords: Vector2; radius: number; }>();
-export const cmdFogMoveCircle = new AsyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
-export const cmdFogRemoveCircle = new AsyncEvent<{ mapCoords: Vector2; radius: number;}>();
+export const cmdFogAddCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; }>();
+export const cmdFogMoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
+export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number;}>();
 

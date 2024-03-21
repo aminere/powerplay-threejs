@@ -8,15 +8,20 @@ import { GameMap } from "./GameMap";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
 import { config } from "../config";
-import { pools } from "../../engine/core/Pools";
 import { ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector } from "./GameMapUtils";
+import { unitUtils } from "../unit/UnitUtils";
+
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
+const mapCoords = new Vector2();
 
 export class GameMapLoaderProps extends ComponentProps {
 
     path = "";
+    fromLocalStorage = false;
 
     constructor(props?: Partial<GameMapLoaderProps>) {
         super();
@@ -31,6 +36,18 @@ function calcLocalCoords(cellIndex: number, localCoordsOut: Vector2) {
     localCoordsOut.set(cellX, cellY);
 }
 
+async function loadData(path: string, fromLocalStorage: boolean) {
+    if (fromLocalStorage) {
+        const dataStr = localStorage.getItem(`gameMap_${path}`)!;
+        const data = JSON.parse(dataStr) as ISerializedGameMap;
+        return data;
+    } else {
+        const response = await fetch(`/scenes/${path}.json`);
+        const data = await response.json() as ISerializedGameMap;
+        return data;
+    }
+}
+
 export class GameMapLoader extends Component<GameMapLoaderProps> {
     constructor(props?: Partial<GameMapLoaderProps>) {
         super(new GameMapLoaderProps(props));
@@ -43,19 +60,17 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
     }
 
     private async load(owner: Object3D) {
-        const response = await fetch(`/scenes/${this.props.path}.json`);
-        const data = await response.json() as ISerializedGameMap;
 
+        const data = await loadData(this.props.path, this.props.fromLocalStorage);        
         const obj = utils.createObject(owner.parent!, this.props.path);
         const gameMap = engineState.setComponent(obj, new GameMap());
-        const [_sectorCoords, localCoords] = pools.vec2.get(2);        
+
+        await gameMap.preload(data.size);
+
         for (const sector of data.sectors) {
 
-            const sectorCoords = (() => {
-                const [x, y] = sector.key.split(",").map(i => parseInt(i));
-                _sectorCoords.set(x, y);
-                return _sectorCoords;
-            })();
+            const [x, y] = sector.key.split(",").map(i => parseInt(i));
+            sectorCoords.set(x, y);
 
             const sectorInstance = (() => {
                 const instance = gameMap.state.sectors.get(sector.key);
@@ -70,9 +85,16 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                     sectorInstance.textureData.terrain.set([cell.roadTile!], cell.index);
                 }
 
-                if (cell.resource) {
-                    calcLocalCoords(cell.index, localCoords);
+                calcLocalCoords(cell.index, localCoords);
+                if (cell.resource) {                    
                     resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
+                }
+
+                if (cell.unitCount !== undefined) {
+                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+                    for (let j = 0; j < cell.unitCount; j++) {
+                        unitUtils.spawn(mapCoords);
+                    }
                 }
             }
 
@@ -85,10 +107,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
 
         for (const [buildingId, mapCoordsList] of Object.entries(data.buildings)) {
             for (const mapCoords of mapCoordsList) {
-                GameUtils.getCell(mapCoords, _sectorCoords, localCoords);
-                buildings.create(buildingId, _sectorCoords, localCoords);
+                GameUtils.getCell(mapCoords, sectorCoords, localCoords);
+                buildings.create(buildingId, sectorCoords, localCoords);
             }
         }
+
+        gameMap.init(data.size);
     }
 }
 

@@ -1,12 +1,11 @@
-import { engineState } from "../../engine/EngineState";
-import { Flock } from "../components/Flock";
 import { IUnit } from "./IUnit";
+import { unitUtils } from "./UnitUtils";
 
 export class NPCUtils {
 
     public findTarget(unit: IUnit, vision: number) {
-        const flock = engineState.getComponents(Flock)[0];
-        const units = flock.component.state!.units;
+        // TODO rewrite using neighbor cells, don't loop through all units.
+        const { units } = unitUtils;
 
         const { unitsInRange } = unit;
         let unitsInRangeCount = 0;

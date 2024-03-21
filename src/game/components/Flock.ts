@@ -1,5 +1,5 @@
 
-import { Box3, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, MathUtils, Matrix4, Object3D, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
@@ -16,11 +16,7 @@ import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
 import { utils } from "../../engine/Utils";
 import { IUnit, UnitType } from "../unit/IUnit";
-import { objects } from "../../engine/resources/Objects";
-import { SkeletonUtils } from "three/examples/jsm/Addons.js";
-import { NPCState } from "../unit/NPCState";
 import { skeletonPool } from "../animation/SkeletonPool";
-import { ArcherNPCState } from "../unit/ArcherNPCState";
 import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
@@ -52,7 +48,6 @@ interface IFlockState extends IComponentState {
 }
 
 const { mapRes } = config.game;
-const verticesPerRow = mapRes + 1;
 const unitNeighbors = new Array<IUnit>();
 
 function onUnitArrived(unit: IUnit) {
@@ -99,8 +94,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
     constructor(props?: Partial<FlockProps>) {
         super(new FlockProps(props));
     }
-
-
 
     override update(_owner: Object3D) {
         if (!this.state) {
@@ -177,6 +170,24 @@ export class Flock extends Component<FlockProps, IFlockState> {
         skeletonPool.update();
         this.handleSpawnRequests();
 
+        const moveAwayFromEachOther = (amount: number, desiredPos: Vector3, otherDesiredPos: Vector3) => {
+            const moveAmount = Math.min(amount, avoidanceSteerAmount);
+            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
+            const length = toTarget.length();
+            if (length > 0) {
+                toTarget
+                    .divideScalar(length)
+                    .multiplyScalar(moveAmount)
+
+            } else {
+                toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
+                    .normalize()
+                    .multiplyScalar(moveAmount);
+            }
+            desiredPos.add(toTarget);
+            otherDesiredPos.sub(toTarget);
+        };
+
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
             const unit = units[i];
@@ -198,12 +209,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     unit.isColliding = true;
                     neighbor.isColliding = true;
                     if (neighbor.motionId > 0) {
-                        if (unit.motionId > 0) {
-                            // move away from each other
-                            const moveAmount = Math.min((separationDist - dist) / 2, avoidanceSteerAmount);
-                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            desiredPos.add(toTarget);
-                            otherDesiredPos.sub(toTarget);
+                        if (unit.motionId > 0) {                            
+                            moveAwayFromEachOther((separationDist - dist) / 2, desiredPos, otherDesiredPos);
 
                         } else {
                             const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
@@ -222,11 +229,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             }
 
                         } else {
-                            // move away from each other
-                            const moveAmount = Math.min((separationDist - dist) / 2 + repulsion, avoidanceSteerAmount);
-                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            desiredPos.add(toTarget);
-                            otherDesiredPos.sub(toTarget);
+                            moveAwayFromEachOther((separationDist - dist) / 2 + repulsion, desiredPos, otherDesiredPos);                            
                         }
                     }
                 }
@@ -396,71 +399,71 @@ export class Flock extends Component<FlockProps, IFlockState> {
             boundingBox
         });
 
-        const sector0 = gameMapState.sectors.get(`0,0`)!;
-        const terrain = sector0.layers.terrain as Mesh;
-        const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
-        const radius = this.props.radius;
-        const mapCoords = pools.vec2.getOne();
-        let unitCount = 0;
-        for (let j = 0; j < mapRes; ++j) {
-            for (let k = 0; k < mapRes; ++k) {
+        // const sector0 = gameMapState.sectors.get(`0,0`)!;
+        // const terrain = sector0.layers.terrain as Mesh;
+        // const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+        // const radius = this.props.radius;
+        // const mapCoords = pools.vec2.getOne();
+        // let unitCount = 0;
+        // for (let j = 0; j < mapRes; ++j) {
+        //     for (let k = 0; k < mapRes; ++k) {
 
-                if (j < 6) {
-                    continue;
-                }
+        //         if (j < 6) {
+        //             continue;
+        //         }
 
-                const startVertexIndex = j * verticesPerRow + k;
-                const _height1 = position.getY(startVertexIndex);
-                const _height2 = position.getY(startVertexIndex + 1);
-                const _height3 = position.getY(startVertexIndex + verticesPerRow);
-                const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
-                const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
-                const _minHeight = Math.min(_height1, _height2, _height3, _height4);
-                if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
-                    const mesh = sharedSkinnedMesh.clone();
-                    mesh.boundingBox = boundingBox;
-                    mapCoords.set(k, j);
-                    GameUtils.mapToWorld(mapCoords, mesh.position);
-                    unitUtils.createUnit({
-                        obj: mesh,
-                        type: UnitType.Worker,
-                        states: [new MiningState()],
-                        animation: skeletonManager.applyIdleAnim(mesh)
-                    });
+        //         const startVertexIndex = j * verticesPerRow + k;
+        //         const _height1 = position.getY(startVertexIndex);
+        //         const _height2 = position.getY(startVertexIndex + 1);
+        //         const _height3 = position.getY(startVertexIndex + verticesPerRow);
+        //         const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+        //         const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
+        //         const _minHeight = Math.min(_height1, _height2, _height3, _height4);
+        //         if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
+        //             const mesh = sharedSkinnedMesh.clone();
+        //             mesh.boundingBox = boundingBox;
+        //             mapCoords.set(k, j);
+        //             GameUtils.mapToWorld(mapCoords, mesh.position);
+        //             unitUtils.createUnit({
+        //                 obj: mesh,
+        //                 type: UnitType.Worker,
+        //                 states: [new MiningState()],
+        //                 animation: skeletonManager.applyIdleAnim(mesh)
+        //             });
 
-                    ++unitCount;
-                    if (unitCount >= this.props.count) {
-                        break;
-                    }
-                }
-            }
-            if (unitCount >= this.props.count) {
-                break;
-            }
-        }
+        //             ++unitCount;
+        //             if (unitCount >= this.props.count) {
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     if (unitCount >= this.props.count) {
+        //         break;
+        //     }
+        // }
 
-        const npcObj = await objects.load("/models/characters/NPC.json");
-        const createNpc = (pos: Vector3) => {
-            const npcModel = SkeletonUtils.clone(npcObj);
-            const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
-            npcMesh.position.copy(pos);
-            const npc = unitUtils.createUnit({
-                obj: npcMesh,
-                type: UnitType.NPC,
-                states: [new NPCState(), new ArcherNPCState()],
-                animation: skeletonManager.applyIdleAnim(npcMesh),
-                speed: .7
-            });
-            npc.fsm.switchState(NPCState);
-        }
+        // const npcObj = await objects.load("/models/characters/NPC.json");
+        // const createNpc = (pos: Vector3) => {
+        //     const npcModel = SkeletonUtils.clone(npcObj);
+        //     const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
+        //     npcMesh.position.copy(pos);
+        //     const npc = unitUtils.createUnit({
+        //         obj: npcMesh,
+        //         type: UnitType.NPC,
+        //         states: [new NPCState(), new ArcherNPCState()],
+        //         animation: skeletonManager.applyIdleAnim(npcMesh),
+        //         speed: .7
+        //     });
+        //     npc.fsm.switchState(NPCState);
+        // }
 
-        for (let i = 0; i < this.props.npcCount; ++i) {
-            createNpc(new Vector3(
-                10 + Math.random() * radius * 2 - radius,
-                0,
-                Math.random() * radius * 2 - radius,
-            ));
-        }
+        // for (let i = 0; i < this.props.npcCount; ++i) {
+        //     createNpc(new Vector3(
+        //         10 + Math.random() * radius * 2 - radius,
+        //         0,
+        //         Math.random() * radius * 2 - radius,
+        //     ));
+        // }
 
         this.setState({
             selectedUnits: [],
@@ -480,15 +483,35 @@ export class Flock extends Component<FlockProps, IFlockState> {
             return;
         }
 
-        const spawnCoords = pools.vec2.getOne();
+        const [spawnCoords, moveCoords, targetSectorCoords] = pools.vec2.get(3);
         spawnCoords.copy(spawnUnitRequest.mapCoords);
         const buildingId = spawnUnitRequest.buildingId;
         const buildingSize = config.buildings[buildingId].size;
         spawnCoords.x += buildingSize.x / 2;
-        spawnCoords.y += buildingSize.z;        
+        spawnCoords.y += buildingSize.z;
+
+        // if cell is occupied, move its units to a nearby cell
+        // TODO this is assuming we are spawning from a building, and the surrounding cells are empty
+        // Must remove the assumption and scan for empty cells
+        const cell = GameUtils.getCell(spawnCoords)!;
+        if (cell.hasUnits) {
+            const randomCellSelector = MathUtils.randInt(0, 4);
+            const [dx, dy] = (() => {
+                switch (randomCellSelector) {
+                    case 0: return [-1, 0];
+                    case 1: return [1, 0];
+                    case 2: return [-1, 1];
+                    case 3: return [0, 1];
+                    default: return [1, 1];
+                }
+            })();
+
+            moveCoords.set(spawnCoords.x + dx, spawnCoords.y + dy);
+            const moveCell = GameUtils.getCell(moveCoords, targetSectorCoords)!;
+            unitMotion.move(cell.units!, targetSectorCoords, moveCoords, moveCell);
+        }
 
         unitUtils.spawn(spawnCoords);
-
         this.state.spawnUnitRequest = null;
     }
 }

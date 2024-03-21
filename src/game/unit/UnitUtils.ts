@@ -1,6 +1,5 @@
-import { Box3, Box3Helper, MathUtils, Object3D, SkinnedMesh, Vector2 } from "three";
+import { Box3, Box3Helper, Object3D, SkinnedMesh, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
-import { unitMotion } from "./UnitMotion";
 import { IUnitProps, Unit } from "./Unit";
 import { cmdFogAddCircle } from "../../Events";
 import { UnitType } from "./IUnit";
@@ -12,8 +11,6 @@ interface SharedSkinnedMesh {
     boundingBox: Box3;
 };
 
-const targetSectorCoords = new Vector2();
-const spawnCoords = new Vector2();
 class UnitUtils {
 
     public get units() { return this._units; }
@@ -48,26 +45,6 @@ class UnitUtils {
         const mesh = sharedMesh.clone();
         mesh.boundingBox = boundingBox;
         GameUtils.mapToWorld(mapCoords, mesh.position);
-
-        // if cell is occupied, move its units to a nearby cell
-        const cell = GameUtils.getCell(mapCoords)!;
-        if (cell.hasUnits) {
-            const randomCellSelector = MathUtils.randInt(0, 4);
-            const [dx, dy] = (() => {
-                switch (randomCellSelector) {
-                    case 0: return [-1, 0];
-                    case 1: return [1, 0];
-                    case 2: return [-1, 1];
-                    case 3: return [0, 1];
-                    default: return [1, 1];
-                }                
-            })();
-            
-            spawnCoords.set(mapCoords.x + dx, mapCoords.y + dy);
-            const targetCell = GameUtils.getCell(spawnCoords, targetSectorCoords)!;
-            unitMotion.move(cell.units!, targetSectorCoords, spawnCoords, targetCell);
-        }
-
         this.createUnit({
             obj: mesh,
             type: UnitType.Worker,

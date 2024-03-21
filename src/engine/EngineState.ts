@@ -31,8 +31,9 @@ class EngineState {
     }
 
     public getComponents<U extends Component<ComponentProps>>(ctor: new () => U) {
-        return this._componentsMap.get(ctor.name) as IComponentInstance<U>[];
-    }
+        const components = this._componentsMap.get(ctor.name) as IComponentInstance<U>[];
+        return components.filter(c => c.component.props.active);
+    }    
 
     public removeComponent<U extends Component<ComponentProps>>(owner: Object3D, ctor: new () => U) {
         const componentType = ctor.name;
