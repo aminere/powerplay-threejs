@@ -18,10 +18,12 @@ export type TerrainUniforms = {
 const continentNoise = new FastNoiseLite();
 continentNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 continentNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
+continentNoise.SetSeed(1);
 
 const erosionNoise = new FastNoiseLite();
 erosionNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 erosionNoise.SetFractalType(FastNoiseLite.FractalType.Ridged);
+erosionNoise.SetSeed(1);
 
 const sandNoise = new FastNoiseLite();
 sandNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
@@ -30,7 +32,7 @@ sandNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
 function sampleNoise(sample: number, curve: Vector2[]) {
     let index = 0;
     for (let i = 0; i < curve.length - 1; ++i) {
-        if (sample < curve[i + 1].x) {
+        if (sample <= curve[i + 1].x) {
             index = i;
             break;
         }
@@ -135,8 +137,8 @@ export class Terrain {
                     continentHeight * props.continentGain * props.continentWeight
                     + erosionHeight * props.erosionGain * props.erosionWeight
                 );
-
-                const height = _height * 0;
+                
+                const height = _height;
                 const vertexIndex = i * verticesPerRow + j;
                 position.setY(vertexIndex, height);
 
@@ -219,7 +221,7 @@ export class Terrain {
                     cellTexture: { value: cellTexture },
                     highlightTexture: { value: highlightTexture },
                     gridTexture: { value: gridTexture },
-                    showGrid: { value: true }
+                    showGrid: { value: false }
                 };
                 shader.uniforms = {
                     ...shader.uniforms,

@@ -1,5 +1,5 @@
 
-import { Box3, Box3Helper, MathUtils, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
+import { Box3, Matrix4, Mesh, Object3D, SkinnedMesh, Vector2, Vector3 } from "three";
 import { Component, IComponentState } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
@@ -7,11 +7,10 @@ import { pools } from "../../engine/core/Pools";
 import { GameUtils } from "../GameUtils";
 import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
-import { cmdStartSelection, cmdSetSelectedElems, cmdFogAddCircle, cmdFogMoveCircle } from "../../Events";
+import { cmdStartSelection, cmdSetSelectedElems, cmdFogMoveCircle } from "../../Events";
 import { config} from "../../game/config";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { mathUtils } from "../MathUtils";
-import { IUnitProps, Unit } from "../unit/Unit";
 import { MiningState } from "../unit/MiningState";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "./UnitCollisionAnim";
@@ -26,6 +25,7 @@ import { unitMotion } from "../unit/UnitMotion";
 import { computeUnitAddr } from "../unit/UnitAddr";
 import { unitAnimation } from "../unit/UnitAnimation";
 import { IBuildingInstance } from "../GameTypes";
+import { unitUtils } from "../unit/UnitUtils";
 
 export class FlockProps extends ComponentProps {
 
@@ -45,15 +45,10 @@ export class FlockProps extends ComponentProps {
 }
 
 interface IFlockState extends IComponentState {
-    units: Unit[];
     selectedUnits: IUnit[];
     selectionStart: Vector2;
     touchPressed: boolean;
     spawnUnitRequest: IBuildingInstance | null;
-    sharedSkinnedMesh: {
-        mesh: SkinnedMesh;
-        boundingBox: Box3;
-    };
 }
 
 const { mapRes } = config.game;
@@ -99,21 +94,15 @@ function getUnitNeighbors(unit: IUnit) {
     return unitNeighbors;
 }
 
-function initIdleAnim(obj: SkinnedMesh) {
-    const action = skeletonManager.applySkeleton("idle", obj)!;
-    return {
-        name: "idle",
-        action
-    }
-}
-
 export class Flock extends Component<FlockProps, IFlockState> {
 
     constructor(props?: Partial<FlockProps>) {
         super(new FlockProps(props));
     }
 
-    override update(owner: Object3D) {
+
+
+    override update(_owner: Object3D) {
         if (!this.state) {
             return;
         }
@@ -137,7 +126,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     if (gameMapState.selectionInProgress) {
                         const { selectedUnits } = this.state;
                         selectedUnits.length = 0;
-                        const { units } = this.state;
+                        const { units } = unitUtils;
                         const screenPos = pools.vec3.getOne();
                         for (let i = 0; i < units.length; ++i) {
                             const unit = units[i];
@@ -179,14 +168,14 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         const { repulsion } = this.props;
-        const { units } = this.state;
+        const { units } = unitUtils;
         const separationDist = this.props.separation;
         const steerAmount = this.props.speed * time.deltaTime;
         const avoidanceSteerAmount = this.props.avoidanceSpeed * time.deltaTime;
         const [toTarget] = pools.vec3.get(1);
 
         skeletonPool.update();
-        this.handleSpawnRequests(owner);
+        this.handleSpawnRequests();
 
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
@@ -394,14 +383,18 @@ export class Flock extends Component<FlockProps, IFlockState> {
             ],
         });
 
-        await skeletonPool.load("/models/characters/Worker.json");
+        await skeletonPool.load("/models/characters/Worker.json");        
 
-        const units: Unit[] = [];
         const headOffset = new Vector3(0, 0, 1.8);
         const boundingBox = new Box3()
             .setFromObject(sharedSkinnedMesh)
             .expandByPoint(headOffset)
             .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, new Vector3(1, 1, 1)));
+
+        unitUtils.init(owner, {
+            mesh: sharedSkinnedMesh,
+            boundingBox
+        });
 
         const sector0 = gameMapState.sectors.get(`0,0`)!;
         const terrain = sector0.layers.terrain as Mesh;
@@ -428,12 +421,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
                     mesh.boundingBox = boundingBox;
                     mapCoords.set(k, j);
                     GameUtils.mapToWorld(mapCoords, mesh.position);
-                    this.createUnit(owner, units, {
-                        id: unitCount,
+                    unitUtils.createUnit({
                         obj: mesh,
                         type: UnitType.Worker,
                         states: [new MiningState()],
-                        animation: initIdleAnim(mesh)
+                        animation: skeletonManager.applyIdleAnim(mesh)
                     });
 
                     ++unitCount;
@@ -452,12 +444,11 @@ export class Flock extends Component<FlockProps, IFlockState> {
             const npcModel = SkeletonUtils.clone(npcObj);
             const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
             npcMesh.position.copy(pos);
-            const npc = this.createUnit(owner, units, {
-                id: units.length,
+            const npc = unitUtils.createUnit({
                 obj: npcMesh,
                 type: UnitType.NPC,
                 states: [new NPCState(), new ArcherNPCState()],
-                animation: initIdleAnim(npcMesh),
+                animation: skeletonManager.applyIdleAnim(npcMesh),
                 speed: .7
             });
             npc.fsm.switchState(NPCState);
@@ -472,45 +463,22 @@ export class Flock extends Component<FlockProps, IFlockState> {
         }
 
         this.setState({
-            units,
             selectedUnits: [],
             selectionStart: new Vector2(),
             touchPressed: false,
-            spawnUnitRequest: null,
-            sharedSkinnedMesh: {
-                mesh: sharedSkinnedMesh,
-                boundingBox
-            }
+            spawnUnitRequest: null
         });
     }
     
     override dispose(_owner: Object3D) {
         skeletonPool.dispose();   
-    }
+    }    
 
-    private createUnit(owner: Object3D, units: IUnit[], props: IUnitProps) {
-        const { obj } = props;
-        obj.userData.unserializable = true;
-        obj.bindMode = "detached";
-        const unit = new Unit(props);
-        units.push(unit);
-        owner.add(obj);
-        cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
-        const box3Helper = new Box3Helper(obj.boundingBox);
-        obj.add(box3Helper);
-        box3Helper.visible = false;
-        return unit;
-    };
-
-    private handleSpawnRequests(owner: Object3D) {
-        const { spawnUnitRequest, units } = this.state;
+    private handleSpawnRequests() {
+        const { spawnUnitRequest } = this.state;
         if (!spawnUnitRequest) {
             return;
         }
-
-        const { mesh: sharedMesh, boundingBox } = this.state.sharedSkinnedMesh;
-        const mesh = sharedMesh.clone();
-        mesh.boundingBox = boundingBox;
 
         const spawnCoords = pools.vec2.getOne();
         spawnCoords.copy(spawnUnitRequest.mapCoords);
@@ -518,36 +486,9 @@ export class Flock extends Component<FlockProps, IFlockState> {
         const buildingSize = config.buildings[buildingId].size;
         spawnCoords.x += buildingSize.x / 2;
         spawnCoords.y += buildingSize.z;        
-        GameUtils.mapToWorld(spawnCoords, mesh.position);
 
-        // if cell is occupied, move its units to a nearby cell
-        const cell = GameUtils.getCell(spawnCoords)!;
-        if (cell.hasUnits) {
-            const targetSectorCoords = pools.vec2.getOne();
-            const randomCellSelector = MathUtils.randInt(0, 4);
-            const [dx, dy] = (() => {
-                switch (randomCellSelector) {
-                    case 0: return [-1, 0];
-                    case 1: return [1, 0];
-                    case 2: return [-1, 1];
-                    case 3: return [0, 1];
-                    default: return [1, 1];
-                }                
-            })();
-            
-            spawnCoords.x += dx;
-            spawnCoords.y += dy;
-            const targetCell = GameUtils.getCell(spawnCoords, targetSectorCoords)!;
-            unitMotion.move(cell.units!, targetSectorCoords, spawnCoords, targetCell);
-        }
+        unitUtils.spawn(spawnCoords);
 
-        this.createUnit(owner, units, {
-            id: units.length,
-            obj: mesh,
-            type: UnitType.Worker,
-            states: [new MiningState()],
-            animation: initIdleAnim(mesh)
-        });
         this.state.spawnUnitRequest = null;
     }
 }

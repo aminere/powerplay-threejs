@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { IGameMapState, gameMapState } from "./GameMapState";
 import { TileSector } from "../TileSelector";
-import { cmdEndSelection, cmdHideUI, cmdRotateMinimap, cmdSetSelectedElems, cmdShowUI } from "../../Events";
+import { cmdEndSelection, cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdSetSelectedElems, cmdShowUI } from "../../Events";
 import { createSector, onBeginDrag,  onCancelDrag, onClick, onDrag, onEndDrag, raycastOnCells, updateCameraBounds } from "./GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
@@ -17,8 +17,8 @@ import { engineState } from "../../engine/EngineState";
 import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
-// import { Trees } from "./Trees";
-// import { fogOfWar } from "../FogOfWar";
+import { Trees } from "./Trees";
+import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
 import { IBuildingInstance, ISector } from "../GameTypes";
 import { buildings } from "../Buildings";
@@ -26,6 +26,7 @@ import { IUnit, UnitType } from "../unit/IUnit";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { conveyorItems } from "../ConveyorItems";
+import { unitUtils } from "../unit/UnitUtils";
 
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -262,7 +263,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
                             }> = [];
 
                             if (flockState) {
-                                const { units } = flockState;
+                                const { units } = unitUtils;
                                 const intersection = pools.vec3.getOne();
                                 for (let i = 0; i < units.length; ++i) {
                                     const unit = units[i];
@@ -384,11 +385,13 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         const props = utils.createObject(engine.scene!, "env-props");
         engineState.setComponent(props, new EnvProps({ sectorRes: this.props.size }));
 
-        // fogOfWar.init(this.props.size);
+        fogOfWar.init(this.props.size);
+        const { mapRes } = config.game;
+        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
 
-        // const trees = utils.createObject(engine.scene!, "trees");
-        // const treesComponent = new Trees({ sectorRes: this.props.size });        
-        // engineState.setComponent(trees, treesComponent);
+        const trees = utils.createObject(engine.scene!, "trees");
+        const treesComponent = new Trees({ sectorRes: this.props.size });        
+        engineState.setComponent(trees, treesComponent);
 
         const flocks = engineState.getComponents(Flock);
         const flock = flocks[0];

@@ -35,8 +35,8 @@ export class GameMapProps extends ComponentProps {
     regenCommand = true;
 
     size = 1;
-    continentFreq = 0.03;    
-    erosionFreq = 0.02;
+    continentFreqInv = 30;    
+    erosionFreqInv = 50;
     continentWeight = 0.6;
     erosionWeight = 0.4;
     continentGain = 1;

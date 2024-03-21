@@ -69,6 +69,14 @@ class SkeletonManager {
         const animator = utils.getComponent(Animator, skeleton.armature)!;        
         return animator.currentAction;
     }
+
+    public applyIdleAnim(obj: SkinnedMesh) {
+        const action = this.applySkeleton("idle", obj)!;
+        return {
+            name: "idle",
+            action
+        }
+    }
 }
 
 export const skeletonManager = new SkeletonManager();

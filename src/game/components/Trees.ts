@@ -14,7 +14,7 @@ export class TreesProps extends ComponentProps {
 
     sectorRes = 1;
     speed = .1;
-    strength = 1;
+    strength = 2;
     frequency = .05;
     heightVar = 40;
 
@@ -103,8 +103,8 @@ export class Trees extends Component<TreesProps> {
             }
         });
 
-        treeNoise.SetFrequency(.05);
-        treeNoise2.SetFrequency(.05 * .5);
+        treeNoise.SetFrequency(.03);
+        treeNoise2.SetFrequency(.03 * .5);
 
         return preloadTrees()
             .then(treeGeometries => {

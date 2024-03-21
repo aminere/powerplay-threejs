@@ -50,6 +50,7 @@ class FogOfWar {
         plane.position.y = .01;
         const uvFactor = texResPow2 / texRes;
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
+        plane.visible = false;
         engine.scene!.add(plane);
         
         // bad hack do not bring back!

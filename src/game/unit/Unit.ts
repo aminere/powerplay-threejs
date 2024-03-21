@@ -13,7 +13,6 @@ import { unitAnimation } from "./UnitAnimation";
 export interface IUnitProps {
     obj: SkinnedMesh;
     type: UnitType;
-    id: number;
     speed?: number;
     states: State<IUnit>[];
     animation: IUnitAnim;
@@ -121,10 +120,10 @@ export class Unit implements IUnit {
     private _id: number;    
     private _speedFactor: number;
 
-    constructor(props: IUnitProps) {
+    constructor(props: IUnitProps, id: number) {
         this._obj = props.obj;
         this._type = props.type;
-        this._id = props.id;
+        this._id = id;
         this._fsm = new UnitFSM({ states: props.states, owner: this });
         this._speedFactor = props.speed ?? 1;
         this._animation = props.animation;

@@ -18,6 +18,7 @@ import { Car } from "./Car";
 import { utils } from "../../engine/Utils";
 import { Train } from "./Train";
 import { GameMapProps } from "./GameMapProps";
+import { unitUtils } from "../unit/UnitUtils";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 export function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
@@ -318,8 +319,8 @@ export function createSector(coords: Vector2) {
     const sector = Sector.create({
         sectorX: coords.x,
         sectorY: coords.y,
-        continentFreq: props.continentFreq,
-        erosionFreq: props.erosionFreq,
+        continentFreq: 1 / props.continentFreqInv,
+        erosionFreq: 1 / props.erosionFreqInv,
         continentWeight: props.continentWeight,
         erosionWeight: props.erosionWeight,
         continentGain: props.continentGain,
@@ -460,6 +461,10 @@ export function onClick(touchButton: number) {
                 onConveyor(mapCoords, cell, touchButton);
             }
                 break;
+
+            case "unit": {
+                unitUtils.spawn(mapCoords);
+            }
         }
     }
 }

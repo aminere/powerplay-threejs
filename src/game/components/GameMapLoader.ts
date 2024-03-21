@@ -12,6 +12,7 @@ import { pools } from "../../engine/core/Pools";
 import { ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
+import { createSector } from "./GameMapUtils";
 
 export class GameMapLoaderProps extends ComponentProps {
 
@@ -58,7 +59,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
 
             const sectorInstance = (() => {
                 const instance = gameMap.state.sectors.get(sector.key);
-                return instance ?? gameMap.createSector(sectorCoords);
+                return instance ?? createSector(sectorCoords);
             })();
 
             for (let i = 0; i < sector.cells.length; i++) {
