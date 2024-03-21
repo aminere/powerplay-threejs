@@ -9,6 +9,7 @@ import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { GameMap } from "../components/GameMap";
 import { input } from "../../engine/Input";
+import { unitUtils } from "../unit/UnitUtils";
 
 const { mapRes, cellSize } = config.game;
 const mapOffset = mapRes / 2 * cellSize;
@@ -17,6 +18,8 @@ const screenPos = new Vector2();
 const worldPos = new Vector3();
 const mapCoordsTopLeft = new Vector2();
 const mapCoords = new Vector2();
+const minimapPos = new Vector2(100, 30);
+const minimapSize = 350;
 
 const canvasStyle = {
     width: "100%",
@@ -37,15 +40,25 @@ function makeMinimapTransform(angleDeg: number, offset: number) {
     minimapTransform.translate(-offset, -offset);
     minimapTransform.rotate(-angleDeg * MathUtils.DEG2RAD);
     minimapTransform.scale(1, .5);
-    minimapTransform.translate(85, -30);
+    minimapTransform.translate(minimapPos.x, minimapPos.y);
     minimapTransform.invert();
 }
 
 function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, offset: number) {
-    const { left, top } = engine.screenRect;
-    mapCoords.set(clientX - offset - left, clientY - offset - top).applyMatrix3(minimapTransform);
-    const cameraPos = worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
-    gamemap.setCameraPos(cameraPos);
+    const { left, top, height } = engine.screenRect;
+    const startY = top + height - minimapSize;
+
+    // calc coordinate in minimap space
+    mapCoords.set(clientX - offset - left, clientY - startY - offset).applyMatrix3(minimapTransform);
+
+    // convert to map space
+    const { sectorRes } = gameMapState;
+    const texRes = mapRes * sectorRes;
+    mapCoords.multiplyScalar(texRes / minimapSize);
+    
+    // convert to world space
+    worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
+    gamemap.setCameraPos(worldPos);
 }
 
 export function Minimap() {
@@ -72,7 +85,7 @@ export function Minimap() {
 
         const { sectorRes, sectors } = gameMapState;
         const texRes = mapRes * sectorRes;
-        const size = texRes; // Math.min(texRes, 300);
+        const size = minimapSize; // texRes;
         root.current!.style.width = `${size}px`;
         root.current!.style.height = `${size}px`;
 
@@ -105,8 +118,8 @@ export function Minimap() {
         fogPixelsRef.current = fogPixels;
 
         const cameraCanvas = cameraRef.current!;
-        cameraCanvas.width = texRes;
-        cameraCanvas.height = texRes;
+        cameraCanvas.width = size;
+        cameraCanvas.height = size;
         const cameraCtx = cameraCanvas.getContext("2d")!;
         cameraCtx.strokeStyle = "white";
         cameraCtx.lineWidth = 2;
@@ -164,7 +177,7 @@ export function Minimap() {
             setInitialized(true);
         }        
 
-        makeMinimapTransform(45, texRes / 2);
+        makeMinimapTransform(45, size / 2);
         
     }, []);
 
@@ -181,8 +194,7 @@ export function Minimap() {
             const { sectorRes } = gameMapState;
             const texRes = mapRes * sectorRes;
             
-            const flock = flockRef.current!;
-            const units = flock.state.units;
+            const { units } = unitUtils;
             const unitsPixels = unitsPixelsRef.current!;
             unitsPixels.data.fill(0);
             for (const unit of units) {
@@ -204,26 +216,26 @@ export function Minimap() {
             cameraCtx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
             cameraCtx.beginPath();
             const worldSize = mapRes * sectorRes * cellSize;
-            const worldToMap = (worldCoord: number) => {
-                return (worldCoord + mapOffset) / worldSize * texRes;
+            const worldToMinimap = (worldCoord: number) => {
+                return (worldCoord + mapOffset) / worldSize * minimapSize;
             };
             const { camera } = gameMapState;
             const { width: screenWidth, height: screenHeight } = engine.screenRect;
             screenPos.set(0, 0);
             GameUtils.screenCastOnPlane(camera, screenPos, 0, worldPos);
-            mapCoordsTopLeft.set(worldToMap(worldPos.x), worldToMap(worldPos.z));
+            mapCoordsTopLeft.set(worldToMinimap(worldPos.x), worldToMinimap(worldPos.z));
             cameraCtx.moveTo(mapCoordsTopLeft.x, mapCoordsTopLeft.y);
             screenPos.set(screenWidth, 0);
             GameUtils.screenCastOnPlane(camera, screenPos, 0, worldPos);
-            mapCoords.set(worldToMap(worldPos.x), worldToMap(worldPos.z));
+            mapCoords.set(worldToMinimap(worldPos.x), worldToMinimap(worldPos.z));
             cameraCtx.lineTo(mapCoords.x, mapCoords.y);
             screenPos.set(screenWidth, screenHeight);
             GameUtils.screenCastOnPlane(camera, screenPos, 0, worldPos);
-            mapCoords.set(worldToMap(worldPos.x), worldToMap(worldPos.z));
+            mapCoords.set(worldToMinimap(worldPos.x), worldToMinimap(worldPos.z));
             cameraCtx.lineTo(mapCoords.x, mapCoords.y);
             screenPos.set(0, screenHeight);
             GameUtils.screenCastOnPlane(camera, screenPos, 0, worldPos);
-            mapCoords.set(worldToMap(worldPos.x), worldToMap(worldPos.z));
+            mapCoords.set(worldToMinimap(worldPos.x), worldToMinimap(worldPos.z));
             cameraCtx.lineTo(mapCoords.x, mapCoords.y);
             cameraCtx.lineTo(mapCoordsTopLeft.x, mapCoordsTopLeft.y);
             cameraCtx.stroke();
@@ -242,11 +254,11 @@ export function Minimap() {
         };
 
         const onRotateMinimap = (angleDeg: number) => {
-            const { sectorRes } = gameMapState;
-            const texRes = mapRes * sectorRes;
-            makeMinimapTransform(angleDeg, texRes / 2);
+            const cameraCanvas = cameraRef.current!;
+            const size = cameraCanvas.width;
+            makeMinimapTransform(angleDeg, size / 2);
             const container = root.current?.firstChild as HTMLDivElement;
-            container.style.transform = `translate(85px, -30px) scaleY(.5) rotate(${angleDeg}deg)`;
+            container.style.transform = `translate(${minimapPos.x}px, ${minimapPos.y}px) scaleY(.5) rotate(${angleDeg}deg)`;
         };
 
         cmdUpdateUI.attach(updateUI);
@@ -262,12 +274,12 @@ export function Minimap() {
 
     }, [initialized]);    
 
-    return <div ref={root} style={{ position: "absolute", left: "0", top: "0" }}>
+    return <div ref={root} style={{ position: "absolute", left: "0", bottom: "0" }}>
         <div
             style={{
                 position: "relative",
                 height: "100%",
-                transform: `translate(85px, -30px) scaleY(.5) rotate(${45}deg)`,
+                transform: `translate(${minimapPos.x}px, ${minimapPos.y}px) scaleY(.5) rotate(${45}deg)`,
                 transformOrigin: "center",
                 border: "1px solid white",
                 pointerEvents: "all"
@@ -275,16 +287,16 @@ export function Minimap() {
             onPointerEnter={() => gameMapState.cursorOverUI = true}
             onPointerLeave={() => gameMapState.cursorOverUI = false}
             onPointerDown={e => {
-                const { sectorRes } = gameMapState;
-                const texRes = mapRes * sectorRes;        
-                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, texRes / 2);
+                const cameraCanvas = cameraRef.current!;
+                const size = cameraCanvas.width;
+                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, size / 2);
                 touchPressed.current = true
             }}
             onPointerMove={e => {
                 if (touchPressed.current) {
-                    const { sectorRes } = gameMapState;
-                    const texRes = mapRes * sectorRes;
-                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, texRes / 2);
+                    const cameraCanvas = cameraRef.current!;
+                    const size = cameraCanvas.width;    
+                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, size / 2);
                 }                
             }}
         >
