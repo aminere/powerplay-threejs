@@ -9,6 +9,7 @@ import { Fadeout } from "../components/Fadeout";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { IUnitAddr, computeUnitAddr } from "./UnitAddr";
 import { unitAnimation } from "./UnitAnimation";
+import { cmdFogRemoveCircle } from "../../Events";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -76,6 +77,7 @@ export class Unit implements IUnit {
                 engineState.setComponent(this._obj, new Fadeout({ duration: fadeDuration }));
                 setTimeout(() => {
                     skeletonPool.releaseSkeleton(this);
+                    cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
                 }, fadeDuration * 1000);
             }, 2000);
         }

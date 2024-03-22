@@ -11,9 +11,10 @@ import { config } from "../config";
 import { ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
-import { createSector } from "./GameMapUtils";
+import { createSector } from "../GameMapUtils";
 import { unitUtils } from "../unit/UnitUtils";
 import { conveyors } from "../Conveyors";
+import { GameMapUpdate } from "./GameMapUpdate";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -127,6 +128,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
         for (const mapCoords of unitsToSpawn) {
             unitUtils.spawn(mapCoords);
         }
+
+        engineState.setComponent(owner, new GameMapUpdate())
     }
 }
 

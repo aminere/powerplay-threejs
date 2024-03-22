@@ -1,27 +1,27 @@
-import { Box2, Camera, Vector2 } from "three";
-import { pools } from "../../engine/core/Pools";
-import { GameUtils } from "../GameUtils";
-import { config } from "../config";
-import { engine } from "../../engine/Engine";
-import { gameMapState } from "./GameMapState";
-import { Elevation } from "../Elevation";
-import { MineralType, TileType, TileTypes } from "../GameDefinitions";
-import { ICell } from "../GameTypes";
-import { roads } from "../Roads";
-import { Rails } from "../Rails";
-import { resources } from "../Resources";
-import { Sector } from "../Sector";
-import { buildings } from "../Buildings";
-import { conveyors } from "../Conveyors";
-import { engineState } from "../../engine/EngineState";
-import { Car } from "./Car";
-import { utils } from "../../engine/Utils";
-import { Train } from "./Train";
-import { GameMapProps } from "./GameMapProps";
-import { unitUtils } from "../unit/UnitUtils";
+import { Box2, Camera, OrthographicCamera, Vector2 } from "three";
+import { pools } from "../engine/core/Pools";
+import { GameUtils } from "./GameUtils";
+import { config } from "./config";
+import { engine } from "../engine/Engine";
+import { gameMapState } from "./components/GameMapState";
+import { Elevation } from "./Elevation";
+import { MineralType, TileType, TileTypes } from "./GameDefinitions";
+import { ICell } from "./GameTypes";
+import { roads } from "./Roads";
+import { Rails } from "./Rails";
+import { resources } from "./Resources";
+import { Sector } from "./Sector";
+import { buildings } from "./Buildings";
+import { conveyors } from "./Conveyors";
+import { engineState } from "../engine/EngineState";
+import { Car } from "./components/Car";
+import { utils } from "../engine/Utils";
+import { Train } from "./components/Train";
+import { GameMapProps } from "./components/GameMapProps";
+import { unitUtils } from "./unit/UnitUtils";
 
 const { elevationStep, cellSize, mapRes } = config.game;
-export function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
+function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
     const { sectors } = gameMapState;
     const sector = sectors.get(`${sectorX},${sectorY}`);
     if (!sector) {
@@ -467,5 +467,30 @@ export function onClick(touchButton: number) {
             }
         }
     }
+}
+
+export function updateCameraSize() {
+    const state = gameMapState.instance!;
+    const { width, height } = engine.screenRect;
+    const aspect = width / height;
+    const { orthoSize, shadowRange } = config.camera;
+
+    const orthoCamera = (state.camera as OrthographicCamera);
+    orthoCamera.zoom = 1 / state.cameraZoom;
+    // const zoom = this.state.cameraZoom;
+    // orthoCamera.left = -orthoSize * aspect * zoom;
+    // orthoCamera.right = orthoSize * aspect * zoom;
+    // orthoCamera.top = orthoSize * zoom;
+    // orthoCamera.bottom = -orthoSize * zoom;
+    orthoCamera.updateProjectionMatrix();
+
+    updateCameraBounds();
+    const cameraLeft = -orthoSize * state.cameraZoom * aspect;
+    const _shadowRange = Math.max(Math.abs(cameraLeft) * shadowRange, 10);
+    state.light.shadow.camera.left = -_shadowRange;
+    state.light.shadow.camera.right = _shadowRange;
+    state.light.shadow.camera.top = _shadowRange;
+    state.light.shadow.camera.bottom = -_shadowRange;
+    state.light.shadow.camera.updateProjectionMatrix();
 }
 
