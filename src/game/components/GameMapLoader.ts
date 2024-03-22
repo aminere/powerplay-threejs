@@ -112,12 +112,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
             for (const elevation of sector.elevation) {
                 position.setY(elevation.vertexIndex, elevation.height);
             }
-        }
-
-        // spawn units after all sectors are created
-        for (const mapCoords of unitsToSpawn) {
-            unitUtils.spawn(mapCoords);
-        }
+        }        
 
         for (const [buildingId, mapCoordsList] of Object.entries(data.buildings)) {
             for (const mapCoords of mapCoordsList) {
@@ -127,6 +122,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
         }
 
         gameMap.init(data.size);
+
+        // spawn units after all sectors are created
+        for (const mapCoords of unitsToSpawn) {
+            unitUtils.spawn(mapCoords);
+        }
     }
 }
 

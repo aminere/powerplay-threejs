@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Object3D, SkinnedMesh, Vector2 } from "three";
+import { Box3Helper, Object3D, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { IUnitProps, Unit } from "./Unit";
 import { cmdFogAddCircle } from "../../Events";
@@ -7,23 +7,20 @@ import { MiningState } from "./MiningState";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { utils } from "../../engine/Utils";
 
-interface SharedSkinnedMesh {
-    mesh: SkinnedMesh;
-    boundingBox: Box3;
-};
-
 class UnitUtils {
 
     public get units() { return this._units; }
 
     private _owner!: Object3D;
     private _units!: Unit[];
-    private _sharedSkinnedMesh!: SharedSkinnedMesh;
 
-    public init(owner: Object3D, sharedSkinnedMesh: SharedSkinnedMesh) {
+    public init(owner: Object3D) {
         this._owner = owner;
         this._units = [];
-        this._sharedSkinnedMesh = sharedSkinnedMesh;
+    }
+
+    public dispose() {
+        this._units.length = 0;
     }
 
     public createUnit(props: IUnitProps) {
@@ -42,7 +39,8 @@ class UnitUtils {
     }
 
     public spawn(mapCoords: Vector2) {
-        const { mesh: sharedMesh, boundingBox } = this._sharedSkinnedMesh;
+        const sharedMesh = skeletonManager.sharedSkinnedMesh;
+        const boundingBox = skeletonManager.boundingBox;
         const mesh = sharedMesh.clone();
         mesh.boundingBox = boundingBox;
         GameUtils.mapToWorld(mapCoords, mesh.position);

@@ -374,7 +374,7 @@ export class Flock extends Component<FlockProps, IFlockState> {
     }
 
     public async load(owner: Object3D) {
-        const { sharedSkinnedMesh, baseRotation } = await skeletonManager.load({
+        await skeletonManager.load({
             skin: "/models/characters/Worker.json",
             animations: [
                 { name: "idle" },
@@ -385,18 +385,8 @@ export class Flock extends Component<FlockProps, IFlockState> {
             ],
         });
 
-        await skeletonPool.load("/models/characters/Worker.json");        
-
-        const headOffset = new Vector3(0, 0, 1.8);
-        const boundingBox = new Box3()
-            .setFromObject(sharedSkinnedMesh)
-            .expandByPoint(headOffset)
-            .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, new Vector3(1, 1, 1)));
-
-        unitUtils.init(owner, {
-            mesh: sharedSkinnedMesh,
-            boundingBox
-        });
+        await skeletonPool.load("/models/characters/Worker.json");
+        unitUtils.init(owner);
 
         // const sector0 = gameMapState.sectors.get(`0,0`)!;
         // const terrain = sector0.layers.terrain as Mesh;
@@ -472,8 +462,10 @@ export class Flock extends Component<FlockProps, IFlockState> {
         });
     }
     
-    override dispose(_owner: Object3D) {
-        skeletonPool.dispose();   
+    override dispose() {
+        skeletonManager.dispose();
+        skeletonPool.dispose();
+        unitUtils.dispose();
     }    
 
     private handleSpawnRequests() {

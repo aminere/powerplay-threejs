@@ -1,18 +1,25 @@
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { objects } from "../../engine/resources/Objects";
-import { Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
+import { Box3, Matrix4, Object3D, Skeleton, SkinnedMesh, Vector3 } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
+import { GameUtils } from "../GameUtils";
 
 const identity = new Matrix4();
 class SkeletonManager {
+    
+    public get sharedSkinnedMesh() { return this._sharedSkinnedMesh; }
+    public get boundingBox() { return this._boundingBox; }
 
     private _skeletons = new Map<string, {
         skeleton: Skeleton;
         armature: Object3D;
     }>();
+
+    private _sharedSkinnedMesh!: SkinnedMesh;
+    private _boundingBox!: Box3;
 
     public getSkeleton(animation: string) {
         return this._skeletons.get(animation);
@@ -50,12 +57,23 @@ class SkeletonManager {
             skeletons.add(armature);
         });
 
+        const sharedSkinnedMesh = skinnedMeshes[0];
         const rootBone0 = skinnedMeshes[0].skeleton.bones[0];
-        const armature0 = rootBone0.parent!;
-        return {
-            sharedSkinnedMesh: skinnedMeshes[0],
-            baseRotation: armature0.quaternion.clone()
-        };
+        const armature0 = rootBone0.parent!;        
+        const baseRotation = armature0.quaternion.clone();
+
+        const headOffset = new Vector3(0, 0, 1.8);
+        const boundingBox = new Box3()
+            .setFromObject(sharedSkinnedMesh)
+            .expandByPoint(headOffset)
+            .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, GameUtils.vec3.one));
+
+        this._sharedSkinnedMesh = sharedSkinnedMesh;
+        this._boundingBox = boundingBox;
+    }
+
+    public dispose() {
+        this._skeletons.clear();
     }
 
     public applySkeleton(animation: string, target: SkinnedMesh) {
