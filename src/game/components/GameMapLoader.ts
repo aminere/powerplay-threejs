@@ -13,6 +13,7 @@ import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector } from "./GameMapUtils";
 import { unitUtils } from "../unit/UnitUtils";
+import { conveyors } from "../Conveyors";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -67,6 +68,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
 
         await gameMap.preload(data.size);
 
+        const unitsToSpawn = new Array<Vector2>();
         for (const sector of data.sectors) {
 
             const [x, y] = sector.key.split(",").map(i => parseInt(i));
@@ -86,15 +88,22 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                 }
 
                 calcLocalCoords(cell.index, localCoords);
+                mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+
                 if (cell.resource) {                    
                     resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
                 }
 
-                if (cell.unitCount !== undefined) {
-                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+                if (cell.unitCount !== undefined) {                    
                     for (let j = 0; j < cell.unitCount; j++) {
-                        unitUtils.spawn(mapCoords);
+                        unitsToSpawn.push(mapCoords.clone());                        
                     }
+                }
+
+                if (cell.conveyor) {
+                    const { direction, startAxis, endAxis } = cell.conveyor;
+                    const _direction = new Vector2(direction.x, direction.y);
+                    conveyors.create(cellInstance, mapCoords, _direction, startAxis, endAxis);
                 }
             }
 
@@ -103,6 +112,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
             for (const elevation of sector.elevation) {
                 position.setY(elevation.vertexIndex, elevation.height);
             }
+        }
+
+        // spawn units after all sectors are created
+        for (const mapCoords of unitsToSpawn) {
+            unitUtils.spawn(mapCoords);
         }
 
         for (const [buildingId, mapCoordsList] of Object.entries(data.buildings)) {

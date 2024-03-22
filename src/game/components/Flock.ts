@@ -345,7 +345,6 @@ export class Flock extends Component<FlockProps, IFlockState> {
                             if (!unit.fsm.currentState) {
                                 const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                                 if (reachedTarget) {
-                                    console.assert(unit.arriving === false);
                                     unit.arriving = true;
                                     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
                                 }

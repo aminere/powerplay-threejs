@@ -159,7 +159,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             }
         }
 
-        this.checkKeyboardCameraPan();
+        this.checkKeyboardCameraPan();        
 
         if (input.wheelDelta !== 0) {
             const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -388,6 +388,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
     public async preload(size: number) {
         await buildings.preload();
+        await conveyors.preload();
 
         const flocks = engineState.getComponents(Flock);
         const flock = flocks[0];
@@ -421,7 +422,6 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         Promise.all([
             // treesComponent.load(trees),
-            conveyors.preload(),
             conveyorItems.preload()
         ]).then(() => {
             cmdShowUI.post("gamemap");
@@ -558,6 +558,19 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         switch (key) {
             case 'q': cameraDirection = -1; break;
             case 'e': cameraDirection = 1; break;
+
+            case "delete": {
+                const flock = engineState.getComponents(Flock)[0];
+                const { selectedUnits } = flock.component.state;
+                if (selectedUnits.length > 0) {
+                    for (const unit of selectedUnits) {
+                        unitUtils.kill(unit);
+                    }
+                    selectedUnits.length = 0;
+                    cmdSetSelectedElems.post({ units: selectedUnits });
+                }
+            }
+                break;
         }
         if (cameraDirection !== 0 && !this.state.cameraTween) {
             this.state.cameraTween = gsap.to(this.state,

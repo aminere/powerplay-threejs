@@ -37,7 +37,7 @@ function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTarge
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
-        flowField.onUnitArrived(unit.motionId);
+        flowField.removeMotion(unit.motionId);
     }
     unit.motionId = motionId;    
     unit.collidable = true;
@@ -95,15 +95,27 @@ function getSrcMapCoords(srcMapCoords: Vector2, sectors: Vector2[]) {
     return null;
 }
 
+function onUnitArrived(unit: IUnit) {
+    flowField.removeMotion(unit.motionId);
+    unit.motionId = 0;
+    unit.arriving = false;
+    unit.velocity.set(0, 0, 0);
+}
+
 function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: number) {
     const { directionIndex } = _flowfield;    
     if (directionIndex < 0) {
         const mapCoords = unit.coords.mapCoords;
         const computed = flowField.computeDirection(unit.motionId, mapCoords, cellDirection);
-        console.assert(computed, "flowfield direction not valid");                        
-        const index = flowField.computeDirectionIndex(cellDirection);
-        flowField.getDirection(index, cellDirection);
-        _flowfield.directionIndex = index;
+        if (computed) {
+            const index = flowField.computeDirectionIndex(cellDirection);
+            flowField.getDirection(index, cellDirection);
+            _flowfield.directionIndex = index;
+        } else {
+            cellDirection.set(0, 0);
+            onUnitArrived(unit);
+            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+        }       
 
     } else {
         flowField.getDirection(directionIndex, cellDirection);                        
@@ -270,10 +282,7 @@ class UnitMotion {
     }    
 
     public onUnitArrived(unit: IUnit) {
-        flowField.onUnitArrived(unit.motionId);
-        unit.motionId = 0;
-        unit.arriving = false;
-        unit.velocity.set(0, 0, 0);
+        onUnitArrived(unit);
     }
 }
 

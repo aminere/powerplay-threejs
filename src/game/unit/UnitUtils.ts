@@ -2,9 +2,10 @@ import { Box3, Box3Helper, Object3D, SkinnedMesh, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { IUnitProps, Unit } from "./Unit";
 import { cmdFogAddCircle } from "../../Events";
-import { UnitType } from "./IUnit";
+import { IUnit, UnitType } from "./IUnit";
 import { MiningState } from "./MiningState";
 import { skeletonManager } from "../animation/SkeletonManager";
+import { utils } from "../../engine/Utils";
 
 interface SharedSkinnedMesh {
     mesh: SkinnedMesh;
@@ -51,6 +52,18 @@ class UnitUtils {
             states: [new MiningState()],
             animation: skeletonManager.applyIdleAnim(mesh)
         });
+    }
+
+    public kill(unit: IUnit) {
+        unit.health = 0;
+        const index = this._units.indexOf(unit as Unit);
+        console.assert(index >= 0, `unit ${unit.id} not found`);
+        utils.fastDelete(this._units, index);
+
+        const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+        const unitIndex = cell.units!.indexOf(unit);
+        console.assert(unitIndex >= 0, `unit ${unit.id} not found in cell`);
+        utils.fastDelete(cell.units!, unitIndex);
     }
 }
 

@@ -324,7 +324,7 @@ class FlowField {
         motion.unitCount = count;
     }
 
-    public onUnitArrived(motionId: number) {
+    public removeMotion(motionId: number) {
         const motion = this._motions.get(motionId)!;
         console.assert(motion);
         console.assert(motion.unitCount > 0);

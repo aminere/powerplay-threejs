@@ -1,10 +1,12 @@
 import { Vector2 } from "three";
+import { IConveyorConfig } from "./GameTypes";
 
 export interface ISerializedCell {
     index: number;
     roadTile?: number;
     resource?: string;
     unitCount?: number;
+    conveyor?: IConveyorConfig;
 }
 
 export interface ISerializedElevation {
