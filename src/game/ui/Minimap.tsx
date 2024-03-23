@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
-import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
 import { MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
 import { engineState } from "../../engine/EngineState";
-import { Flock } from "../components/Flock";
+import { FlockProps } from "../components/Flock";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { GameMap } from "../components/GameMap";
 import { input } from "../../engine/Input";
 import { unitUtils } from "../unit/UnitUtils";
+import { GameMapState } from "../components/GameMapState";
 
 const { mapRes, cellSize } = config.game;
 const mapOffset = mapRes / 2 * cellSize;
@@ -52,7 +52,7 @@ function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, off
     mapCoords.set(clientX - offset - left, clientY - startY - offset).applyMatrix3(minimapTransform);
 
     // convert to map space
-    const { sectorRes } = gameMapState;
+    const { sectorRes } = GameMapState.instance;
     const texRes = mapRes * sectorRes;
     mapCoords.multiplyScalar(texRes / minimapSize);
     
@@ -74,7 +74,6 @@ export function Minimap() {
     const resourcePixelsRef = useRef<ImageData | null>(null);
     const cameraRef = useRef<HTMLCanvasElement | null>(null);
     const gamemapRef = useRef<GameMap | null>(null);
-    const flockRef = useRef<Flock | null>(null);
     const touchPressed = useRef(false);
     const [initialized, setInitialized] = useState(false);
 
@@ -83,7 +82,7 @@ export function Minimap() {
             return;
         }
 
-        const { sectorRes, sectors } = gameMapState;
+        const { sectorRes, sectors } = GameMapState.instance;
         const texRes = mapRes * sectorRes;
         const size = minimapSize; // texRes;
         root.current!.style.width = `${size}px`;
@@ -168,14 +167,12 @@ export function Minimap() {
         resourcesCtx.putImageData(resourcesPixels, 0, 0);
         fogCtx.putImageData(fogPixels, 0, 0);
 
-        const flocks = engineState.getComponents(Flock);
-        const flock = flocks[0].component;
-        if (flock.props.active) {
-            flockRef.current = flock;
+        const flockProps = FlockProps.instance;
+        if (flockProps.active) {
             const gamemaps = engineState.getComponents(GameMap);
             gamemapRef.current = gamemaps[0].component;
             setInitialized(true);
-        }        
+        }
 
         makeMinimapTransform(45, size / 2);
         
@@ -187,11 +184,7 @@ export function Minimap() {
         }
 
         const renderUI = () => {
-            if (!gameMapState.instance) {
-                return;
-            }
-
-            const { sectorRes } = gameMapState;
+            const { sectorRes } = GameMapState.instance;
             const texRes = mapRes * sectorRes;
             
             const { units } = unitUtils;
@@ -219,7 +212,7 @@ export function Minimap() {
             const worldToMinimap = (worldCoord: number) => {
                 return (worldCoord + mapOffset) / worldSize * minimapSize;
             };
-            const { camera } = gameMapState;
+            const { camera } = GameMapState.instance;
             const { width: screenWidth, height: screenHeight } = engine.screenRect;
             screenPos.set(0, 0);
             GameUtils.screenCastOnPlane(camera, screenPos, 0, worldPos);
@@ -284,8 +277,8 @@ export function Minimap() {
                 border: "1px solid white",
                 pointerEvents: "all"
             }}
-            onPointerEnter={() => gameMapState.cursorOverUI = true}
-            onPointerLeave={() => gameMapState.cursorOverUI = false}
+            onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
+            onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
             onPointerDown={e => {
                 const cameraCanvas = cameraRef.current!;
                 const size = cameraCanvas.width;

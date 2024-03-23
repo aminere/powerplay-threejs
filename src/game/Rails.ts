@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { railFactory } from "./RailFactory";
 import { Axis, ICell } from "./GameTypes";
 import { pools } from "../engine/core/Pools";
-import { gameMapState } from "./components/GameMapState";
+import { GameMapState } from "./components/GameMapState";
 
 export class Rails {
     
@@ -212,7 +212,7 @@ export class Rails {
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
 
         GameUtils.mapToWorld(startCoords, rail.position);
-        gameMapState.layers.rails.add(rail);
+        GameMapState.instance.layers.rails.add(rail);
         startCell.rail = {
             obj: rail,
             axis: startAxis,

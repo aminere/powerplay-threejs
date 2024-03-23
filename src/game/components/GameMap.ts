@@ -1,29 +1,28 @@
-import { DirectionalLight, Euler, MathUtils,  Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Euler, MathUtils,  Object3D, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component"
 import { config } from "../config";
 import { engine } from "../../engine/Engine";
-import { IGameMapState, gameMapState } from "./GameMapState";
-import { TileSector } from "../TileSelector";
 import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdSetSelectedElems, cmdShowUI } from "../../Events";
 import { createSector, updateCameraBounds, updateCameraSize } from "../GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
 import { GameMapProps } from "./GameMapProps";
 import { engineState } from "../../engine/EngineState";
-import { Flock } from "./Flock";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 import { Trees } from "./Trees";
 import { fogOfWar } from "../FogOfWar";
 import gsap from "gsap";
-import { IBuildingInstance, ISector } from "../GameTypes";
 import { buildings } from "../Buildings";
 import { conveyors } from "../Conveyors";
 import { conveyorItems } from "../ConveyorItems";
 import { unitUtils } from "../unit/UnitUtils";
 import { GameMapUpdate } from "./GameMapUpdate";
+import { unitsManager } from "../unit/UnitsManager";
+import { FlockState } from "./FlockState";
+import { GameMapState } from "./GameMapState";
 
-export class GameMap extends Component<GameMapProps, IGameMapState> {
+export class GameMap extends Component<GameMapProps, GameMapState> {
 
     constructor(props?: Partial<GameMapProps>) {
         super(new GameMapProps(props));
@@ -31,74 +30,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
     override start(owner: Object3D) {
 
-        const root = engine.scene!;
-        const rails = utils.createObject(root, "rails");
-        const trains = utils.createObject(root, "trains");
-        const cars = utils.createObject(root, "cars");
-        const buildings = utils.createObject(root, "buildings");
-        const conveyors = utils.createObject(root, "conveyors");
-
-        this.setState({
-            sectorsRoot: utils.createObject(root, "sectors"),
-            sectors: new Map<string, ISector>(),
-            sectorRes: this.props.size,
-            action: null,
-            previousRoad: [],
-            previousRail: [],
-            previousConveyors: [],
-            cameraZoom: 1,
-            cameraAngleRad: 0,
-            cameraTween: null,
-            cameraRoot: null!,
-            cameraPivot: null!,
-            camera: null!,
-            light: null!,
-            cameraBoundsAccessors: [0, 1, 2, 3],
-            cameraBounds: [
-                new Vector3(), // top
-                new Vector3(), // right
-                new Vector3(), // bottom
-                new Vector3() // left
-            ],
-            pressedKeys: new Set<string>(),
-            previousTouchPos: new Vector2(),
-            tileSelector: null!,
-            selectedCellCoords: new Vector2(),
-            highlightedCellCoords: new Vector2(),
-            touchStartCoords: new Vector2(),
-            touchHoveredCoords: new Vector2(),
-            touchDragged: false,
-            cursorOverUI: false,
-            selectionInProgress: false,
-            layers: {
-                rails,
-                trains,
-                cars,
-                buildings,
-                conveyors
-            },
-            buildings: new Map<string, IBuildingInstance>(),
-            selectedBuilding: null
-        });
-
-        gameMapState.instance = this.state;
-
-        this.state.cameraRoot = engine.scene?.getObjectByName("camera-root")!;
-
-        const camera = this.state.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;
-        this.state.camera = camera;
-        this.state.cameraPivot = this.state.camera.parent!;
-
-        const light = this.state.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
-        this.state.light = light;
-        light.shadow.camera.far = camera.far;
-
-        const [, rotationY] = config.camera.rotation;
-        this.state.cameraAngleRad = MathUtils.degToRad(rotationY);
-
-        this.state.tileSelector = new TileSector();
-        this.state.tileSelector.visible = false;
-        root.add(this.state.tileSelector);
+        this.setState(new GameMapState());        
 
         railFactory.preload();
 
@@ -109,7 +41,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
 
         if (this.props.initSelf) {
             this.createSectors();
-            this.preload(this.props.size)
+            this.preload()
                 .then(() => this.init(this.props.size))
                 .then(() => engineState.setComponent(owner, new GameMapUpdate()));
         }
@@ -121,8 +53,9 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         cmdHideUI.post("gamemap");
         conveyors.dispose();
         conveyorItems.dispose();
-        gameMapState.instance = null;
+        this.state.dispose();
         this.props.dispose();
+        unitsManager.dispose();
     }
 
     public createSectors() {
@@ -138,23 +71,19 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
         }
     }
 
-    public async preload(size: number) {
+    public async preload() {
         await buildings.preload();
         await conveyors.preload();
-
-        const flocks = engineState.getComponents(Flock);
-        const flock = flocks[0];
-        if (flock.component.props.active) {
-            await flock.component.load(flock.owner);
-        }
-
-        fogOfWar.init(size);
-        const { mapRes } = config.game;
-        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
+        await unitsManager.preload();
     }
 
     public init(size: number) {
         this.state.sectorRes = size;
+
+        // fog
+        fogOfWar.init(size);
+        const { mapRes } = config.game;
+        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
 
         // water
         const water = utils.createObject(engine.scene!, "water");
@@ -190,8 +119,7 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
     public spawnUnitRequest() {
         const { selectedBuilding } = this.state;
         console.assert(selectedBuilding);
-        const flock = engineState.getComponents(Flock)[0];
-        flock.component.spawnUnitRequest(selectedBuilding!);
+        unitsManager.spawnUnitRequest(selectedBuilding!);
     }
 
     private disposeSectors() {
@@ -220,8 +148,8 @@ export class GameMap extends Component<GameMapProps, IGameMapState> {
             case 'e': cameraDirection = 1; break;
 
             case "delete": {
-                const flock = engineState.getComponents(Flock)[0];
-                const { selectedUnits } = flock.component.state;
+                const flockState = FlockState.instance;
+                const { selectedUnits } = flockState;
                 if (selectedUnits.length > 0) {
                     for (const unit of selectedUnits) {
                         unitUtils.kill(unit);

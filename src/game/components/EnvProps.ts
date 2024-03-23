@@ -6,7 +6,7 @@ import { textures } from "../../engine/resources/Textures";
 import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
-import { gameMapState } from "./GameMapState";
+import { GameMapState } from "./GameMapState";
 
 export class EnvPropsProps extends ComponentProps {
 
@@ -77,7 +77,7 @@ export class EnvProps extends Component<EnvPropsProps> {
                     };
                 });
 
-                const { sectors } = gameMapState;
+                const { sectors } = GameMapState.instance;
                 for (let i = 0; i < sectorRes; ++i) {
                     for (let j = 0; j < sectorRes; ++j) {
                         const sectorX = j;

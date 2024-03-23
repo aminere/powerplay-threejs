@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react"
 import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems } from "../../Events";
-import { gameMapState } from "../components/GameMapState";
 import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { IUnit } from "../unit/IUnit";
 import { IBuildingInstance } from "../GameTypes";
 import { config } from "../config";
+import { GameMapState } from "../components/GameMapState";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -22,7 +22,7 @@ const headOffset = 2;
 const { cellSize, conveyorHeight } = config.game;
 
 function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number) {
-    const camera = gameMapState.camera;
+    const { camera } = GameMapState.instance;
     GameUtils.worldToScreen(position, camera, screenPos);
     const barX = Math.round(screenPos.x - totalWidth / 2);
     const barY = Math.round(screenPos.y);
@@ -74,11 +74,7 @@ export function HealthBars() {
             selectedConveyorRef.current = conveyor ?? null;
         };
 
-        const renderUI = () => {
-            if (!gameMapState.instance) {
-                return;
-            }
-            
+        const renderUI = () => {            
             const canvas = canvasRef.current!;
             const ctx = canvas.getContext("2d")!;
             ctx.clearRect(0, 0, canvas.width, canvas.height);

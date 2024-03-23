@@ -67,7 +67,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
         const obj = utils.createObject(owner.parent!, this.props.path);
         const gameMap = engineState.setComponent(obj, new GameMap());
 
-        await gameMap.preload(data.size);
+        await gameMap.preload();
 
         const unitsToSpawn = new Array<Vector2>();
         for (const sector of data.sectors) {

@@ -3,15 +3,12 @@ import { MathUtils, Matrix4, Object3D, Ray, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
-import { gameMapState } from "./GameMapState";
 import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onClick, onDrag, onEndDrag, raycastOnCells, updateCameraBounds, updateCameraSize } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
-import { engineState } from "../../engine/EngineState";
-import { Flock } from "./Flock";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { IBuildingInstance } from "../GameTypes";
 import { unitUtils } from "../unit/UnitUtils";
@@ -20,6 +17,9 @@ import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
+import { FlockState } from "./FlockState";
+import { unitsManager } from "../unit/UnitsManager";
+import { GameMapState } from "./GameMapState";
 
 const cellCoords = new Vector2();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -34,7 +34,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
     override update(_owner: Object3D) {
         
-        const state = gameMapState.instance!;
+        const state = GameMapState.instance;
         if (input.touchInside && !state.cursorOverUI) {
             const { width, height } = engine.screenRect;
             const touchPos = input.touchPos;
@@ -48,7 +48,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 raycastOnCells(input.touchPos, state.camera, cellCoords);
                 if (state.action) {
                     if (cellCoords?.equals(state.selectedCellCoords) === false) {
-                        state.tileSelector.setPosition(cellCoords!);
+                        state.tileSelector.setPosition(cellCoords!, state.sectors);
                         state.selectedCellCoords.copy(cellCoords!);
                     }
                 } else {
@@ -130,7 +130,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                     if (state.selectionInProgress) {
                         cmdEndSelection.post();
-                        gameMapState.selectionInProgress = false;
+                        state.selectionInProgress = false;
                     }
                     canceled = true;
                 }
@@ -143,20 +143,18 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             onClick(0);
                         }
                     } else {
-
-                        const flock = engineState.getComponents(Flock)[0];
-                        const flockState = flock?.component.state;
-
+                        
+                        const flockState = FlockState.instance;
                         if (state.selectionInProgress) {
                             cmdEndSelection.post();
-                            gameMapState.selectionInProgress = false;
+                            state.selectionInProgress = false;
 
                         } else {
 
                             const { width, height } = engine.screenRect;
                             const normalizedPos = pools.vec2.getOne();
                             normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                            rayCaster.setFromCamera(normalizedPos, gameMapState.camera);
+                            rayCaster.setFromCamera(normalizedPos, state.camera);
 
                             const intersections: Array<{
                                 unit?: IUnit;
@@ -237,12 +235,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (state.action) {
                     onClick(2);
                 } else {
-                    const flock = engineState.getComponents(Flock)[0];
-                    const flockState = flock?.component.state;
+                    const flockState = FlockState.instance;
                     if (flockState) {
                         if (flockState.selectedUnits.length > 0) {
                             const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                            const targetCell = raycastOnCells(input.touchPos, gameMapState.camera, targetCellCoords, targetSectorCoords);
+                            const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, targetSectorCoords);
                             if (targetCell) {
                                 // group units per sector
                                 const groups = flockState.selectedUnits.reduce((prev, cur) => {
@@ -269,10 +266,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
         }
 
         conveyors.update();
+        unitsManager.update();
     }
 
     private checkKeyboardCameraPan() {
-        const state = gameMapState.instance!;
+        const state = GameMapState.instance;
         let xNorm = 0;
         let yNorm = 0;
         let keyboardPan = false;
@@ -296,7 +294,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
     }
 
     private checkCameraPan(xNorm: number, yNorm: number) {
-        const state = gameMapState.instance!;
+        const state = GameMapState.instance;
         if (state.selectionInProgress) {
             return;
         }

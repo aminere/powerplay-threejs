@@ -3,11 +3,11 @@ import { ICell, IConveyorItem } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { utils } from "../engine/Utils";
-import { gameMapState } from "./components/GameMapState";
 import { meshes } from "../engine/resources/Meshes";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
 import { ConveyorUtils } from "./ConveyorUtils";
+import { GameMapState } from "./components/GameMapState";
 
 const { conveyorHeight, cellSize, conveyorSpeed } = config.game;
 const halfCellSize = cellSize / 2;
@@ -64,7 +64,7 @@ class ConveyorItems {
     private _items = new Array<IConveyorItem>();
 
     public async preload() {
-        this._itemsRoot = utils.createObject(gameMapState.layers.conveyors, "items");
+        this._itemsRoot = utils.createObject(GameMapState.instance.layers.conveyors, "items");
         const [item] = await meshes.load("/models/resources/iron-ore.glb");
         item.castShadow = true;
         this._item = item;

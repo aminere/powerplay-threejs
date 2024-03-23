@@ -3,8 +3,8 @@ import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, Nea
 import { config } from "./config";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
-import { gameMapState } from "./components/GameMapState";
 import { textures } from "../engine/resources/Textures";
+import { ISector } from "./GameTypes";
 
 const { cellSize, mapRes } = config.game;
 
@@ -36,13 +36,13 @@ export class TileSector extends Object3D {
         this.initGeometry();
     }
 
-    public setPosition(mapCoords: Vector2) {
+    public setPosition(mapCoords: Vector2, sectors: Map<string, ISector>) {
         const offset = -mapRes / 2;
         this.position.set((mapCoords.x + offset) * cellSize, 0, (mapCoords.y + offset) * cellSize);
-        this.fit(mapCoords);
+        this.fit(mapCoords, sectors);
     }
         
-    public fit(mapCoords: Vector2) {
+    public fit(mapCoords: Vector2, sectors: Map<string, ISector>) {
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
         const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
@@ -52,7 +52,6 @@ export class TileSector extends Object3D {
             const tileGeometry = (this.children[tileIndex] as Mesh).geometry as BufferGeometry;
             const tilePosition = tileGeometry.getAttribute('position') as BufferAttribute;
             if (cell) {
-                const { sectors } = gameMapState;
                 const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
                 const geometry = (sector?.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
                 const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;

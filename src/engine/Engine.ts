@@ -67,6 +67,9 @@ class Engine {
     public render(camera: Camera) {
         this._renderer!.clear();
         this._renderer!.render(this._scene!, camera);
+    }
+
+    public renderUI() {
         cmdRenderUI.post();
     }
 

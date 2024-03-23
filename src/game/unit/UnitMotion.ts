@@ -14,7 +14,7 @@ import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
-import { gameMapState } from "../components/GameMapState";
+import { GameMapState } from "../components/GameMapState";
 
 const { mapRes } = config.game;
 const oneSector = [new Vector2()];
@@ -187,7 +187,7 @@ class UnitMotion {
             console.assert(unitCount > 0);
             flowField.setMotionUnitCount(motionId, unitCount);
 
-            for (const sector of gameMapState.sectors.values()) {
+            for (const sector of GameMapState.instance.sectors.values()) {
                 sector.flowfieldViewer.visible = false;
             }
             for (const sectorCoords of sectors) {

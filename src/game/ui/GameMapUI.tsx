@@ -4,7 +4,6 @@ import { Action, Actions } from "../GameDefinitions";
 import styles from './GameMapUI.module.css';
 import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
-import { gameMapState } from "../components/GameMapState";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
@@ -13,6 +12,7 @@ import { GameMap } from "../components/GameMap";
 import { config } from "../config";
 import { IBuildingInstance } from "../GameTypes";
 import { cmdSetSelectedElems } from "../../Events";
+import { GameMapState } from "../components/GameMapState";
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -23,6 +23,7 @@ export function GameMapUI(props: IGameUIProps) {
     const buildingRef = useRef<HTMLDivElement>(null);
 
     const setAction = useCallback((newAction: Action) => {
+        const gameMapState = GameMapState.instance;
         if (newAction === selectedAction) {
             gameMapState.action = null;
             setSelectedAction(null);
@@ -34,9 +35,9 @@ export function GameMapUI(props: IGameUIProps) {
                 const gamemap = engineState.getComponents(GameMap)[0];
                 const buildingId = gamemap.component.props.buildingId;
                 const building = config.buildings[buildingId];
-                gameMapState.instance!.tileSelector.setSize(building.size.x, building.size.z);
+                gameMapState.tileSelector.setSize(building.size.x, building.size.z);
             } else {
-                gameMapState.instance!.tileSelector.setSize(1, 1);
+                gameMapState.tileSelector.setSize(1, 1);
             }
 
         }
@@ -120,8 +121,8 @@ export function GameMapUI(props: IGameUIProps) {
         <div 
             ref={actionsElem} 
             className={styles.actions}
-            onPointerEnter={() => gameMapState.cursorOverUI = true}
-            onPointerLeave={() => gameMapState.cursorOverUI = false}
+            onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
+            onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
         >
             {Actions.map(action => {
                 const selected = selectedAction === action;
@@ -152,8 +153,8 @@ export function GameMapUI(props: IGameUIProps) {
                 pointerEvents: "all",
                 display: "none"
             }}
-            onPointerEnter={() => gameMapState.cursorOverUI = true}
-            onPointerLeave={() => gameMapState.cursorOverUI = false}
+            onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
+            onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
         >
             <div
                 className={`${styles.action} clickable`}

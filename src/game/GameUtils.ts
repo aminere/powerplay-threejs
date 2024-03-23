@@ -2,7 +2,7 @@
 import { Camera, Vector2, Vector3, Raycaster, Plane, Line3 } from "three";
 import { config } from "./config";
 import { engine } from "../powerplay";
-import { gameMapState } from "./components/GameMapState";
+import { GameMapState } from "./components/GameMapState";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -46,7 +46,7 @@ export class GameUtils {
     }
 
     public static getCell(mapCoords: Vector2, sectorCoordsOut?: Vector2, localCoordsOut?: Vector2) {
-        const { sectors } = gameMapState;
+        const { sectors } = GameMapState.instance;
         const sectorX = Math.floor(mapCoords.x / mapRes);
         const sectorY = Math.floor(mapCoords.y / mapRes);
         sectorCoordsOut?.set(sectorX, sectorY);
@@ -64,7 +64,7 @@ export class GameUtils {
 
     public static getSector(sectorCoords: Vector2) {
         const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
-        return gameMapState.sectors.get(sectorId) ?? null;
+        return GameMapState.instance.sectors.get(sectorId) ?? null;
     }
 
     // public static canPlaceRoad(mapCoords: Vector2) {

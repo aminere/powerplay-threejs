@@ -1,82 +1,93 @@
-import { Box2, Camera, DirectionalLight, Object3D, Vector2, Vector3 } from "three";
+import { Box2, Camera, DirectionalLight, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { IBuildingInstance, ICell, ISector } from "../GameTypes";
 import { TileSector } from "../TileSelector";
 import { Action } from "../GameDefinitions";
+import { utils } from "../../engine/Utils";
+import { engine } from "../../engine/Engine";
+import { config } from "../config";
 
-export interface IGameMapState {
-    sectorsRoot: Object3D;
-    sectors: Map<string, ISector>;
-    sectorRes: number;
-    bounds?: Box2;
-    action: Action | null;
-    initialDragAxis?: "x" | "z";
-    previousRail: ICell[];
-    previousRoad: Vector2[];
-    previousConveyors: Vector2[];
-    cameraZoom: number;
-    cameraAngleRad: number;
-    cameraTween: gsap.core.Tween | null;
-    cameraRoot: Object3D;
-    cameraPivot: Object3D;
-    camera: Camera;
-    light: DirectionalLight;
-    cameraBoundsAccessors: number[];
-    cameraBounds: Vector3[];
-    pressedKeys: Set<string>;
-    previousTouchPos: Vector2;
-    tileSelector: TileSector;
-    selectedCellCoords: Vector2;
-    highlightedCellCoords: Vector2;
-    touchStartCoords:  Vector2;
-    touchHoveredCoords: Vector2;
-    touchDragged: boolean;
-    cursorOverUI: boolean;
-    selectionInProgress: boolean;
-    layers: {
-        rails: Object3D;
-        trains: Object3D;
-        cars: Object3D;
-        buildings: Object3D;
-        conveyors: Object3D;
-    },
-    buildings: Map<string, IBuildingInstance>;
-    selectedBuilding: IBuildingInstance | null;
-}
+const root = () => engine.scene!;
 
 export class GameMapState {   
-    public set instance(value: IGameMapState | null) { this._instance = value; }
-    public get instance() { return this._instance!; }
-    public get sectors() { return this._instance!.sectors; }
-    public get action() { return this._instance!.action; }
-    public get initialDragAxis() { return this._instance!.initialDragAxis; }
-    public get layers() { return this._instance!.layers; }
-    public get camera() { return this._instance!.camera; }
-    public get previousRoad() { return this._instance!.previousRoad; }
-    public get previousRail() { return this._instance!.previousRail; }
-    public get previousConveyors() { return this._instance!.previousConveyors; }
-    public get selectionInProgress() { return this._instance!.selectionInProgress; }
-    public get sectorRes() { return this._instance!.sectorRes; }
-    public get cursorOverUI() { return this._instance!.cursorOverUI; }
 
-    public set bounds(value: Box2 | undefined) { this._instance!.bounds = value; }  
-    public set action(action: Action | null) { 
-        this._instance!.action = action;        
-    }    
+    public static get instance() { return this._instance!; }
+    private static _instance: GameMapState | null = null;    
 
-    public set initialDragAxis(value: "x" | "z" | undefined) { this._instance!.initialDragAxis = value; }
-    public set selectionInProgress(value: boolean) { this._instance!.selectionInProgress = value; }
+    public sectorRes = 1;
+    public sectorsRoot = utils.createObject(root(), "sectors");
+    public sectors = new Map<string, ISector>();
+    public action: Action | null = null;
+    public previousRoad: Vector2[] = [];
+    public previousRail: ICell[] = [];
+    public previousConveyors: Vector2[] = [];
+    public cameraZoom = 1;
+    public cameraAngleRad = 0;
+    public cameraTween: gsap.core.Tween | null = null;
+    public cameraRoot: Object3D;
+    public cameraPivot: Object3D;
+    public camera: Camera;
+    public light: DirectionalLight;
+    public cameraBoundsAccessors = [0, 1, 2, 3];
+    public cameraBounds = [
+        new Vector3(), // top
+        new Vector3(), // right
+        new Vector3(), // bottom
+        new Vector3() // left
+    ];
+
+    public pressedKeys = new Set<string>();
+    public previousTouchPos = new Vector2();
+    public tileSelector: TileSector = null!;
+    public selectedCellCoords = new Vector2();
+    public highlightedCellCoords = new Vector2();
+    public touchStartCoords = new Vector2();
+    public touchHoveredCoords = new Vector2();
+    public touchDragged = false;
+    public selectionInProgress = false;
+    public layers = {
+        rails: utils.createObject(root(), "rails"),
+        trains: utils.createObject(root(), "trains"),
+        cars: utils.createObject(root(), "cars"),
+        buildings: utils.createObject(root(), "buildings"),
+        conveyors: utils.createObject(root(), "conveyors")
+    };
+    public buildings = new Map<string, IBuildingInstance>();
+    public selectedBuilding: IBuildingInstance | null = null;
+    public initialDragAxis: "x" | "z" | null= null;
+    public bounds: Box2 | null = null;    
+
+    public get cursorOverUI() { return this._cursorOverUI; }
     public set cursorOverUI(value: boolean) {
-        if (!this._instance) {
-            return;
-        }
-        this._instance.cursorOverUI = value;
-        if (this._instance.action) {
-            this._instance.tileSelector.visible = !value;
+        this._cursorOverUI = value;
+        if (this.action) {
+            this.tileSelector.visible = !value;
         }
     }
-    
-    private _instance: IGameMapState | null = null;
-}
 
-export const gameMapState = new GameMapState();
+    private _cursorOverUI = false;
+    
+    constructor() {
+        GameMapState._instance = this;
+
+        this.cameraRoot = root().getObjectByName("camera-root")!;
+        const camera = this.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;
+        this.camera = camera;
+        this.cameraPivot = this.camera.parent!;
+
+        const light = this.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
+        this.light = light;
+        light.shadow.camera.far = camera.far;
+
+        const [, rotationY] = config.camera.rotation;
+        this.cameraAngleRad = MathUtils.degToRad(rotationY);
+
+        this.tileSelector = new TileSector();
+        this.tileSelector.visible = false;
+        root().add(this.tileSelector);
+    }
+
+    public dispose() {
+        GameMapState._instance = null;
+    }
+}
 

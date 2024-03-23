@@ -1,5 +1,4 @@
-import { engineState } from "../../engine/EngineState";
-import { Flock } from "../components/Flock";
+import { FlockProps } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
 import { time } from "../../engine/core/Time";
@@ -25,7 +24,7 @@ export class NPCState extends State<IUnit> {
 
     override update(unit: IUnit): void {
 
-        const flock = engineState.getComponents(Flock)[0];
+        const flockProps = FlockProps.instance;
         switch (this._step) {
             case NpcStep.Idle: {
                 const target = npcUtils.findTarget(unit, vision);
@@ -43,7 +42,7 @@ export class NPCState extends State<IUnit> {
                     if (unit.arriving) {
                         mathUtils.smoothDampVec3(unit.desiredPos, target.obj.position, .2, time.deltaTime);
                         const dist = target.obj.position.distanceTo(unit.obj.position);
-                        if (dist < flock.component.props.separation + .2) {
+                        if (dist < flockProps.separation + .2) {
                             console.assert(unit.motionId > 0);
                             unitMotion.onUnitArrived(unit);
                             this._hitTimer = 1 - .2;
@@ -74,7 +73,7 @@ export class NPCState extends State<IUnit> {
                 const target = this._target!;
                 if (target.isAlive) {
                     const dist = target.obj.position.distanceTo(unit.obj.position);
-                    const inRange = dist < flock.component.props.separation + .4;
+                    const inRange = dist < flockProps.separation + .4;
                     if (inRange) {
                         unitMotion.updateRotation(unit, unit.obj.position, target.obj.position);
                         this._hitTimer -= time.deltaTime;

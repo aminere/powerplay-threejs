@@ -3,7 +3,6 @@ import { pools } from "../engine/core/Pools";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
-import { gameMapState } from "./components/GameMapState";
 import { Elevation } from "./Elevation";
 import { MineralType, TileType, TileTypes } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
@@ -19,10 +18,11 @@ import { utils } from "../engine/Utils";
 import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
 import { unitUtils } from "./unit/UnitUtils";
+import { GameMapState } from "./components/GameMapState";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
-    const { sectors } = gameMapState;
+    const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorX},${sectorY}`);
     if (!sector) {
         return -1;
@@ -87,7 +87,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     if (selectedVertexIndex < 0 && cell) {
         // check neighboring sectors, from closest to farthest
         const neighborSectors = new Array<[number, number]>();
-        const { sectors } = gameMapState;
+        const { sectors } = GameMapState.instance;
         for (const offsetY of [-1, 0, 1]) {
             for (const offsetX of [-1, 0, 1]) {
                 if (offsetX === 0 && offsetY === 0) {
@@ -127,7 +127,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
             sectorY * mapRes + Math.floor(selectedCell / mapRes)
         );
         sectorCoords.set(sectorX, sectorY);
-        cell = gameMapState.sectors.get(`${sectorX},${sectorY}`)!.cells[selectedCell];
+        cell = GameMapState.instance.sectors.get(`${sectorX},${sectorY}`)!.cells[selectedCell];
     }
 
     return cell;
@@ -135,6 +135,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
 
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
+    const gameMapState = GameMapState.instance;
     switch (gameMapState.action) {
         case "road": {
             gameMapState.previousRoad.forEach(road => roads.clear(road));
@@ -160,6 +161,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
 }
 
 export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
+    const gameMapState = GameMapState.instance;
     if (start.x === current.x) {
         gameMapState.initialDragAxis = "z";
     } else if (start.y === current.y) {
@@ -189,6 +191,7 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
 }
 
 export function onEndDrag() {
+    const gameMapState = GameMapState.instance;
     if (gameMapState.previousRoad.length > 0) {
         gameMapState.previousRoad.length = 0;
     }
@@ -204,6 +207,7 @@ export function onEndDrag() {
 }
 
 export function onCancelDrag() {
+    const gameMapState = GameMapState.instance;
     gameMapState.previousRoad.forEach(road => roads.clear(road));
     gameMapState.previousRoad.length = 0;
     gameMapState.previousRail.forEach(Rails.clear);
@@ -260,7 +264,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
 }
 
 export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: MineralType) {
-    const { sectors } = gameMapState;
+    const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         if (cell.isEmpty) {
@@ -274,7 +278,7 @@ export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICe
 }
 
 export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
-    const { sectors } = gameMapState;
+    const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         if (cell.isEmpty) {
@@ -294,7 +298,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
     console.assert(terrainTileIndex >= 0);
     const baseTerrainTileIndex = 32;
     const tileIndex = baseTerrainTileIndex + terrainTileIndex;
-    const { sectors } = gameMapState;
+    const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     Sector.updateCellTexture(sector, localCoords, tileIndex);
 }
@@ -313,7 +317,7 @@ export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
 }
 
 export function createSector(coords: Vector2) {
-    const state = gameMapState.instance!;
+    const state = GameMapState.instance;
     const props = GameMapProps.instance;
 
     const sector = Sector.create({
@@ -349,7 +353,7 @@ export function createSector(coords: Vector2) {
 }
 
 export function updateCameraBounds() {
-    const state = gameMapState.instance!;
+    const state = GameMapState.instance;
     const worldPos = pools.vec3.getOne();
     const [top, right, bottom, left] = state.cameraBounds;
     const mapBounds = state.bounds;
@@ -361,7 +365,7 @@ export function updateCameraBounds() {
 }
 
 export function onClick(touchButton: number) {
-    const state = gameMapState.instance!;
+    const state = GameMapState.instance;
     const props = GameMapProps.instance;
 
     const [sectorCoords, localCoords] = pools.vec2.get(2);
@@ -374,7 +378,7 @@ export function onClick(touchButton: number) {
         switch (state.action) {
             case "elevation": {
                 onElevation(mapCoords, sectorCoords, localCoords, state.tileSelector.size, touchButton);
-                state.tileSelector.fit(mapCoords);
+                state.tileSelector.fit(mapCoords, state.sectors);
             }
                 break;
 
@@ -470,7 +474,7 @@ export function onClick(touchButton: number) {
 }
 
 export function updateCameraSize() {
-    const state = gameMapState.instance!;
+    const state = GameMapState.instance;
     const { width, height } = engine.screenRect;
     const aspect = width / height;
     const { orthoSize, shadowRange } = config.camera;

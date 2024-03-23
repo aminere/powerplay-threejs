@@ -1,11 +1,11 @@
 import { Box3, Box3Helper, Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { IBuildingInstance } from "./GameTypes";
-import { gameMapState } from "./components/GameMapState";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
 import { objects } from "../engine/resources/Objects";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../Events";
+import { GameMapState } from "./components/GameMapState";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -41,7 +41,7 @@ class Buildings {
 
     public create(buildingId: string, sectorCoords: Vector2, localCoords: Vector2) {
 
-        const { layers } = gameMapState;
+        const { layers, buildings } = GameMapState.instance;
 
         const instanceId = `${this._instanceId}`;
         this._instanceId++;
@@ -62,7 +62,6 @@ class Buildings {
             mapCoords: new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y)
         };
 
-        const buildings = gameMapState.instance!.buildings;
         buildings.set(instanceId, buildingInstance);
 
         obj.position.set(
@@ -89,7 +88,7 @@ class Buildings {
     }
 
     public clear(instanceId: string) {
-        const buildings = gameMapState.instance!.buildings;
+        const { buildings } = GameMapState.instance;
         const instance = buildings.get(instanceId)!;
         buildings.delete(instanceId);
         instance.obj.removeFromParent();

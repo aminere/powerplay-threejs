@@ -2,10 +2,10 @@ import { Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { ISector } from "./GameTypes";
 import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
-import { gameMapState } from "./components/GameMapState";
 import { utils } from "../engine/Utils";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { Cell } from "./Cell";
+import { GameMapState } from "./components/GameMapState";
 
 export class Sector {
     public static create(props: ITerrainPatch) {
@@ -31,7 +31,7 @@ export class Sector {
         const envProps = utils.createObject(sectorRoot, "props");
 
         const flowfield = new FlowfieldViewer();
-        const { sectors } = gameMapState;
+        const { sectors } = GameMapState.instance;
         const sector: ISector = {
             cells,
             root: sectorRoot,

@@ -6,9 +6,9 @@ import { meshes } from "../../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { gameMapState } from "./GameMapState";
 import { time } from "../../engine/core/Time";
 import { textures } from "../../engine/resources/Textures";
+import { GameMapState } from "./GameMapState";
 
 export class TreesProps extends ComponentProps {
 
@@ -124,7 +124,7 @@ export class Trees extends Component<TreesProps> {
                 const mapCoords = new Vector2();
                 const localCoords = new Vector2();
                 const verticesPerRow = mapRes + 1;
-                const { sectors } = gameMapState;
+                const { sectors } = GameMapState.instance;
 
                 const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
                     const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);

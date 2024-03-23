@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { ISector } from "./GameTypes";
 import { config } from "./config";
 import { pools } from "../engine/core/Pools";
-import { gameMapState } from "./components/GameMapState";
+import { GameMapState } from "./components/GameMapState";
 
 export class Elevation {
 
@@ -84,7 +84,7 @@ export class Elevation {
     }
 
     private static elevateCell(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number) {
-        const { sectors } = gameMapState;
+        const { sectors } = GameMapState.instance;
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;

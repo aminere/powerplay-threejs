@@ -1,29 +1,14 @@
 
-import { Box3, MathUtils, Matrix4, Object3D, Vector2, Vector3 } from "three";
-import { Component, IComponentState } from "../../engine/ecs/Component";
+import { Object3D } from "three";
+import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { input } from "../../engine/Input";
-import { pools } from "../../engine/core/Pools";
-import { GameUtils } from "../GameUtils";
-import { gameMapState } from "./GameMapState";
-import { time } from "../../engine/core/Time";
-import { cmdStartSelection, cmdSetSelectedElems, cmdFogMoveCircle } from "../../Events";
-import { config} from "../../game/config";
-import { skeletonManager } from "../animation/SkeletonManager";
-import { mathUtils } from "../MathUtils";
-import { MiningState } from "../unit/MiningState";
-import { engineState } from "../../engine/EngineState";
-import { UnitCollisionAnim } from "./UnitCollisionAnim";
-import { utils } from "../../engine/Utils";
-import { IUnit, UnitType } from "../unit/IUnit";
-import { skeletonPool } from "../animation/SkeletonPool";
-import { unitMotion } from "../unit/UnitMotion";
-import { computeUnitAddr } from "../unit/UnitAddr";
-import { unitAnimation } from "../unit/UnitAnimation";
-import { IBuildingInstance } from "../GameTypes";
 import { unitUtils } from "../unit/UnitUtils";
+import { FlockState } from "./FlockState";
 
 export class FlockProps extends ComponentProps {
+
+    public static get instance() { return this._instance!; }
+    private static _instance: FlockProps | null = null;   
 
     radius = 20;
     count = 50;
@@ -37,355 +22,21 @@ export class FlockProps extends ComponentProps {
     constructor(props?: Partial<FlockProps>) {
         super();
         this.deserialize(props);
+        FlockProps._instance = this;
+    }
+
+    public dispose() {
+        FlockProps._instance = null;
     }
 }
 
-interface IFlockState extends IComponentState {
-    selectedUnits: IUnit[];
-    selectionStart: Vector2;
-    touchPressed: boolean;
-    spawnUnitRequest: IBuildingInstance | null;
-}
-
-const { mapRes } = config.game;
-const unitNeighbors = new Array<IUnit>();
-
-function onUnitArrived(unit: IUnit) {
-    unitMotion.onUnitArrived(unit);
-    unitAnimation.setAnimation(unit, "idle");
-}
-
-const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
-const neighbordMapCoords = new Vector2();
-
-function getUnitNeighbors(unit: IUnit) {
-    const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
-    unitNeighbors.length = 0;
-    if (cell.units) {
-        for (const neighbor of cell.units) {
-            if (!neighbor.isAlive) {
-                continue;
-            }
-            if (neighbor !== unit) {
-                unitNeighbors.push(neighbor);
-            }
-        }
-    }    
-    
-    for (const [dx, dy] of cellNeighbors) {
-        neighbordMapCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
-        const neighborCell = GameUtils.getCell(neighbordMapCoords);
-        if (!neighborCell || !neighborCell.units) {
-            continue;
-        }        
-        for (const neighbor of neighborCell.units) {
-            if (!neighbor.isAlive) {
-                continue;
-            }
-            unitNeighbors.push(neighbor);
-        }
-    }
-
-    return unitNeighbors;
-}
-
-export class Flock extends Component<FlockProps, IFlockState> {
+export class Flock extends Component<FlockProps, FlockState> {
 
     constructor(props?: Partial<FlockProps>) {
         super(new FlockProps(props));
     }
 
-    override update(_owner: Object3D) {
-        if (!this.state) {
-            return;
-        }
-
-        if (input.touchJustPressed) {
-            if (!gameMapState.cursorOverUI) {
-                this.state.touchPressed = true;                
-                this.state.selectionStart.copy(input.touchPos);
-            }
-
-        } else if (input.touchJustReleased) {
-
-            if (this.state.touchPressed) {
-                this.state.touchPressed = false;                
-            }
-        }
-
-        if (input.touchJustMoved) {
-            if (this.state.touchPressed) {
-                if (input.touchButton === 0) {
-                    if (gameMapState.selectionInProgress) {
-                        const { selectedUnits } = this.state;
-                        selectedUnits.length = 0;
-                        const { units } = unitUtils;
-                        const screenPos = pools.vec3.getOne();
-                        for (let i = 0; i < units.length; ++i) {
-                            const unit = units[i];
-                            const { obj, type } = unit;
-                            if (type === UnitType.NPC) {
-                                continue;
-                            }
-                            if (!unit.isAlive) {
-                                continue;
-                            }
-                            GameUtils.worldToScreen(obj.position, gameMapState.camera, screenPos);
-                            const rectX = Math.min(this.state.selectionStart.x, input.touchPos.x);
-                            const rectY = Math.min(this.state.selectionStart.y, input.touchPos.y);
-                            const rectWidth = Math.abs(input.touchPos.x - this.state.selectionStart.x);
-                            const rectHeight = Math.abs(input.touchPos.y - this.state.selectionStart.y);
-                            if (screenPos.x >= rectX && screenPos.x <= rectX + rectWidth && screenPos.y >= rectY && screenPos.y <= rectY + rectHeight) {
-                                selectedUnits.push(unit);
-                            }
-                        }
-
-                        cmdSetSelectedElems.post({ units: selectedUnits });
-
-                    } else {
-
-                        if (!gameMapState.action) {
-                            const dx = input.touchPos.x - this.state.selectionStart.x;
-                            const dy = input.touchPos.y - this.state.selectionStart.y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            const threshold = 5;
-                            if (dist > threshold) {
-                                gameMapState.selectionInProgress = true;
-                                cmdStartSelection.post(this.state.selectionStart);
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-
-        const { repulsion } = this.props;
-        const { units } = unitUtils;
-        const separationDist = this.props.separation;
-        const steerAmount = this.props.speed * time.deltaTime;
-        const avoidanceSteerAmount = this.props.avoidanceSpeed * time.deltaTime;
-        const [toTarget] = pools.vec3.get(1);
-
-        skeletonPool.update();
-        this.handleSpawnRequests();
-
-        const moveAwayFromEachOther = (amount: number, desiredPos: Vector3, otherDesiredPos: Vector3) => {
-            const moveAmount = Math.min(amount, avoidanceSteerAmount);
-            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
-            const length = toTarget.length();
-            if (length > 0) {
-                toTarget
-                    .divideScalar(length)
-                    .multiplyScalar(moveAmount)
-
-            } else {
-                toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
-                    .normalize()
-                    .multiplyScalar(moveAmount);
-            }
-            desiredPos.add(toTarget);
-            otherDesiredPos.sub(toTarget);
-        };
-
-        // steering & collision avoidance
-        for (let i = 0; i < units.length; ++i) {
-            const unit = units[i];
-            if (!unit.isAlive) {
-                continue;
-            }
-
-            const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
-            const neighbors = getUnitNeighbors(unit);
-            for (const neighbor of neighbors) {                
-
-                const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
-                if (!(unit.collidable && neighbor.collidable)) {
-                    continue;
-                }
-
-                const dist = otherDesiredPos.distanceTo(desiredPos);
-                if (dist < separationDist) {
-                    unit.isColliding = true;
-                    neighbor.isColliding = true;
-                    if (neighbor.motionId > 0) {
-                        if (unit.motionId > 0) {                            
-                            moveAwayFromEachOther((separationDist - dist) / 2, desiredPos, otherDesiredPos);
-
-                        } else {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
-                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            desiredPos.add(toTarget);
-                        }
-                    } else {
-                        if (unit.motionId > 0) {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
-                            toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            otherDesiredPos.add(toTarget); 
-                            
-                            // if other unit was part of my motion, stop
-                            if (neighbor.lastCompletedMotionId === unit.motionId) {
-                                onUnitArrived(unit);
-                            }
-
-                        } else {
-                            moveAwayFromEachOther((separationDist - dist) / 2 + repulsion, desiredPos, otherDesiredPos);                            
-                        }
-                    }
-                }
-            }
-        }
-
-        const { positionDamp } = this.props;
-        const [awayDirection, avoidedCellCoords, nextMapCoords] = pools.vec2.get(3);
-        const nextPos = pools.vec3.getOne();     
-
-        for (let i = 0; i < units.length; ++i) {  
-            const unit = units[i];
-            if (!unit.isAlive) {
-                continue;
-            }
-
-            unit.desiredPosValid = false;
-            const needsMotion = unit.motionId > 0 || unit.isColliding;
-            let avoidedCell = false;
-
-            if (needsMotion) {
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                const newCell = GameUtils.getCell(nextMapCoords);
-                const walkableCell = newCell !== null && newCell.isWalkable;
-                if (!walkableCell) {
-                    avoidedCell = true;
-                    avoidedCellCoords.copy(nextMapCoords);
-
-                    // move away from blocked cell
-                    awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                    unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * avoidanceSteerAmount;
-                    unit.desiredPos.z += awayDirection.y * avoidanceSteerAmount;
-                    GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                }
-            }
-            
-            if (avoidedCell) {
-                const miningState = unit.fsm.getState(MiningState);
-                if (miningState) {
-                    miningState.potentialTarget = avoidedCellCoords;
-                }
-            }
-
-            unit.fsm.update();
-
-            let hasMoved = false;
-            if (needsMotion) {
-                if (unit.motionId > 0) {
-                    if (avoidedCell) {
-                        nextPos.copy(unit.obj.position);
-                        mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);                         
-                    } else {
-                        nextPos.copy(unit.desiredPos);
-                    }
-                    hasMoved = true; 
-                } else if (unit.isColliding) {
-                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                    if (collisionAnim) {
-                        collisionAnim.reset();
-                    } else {
-                        engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
-                    }
-                }
-            }
-
-            unit.isColliding = false;
-            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-            if (collisionAnim) {
-                console.assert(unit.motionId === 0);
-                nextPos.copy(unit.obj.position);
-                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
-                hasMoved = true;
-            }
-
-            if (hasMoved) {
-                GameUtils.worldToMap(nextPos, nextMapCoords);
-                if (!nextMapCoords.equals(unit.coords.mapCoords)) {
-                    const nextCell = GameUtils.getCell(nextMapCoords);
-                    const validCell = nextCell !== null && nextCell.isWalkable;
-                    if (validCell) {
-                        unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                        unit.obj.position.copy(nextPos);
-
-                        const dx = nextMapCoords.x - unit.coords.mapCoords.x;
-                        const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                        const { localCoords } = unit.coords;
-                        localCoords.x += dx;
-                        localCoords.y += dy;
-                        
-                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
-                        
-                        const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
-                        const unitIndex = currentCell.units!.indexOf(unit);
-                        console.assert(unitIndex >= 0);                        
-                        utils.fastDelete(currentCell.units!, unitIndex);
-                        if (nextCell.units) {
-                            console.assert(!nextCell.units.includes(unit));
-                            nextCell.units.push(unit);
-                        } else {
-                            nextCell.units = [unit];
-                        }                        
-
-                        if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
-                            // entered a new sector
-                            computeUnitAddr(nextMapCoords, unit.coords);
-                        } else {
-                            unit.coords.mapCoords.copy(nextMapCoords);
-                            unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                        }
-
-                        if (unit.motionId > 0) {
-                            if (!unit.fsm.currentState) {
-                                const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                                if (reachedTarget) {
-                                    unit.arriving = true;
-                                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-                                }
-                            }
-                        }
-                    }
-
-                } else {
-                    unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                    unit.obj.position.copy(nextPos);
-
-                    if (!unit.fsm.currentState) {
-                        if (unit.arriving) {
-                            if (unit.velocity.length() < 0.01) {
-                                onUnitArrived(unit);
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-
-    public spawnUnitRequest(building: IBuildingInstance) {
-        this.state.spawnUnitRequest = building;
-    }
-
-    public async load(owner: Object3D) {
-        await skeletonManager.load({
-            skin: "/models/characters/Worker.json",
-            animations: [
-                { name: "idle" },
-                { name: "walk" }, 
-                // { name: "pick" },
-                { name: "run" }, 
-                { name: "hurt" }
-            ],
-        });
-
-        await skeletonPool.load("/models/characters/Worker.json");
+    override start(owner: Object3D) {        
         unitUtils.init(owner);
 
         // const sector0 = gameMapState.sectors.get(`0,0`)!;
@@ -454,56 +105,13 @@ export class Flock extends Component<FlockProps, IFlockState> {
         //     ));
         // }
 
-        this.setState({
-            selectedUnits: [],
-            selectionStart: new Vector2(),
-            touchPressed: false,
-            spawnUnitRequest: null
-        });
+        this.setState(new FlockState());
     }
     
-    override dispose() {
-        skeletonManager.dispose();
-        skeletonPool.dispose();
+    override dispose() {        
         unitUtils.dispose();
-    }    
-
-    private handleSpawnRequests() {
-        const { spawnUnitRequest } = this.state;
-        if (!spawnUnitRequest) {
-            return;
-        }
-
-        const [spawnCoords, moveCoords, targetSectorCoords] = pools.vec2.get(3);
-        spawnCoords.copy(spawnUnitRequest.mapCoords);
-        const buildingId = spawnUnitRequest.buildingId;
-        const buildingSize = config.buildings[buildingId].size;
-        spawnCoords.x += buildingSize.x / 2;
-        spawnCoords.y += buildingSize.z;
-
-        // if cell is occupied, move its units to a nearby cell
-        // TODO this is assuming we are spawning from a building, and the surrounding cells are empty
-        // Must remove the assumption and scan for empty cells
-        const cell = GameUtils.getCell(spawnCoords)!;
-        if (cell.hasUnits) {
-            const randomCellSelector = MathUtils.randInt(0, 4);
-            const [dx, dy] = (() => {
-                switch (randomCellSelector) {
-                    case 0: return [-1, 0];
-                    case 1: return [1, 0];
-                    case 2: return [-1, 1];
-                    case 3: return [0, 1];
-                    default: return [1, 1];
-                }
-            })();
-
-            moveCoords.set(spawnCoords.x + dx, spawnCoords.y + dy);
-            const moveCell = GameUtils.getCell(moveCoords, targetSectorCoords)!;
-            unitMotion.move(cell.units!, targetSectorCoords, moveCoords, moveCell);
-        }
-
-        unitUtils.spawn(spawnCoords);
-        this.state.spawnUnitRequest = null;
+        this.state.dispose();
+        this.props.dispose();
     }
 }
 

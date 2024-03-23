@@ -1,5 +1,4 @@
 import { DoubleSide, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
-import { gameMapState } from "./components/GameMapState";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
@@ -8,6 +7,7 @@ import { time } from "../engine/core/Time";
 import { ConveyorUtils } from "./ConveyorUtils";
 import { conveyorItems } from "./ConveyorItems";
 import { pools } from "../engine/core/Pools";
+import { GameMapState } from "./components/GameMapState";
 
 const matrix = new Matrix4();
 const worldPos = new Vector3();
@@ -29,9 +29,10 @@ class Conveyors {
     private _disposed = false;    
 
     public async preload() {
+        const { layers } = GameMapState.instance;
         if (this._loaded) {
-            gameMapState.layers.conveyors.add(this._conveyors);
-            gameMapState.layers.conveyors.add(this._conveyorTops);
+            layers.conveyors.add(this._conveyors);
+            layers.conveyors.add(this._conveyorTops);
             return;
         }
 
@@ -54,13 +55,13 @@ class Conveyors {
 
         conveyor.geometry.scale(conveyorWidth, 1, 1);
         const conveyorInstances = ConveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);
-        gameMapState.layers.conveyors.add(conveyorInstances);
+        layers.conveyors.add(conveyorInstances);
         this._conveyors = conveyorInstances;
 
         conveyorTop.geometry.scale(conveyorWidth, 1, 1);
         const topMaterial = conveyorTop.material as MeshBasicMaterial;
         const conveyorTopInstances = ConveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
-        gameMapState.layers.conveyors.add(conveyorTopInstances);
+        layers.conveyors.add(conveyorTopInstances);
         this._conveyorTops = conveyorTopInstances;
 
         this._curvedConveyor = ConveyorUtils.makeCurvedConveyor(curvedConveyor0, 1);
@@ -105,7 +106,7 @@ class Conveyors {
             baseMesh.scale.copy(scale);
             baseMesh.add(topMesh);
             topMesh.position.y = conveyorHeight;
-            gameMapState.layers.conveyors.add(baseMesh);
+            GameMapState.instance.layers.conveyors.add(baseMesh);
             cell.conveyor.config.endAxis = ConveyorUtils.getPerpendicularAxis(startAxis);
             cell.conveyor.visual.mesh = baseMesh;
 

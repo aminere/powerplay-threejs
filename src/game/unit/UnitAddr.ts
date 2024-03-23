@@ -1,8 +1,8 @@
 import { Vector2 } from "three";
 import { ISector } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
-import { gameMapState } from "../components/GameMapState";
 import { config } from "../config";
+import { GameMapState } from "../components/GameMapState";
 
 export interface IUnitAddr {
     mapCoords: Vector2;
@@ -16,7 +16,7 @@ const { mapRes } = config.game;
 export function computeUnitAddr(mapCoords: Vector2, addrOut: IUnitAddr) {
     addrOut.mapCoords.copy(mapCoords);
     GameUtils.getCell(mapCoords, addrOut.sectorCoords, addrOut.localCoords);
-    addrOut.sector = gameMapState.sectors.get(`${addrOut.sectorCoords.x},${addrOut.sectorCoords.y}`);
+    addrOut.sector = GameMapState.instance.sectors.get(`${addrOut.sectorCoords.x},${addrOut.sectorCoords.y}`);
     addrOut.cellIndex = addrOut.localCoords.y * mapRes + addrOut.localCoords.x;
 }
 
