@@ -78,6 +78,12 @@ class FogOfWar {
         cmdFogRemoveCircle.attach(({ mapCoords, radius }) => this.removeCircle(mapCoords, radius));
     }
 
+    public dispose() {
+        cmdFogAddCircle.detach();
+        cmdFogMoveCircle.detach();
+        cmdFogRemoveCircle.detach();
+    }
+
     private addCircle(mapCoords: Vector2, radius: number) {
 
         const startX = mapCoords.x - radius;

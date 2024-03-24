@@ -16,11 +16,10 @@ import gsap from "gsap";
 import { buildings } from "../Buildings";
 import { conveyors } from "../Conveyors";
 import { conveyorItems } from "../ConveyorItems";
-import { unitUtils } from "../unit/UnitUtils";
 import { GameMapUpdate } from "./GameMapUpdate";
 import { unitsManager } from "../unit/UnitsManager";
-import { FlockState } from "./FlockState";
 import { GameMapState } from "./GameMapState";
+import { treesManager } from "../TreesManager";
 
 export class GameMap extends Component<GameMapProps, GameMapState> {
 
@@ -42,20 +41,9 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         if (this.props.initSelf) {
             this.createSectors();
             this.preload()
-                .then(() => this.init(this.props.size))
+                .then(() => this.init(this.props.size, owner))
                 .then(() => engineState.setComponent(owner, new GameMapUpdate()));
         }
-    }
-
-    override dispose() {
-        document.removeEventListener("keyup", this.onKeyUp);
-        document.removeEventListener("keydown", this.onKeyDown);
-        cmdHideUI.post("gamemap");
-        conveyors.dispose();
-        conveyorItems.dispose();
-        this.state.dispose();
-        this.props.dispose();
-        unitsManager.dispose();
     }
 
     public createSectors() {
@@ -75,17 +63,17 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         await buildings.preload();
         await conveyors.preload();
         await unitsManager.preload();
+        await conveyorItems.preload();
+        await treesManager.preload();
     }
 
-    public init(size: number) {
+    public init(size: number, owner: Object3D) {
         this.state.sectorRes = size;
 
-        // fog
         fogOfWar.init(size);
         const { mapRes } = config.game;
         cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
 
-        // water
         const water = utils.createObject(engine.scene!, "water");
         water.matrixAutoUpdate = false;
         water.matrixWorldAutoUpdate = false;
@@ -93,22 +81,29 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         water.updateMatrix();
         engineState.setComponent(water, new Water({ sectorRes: size }));
 
-        // env props
         const props = utils.createObject(engine.scene!, "env-props");
         engineState.setComponent(props, new EnvProps({ sectorRes: size }));
 
         const trees = utils.createObject(engine.scene!, "trees");
-        const treesComponent = new Trees({ sectorRes: size });        
-        engineState.setComponent(trees, treesComponent);
+        engineState.setComponent(trees, new Trees({ sectorRes: size }));
+        trees.visible = false;
 
-        Promise.all([
-            // treesComponent.load(trees),
-            conveyorItems.preload()
-        ]).then(() => {
-            cmdShowUI.post("gamemap");
-        });
+        unitsManager.init(owner);
 
         updateCameraSize();
+        cmdShowUI.post("gamemap");
+    }
+    
+    override dispose() {
+        document.removeEventListener("keyup", this.onKeyUp);
+        document.removeEventListener("keydown", this.onKeyDown);
+        cmdHideUI.post("gamemap");
+        conveyors.dispose();
+        conveyorItems.dispose();
+        this.state.dispose();
+        this.props.dispose();
+        unitsManager.dispose();
+        fogOfWar.dispose();
     }
 
     public setCameraPos(pos: Vector3) {
@@ -119,7 +114,7 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
     public spawnUnitRequest() {
         const { selectedBuilding } = this.state;
         console.assert(selectedBuilding);
-        unitsManager.spawnUnitRequest(selectedBuilding!);
+        unitsManager.spawnUnitRequest = selectedBuilding!;
     }
 
     private disposeSectors() {
@@ -146,19 +141,7 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         switch (key) {
             case 'q': cameraDirection = -1; break;
             case 'e': cameraDirection = 1; break;
-
-            case "delete": {
-                const flockState = FlockState.instance;
-                const { selectedUnits } = flockState;
-                if (selectedUnits.length > 0) {
-                    for (const unit of selectedUnits) {
-                        unitUtils.kill(unit);
-                    }
-                    selectedUnits.length = 0;
-                    cmdSetSelectedElems.post({ units: selectedUnits });
-                }
-            }
-                break;
+            case "delete": unitsManager.killSelection(); break;
         }
         if (cameraDirection !== 0 && !this.state.cameraTween) {
             this.state.cameraTween = gsap.to(this.state,

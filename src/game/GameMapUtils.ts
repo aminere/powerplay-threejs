@@ -17,8 +17,8 @@ import { Car } from "./components/Car";
 import { utils } from "../engine/Utils";
 import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
-import { unitUtils } from "./unit/UnitUtils";
 import { GameMapState } from "./components/GameMapState";
+import { unitsManager } from "./unit/UnitsManager";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
@@ -467,7 +467,7 @@ export function onClick(touchButton: number) {
                 break;
 
             case "unit": {
-                unitUtils.spawn(mapCoords);
+                unitsManager.spawn(mapCoords);
             }
         }
     }

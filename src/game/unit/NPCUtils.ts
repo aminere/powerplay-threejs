@@ -1,11 +1,11 @@
 import { IUnit } from "./IUnit";
-import { unitUtils } from "./UnitUtils";
+import { unitsManager } from "./UnitsManager";
 
 export class NPCUtils {
 
     public findTarget(unit: IUnit, vision: number) {
         // TODO rewrite using neighbor cells, don't loop through all units.
-        const { units } = unitUtils;
+        const { units } = unitsManager;
 
         const { unitsInRange } = unit;
         let unitsInRangeCount = 0;

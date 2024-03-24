@@ -12,9 +12,9 @@ import { ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector } from "../GameMapUtils";
-import { unitUtils } from "../unit/UnitUtils";
 import { conveyors } from "../Conveyors";
 import { GameMapUpdate } from "./GameMapUpdate";
+import { unitsManager } from "../unit/UnitsManager";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -91,7 +91,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                 calcLocalCoords(cell.index, localCoords);
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
-                if (cell.resource) {                    
+                if (cell.resource) {
                     resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
                 }
 
@@ -122,11 +122,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
             }
         }
 
-        gameMap.init(data.size);
+        gameMap.init(data.size, owner);
 
         // spawn units after all sectors are created
         for (const mapCoords of unitsToSpawn) {
-            unitUtils.spawn(mapCoords);
+            unitsManager.spawn(mapCoords);
         }
 
         engineState.setComponent(owner, new GameMapUpdate())

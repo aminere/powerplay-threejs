@@ -8,8 +8,8 @@ import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { GameMap } from "../components/GameMap";
 import { input } from "../../engine/Input";
-import { unitUtils } from "../unit/UnitUtils";
 import { GameMapState } from "../components/GameMapState";
+import { unitsManager } from "../unit/UnitsManager";
 
 const { mapRes, cellSize } = config.game;
 const mapOffset = mapRes / 2 * cellSize;
@@ -187,7 +187,7 @@ export function Minimap() {
             const { sectorRes } = GameMapState.instance;
             const texRes = mapRes * sectorRes;
             
-            const { units } = unitUtils;
+            const { units } = unitsManager;
             const unitsPixels = unitsPixelsRef.current!;
             unitsPixels.data.fill(0);
             for (const unit of units) {

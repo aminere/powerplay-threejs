@@ -39,7 +39,8 @@ function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton 
     if (unit.motionId > 0) {
         flowField.removeMotion(unit.motionId);
     }
-    unit.motionId = motionId;    
+    unit.motionId = motionId;
+    unit.arriving = false; 
     unit.collidable = true;
     computeUnitAddr(mapCoords, unit.targetCell);
     engineState.removeComponent(unit.obj, UnitCollisionAnim);
@@ -115,7 +116,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
             cellDirection.set(0, 0);
             onUnitArrived(unit);
             unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-        }       
+        }
 
     } else {
         flowField.getDirection(directionIndex, cellDirection);                        
@@ -193,7 +194,7 @@ class UnitMotion {
             for (const sectorCoords of sectors) {
                 const sector = GameUtils.getSector(sectorCoords)!;
                 sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-                sector.flowfieldViewer.visible = false; //true;
+                sector.flowfieldViewer.visible = true;
             }
         }        
     }

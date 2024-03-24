@@ -11,13 +11,11 @@ import { onBeginDrag, onCancelDrag, onClick, onDrag, onEndDrag, raycastOnCells, 
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { IBuildingInstance } from "../GameTypes";
-import { unitUtils } from "../unit/UnitUtils";
 import { buildings } from "../Buildings";
 import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
-import { FlockState } from "./FlockState";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 
@@ -144,7 +142,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                     } else {
                         
-                        const flockState = FlockState.instance;
                         if (state.selectionInProgress) {
                             cmdEndSelection.post();
                             state.selectionInProgress = false;
@@ -162,34 +159,32 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 distance: number;
                             }> = [];
 
-                            if (flockState) {
-                                const { units } = unitUtils;
-                                const intersection = pools.vec3.getOne();
-                                for (let i = 0; i < units.length; ++i) {
-                                    const unit = units[i];
-                                    const { obj, type } = unit;
-                                    if (type === UnitType.NPC) {
-                                        continue;
-                                    }
-                                    if (!unit.isAlive) {
-                                        continue;
-                                    }
-                                    inverseMatrix.copy(obj.matrixWorld).invert();
-                                    localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                    const boundingBox = obj.boundingBox;
-                                    if (localRay.intersectBox(boundingBox, intersection)) {
-                                        intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
-                                    }
+                            const units = unitsManager.units;
+                            const intersection = pools.vec3.getOne();
+                            for (let i = 0; i < units.length; ++i) {
+                                const unit = units[i];
+                                const { obj, type } = unit;
+                                if (type === UnitType.NPC) {
+                                    continue;
                                 }
+                                if (!unit.isAlive) {
+                                    continue;
+                                }
+                                inverseMatrix.copy(obj.matrixWorld).invert();
+                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                const boundingBox = obj.boundingBox;
+                                if (localRay.intersectBox(boundingBox, intersection)) {
+                                    intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
+                                }
+                            }
 
-                                for (const [, building] of state.buildings) {
-                                    inverseMatrix.copy(building.obj.matrixWorld).invert();
-                                    localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                    const buildingId = building.buildingId;
-                                    const boundingBox = buildings.getBoundingBox(buildingId);
-                                    if (localRay.intersectBox(boundingBox, intersection)) {
-                                        intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
-                                    }
+                            for (const [, building] of state.buildings) {
+                                inverseMatrix.copy(building.obj.matrixWorld).invert();
+                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                const buildingId = building.buildingId;
+                                const boundingBox = buildings.getBoundingBox(buildingId);
+                                if (localRay.intersectBox(boundingBox, intersection)) {
+                                    intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
                                 }
                             }
 
@@ -198,13 +193,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                                 const { unit, building } = intersections[0];
                                 if (unit) {
-                                    flockState!.selectedUnits = [unit];
                                     state.selectedBuilding = null;
-                                    cmdSetSelectedElems.post({ units: flockState.selectedUnits });
+                                    unitsManager.selectedUnits = [unit];                                    
+                                    cmdSetSelectedElems.post({ units: unitsManager.selectedUnits });
 
                                 } else if (building) {
-                                    if (flockState && flockState.selectedUnits.length > 0) {
-                                        flockState.selectedUnits.length = 0;
+                                    if (unitsManager.selectedUnits.length > 0) {
+                                        unitsManager.selectedUnits.length = 0;
                                     }
                                     state.selectedBuilding = building;
                                     cmdSetSelectedElems.post({ building });
@@ -212,8 +207,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                             } else {
 
-                                if (flockState && flockState.selectedUnits.length > 0) {
-                                    flockState.selectedUnits.length = 0;
+                                if (unitsManager.selectedUnits.length > 0) {
+                                    unitsManager.selectedUnits.length = 0;
                                 }
 
                                 state.selectedBuilding = null;
@@ -235,28 +230,25 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (state.action) {
                     onClick(2);
                 } else {
-                    const flockState = FlockState.instance;
-                    if (flockState) {
-                        if (flockState.selectedUnits.length > 0) {
-                            const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                            const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, targetSectorCoords);
-                            if (targetCell) {
-                                // group units per sector
-                                const groups = flockState.selectedUnits.reduce((prev, cur) => {
-                                    const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                                    let units = prev[key];
-                                    if (!units) {
-                                        units = [cur];
-                                        prev[key] = units;
-                                    } else {
-                                        units.push(cur);
-                                    }
-                                    return prev;
-                                }, {} as Record<string, IUnit[]>);
-
-                                for (const units of Object.values(groups)) {
-                                    unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
+                    if (unitsManager.selectedUnits.length > 0) {
+                        const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, targetSectorCoords);
+                        if (targetCell) {
+                            // group units per sector
+                            const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
+                                const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+                                let units = prev[key];
+                                if (!units) {
+                                    units = [cur];
+                                    prev[key] = units;
+                                } else {
+                                    units.push(cur);
                                 }
+                                return prev;
+                            }, {} as Record<string, IUnit[]>);
+
+                            for (const units of Object.values(groups)) {
+                                unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
                             }
                         }
                     }
