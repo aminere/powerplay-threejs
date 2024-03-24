@@ -297,10 +297,7 @@ class Conveyors {
     }
 
     public update() {
-        if (!this._loaded) {
-            return;
-        }
-
+        console.assert(this._loaded);
         this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
         conveyorItems.update();
     }

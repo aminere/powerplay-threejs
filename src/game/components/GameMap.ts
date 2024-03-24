@@ -2,7 +2,7 @@ import { Euler, MathUtils,  Object3D, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component"
 import { config } from "../config";
 import { engine } from "../../engine/Engine";
-import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdSetSelectedElems, cmdShowUI } from "../../Events";
+import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
 import { createSector, updateCameraBounds, updateCameraSize } from "../GameMapUtils";
 import { railFactory } from "../RailFactory";
 import { utils } from "../../engine/Utils";
@@ -21,6 +21,8 @@ import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { treesManager } from "../TreesManager";
 
+const { mapRes } = config.game;
+
 export class GameMap extends Component<GameMapProps, GameMapState> {
 
     constructor(props?: Partial<GameMapProps>) {
@@ -29,9 +31,7 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
 
     override start(owner: Object3D) {
 
-        this.setState(new GameMapState());        
-
-        railFactory.preload();
+        this.setState(new GameMapState());
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -65,13 +65,13 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         await unitsManager.preload();
         await conveyorItems.preload();
         await treesManager.preload();
+        await railFactory.preload();
     }
 
     public init(size: number, owner: Object3D) {
         this.state.sectorRes = size;
 
         fogOfWar.init(size);
-        const { mapRes } = config.game;
         cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
 
         const water = utils.createObject(engine.scene!, "water");
@@ -88,8 +88,7 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
         engineState.setComponent(trees, new Trees({ sectorRes: size }));
         trees.visible = false;
 
-        unitsManager.init(owner);
-
+        unitsManager.owner = owner;
         updateCameraSize();
         cmdShowUI.post("gamemap");
     }

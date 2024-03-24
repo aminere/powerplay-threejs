@@ -129,7 +129,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
             unitsManager.spawn(mapCoords);
         }
 
-        engineState.setComponent(owner, new GameMapUpdate())
+        engineState.setComponent(owner, new GameMapUpdate());
     }
 }
 

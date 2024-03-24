@@ -78,9 +78,10 @@ class UnitsManager {
 
     public set spawnUnitRequest(value: IBuildingInstance | null) { this._spawnUnitRequest = value; }
     public set selectedUnits(value: IUnit[]) { this._selectedUnits = value; }
+    public set owner(value: Object3D) { this._owner = value; }
 
     private _owner!: Object3D;
-    private _units!: Unit[];
+    private _units: Unit[] = [];
     private _selectedUnits: IUnit[] = [];
     private _selectionStart: Vector2 = new Vector2();
     private _touchPressed: boolean = false;
@@ -99,11 +100,6 @@ class UnitsManager {
         });
 
         await skeletonPool.load("/models/characters/Worker.json");
-    }
-
-    public init(owner: Object3D) {
-        this._owner = owner;
-        this._units = [];
     }
 
     public dispose() {
