@@ -1,4 +1,4 @@
-import { type TileType, TileTypes, type MineralType, MineralTypes } from "../GameDefinitions";
+import { type TileType, TileTypes, type MineralType, MineralTypes, type BuildingType, BuildingTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
@@ -25,7 +25,8 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(MineralTypes)
     mineralType: MineralType = "aluminium";
 
-    buildingId = "building1";
+    @Attributes.enumOptions(BuildingTypes)
+    buildingType: BuildingType = "hq";
 
     @Attributes.command("save")
     saveCommand = true;

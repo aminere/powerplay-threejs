@@ -31,9 +31,16 @@ export const ResourceTypes = [
     "tree"
 ] as const;
 
+export const BuildingTypes = [
+    "hq",
+    "mine",
+    "factory"
+] as const;
+
 export type UIType = "gamemap";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
 export type ResourceType = typeof ResourceTypes[number];
 export type MineralType = typeof MineralTypes[number];
+export type BuildingType = typeof BuildingTypes[number];
 

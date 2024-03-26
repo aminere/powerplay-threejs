@@ -17,7 +17,7 @@ import { GameMapProps } from "../components/GameMapProps";
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
     const hoveredElement = useRef<HTMLElement | null>(null);
-    const hoveredElementOnDown = useRef<HTMLElement | null>(null);    
+    const hoveredElementOnDown = useRef<HTMLElement | null>(null);
     const actions = useRef<Record<string, HTMLElement>>({});
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
     const buildingRef = useRef<HTMLDivElement>(null);
@@ -32,8 +32,8 @@ export function GameMapUI(props: IGameUIProps) {
             setSelectedAction(newAction);
 
             if (newAction === "building") {
-                const buildingId = GameMapProps.instance.buildingId;
-                const building = config.buildings[buildingId];
+                const buildingType = GameMapProps.instance.buildingType;
+                const building = config.buildings[buildingType];
                 gameMapState.tileSelector.setSize(building.size.x, building.size.z);
             } else {
                 gameMapState.tileSelector.setSize(1, 1);

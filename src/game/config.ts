@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import { BuildingType } from "./GameDefinitions";
 
 interface ICameraConfig {
     rotation: number[];
@@ -44,7 +45,7 @@ interface IConfig {
     game: IGameConfig;
     train: ITrainConfig;
     pathfinding: IPathfindingConfig;
-    buildings: Record<string, IBuildingConfig>;
+    buildings: Record<BuildingType, IBuildingConfig>;
 }
 
 export const config: IConfig = {
@@ -78,8 +79,14 @@ export const config: IConfig = {
         cellWaitTime: .3
     },
     buildings: {
-        "building1": {
+        "hq": {
             size: new Vector3(10, 4, 5)
+        },
+        "mine": {
+            size: new Vector3(4, 3, 4)
+        },
+        "factory": {
+            size: new Vector3(4, 3, 4)
         }
     }
 };

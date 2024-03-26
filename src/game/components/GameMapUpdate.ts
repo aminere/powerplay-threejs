@@ -196,8 +196,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             for (const [, building] of state.buildings) {
                                 inverseMatrix.copy(building.obj.matrixWorld).invert();
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                const buildingId = building.buildingId;
-                                const boundingBox = buildings.getBoundingBox(buildingId);
+                                const boundingBox = buildings.getBoundingBox(building.buildingType);
                                 if (localRay.intersectBox(boundingBox, intersection)) {
                                     intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
                                 }

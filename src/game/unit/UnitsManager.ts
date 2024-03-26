@@ -460,8 +460,8 @@ class UnitsManager {
             return;
         }
         spawnCoords.copy(spawnUnitRequest.mapCoords);
-        const buildingId = spawnUnitRequest.buildingId;
-        const buildingSize = config.buildings[buildingId].size;
+        const buildingType = spawnUnitRequest.buildingType;
+        const buildingSize = config.buildings[buildingType].size;
         spawnCoords.x += buildingSize.x / 2;
         spawnCoords.y += buildingSize.z;
         this.spawn(spawnCoords);

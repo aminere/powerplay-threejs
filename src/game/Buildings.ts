@@ -6,6 +6,7 @@ import { pools } from "../engine/core/Pools";
 import { objects } from "../engine/resources/Objects";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../Events";
 import { GameMapState } from "./components/GameMapState";
+import { BuildingType, BuildingTypes } from "./GameDefinitions";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -14,42 +15,41 @@ const sectorOffset = -mapSize / 2;
 class Buildings {
 
     private _instanceId = 1;
-    private _buildings = new Map<string, {
+    private _buildings = new Map<BuildingType, {
         prefab: Object3D;
         boundingBox: Box3;
     }>();
 
     public async preload() {
-        const buildindIds = Object.keys(config.buildings);
-        const buildings = await Promise.all(buildindIds.map(buildingId => objects.load(`/models/buildings/${buildingId}.json`)));
+        const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
         for (let i = 0; i < buildings.length; i++) {
             const building = buildings[i];
-            const buildingId = buildindIds[i];
-            const buildingConfig = config.buildings[buildingId];
+            const buildingType = BuildingTypes[i];
+            const buildingConfig = config.buildings[buildingType];
             const boundingBox = new Box3().setFromObject(building);
             boundingBox.max.y = buildingConfig.size.y;
-            this._buildings.set(buildingId, {
+            this._buildings.set(buildingType, {
                 prefab: building,
                 boundingBox
             });
         }
     }
 
-    public getBoundingBox(buildingId: string) {
-        return this._buildings.get(buildingId)!.boundingBox;
+    public getBoundingBox(buildingType: BuildingType) {
+        return this._buildings.get(buildingType)!.boundingBox;
     }
 
-    public create(buildingId: string, sectorCoords: Vector2, localCoords: Vector2) {
+    public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
 
         const { layers, buildings } = GameMapState.instance;
 
         const instanceId = `${this._instanceId}`;
         this._instanceId++;
 
-        const { prefab, boundingBox }  = this._buildings.get(buildingId)!;
+        const { prefab, boundingBox }  = this._buildings.get(buildingType)!;
         const obj = prefab.clone();
         obj.scale.multiplyScalar(cellSize);
-        obj.name = `${buildingId}-${instanceId}`;
+        obj.name = `${buildingType}-${instanceId}`;
         
         const box3Helper = new Box3Helper(boundingBox);
         obj.add(box3Helper);
@@ -57,7 +57,7 @@ class Buildings {
 
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
-            buildingId,
+            buildingType,
             obj,
             mapCoords: new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y)
         };
@@ -72,7 +72,7 @@ class Buildings {
 
         layers.buildings.add(obj);
 
-        const buildingConfig = config.buildings[buildingId];
+        const buildingConfig = config.buildings[buildingType];
         const mapCoords = pools.vec2.getOne();
         for (let i = 0; i < buildingConfig.size.z; i++) {
             for (let j = 0; j < buildingConfig.size.x; j++) {
@@ -94,8 +94,8 @@ class Buildings {
         instance.obj.removeFromParent();
 
         const mapCoords = pools.vec2.getOne();
-        const buildingId = instance.buildingId;
-        const buildingConfig = config.buildings[buildingId];
+        const buildingType = instance.buildingType;
+        const buildingConfig = config.buildings[buildingType];
         for (let i = 0; i < buildingConfig.size.z; i++) {
             for (let j = 0; j < buildingConfig.size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);

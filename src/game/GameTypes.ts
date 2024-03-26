@@ -2,13 +2,14 @@ import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
+import { BuildingType } from "./GameDefinitions";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
 
 export interface IBuildingInstance {
     id: string;
-    buildingId: string;
+    buildingType: BuildingType;
     obj: Object3D;
     mapCoords: Vector2;
 }

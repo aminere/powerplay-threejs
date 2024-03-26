@@ -4,7 +4,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { Elevation } from "./Elevation";
-import { MineralType, TileType, TileTypes } from "./GameDefinitions";
+import { BuildingType, MineralType, TileType, TileTypes } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -236,9 +236,9 @@ export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     }
 }
 
-export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, buildingId: string) {
+export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, buildingType: BuildingType) {
     if (button === 0) {
-        const building = config.buildings[buildingId];
+        const building = config.buildings[buildingType];
         const allowed = (() => {
             const mapCoords = pools.vec2.getOne();
             for (let i = 0; i < building.size.z; ++i) {
@@ -253,7 +253,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
             return true;
         })();
         if (allowed) {
-            buildings.create(buildingId, sectorCoords, localCoords);
+            buildings.create(buildingType, sectorCoords, localCoords);
         }
 
     } else if (button === 2) {
@@ -425,7 +425,7 @@ export function onAction(touchButton: number) {
                 break;
 
             case "building": {
-                onBuilding(sectorCoords, localCoords, cell, touchButton, props.buildingId);
+                onBuilding(sectorCoords, localCoords, cell, touchButton, props.buildingType);
             }
                 break;
 
