@@ -71,7 +71,8 @@ export class FlowfieldViewer extends Object3D {
                 continue;
             }
            
-            const computed = flowField.computeDirection(motionId, currentCoords, cellDirection);
+            const motion = flowField.getMotion(motionId);
+            const computed = flowField.computeDirection(motion.flowfields, currentCoords, cellDirection);
             if (computed) {
                 const index = flowField.computeDirectionIndex(cellDirection);       
                 flowField.getDirection(index, cellDirection);

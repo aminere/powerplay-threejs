@@ -1,6 +1,6 @@
 import { Matrix4, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
-import { TFlowField, flowField } from "../pathfinding/Flowfield";
+import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { MiningState } from "./MiningState";
 import { IUnit } from "./IUnit";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
@@ -9,31 +9,15 @@ import { computeUnitAddr } from "./UnitAddr";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { unitAnimation } from "./UnitAnimation";
-import { cellPathfinder } from "../pathfinding/CellPathfinder";
-import { config } from "../config";
-import { pools } from "../../engine/core/Pools";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 
-const { mapRes } = config.game;
 const oneSector = [new Vector2()];
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
-
-function getTargetCoords(path: Vector2[], desiredTargetCell: ICell, desiredTargetCellCoords: Vector2) {
-    const resource = desiredTargetCell.resource?.name;
-    if (resource) {
-        return desiredTargetCellCoords;
-    } else if (desiredTargetCell.isWalkable) {
-        return path[path.length - 1];
-    } else if (path.length > 2) {
-        return path[path.length - 2];
-    }
-    return null;
-}    
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -61,41 +45,6 @@ function getSectors(sourceSectorCoords: Vector2, destSectorCoords: Vector2) {
     }
 }
 
-function getSrcMapCoords(srcMapCoords: Vector2, sectors: Vector2[]) {
-    const sameSector = sectors.length === 1;
-    if (sameSector) {
-        return srcMapCoords;
-    } else {
-        console.assert(sectors.length > 1);
-        const [sector1, sector2] = sectors.slice(-2);
-        const dx = sector2.x - sector1.x;
-        const dy = sector2.y - sector1.y;
-        console.assert(Math.abs(dx) + Math.abs(dy) === 1);
-        const sector = GameUtils.getSector(sector2)!;
-        if (dx === 0) {
-            console.assert(Math.abs(dy) === 1);
-            const y = dy > 0 ? 0 : mapRes - 1;
-            for (let x = 0; x < mapRes; x++) {
-                const cellIndex = y * mapRes + x;
-                if (sector.cells[cellIndex].isWalkable) {
-                    return pools.vec2.getOne().set(sector2.x * mapRes + x, sector2.y * mapRes + y);
-                }
-            }
-
-        } else {
-            console.assert(Math.abs(dx) === 1);
-            const x = dx > 0 ? 0 : mapRes - 1;
-            for (let y = 0; y < mapRes; y++) {
-                const cellIndex = y * mapRes + x;
-                if (sector.cells[cellIndex].isWalkable) {
-                    return pools.vec2.getOne().set(sector2.x * mapRes + x, sector2.y * mapRes + y);
-                }
-            }
-        }
-    }
-    return null;
-}
-
 function onUnitArrived(unit: IUnit) {
     flowField.removeMotion(unit.motionId);
     unit.motionId = 0;
@@ -103,11 +52,30 @@ function onUnitArrived(unit: IUnit) {
     unit.velocity.set(0, 0, 0);
 }
 
+function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
+    const { mapCoords, sectorCoords, cellIndex } = unit.coords;
+    const _flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+    const flowfieldInfo = _flowField[cellIndex];
+    if (flowfieldInfo.directionIndex < 0) {
+        const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
+        if (computed) {
+            const index = flowField.computeDirectionIndex(cellDirection);
+            flowfieldInfo.directionIndex = index;
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
+}
+
 function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: number) {
     const { directionIndex } = _flowfield;    
     if (directionIndex < 0) {
         const mapCoords = unit.coords.mapCoords;
-        const computed = flowField.computeDirection(unit.motionId, mapCoords, cellDirection);
+        const motion = flowField.getMotion(unit.motionId);
+        const computed = flowField.computeDirection(motion.flowfields, mapCoords, cellDirection);
         if (computed) {
             const index = flowField.computeDirectionIndex(cellDirection);
             flowField.getDirection(index, cellDirection);
@@ -119,7 +87,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
         }
 
     } else {
-        flowField.getDirection(directionIndex, cellDirection);                        
+        flowField.getDirection(directionIndex, cellDirection);
     }
 
     cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
@@ -143,25 +111,8 @@ class UnitMotion {
     public move(units: IUnit[], destSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
         const sourceSectorCoords = units[0].coords.sectorCoords;
         const sectors = getSectors(sourceSectorCoords, destSectorCoords);
-        const srcMapCoords = getSrcMapCoords(units[0].coords.mapCoords, sectors);
 
-        if (!srcMapCoords) {
-            return;
-        }
-
-        console.assert(Math.abs(destMapCoords.x - srcMapCoords.x) < mapRes);
-        console.assert(Math.abs(destMapCoords.y - srcMapCoords.y) < mapRes);
-        const path = cellPathfinder.findPath(srcMapCoords, destMapCoords, { diagonals: () => false });
-        if (!path || path.length < 2) {
-            return;
-        }
-
-        const targetCellCoords = getTargetCoords(path, destCell, destMapCoords);
-        if (!targetCellCoords) {
-            return;
-        }
-
-        const flowfields = flowField.compute(targetCellCoords, sectors)!;
+        const flowfields = flowField.compute(destMapCoords, sectors)!;
         console.assert(flowfields);        
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;
@@ -171,7 +122,12 @@ class UnitMotion {
             if (!unit.isAlive) {
                 continue;
             }
-            if (unit.coords.mapCoords.equals(targetCellCoords)) {
+            
+            if (unit.coords.mapCoords.equals(destMapCoords)) {
+                continue;
+            }
+
+            if (!isDirectionValid(flowfields, unit)) {
                 continue;
             }
 
@@ -179,7 +135,7 @@ class UnitMotion {
                 motionId = flowField.register(flowfields);
             }
 
-            moveTo(unit, motionId, targetCellCoords);
+            moveTo(unit, motionId, destMapCoords);
             unit.fsm.switchState(nextState);
             ++unitCount;
         }
@@ -194,7 +150,7 @@ class UnitMotion {
             for (const sectorCoords of sectors) {
                 const sector = GameUtils.getSector(sectorCoords)!;
                 sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-                sector.flowfieldViewer.visible = true;
+                sector.flowfieldViewer.visible = false; // true; 
             }
         }        
     }
