@@ -7,12 +7,12 @@ import { IGameUIProps } from "./GameUIProps";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
-import { engineState } from "../../engine/EngineState";
-import { GameMap } from "../components/GameMap";
 import { config } from "../config";
 import { IBuildingInstance } from "../GameTypes";
 import { cmdSetSelectedElems } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
+import { unitsManager } from "../unit/UnitsManager";
+import { GameMapProps } from "../components/GameMapProps";
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -32,8 +32,7 @@ export function GameMapUI(props: IGameUIProps) {
             setSelectedAction(newAction);
 
             if (newAction === "building") {
-                const gamemap = engineState.getComponents(GameMap)[0];
-                const buildingId = gamemap.component.props.buildingId;
+                const buildingId = GameMapProps.instance.buildingId;
                 const building = config.buildings[buildingId];
                 gameMapState.tileSelector.setSize(building.size.x, building.size.z);
             } else {
@@ -163,8 +162,7 @@ export function GameMapUI(props: IGameUIProps) {
                     height: "4rem",
                 }}
                 onClick={() => {
-                    const gamemap = engineState.getComponents(GameMap)[0];
-                    gamemap.component.spawnUnitRequest();
+                    unitsManager.spawnUnitRequest();
                 }}
             >
                 <div>

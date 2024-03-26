@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { pools } from "../../engine/core/Pools";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { onBeginDrag, onCancelDrag, onClick, onDrag, onEndDrag, raycastOnCells, updateCameraBounds, updateCameraSize } from "../GameMapUtils";
+import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
 import { IUnit, UnitType } from "../unit/IUnit";
 import { IBuildingInstance } from "../GameTypes";
@@ -113,6 +113,21 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                     }
                 }
+            } else if (input.touchButton === 2) {
+                if (input.touchJustMoved) {
+                    if (!state.cursorOverUI) {
+                        if (state.action) {
+                            const cellCoords = pools.vec2.getOne();
+                            const cell = raycastOnCells(input.touchPos, state.camera, cellCoords);
+                            if (cell) {
+                                if (cellCoords?.equals(state.touchHoveredCoords) === false) {
+                                    state.touchHoveredCoords.copy(cellCoords!);
+                                    onAction(2);
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
         } else if (input.touchJustReleased) {
@@ -138,7 +153,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (wasDragged) {
                             onEndDrag();
                         } else {
-                            onClick(0);
+                            onAction(0);
                         }
                     } else {
                         
@@ -228,7 +243,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
             } else if (input.touchButton === 2) {
 
                 if (state.action) {
-                    onClick(2);
+                    onAction(2);
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
                         const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
@@ -300,8 +315,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
             const dx = xNorm * dt * panSpeed * state.cameraZoom;
             delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
             oldPos.copy(state.cameraRoot.position);
-            state.cameraRoot.position.add(delta);
-            updateCameraBounds();
+            setCameraPos(state.cameraRoot.position.add(delta));            
             const [_, rightAccessor, __, leftAccessor] = state.cameraBoundsAccessors;
             const rightBound = state.cameraBounds[rightAccessor];
             const leftBound = state.cameraBounds[leftAccessor];
@@ -310,15 +324,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (dx < 0) {
                 if (leftX > 0) {
                     if (rightX > width - margin) {
-                        state.cameraRoot.position.copy(oldPos);
-                        updateCameraBounds();
+                        setCameraPos(oldPos);
                     }
                 }
             } else {
                 if (rightX < width) {
                     if (leftX < margin) {
-                        state.cameraRoot.position.copy(oldPos);
-                        updateCameraBounds();
+                        setCameraPos(oldPos);
                     }
                 }
             }
@@ -328,8 +340,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
             const dy = yNorm * aspect * dt * panSpeed * state.cameraZoom;
             delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
             oldPos.copy(state.cameraRoot.position);
-            state.cameraRoot.position.add(delta);
-            updateCameraBounds();
+            setCameraPos(state.cameraRoot.position.add(delta));
             const [topAcecssor, _, bottomAccessor] = state.cameraBoundsAccessors;
             const topBound = state.cameraBounds[topAcecssor];
             const bottomBound = state.cameraBounds[bottomAccessor];
@@ -338,15 +349,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (dy < 0) {
                 if (topY > 0) {
                     if (bottomY > height - margin) {
-                        state.cameraRoot.position.copy(oldPos);
-                        updateCameraBounds();
+                        setCameraPos(oldPos);
                     }
                 }
             } else {
                 if (bottomY < height) {
                     if (topY < margin) {
-                        state.cameraRoot.position.copy(oldPos);
-                        updateCameraBounds();
+                        setCameraPos(oldPos);
                     }
                 }
             }

@@ -76,7 +76,6 @@ class UnitsManager {
     public get units() { return this._units; }
     public get selectedUnits() { return this._selectedUnits; }
 
-    public set spawnUnitRequest(value: IBuildingInstance | null) { this._spawnUnitRequest = value; }
     public set selectedUnits(value: IUnit[]) { this._selectedUnits = value; }
     public set owner(value: Object3D) { this._owner = value; }
 
@@ -451,6 +450,12 @@ class UnitsManager {
         }
         this._selectedUnits.length = 0;
         cmdSetSelectedElems.post({ units: this._selectedUnits });
+    }
+
+    public spawnUnitRequest() {
+        const { selectedBuilding } = GameMapState.instance;
+        console.assert(selectedBuilding);
+        this._spawnUnitRequest = selectedBuilding!;
     }
 
     private handleSpawnRequests() {

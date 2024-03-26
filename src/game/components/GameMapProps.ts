@@ -19,8 +19,6 @@ export class GameMapProps extends ComponentProps {
         GameMapProps._instance = null;
     }
 
-    initSelf = false;
-
     @Attributes.enumOptions(TileTypes)
     tileType: TileType = "sand";
 

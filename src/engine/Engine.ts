@@ -46,9 +46,6 @@ class Engine {
         registerComponents();
     }
 
-    public dispose() {        
-    }
-
     public setScreenSize(width: number, height: number) {
         this._renderer!.setSize(width, height, false);
         this._screenRect = this._renderer!.domElement.getBoundingClientRect();
@@ -85,10 +82,7 @@ class Engine {
                 const { components } = obj.userData;
                 if (components) {
                     for (const instance of Object.values(components)) {
-                        const component = instance as Component<ComponentProps>;
-                        if (component.props.active) {
-                            (instance as Component<ComponentProps>).dispose(obj);
-                        }
+                        (instance as Component<ComponentProps>).dispose(obj);
                     }
                 }
                 utils.disposeObject(obj);

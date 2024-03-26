@@ -1,4 +1,4 @@
-import { Box2, Camera, OrthographicCamera, Vector2 } from "three";
+import { Box2, Camera, OrthographicCamera, Vector2, Vector3 } from "three";
 import { pools } from "../engine/core/Pools";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
@@ -352,7 +352,7 @@ export function createSector(coords: Vector2) {
     return sector;
 }
 
-export function updateCameraBounds() {
+function updateCameraBounds() {
     const state = GameMapState.instance;
     const worldPos = pools.vec3.getOne();
     const [top, right, bottom, left] = state.cameraBounds;
@@ -364,7 +364,13 @@ export function updateCameraBounds() {
     utils.updateDirectionalLightTarget(state.light);
 }
 
-export function onClick(touchButton: number) {
+export function setCameraPos(pos: Vector3) {
+    const state = GameMapState.instance;
+    state.cameraRoot.position.copy(pos);
+    updateCameraBounds();
+}
+
+export function onAction(touchButton: number) {
     const state = GameMapState.instance;
     const props = GameMapProps.instance;
 

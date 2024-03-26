@@ -10,6 +10,7 @@ import { GameMap } from "../components/GameMap";
 import { input } from "../../engine/Input";
 import { GameMapState } from "../components/GameMapState";
 import { unitsManager } from "../unit/UnitsManager";
+import { setCameraPos } from "../GameMapUtils";
 
 const { mapRes, cellSize } = config.game;
 const mapOffset = mapRes / 2 * cellSize;
@@ -44,7 +45,7 @@ function makeMinimapTransform(angleDeg: number, offset: number) {
     minimapTransform.invert();
 }
 
-function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, offset: number) {
+function updateCameraPos(clientX: number, clientY: number, offset: number) {
     const { left, top, height } = engine.screenRect;
     const startY = top + height - minimapSize;
 
@@ -58,7 +59,7 @@ function updateCameraPos(gamemap: GameMap, clientX: number, clientY: number, off
     
     // convert to world space
     worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
-    gamemap.setCameraPos(worldPos);
+    setCameraPos(worldPos);
 }
 
 export function Minimap() {
@@ -73,7 +74,6 @@ export function Minimap() {
     const fogPixelsRef = useRef<ImageData | null>(null);
     const resourcePixelsRef = useRef<ImageData | null>(null);
     const cameraRef = useRef<HTMLCanvasElement | null>(null);
-    const gamemapRef = useRef<GameMap | null>(null);
     const touchPressed = useRef(false);
     const [initialized, setInitialized] = useState(false);
 
@@ -169,8 +169,6 @@ export function Minimap() {
 
         const flockProps = FlockProps.instance;
         if (flockProps.active) {
-            const gamemaps = engineState.getComponents(GameMap);
-            gamemapRef.current = gamemaps[0].component;
             setInitialized(true);
         }
 
@@ -282,14 +280,14 @@ export function Minimap() {
             onPointerDown={e => {
                 const cameraCanvas = cameraRef.current!;
                 const size = cameraCanvas.width;
-                updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, size / 2);
+                updateCameraPos(e.clientX, e.clientY, size / 2);
                 touchPressed.current = true
             }}
             onPointerMove={e => {
                 if (touchPressed.current) {
                     const cameraCanvas = cameraRef.current!;
-                    const size = cameraCanvas.width;    
-                    updateCameraPos(gamemapRef.current!, e.clientX, e.clientY, size / 2);
+                    const size = cameraCanvas.width;
+                    updateCameraPos(e.clientX, e.clientY, size / 2);
                 }                
             }}
         >

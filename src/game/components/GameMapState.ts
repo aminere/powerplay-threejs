@@ -84,7 +84,7 @@ export class GameMapState {
         this.tileSelector = new TileSector();
         this.tileSelector.visible = false;
         root().add(this.tileSelector);
-    }
+    }   
 
     public dispose() {
         GameMapState._instance = null;
