@@ -124,6 +124,19 @@ export function GameMapUI(props: IGameUIProps) {
             onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
         >
             {Actions.map(action => {
+
+                const ignoredActions: Action[] = [
+                    "elevation",
+                    "terrain",
+                    "car",
+                    "train",
+                    "tree",
+                    "rail"
+                ];
+                if (ignoredActions.includes(action)) {
+                    return null;
+                }
+
                 const selected = selectedAction === action;
                 return <div
                     id={action}

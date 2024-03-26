@@ -18,6 +18,8 @@ export { config } from "./game/config";
 export { meshes } from "./engine/resources/Meshes";
 export { textures } from "./engine/resources/Textures";
 export { GameMap } from "./game/components/GameMap";
+export { GameMapState } from "./game/components/GameMapState";
+export { createSectors } from "./game/GameMapUtils";
 
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation } from "./game/GameSerialization";
 

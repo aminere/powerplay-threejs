@@ -352,6 +352,32 @@ export function createSector(coords: Vector2) {
     return sector;
 }
 
+function disposeSectors() {
+    const state = GameMapState.instance;
+    const { sectors } = state;
+    for (const sector of sectors.values()) {
+        const { root } = sector;
+        root.removeFromParent();
+        root.traverse((obj) => {
+            utils.disposeObject(obj);
+        });
+    }
+    sectors.clear();
+} 
+
+export function createSectors(size: number) {
+    const state = GameMapState.instance;
+    if (state.sectors.size > 0) {
+        disposeSectors();
+    }
+
+    for (let i = 0; i < size; ++i) {
+        for (let j = 0; j < size; ++j) {
+            createSector(new Vector2(j, i));
+        }
+    }
+}
+
 function updateCameraBounds() {
     const state = GameMapState.instance;
     const worldPos = pools.vec3.getOne();
@@ -473,7 +499,18 @@ export function onAction(touchButton: number) {
                 break;
 
             case "unit": {
-                unitsManager.spawn(mapCoords);
+                if (touchButton === 0) {
+                    if (cell.isEmpty) {
+                        unitsManager.spawn(mapCoords);
+                    }
+                } else if (touchButton === 2) {
+                    if (cell.units) {
+                        const cellUnits = [...cell.units];
+                        for (const unit of cellUnits) {
+                            unitsManager.kill(unit);
+                        }                    
+                    }
+                }                
             }
         }
     }

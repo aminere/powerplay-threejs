@@ -28,8 +28,6 @@ const avoidedCellCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 const spawnCoords = new Vector2();
-const moveCoords = new Vector2();
-const targetSectorCoords = new Vector2();
 const { mapRes } = config.game;
 
 function onUnitArrived(unit: IUnit) {
@@ -70,6 +68,23 @@ function getUnitNeighbors(unit: IUnit) {
 
     return unitNeighbors;
 }
+
+function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDesiredPos: Vector3) {
+    toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
+    const length = toTarget.length();
+    if (length > 0) {
+        toTarget
+            .divideScalar(length)
+            .multiplyScalar(moveAmount / 2)
+
+    } else {
+        toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
+            .normalize()
+            .multiplyScalar(moveAmount / 2);
+    }
+    desiredPos.add(toTarget);
+    otherDesiredPos.sub(toTarget);
+};
 
 class UnitsManager {
 
@@ -186,25 +201,7 @@ class UnitsManager {
         const avoidanceSteerAmount = props.avoidanceSpeed * time.deltaTime;
 
         skeletonPool.update();
-        this.handleSpawnRequests();
-
-        const moveAwayFromEachOther = (amount: number, desiredPos: Vector3, otherDesiredPos: Vector3) => {
-            const moveAmount = Math.min(amount, avoidanceSteerAmount);
-            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
-            const length = toTarget.length();
-            if (length > 0) {
-                toTarget
-                    .divideScalar(length)
-                    .multiplyScalar(moveAmount)
-
-            } else {
-                toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
-                    .normalize()
-                    .multiplyScalar(moveAmount);
-            }
-            desiredPos.add(toTarget);
-            otherDesiredPos.sub(toTarget);
-        };
+        this.handleSpawnRequests();        
 
         // steering & collision avoidance
         for (let i = 0; i < units.length; ++i) {
@@ -226,18 +223,17 @@ class UnitsManager {
                 if (dist < separationDist) {
                     unit.isColliding = true;
                     neighbor.isColliding = true;
+                    const moveAmount = Math.min((separationDist - dist), avoidanceSteerAmount);
                     if (neighbor.motionId > 0) {
                         if (unit.motionId > 0) {
-                            moveAwayFromEachOther((separationDist - dist) / 2, desiredPos, otherDesiredPos);
+                            moveAwayFromEachOther(moveAmount, desiredPos, otherDesiredPos);
 
                         } else {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             desiredPos.add(toTarget);
                         }
                     } else {
                         if (unit.motionId > 0) {
-                            const moveAmount = Math.min((separationDist - dist) + repulsion, avoidanceSteerAmount);
                             toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                             otherDesiredPos.add(toTarget);
 
@@ -247,7 +243,7 @@ class UnitsManager {
                             }
 
                         } else {
-                            moveAwayFromEachOther((separationDist - dist) / 2 + repulsion, desiredPos, otherDesiredPos);
+                            moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
                         }
                     }
                 }
@@ -277,8 +273,8 @@ class UnitsManager {
                     // move away from blocked cell
                     awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
                     unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * avoidanceSteerAmount;
-                    unit.desiredPos.z += awayDirection.y * avoidanceSteerAmount;
+                    unit.desiredPos.x += awayDirection.x * steerAmount * .1;
+                    unit.desiredPos.z += awayDirection.y * steerAmount * .1;
                     GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
                 }
             }
@@ -463,34 +459,11 @@ class UnitsManager {
         if (!spawnUnitRequest) {
             return;
         }
-
         spawnCoords.copy(spawnUnitRequest.mapCoords);
         const buildingId = spawnUnitRequest.buildingId;
         const buildingSize = config.buildings[buildingId].size;
         spawnCoords.x += buildingSize.x / 2;
         spawnCoords.y += buildingSize.z;
-
-        // if cell is occupied, move its units to a nearby cell
-        // TODO this is assuming we are spawning from a building, and the surrounding cells are empty
-        // Must remove the assumption and scan for empty cells
-        const cell = GameUtils.getCell(spawnCoords)!;
-        if (cell.hasUnits) {
-            const randomCellSelector = MathUtils.randInt(0, 4);
-            const [dx, dy] = (() => {
-                switch (randomCellSelector) {
-                    case 0: return [-1, 0];
-                    case 1: return [1, 0];
-                    case 2: return [-1, 1];
-                    case 3: return [0, 1];
-                    default: return [1, 1];
-                }
-            })();
-
-            moveCoords.set(spawnCoords.x + dx, spawnCoords.y + dy);
-            const moveCell = GameUtils.getCell(moveCoords, targetSectorCoords)!;
-            unitMotion.move(cell.units!, targetSectorCoords, moveCoords, moveCell);
-        }
-
         this.spawn(spawnCoords);
         this._spawnUnitRequest = null;
     }

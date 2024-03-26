@@ -10,7 +10,7 @@ import { config } from "../config";
 import { ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
-import { createSector, updateCameraSize } from "../GameMapUtils";
+import { createSector, createSectors, updateCameraSize } from "../GameMapUtils";
 import { conveyors } from "../Conveyors";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
@@ -75,7 +75,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         if (this.props.path.length > 0) {
             this.load(owner);
         } else {
-            this.createSectors(GameMapProps.instance.size);
+            createSectors(GameMapProps.instance.size);
             this.preload()
                 .then(() => this.init(GameMapProps.instance.size, owner));               
         }
@@ -198,31 +198,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         fogOfWar.dispose();
 
         this.state.dispose();
-    }
-
-    private createSectors(size: number) {
-        if (this.state.sectors.size > 0) {
-            this.disposeSectors();
-        }
-
-        for (let i = 0; i < size; ++i) {
-            for (let j = 0; j < size; ++j) {
-                createSector(new Vector2(j, i));
-            }
-        }
-    }
-
-    private disposeSectors() {
-        const { sectors } = this.state;
-        for (const sector of sectors.values()) {
-            const { root } = sector;
-            root.removeFromParent();
-            root.traverse((obj) => {
-                utils.disposeObject(obj);
-            });
-        }
-        sectors.clear();
-    } 
+    }    
 
     private onKeyDown(e: KeyboardEvent) {
         const key = e.key.toLowerCase();
