@@ -120,7 +120,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
                 GameUtils.getCell(mapCoords, sectorCoords, localCoords);
                 buildings.create(buildingId, sectorCoords, localCoords);
             }
-        }
+        }       
 
         gameMap.init(data.size, owner);
 
@@ -128,8 +128,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps> {
         for (const mapCoords of unitsToSpawn) {
             unitsManager.spawn(mapCoords);
         }
-
-        engineState.setComponent(owner, new GameMapUpdate());
     }
 }
 

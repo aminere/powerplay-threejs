@@ -6,18 +6,17 @@ import { Vector2 } from "three";
 
 export class GameMapProps extends ComponentProps {
 
-    public static get instance() { return this._props!; }
-
-    private static _props: GameMapProps | null = null;
+    public static get instance() { return this._instance!; }
+    private static _instance: GameMapProps | null = null;
 
     constructor(props?: Partial<GameMapProps>) {
         super();
         this.deserialize(props);
-        GameMapProps._props = this;
+        GameMapProps._instance = this;
     }
 
     public dispose() {
-        GameMapProps._props = null;
+        GameMapProps._instance = null;
     }
 
     initSelf = false;

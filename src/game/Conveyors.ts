@@ -81,6 +81,13 @@ class Conveyors {
         this._loaded = true;
     }
 
+    public dispose() {
+        this._disposed = true;
+        this._conveyors.count = 0;
+        this._conveyorTops.count = 0;
+        this._straightCells.length = 0;
+    }  
+
     public create(cell: ICell, mapCoords: Vector2, direction: Vector2, startAxis: Axis, endAxis?: Axis) {
         console.assert(cell.isEmpty);
         console.assert(!cell.conveyor);
@@ -300,14 +307,7 @@ class Conveyors {
         console.assert(this._loaded);
         this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
         conveyorItems.update();
-    }
-
-    public dispose() {
-        this._disposed = true;
-        this._conveyors.count = 0;
-        this._conveyorTops.count = 0;
-        this._straightCells.length = 0;
-    }  
+    }   
     
     public onDrag(start: Vector2, end: Vector2, dragAxis: Axis, cellsOut: Vector2[]) {
         const [mapCoords, offset2, start2, dir, cornerDir] = pools.vec2.get(5);

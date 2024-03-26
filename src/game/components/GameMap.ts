@@ -30,19 +30,15 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
     }
 
     override start(owner: Object3D) {
-
         this.setState(new GameMapState());
 
         this.onKeyUp = this.onKeyUp.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
-        document.addEventListener("keyup", this.onKeyUp);
-        document.addEventListener("keydown", this.onKeyDown);
 
         if (this.props.initSelf) {
             this.createSectors();
             this.preload()
-                .then(() => this.init(this.props.size, owner))
-                .then(() => engineState.setComponent(owner, new GameMapUpdate()));
+                .then(() => this.init(this.props.size, owner));                
         }
     }
 
@@ -62,10 +58,10 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
     public async preload() {
         await buildings.preload();
         await conveyors.preload();
-        await unitsManager.preload();
         await conveyorItems.preload();
         await treesManager.preload();
         await railFactory.preload();
+        await unitsManager.preload();
     }
 
     public init(size: number, owner: Object3D) {
@@ -90,19 +86,26 @@ export class GameMap extends Component<GameMapProps, GameMapState> {
 
         unitsManager.owner = owner;
         updateCameraSize();
+
+        document.addEventListener("keyup", this.onKeyUp);
+        document.addEventListener("keydown", this.onKeyDown);
         cmdShowUI.post("gamemap");
+
+        engineState.setComponent(owner, new GameMapUpdate());
     }
     
     override dispose() {
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
         cmdHideUI.post("gamemap");
+
         conveyors.dispose();
         conveyorItems.dispose();
-        this.state.dispose();
-        this.props.dispose();
         unitsManager.dispose();
         fogOfWar.dispose();
+
+        this.state.dispose();
+        this.props.dispose();
     }
 
     public setCameraPos(pos: Vector3) {
