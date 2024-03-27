@@ -77,6 +77,7 @@ class ConveyorItems {
     public update() {
 
         const step = time.deltaTime * conveyorSpeed / cellSize;
+
         for (const item of this._items) {
             let newT = item.localT + step;
             const halfItemSize = item.size / 2;
@@ -85,8 +86,6 @@ class ConveyorItems {
             const { mapCoords } = item;
 
             if (newT > 1) {
-
-                const dt = newT - 1;
 
                 // half the item passed to the next conveyor, time to transfer ownership                
                 if (isCorner) {
@@ -100,13 +99,15 @@ class ConveyorItems {
 
                 const indexInCurrentOwner = item.owner.items.indexOf(item);
                 console.assert(indexInCurrentOwner >= 0);
-                item.owner.items.splice(indexInCurrentOwner, 1);
+                utils.fastDelete(item.owner.items, indexInCurrentOwner);                
                 
                 const nextConveyor = GameUtils.getCell(neighborCoords)!;
                 nextConveyor.conveyor!.items.push(item);
                 item.mapCoords.copy(neighborCoords);
                 item.owner = nextConveyor.conveyor!;
-                newT = dt; 
+
+                const dt = newT - 1;
+                newT = Math.min(dt, step);
 
             } else if (newT > 1 - halfItemSize) {
 

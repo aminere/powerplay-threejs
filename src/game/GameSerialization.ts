@@ -1,5 +1,6 @@
 import { Vector2 } from "three";
 import { IConveyorConfig } from "./GameTypes";
+import { BuildingType } from "./GameDefinitions";
 
 export interface ISerializedCell {
     index: number;
@@ -23,6 +24,6 @@ export interface ISerializedSector {
 export interface ISerializedGameMap {
     size: number;
     sectors: ISerializedSector[];
-    buildings: Record<string, Vector2[]>;
+    buildings: Record<BuildingType, Vector2[]>;
 }
 

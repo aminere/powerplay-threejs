@@ -7,7 +7,7 @@ import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
 import { config } from "../config";
-import { ResourceType } from "../GameDefinitions";
+import { BuildingType, ResourceType } from "../GameDefinitions";
 import { buildings } from "../Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector, createSectors, updateCameraSize } from "../GameMapUtils";
@@ -133,18 +133,18 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             }
         }        
 
-        for (const [buildingId, mapCoordsList] of Object.entries(data.buildings)) {
-            for (const mapCoords of mapCoordsList) {
-                GameUtils.getCell(mapCoords, sectorCoords, localCoords);
-                buildings.create(buildingId, sectorCoords, localCoords);
-            }
-        }       
-
         this.init(data.size, owner);
 
-        // spawn units after all sectors are created
+        // create units and structure after all sectors are created and fogOfWar is initialized
         for (const mapCoords of unitsToSpawn) {
             unitsManager.spawn(mapCoords);
+        }
+
+        for (const [buildingType, mapCoordsList] of Object.entries(data.buildings)) {
+            for (const mapCoords of mapCoordsList) {
+                GameUtils.getCell(mapCoords, sectorCoords, localCoords);
+                buildings.create(buildingType as BuildingType, sectorCoords, localCoords);
+            }
         }
     }
 

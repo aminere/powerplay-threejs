@@ -95,8 +95,8 @@ export function HealthBars() {
                     drawBar(ctx, worldPos, selectedUnits[i].health);
                 }
             } else if (selectedBuilding) {
-                const { obj, buildingId } = selectedBuilding;
-                const buildingConfig = config.buildings[buildingId];
+                const { obj, buildingType } = selectedBuilding;
+                const buildingConfig = config.buildings[buildingType];
                 worldPos.copy(obj.position).addScaledVector(obj.up, buildingConfig.size.y * cellSize);
                 worldPos.x += buildingConfig.size.x / 2 * cellSize;
                 worldPos.z += buildingConfig.size.z / 2 * cellSize;

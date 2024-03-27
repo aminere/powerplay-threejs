@@ -7,7 +7,7 @@ interface ITime {
     update(): void;
 }
 
-class DynamicTime implements ITime {
+class VariableTime implements ITime {
     get time() { return this._time; }
     get deltaTime() { return this._deltaTime; }
     get fps() { return this._fps; }
@@ -21,14 +21,14 @@ class DynamicTime implements ITime {
         this._previousTime = time; 
     }
 
-    private _deltaTimeCap = 1 / 10;    
+    private _deltaTimeCap = 1 / 30;    
     private _previousTime = performance.now();
     private _time = 0;
     private _deltaTime = 0;    
     private _fps = 0;
 }
 
-class StaticTime implements ITime {
+class FixedTime implements ITime {
     get time() { return this._time; }
     get deltaTime() { return this._deltaTime; }
     get fps() { return 60; }
@@ -48,13 +48,13 @@ class Time implements ITime {
     get fps() { return this._impl.fps; }
     get currentFrame() { return this._currentFrame; }
     
-    public setDynamic(dynamic: boolean) {
-        this._impl = dynamic ? this._dynamicImpl : this._staticImpl;
+    public setFixed(fixed: boolean) {
+        this._impl = fixed ? this._fixedImpl : this._variableImpl;
     }
 
-    private _staticImpl = new StaticTime();
-    private _dynamicImpl = new DynamicTime();
-    private _impl: ITime = this._dynamicImpl;
+    private _fixedImpl = new FixedTime();
+    private _variableImpl = new VariableTime();
+    private _impl: ITime = this._variableImpl;
     private _currentFrame = 0;
 
     public update() {
