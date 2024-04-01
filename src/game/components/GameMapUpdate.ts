@@ -245,8 +245,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     onAction(2);
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
-                        const [targetCellCoords, targetSectorCoords] = pools.vec2.get(2);
-                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, targetSectorCoords);
+                        const targetCellCoords = pools.vec2.getOne();
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords);
                         if (targetCell) {
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
@@ -262,7 +262,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }, {} as Record<string, IUnit[]>);
 
                             for (const units of Object.values(groups)) {
-                                unitMotion.move(units, targetSectorCoords, targetCellCoords, targetCell);
+                                unitMotion.move(units, targetCellCoords, targetCell);
                             }
                         }
                     }

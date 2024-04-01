@@ -66,7 +66,7 @@ class FlowField {
             return null;
         }       
 
-        const flowfields = new Map<string, TFlowField[]>();
+        const flowfields: TFlowFieldMap = new Map<string, TFlowField[]>();
         for (const sectorCoords of sectors) {
             const flowField = new Array<TFlowField>();
             initFlowField(flowField);

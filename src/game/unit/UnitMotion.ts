@@ -3,7 +3,6 @@ import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { MiningState } from "./MiningState";
 import { IUnit } from "./IUnit";
-import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr } from "./UnitAddr";
 import { engineState } from "../../engine/EngineState";
@@ -12,8 +11,8 @@ import { unitAnimation } from "./UnitAnimation";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
+import { cellPathfinder } from "../pathfinding/CellPathfinder";
 
-const oneSector = [new Vector2()];
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
@@ -33,16 +32,27 @@ function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton 
     }
 }
 
-function getSectors(sourceSectorCoords: Vector2, destSectorCoords: Vector2) {
-    const sameSector = sourceSectorCoords.equals(destSectorCoords);
-    if (sameSector) {
-        oneSector[0] = sourceSectorCoords;
-        return oneSector;
-    } else {
-        const sectorPath = sectorPathfinder.findPath(sourceSectorCoords, destSectorCoords)!;
-        console.assert(sectorPath);
-        return sectorPath;
+const nextSector = new Vector2();
+function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords: Vector2) {
+    const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, { diagonals: () => false });
+    if (!cellPath) {
+        return null;
     }
+    const currentSector = srcSectorCoords.clone();
+    const sectors = new Set<string>();
+    sectors.add(`${currentSector.x},${currentSector.y}`);
+    for (const cell of cellPath) {
+        GameUtils.getCell(cell, nextSector);
+        if (!currentSector.equals(nextSector)) {
+            sectors.add(`${nextSector.x},${nextSector.y}`);
+            currentSector.copy(nextSector);
+        }
+    }
+    const out = Array.from(sectors).map(s => { 
+        const [x, y] = s.split(",");
+        return new Vector2(parseInt(x), parseInt(y));
+    });
+    return out;
 }
 
 function onUnitArrived(unit: IUnit) {
@@ -98,9 +108,12 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
 class UnitMotion {
 
-    public npcMove(unit: IUnit, destSectorCoords: Vector2, destMapCoords: Vector2, bindSkeleton = true) {
-        const sourceSectorCoords = unit.coords.sectorCoords;
-        const sectors = getSectors(sourceSectorCoords, destSectorCoords);
+    public npcMove(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
+        const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords);
+        if (!sectors) {
+            console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
+            return;
+        }
         const flowfields = flowField.compute(destMapCoords, sectors)!;
         console.assert(flowfields);
         const motionId = flowField.register(flowfields);
@@ -108,12 +121,14 @@ class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public move(units: IUnit[], destSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
-        const sourceSectorCoords = units[0].coords.sectorCoords;
-        const sectors = getSectors(sourceSectorCoords, destSectorCoords);
-
+    public move(units: IUnit[], destMapCoords: Vector2, destCell: ICell) {
+        const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords);
+        if (!sectors) {
+            console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
+            return;
+        }
         const flowfields = flowField.compute(destMapCoords, sectors)!;
-        console.assert(flowfields);        
+        console.assert(flowfields);
         const resource = destCell.resource?.name;
         const nextState = resource ? MiningState : null;
         let unitCount = 0;
@@ -142,17 +157,17 @@ class UnitMotion {
 
         if (motionId !== null) {
             console.assert(unitCount > 0);
-            flowField.setMotionUnitCount(motionId, unitCount);
+            flowField.setMotionUnitCount(motionId, unitCount);            
+        }
 
-            for (const sector of GameMapState.instance.sectors.values()) {
-                sector.flowfieldViewer.visible = false;
-            }
-            for (const sectorCoords of sectors) {
-                const sector = GameUtils.getSector(sectorCoords)!;
-                sector.flowfieldViewer.update(motionId, sector, sectorCoords);
-                sector.flowfieldViewer.visible = false; // true; 
-            }
-        }        
+        for (const sector of GameMapState.instance.sectors.values()) {
+            sector.flowfieldViewer.visible = false;
+        }
+        for (const sectorCoords of sectors) {
+            const sector = GameUtils.getSector(sectorCoords)!;
+            sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
+            sector.flowfieldViewer.visible = true; // TODO
+        }
     }
 
     public steer(unit: IUnit, steerAmount: number) {

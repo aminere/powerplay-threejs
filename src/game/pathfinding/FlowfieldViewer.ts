@@ -4,7 +4,7 @@ import { BufferGeometry, LineBasicMaterial, LineSegments, Mesh, MeshBasicMateria
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
-import { flowField } from "./Flowfield";
+import { TFlowFieldMap, flowField } from "./Flowfield";
 import { _3dFonts } from "../../engine/resources/3DFonts";
 import { Font, TextGeometry } from "three/examples/jsm/Addons.js";
 import { utils } from "../../engine/Utils";
@@ -54,11 +54,10 @@ export class FlowfieldViewer extends Object3D {
         this.visible = false;
     }
 
-    public update(motionId: number, sector: ISector, sectorCoords: Vector2) {        
+    public update(flowfieldsMap: TFlowFieldMap, sector: ISector, sectorCoords: Vector2) {        
         const cells = sector.cells;
         linePoints.length = 0;
-        const flowFields = flowField.getMotion(motionId).flowfields;
-        const _flowField = flowFields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+        const _flowField = flowfieldsMap.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         for (let i = 0; i < cells.length; i++) {
             const cellY = Math.floor(i / mapRes);
             const cellX = i - cellY * mapRes;
@@ -71,8 +70,7 @@ export class FlowfieldViewer extends Object3D {
                 continue;
             }
            
-            const motion = flowField.getMotion(motionId);
-            const computed = flowField.computeDirection(motion.flowfields, currentCoords, cellDirection);
+            const computed = flowField.computeDirection(flowfieldsMap, currentCoords, cellDirection);
             if (computed) {
                 const index = flowField.computeDirectionIndex(cellDirection);       
                 flowField.getDirection(index, cellDirection);
@@ -92,9 +90,8 @@ export class FlowfieldViewer extends Object3D {
         points.geometry.computeBoundingSphere();
         this.position.copy(sector.root.position).negate();
 
-        const flowfields = flowField.getMotion(motionId).flowfields;
         const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
-        const flowfield = flowfields.get(sectorId)!;
+        const flowfield = flowfieldsMap.get(sectorId)!;
         const texts = this.children[2];
         if (!texts) {
             _3dFonts.load("helvetiker_regular.typeface").then(font => {
