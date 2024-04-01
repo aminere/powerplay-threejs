@@ -34,7 +34,8 @@ export const ResourceTypes = [
 export const BuildingTypes = [
     "hq",
     "mine",
-    "factory"
+    "factory",
+    "assembly"
 ] as const;
 
 export type UIType = "gamemap";

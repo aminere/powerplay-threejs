@@ -303,6 +303,10 @@ export class Terrain {
                             vec4 gridColor = texture2D(gridTexture, vec2(localUVx, localUVy));
                             diffuseColor.rgb += gridColor.rgb;    
                         }
+
+                        if (cellX == 0. || cellY == 0.) {
+                            diffuseColor.r += .5;
+                        }
                     #endif
                     `
                 );

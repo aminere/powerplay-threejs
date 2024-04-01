@@ -3,10 +3,10 @@ import { config } from "./config";
 import { IBuildingInstance } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
-import { objects } from "../engine/resources/Objects";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../Events";
 import { GameMapState } from "./components/GameMapState";
 import { BuildingType, BuildingTypes } from "./GameDefinitions";
+import { meshes } from "../powerplay";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -21,9 +21,10 @@ class Buildings {
     }>();
 
     public async preload() {
-        const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
+        const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
         for (let i = 0; i < buildings.length; i++) {
-            const building = buildings[i];
+            const [building] = buildings[i];
+            building.castShadow = true;
             const buildingType = BuildingTypes[i];
             const buildingConfig = config.buildings[buildingType];
             const boundingBox = new Box3().setFromObject(building);

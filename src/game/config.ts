@@ -83,10 +83,13 @@ export const config: IConfig = {
             size: new Vector3(10, 4, 5)
         },
         "mine": {
-            size: new Vector3(3, 3, 4)
+            size: new Vector3(2, 3, 3)
         },
         "factory": {
-            size: new Vector3(9, 4, 6)
+            size: new Vector3(2, 3, 3)
+        },
+        "assembly": {
+            size: new Vector3(2, 3, 3)
         }
     }
 };
