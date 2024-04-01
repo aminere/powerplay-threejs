@@ -188,6 +188,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
     }
 
     override dispose() {
+
+        if (!this.state) {
+            return;
+        }
+
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
         cmdHideUI.post("gamemap");

@@ -174,7 +174,7 @@ class FlowField {
             }            
         }
 
-        console.log(`processed cells: ${processedCells}`);
+        // console.log(`processed cells: ${processedCells}`);
         return flowField;
     }
 

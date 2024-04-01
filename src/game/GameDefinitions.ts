@@ -31,6 +31,19 @@ export const ResourceTypes = [
     "tree"
 ] as const;
 
+const IntermediateTypes = [
+    "rubber",
+    "plastic",
+    "steel",
+    "wheel",
+    "engine",
+    "truck-frame"
+] as const;
+
+const ProductTypes = [
+    "truck"
+] as const;
+
 export const BuildingTypes = [
     "hq",
     "mine",

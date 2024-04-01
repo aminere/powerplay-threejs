@@ -273,6 +273,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
         conveyors.update();
         unitsManager.update();
+        buildings.update();
     }
 
     private checkKeyboardCameraPan() {

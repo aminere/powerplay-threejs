@@ -12,6 +12,7 @@ import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
+import { GameMapProps } from "../components/GameMapProps";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
@@ -160,13 +161,15 @@ class UnitMotion {
             flowField.setMotionUnitCount(motionId, unitCount);            
         }
 
-        for (const sector of GameMapState.instance.sectors.values()) {
-            sector.flowfieldViewer.visible = false;
-        }
-        for (const sectorCoords of sectors) {
-            const sector = GameUtils.getSector(sectorCoords)!;
-            sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
-            sector.flowfieldViewer.visible = true; // TODO
+        if (GameMapProps.instance.debugFlowFields) {
+            for (const sector of GameMapState.instance.sectors.values()) {
+                sector.flowfieldViewer.visible = false;
+            }
+            for (const sectorCoords of sectors) {
+                const sector = GameUtils.getSector(sectorCoords)!;
+                sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
+                sector.flowfieldViewer.visible = true;
+            }    
         }
     }
 
@@ -219,8 +222,12 @@ class UnitMotion {
 
                             unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
                             unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-                            // coords.sector!.flowfieldViewer.update(motionId, coords.sector!, coords.sectorCoords);
-                            // coords.sector!.flowfieldViewer.visible = true;
+
+                            if (GameMapProps.instance.debugFlowFields) {
+                                coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
+                                coords.sector!.flowfieldViewer.visible = true;    
+                            }
+
                         } else {
                             console.assert(false);                            
                             unit.velocity.set(0, 0, 0);

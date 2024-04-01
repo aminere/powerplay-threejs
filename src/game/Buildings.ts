@@ -108,6 +108,10 @@ class Buildings {
         mapCoords.set(instance.mapCoords.x + Math.round(buildingConfig.size.x / 2), instance.mapCoords.y + Math.round(buildingConfig.size.z / 2));
         cmdFogRemoveCircle.post({ mapCoords, radius: 20 });
     }
+
+    public update() {
+        
+    }
 }
 
 export const buildings = new Buildings();
