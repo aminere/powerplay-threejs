@@ -8,11 +8,14 @@ import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
 import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
+import { utils } from "../../engine/Utils";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
 
 class Buildings {
 
@@ -60,38 +63,46 @@ class Buildings {
 
         const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
         const size = buildingSizes[buildingType];
-        const resourceCells = new Array<Vector2>();
-        for (let i = 0; i < size.z; i++) {
-            for (let j = 0; j < size.x; j++) {
-                cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                const cell = GameUtils.getCell(cellCoords)!;                
-                if (cell.resource) {
-                    resourceCells.push(cellCoords.clone());
-                }
-            }
-        }
         
-        const buildingInstance: IBuildingInstance = {
-            id: instanceId,
-            buildingType,
-            visual,
-            mapCoords,
-            state: (() => {
-                switch (buildingType) {
-                    case "mine": {
-                        console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
-                        const mineState: IMineState = {
-                            currentCell: 0,
-                            timer: 0,
-                            outputSlot: 0,
-                            cells: resourceCells
-                        };
-                        return mineState;
+        let buildingInstance: IBuildingInstance | null = null;
+        if (buildingType === "mine") {
+
+            const resourceCells = new Array<Vector2>();
+            for (let i = 0; i < size.z; i++) {
+                for (let j = 0; j < size.x; j++) {
+                    cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                    const cell = GameUtils.getCell(cellCoords)!;                
+                    if (cell.resource) {
+                        resourceCells.push(cellCoords.clone());
+                        cell.resource.visual.visible = false;
                     }
                 }
-                return null;
-            })()
-        };
+            }
+
+            console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
+            buildingInstance = {
+                id: instanceId,
+                buildingType,
+                visual,
+                mapCoords,
+                state: {
+                    currentCell: 0,
+                    timer: 0,
+                    outputSlot: 0,
+                    cells: resourceCells,
+                    active: true
+                }
+            }
+
+        } else {
+            buildingInstance = {
+                id: instanceId,
+                buildingType,
+                visual,
+                mapCoords,
+                state: null // TODO
+            }
+        }
 
         buildings.set(instanceId, buildingInstance);
         for (let i = 0; i < size.z; i++) {
@@ -127,6 +138,17 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
+
+                if (buildingType === "mine") {
+                    const state = instance.state as IMineState;
+                    for (const cellCoord of state.cells) {
+                        const resourceCell = GameUtils.getCell(cellCoord)!;
+                        const visual = resourceCell.resource!.visual!;
+                        console.assert(visual.visible === false);
+                        visual.visible = true;
+                    }
+                }
+
                 cell.buildingId = undefined;
             }
         }
@@ -139,27 +161,55 @@ class Buildings {
         const { buildings } = GameMapState.instance;
         for (const instance of buildings.values()) {            
             switch (instance.buildingType) {
-                case "mine": {
+                case "mine": {                    
                     const miningFrequency = 2;
                     const state = instance.state as IMineState;                    
-                    state.timer += time.deltaTime;
-                    if (state.timer >= miningFrequency) {                       
-                        state.timer = 0;
+                    if (!state.active) {
+                        break;
+                    }
+                    
+                    if (state.timer >= miningFrequency) {                        
                         const cellCoords = state.cells[state.currentCell];
                         const cell = GameUtils.getCell(cellCoords)!;
-                        const resource = cell.resource!;                        
-                        resource.amount -= 1;
+                        const resource = cell.resource!;                       
+                        
+                        const size = buildingSizes[instance.buildingType];
+                        cellCoords.set(instance.mapCoords.x + state.outputSlot, instance.mapCoords.y + size.z - 1);
+                        let outputCell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
+                        if (outputCell.pickableResource) {
+                            state.outputSlot = (state.outputSlot + 1) % size.x;
+                            cellCoords.set(instance.mapCoords.x + state.outputSlot, instance.mapCoords.y + size.z - 1);
+                            outputCell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
+                        }
 
-                        console.log(`Mining ${resource.type}`);
+                        if (!outputCell.pickableResource) {
+                            const sector = GameUtils.getSector(sectorCoords)!;
+                            const visual = utils.createObject(sector.layers.resources, resource.type);
+                            visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+                            meshes.load(`/models/resources/${resource.type}.glb`).then(([mesh]) => visual.add(mesh));                            
+                            outputCell.pickableResource = {
+                                type: resource.type,
+                                visual
+                            };
+                            state.outputSlot = (state.outputSlot + 1) % size.x;
 
-                        if (resource.amount === 0) {
-                            resources.clear(cell);
-                            if (state.currentCell < state.cells.length - 1) {
-                                state.currentCell++;
-                            } else {
-                                // mine is depleted
-                            }                            
-                        }                        
+                            resource.amount -= 1;
+                            state.timer = 0;
+                            if (resource.amount === 0) {
+                                resources.clear(cell);
+                                if (state.currentCell < state.cells.length - 1) {
+                                    state.currentCell++;
+                                } else {
+                                    console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
+                                    state.active = false;
+                                }
+                            }      
+
+                        } else {
+                            console.log(`${resource.type} mine output is full`);
+                        }                  
+                    } else {
+                        state.timer += time.deltaTime;
                     }
                 }
                 break;

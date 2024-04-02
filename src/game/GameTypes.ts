@@ -36,6 +36,11 @@ export interface IResource {
     amount: number;
 }
 
+interface IPickableResource {
+    type: RawResourceType;    
+    visual: Object3D;
+}
+
 export interface ICell {
     id: string;
     flowFieldCost: number;    
@@ -48,6 +53,7 @@ export interface ICell {
     conveyor?: IConveyor;
     buildingId?: string;
     resource?: IResource;
+    pickableResource?: IPickableResource;
     rail?: {        
         axis: Axis;        
         tip: RailTip;

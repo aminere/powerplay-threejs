@@ -26,6 +26,7 @@ export interface IMineState {
     currentCell: number;
     timer: number;
     outputSlot: number;
+    active: boolean;
 }
 
 export interface IBuildingInstance {

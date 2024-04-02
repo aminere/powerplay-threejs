@@ -1,5 +1,4 @@
 import { Box2, Camera, Line3, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
-import { pools } from "../engine/core/Pools";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
@@ -27,6 +26,16 @@ const localCoords = new Vector2();
 const plane = new Plane();
 const triangle = new Triangle();
 const line = new Line3();
+const rayEnd = new Vector3();
+const v1 = new Vector3();
+const v2 = new Vector3();
+const v3 = new Vector3();
+const intersection = new Vector3();
+const normalizedPos = new Vector2();
+const neighborCoord = new Vector2();
+const min = new Vector2();
+const max = new Vector2();
+const worldPos = new Vector3();
 
 const { elevationStep, cellSize, mapRes } = config.game;
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
@@ -36,8 +45,6 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
         return -1;
     }
     let selectedVertexIndex = -1;
-    const [rayEnd, v1, v2, v3, intersection] = pools.vec3.get(5);
-    const normalizedPos = pools.vec2.getOne();
     const { width, height } = engine.screenRect;
     normalizedPos.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
     GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
@@ -77,7 +84,6 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
 }
 
 export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2, sectorCoordsOut?: Vector2) {
-    const intersection = pools.vec3.getOne();
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
@@ -180,7 +186,6 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
     }
 
     if (gameMapState.action === "rail") {
-        const neighborCoord = pools.vec2.getOne();
         for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
             neighborCoord.set(start.x + offset[0], start.y + offset[1]);
             const neighbor = GameUtils.getCell(neighborCoord);
@@ -359,7 +364,6 @@ export function createSector(coords: Vector2) {
     // update bounds
     const { mapRes, cellSize } = config.game;
     const mapSize = mapRes * cellSize;
-    const [min, max] = pools.vec2.get(2);
     min.set(sector.root.position.x, sector.root.position.z);
     max.set(min.x + mapSize, min.y + mapSize);
     const { bounds } = state;
@@ -401,7 +405,6 @@ export function createSectors(size: number) {
 
 function updateCameraBounds() {
     const state = GameMapState.instance;
-    const worldPos = pools.vec3.getOne();
     const [top, right, bottom, left] = state.cameraBounds;
     const mapBounds = state.bounds;
     GameUtils.worldToScreen(worldPos.set(mapBounds!.min.x, 0, mapBounds!.min.y), state.camera, top);
