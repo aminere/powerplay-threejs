@@ -7,12 +7,11 @@ import { IGameUIProps } from "./GameUIProps";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
-import { config } from "../config";
-import { IBuildingInstance } from "../GameTypes";
 import { cmdSetSelectedElems } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapProps } from "../components/GameMapProps";
+import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -33,8 +32,8 @@ export function GameMapUI(props: IGameUIProps) {
 
             if (newAction === "building") {
                 const buildingType = GameMapProps.instance.buildingType;
-                const building = config.buildings[buildingType];
-                gameMapState.tileSelector.setSize(building.size.x, building.size.z);
+                const size = buildingSizes[buildingType];
+                gameMapState.tileSelector.setSize(size.x, size.z);
             } else {
                 gameMapState.tileSelector.setSize(1, 1);
             }

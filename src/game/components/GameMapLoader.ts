@@ -7,8 +7,8 @@ import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
 import { config } from "../config";
-import { BuildingType, ResourceType } from "../GameDefinitions";
-import { buildings } from "../Buildings";
+import { RawResourceType } from "../GameDefinitions";
+import { buildings } from "../buildings/Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector, createSectors, updateCameraSize } from "../GameMapUtils";
 import { conveyors } from "../Conveyors";
@@ -26,6 +26,7 @@ import { EnvProps } from "./EnvProps";
 import { Trees } from "./Trees";
 import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
+import { BuildingType } from "../buildings/BuildingTypes";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -110,7 +111,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    resources.create(sectorInstance, localCoords, cellInstance, cell.resource as ResourceType);
+                    resources.create(sectorInstance, localCoords, cellInstance, cell.resource as RawResourceType);
                 }
 
                 if (cell.unitCount !== undefined) {                    
@@ -203,6 +204,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         fogOfWar.dispose();
 
         this.state.dispose();
+        GameUtils.clearCellCache();
     }    
 
     private onKeyDown(e: KeyboardEvent) {

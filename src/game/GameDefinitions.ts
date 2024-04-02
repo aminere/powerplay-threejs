@@ -26,12 +26,12 @@ export const MineralTypes = [
     "scandium",
 ] as const;
 
-export const ResourceTypes = [
+export const RawResourceTypes = [
     ...MineralTypes,
     "tree"
 ] as const;
 
-const IntermediateTypes = [
+export const ResourceTypes = [
     "rubber",
     "plastic",
     "steel",
@@ -40,21 +40,15 @@ const IntermediateTypes = [
     "truck-frame"
 ] as const;
 
-const ProductTypes = [
+export const ProductTypes = [
     "truck"
-] as const;
-
-export const BuildingTypes = [
-    "hq",
-    "mine",
-    "factory",
-    "assembly"
 ] as const;
 
 export type UIType = "gamemap";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
-export type ResourceType = typeof ResourceTypes[number];
+export type RawResourceType = typeof RawResourceTypes[number];
 export type MineralType = typeof MineralTypes[number];
-export type BuildingType = typeof BuildingTypes[number];
+export type ResourceType = typeof ResourceTypes[number];
+export type ProductType = typeof ProductTypes[number];
 

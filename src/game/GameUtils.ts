@@ -3,6 +3,7 @@ import { Camera, Vector2, Vector3, Raycaster, Plane, Line3 } from "three";
 import { config } from "./config";
 import { engine } from "../powerplay";
 import { GameMapState } from "./components/GameMapState";
+import { ICell } from "./GameTypes";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -14,6 +15,14 @@ const normalizedPos2d = new Vector2();
 const ground = new Plane();
 const line = new Line3();
 const rayEnd = new Vector3();
+
+type TCellCache = {
+    cell: ICell;
+    sectorCoords: Vector2;
+    localCoords: Vector2;
+};
+
+const cellCache = new Map<string, TCellCache>();
 
 export class GameUtils {
 
@@ -45,7 +54,19 @@ export class GameUtils {
         return mapCoordsOut;
     }
 
+    public static clearCellCache() {
+        cellCache.clear();
+    }
+    
     public static getCell(mapCoords: Vector2, sectorCoordsOut?: Vector2, localCoordsOut?: Vector2) {
+        const cacheKey = `${mapCoords.x},${mapCoords.y}`;
+        const cached = cellCache.get(cacheKey);
+        if (cached) {
+            sectorCoordsOut?.copy(cached.sectorCoords);
+            localCoordsOut?.copy(cached.localCoords);
+            return cached.cell;
+        }
+
         const { sectors } = GameMapState.instance;
         const sectorX = Math.floor(mapCoords.x / mapRes);
         const sectorY = Math.floor(mapCoords.y / mapRes);
@@ -59,7 +80,14 @@ export class GameUtils {
         const localX = mapCoords.x - sectorStartX;
         const localY = mapCoords.y - sectorStartY;
         localCoordsOut?.set(localX, localY);
-        return sector.cells[localY * mapRes + localX];
+
+        const cell = sector.cells[localY * mapRes + localX];
+        cellCache.set(cacheKey, { 
+            cell,
+            sectorCoords: new Vector2(sectorX, sectorY), 
+            localCoords: new Vector2(localX, localY)
+        });
+        return cell;
     }
 
     public static getSector(sectorCoords: Vector2) {

@@ -1,10 +1,11 @@
 import { Box2, Camera, DirectionalLight, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
-import { IBuildingInstance, ICell, ISector } from "../GameTypes";
+import { ICell, ISector } from "../GameTypes";
 import { TileSector } from "../TileSelector";
 import { Action } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config";
+import { IBuildingInstance } from "../buildings/BuildingTypes";
 
 const root = () => engine.scene!;
 

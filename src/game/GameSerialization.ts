@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 import { IConveyorConfig } from "./GameTypes";
-import { BuildingType } from "./GameDefinitions";
+import { BuildingType } from "./buildings/BuildingTypes";
 
 export interface ISerializedCell {
     index: number;

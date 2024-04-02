@@ -10,14 +10,14 @@ import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
 import { IUnit, UnitType } from "../unit/IUnit";
-import { IBuildingInstance } from "../GameTypes";
-import { buildings } from "../Buildings";
+import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
+import { IBuildingInstance } from "../buildings/BuildingTypes";
 
 const cellCoords = new Vector2();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -194,7 +194,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }
 
                             for (const [, building] of state.buildings) {
-                                inverseMatrix.copy(building.obj.matrixWorld).invert();
+                                inverseMatrix.copy(building.visual.matrixWorld).invert();
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
                                 const boundingBox = buildings.getBoundingBox(building.buildingType);
                                 if (localRay.intersectBox(boundingBox, intersection)) {

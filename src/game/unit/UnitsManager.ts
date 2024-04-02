@@ -15,10 +15,10 @@ import { engineState } from "../../engine/EngineState";
 import { computeUnitAddr } from "./UnitAddr";
 import { config } from "../config";
 import { MiningState } from "./MiningState";
-import { IBuildingInstance } from "../GameTypes";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { GameMapState } from "../components/GameMapState";
 import { IUnitProps, Unit } from "./Unit";
+import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 
 const unitNeighbors = new Array<IUnit>();
 const screenPos = new Vector3();
@@ -461,9 +461,9 @@ class UnitsManager {
         }
         spawnCoords.copy(spawnUnitRequest.mapCoords);
         const buildingType = spawnUnitRequest.buildingType;
-        const buildingSize = config.buildings[buildingType].size;
-        spawnCoords.x += buildingSize.x / 2;
-        spawnCoords.y += buildingSize.z;
+        const size = buildingSizes[buildingType];
+        spawnCoords.x += size.x / 2;
+        spawnCoords.y += size.z;
         this.spawn(spawnCoords);
         this._spawnUnitRequest = null;
     }

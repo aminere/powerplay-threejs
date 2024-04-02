@@ -1,8 +1,9 @@
-import { type TileType, TileTypes, type MineralType, MineralTypes, type BuildingType, BuildingTypes } from "../GameDefinitions";
+import { type TileType, TileTypes, type MineralType, MineralTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
 import { Vector2 } from "three";
+import { type BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 
 export class GameMapProps extends ComponentProps {
 

@@ -1,10 +1,10 @@
 import { MathUtils, Vector2 } from "three";
 import { config } from "./config";
-import { ICell, ISector } from "./GameTypes";
+import { ICell, IResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
 import { meshes } from "../engine/resources/Meshes";
 import { objects } from "../engine/resources/Objects";
-import { ResourceType } from "./GameDefinitions";
+import { RawResourceType } from "./GameDefinitions";
 
 const trees = [
     "palm.json",
@@ -15,8 +15,8 @@ const trees = [
 const { cellSize } = config.game;
 
 class Resources {
-    public create(sector: ISector, localCoords: Vector2, cell: ICell, type: ResourceType) {
-        const resource = utils.createObject(sector.layers.resources, type); 
+    public create(sector: ISector, localCoords: Vector2, cell: ICell, type: RawResourceType) {
+        const visual = utils.createObject(sector.layers.resources, type); 
         
         const fileName = (() => {
             if (type === "tree") {                
@@ -29,7 +29,7 @@ class Resources {
         if (fileName.endsWith(".json")) {
             objects.load(`/models/resources/${fileName}`)
                 .then((obj) => {
-                    resource.add(obj.clone());
+                    visual.add(obj.clone());
                 });
         } else {
             meshes.load(`/models/resources/${fileName}.glb`)
@@ -37,16 +37,23 @@ class Resources {
                     for (const _mesh of _meshes) {
                         const mesh = _mesh.clone();
                         mesh.castShadow = true;
-                        resource.add(mesh);
+                        visual.add(mesh);
                     }
                 });
         }
-        resource.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-        cell.resource = resource;
+        visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+
+        const resourceInstance: IResource = {
+            visual,
+            type,
+            amount: 100
+        };
+
+        cell.resource = resourceInstance;
     }
 
-    public clear(sector: ISector, cell: ICell) {
-        sector.layers.resources.remove(cell.resource!);
+    public clear(cell: ICell) {
+        cell.resource!.visual.removeFromParent();
         cell.resource = undefined;
     }
 }

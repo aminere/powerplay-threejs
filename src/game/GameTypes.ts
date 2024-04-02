@@ -2,17 +2,10 @@ import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
-import { BuildingType } from "./GameDefinitions";
+import { RawResourceType } from "./GameDefinitions";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
-
-export interface IBuildingInstance {
-    id: string;
-    buildingType: BuildingType;
-    obj: Object3D;
-    mapCoords: Vector2;
-}
 
 export interface IConveyor {
     visual: {
@@ -37,6 +30,12 @@ export interface IConveyorItem {
     localT: number;
 }
 
+export interface IResource {
+    visual: Object3D;
+    type: RawResourceType;
+    amount: number;
+}
+
 export interface ICell {
     id: string;
     flowFieldCost: number;    
@@ -48,7 +47,7 @@ export interface ICell {
     roadTile?: number;
     conveyor?: IConveyor;
     buildingId?: string;
-    resource?: Object3D;
+    resource?: IResource;
     rail?: {        
         axis: Axis;        
         tip: RailTip;

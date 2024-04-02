@@ -4,13 +4,13 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { Elevation } from "./Elevation";
-import { BuildingType, MineralType, TileType, TileTypes } from "./GameDefinitions";
+import { MineralType, TileType, TileTypes } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
 import { resources } from "./Resources";
 import { Sector } from "./Sector";
-import { buildings } from "./Buildings";
+import { buildings } from "./buildings/Buildings";
 import { conveyors } from "./Conveyors";
 import { engineState } from "../engine/EngineState";
 import { Car } from "./components/Car";
@@ -19,6 +19,7 @@ import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
 import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
+import { BuildingType, buildingSizes } from "./buildings/BuildingTypes";
 
 const { elevationStep, cellSize, mapRes } = config.game;
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
@@ -238,11 +239,11 @@ export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
 
 export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, buildingType: BuildingType) {
     if (button === 0) {
-        const building = config.buildings[buildingType];
+        const size = buildingSizes[buildingType];
         const allowed = (() => {
             const mapCoords = pools.vec2.getOne();
-            for (let i = 0; i < building.size.z; ++i) {
-                for (let j = 0; j < building.size.x; ++j) {
+            for (let i = 0; i < size.z; ++i) {
+                for (let j = 0; j < size.x; ++j) {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
                     const _cell = GameUtils.getCell(mapCoords);
                     if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
@@ -272,7 +273,7 @@ export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICe
         }
     } else if (button === 2) {
         if (cell.resource) {
-            resources.clear(sector, cell);
+            resources.clear(cell);
         }
     }
 }
@@ -286,7 +287,7 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
         }
     } else if (button === 2) {
         if (cell.resource) {
-            resources.clear(sector, cell);
+            resources.clear(cell);
         }
     }
 }

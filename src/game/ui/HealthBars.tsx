@@ -4,9 +4,9 @@ import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { IUnit } from "../unit/IUnit";
-import { IBuildingInstance } from "../GameTypes";
 import { config } from "../config";
 import { GameMapState } from "../components/GameMapState";
+import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -95,11 +95,11 @@ export function HealthBars() {
                     drawBar(ctx, worldPos, selectedUnits[i].health);
                 }
             } else if (selectedBuilding) {
-                const { obj, buildingType } = selectedBuilding;
-                const buildingConfig = config.buildings[buildingType];
-                worldPos.copy(obj.position).addScaledVector(obj.up, buildingConfig.size.y * cellSize);
-                worldPos.x += buildingConfig.size.x / 2 * cellSize;
-                worldPos.z += buildingConfig.size.z / 2 * cellSize;
+                const { visual, buildingType } = selectedBuilding;
+                const size = buildingSizes[buildingType];
+                worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
+                worldPos.x += size.x / 2 * cellSize;
+                worldPos.z += size.z / 2 * cellSize;
                 drawBar(ctx, worldPos, 1);
             } else if (selectedConveyor) {
                 GameUtils.mapToWorld(selectedConveyor, worldPos);
