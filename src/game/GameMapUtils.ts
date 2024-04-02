@@ -259,7 +259,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
                         if (!_cell) {
                             return false;
                         }
-                        if (_cell.resource) {
+                        if (_cell.resource && !_cell.buildingId) {
                             resourceCells++;
                         }
                     }

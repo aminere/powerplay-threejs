@@ -27,8 +27,18 @@ export class Cell implements ICell {
 
     public get buildingId() { return this._buildingId; }
     public set buildingId(value: string | undefined) { 
-        this._buildingId = value;
-        const empty = value === undefined;
+        this._buildingId = value;       
+
+        const empty = (() => {
+            if (this._buildingId) { 
+                return false;
+            } else if (this._resource) {
+                return false;
+            } else {
+                return true;
+            }
+        })();
+
         this._isEmpty = empty;
         this.setWalkable(empty);
     }

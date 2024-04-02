@@ -119,8 +119,18 @@ export function GameMapUI(props: IGameUIProps) {
         <div 
             ref={actionsElem} 
             className={styles.actions}
-            onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
-            onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
+            onPointerEnter={() => {
+                if (!GameMapState.instance) {
+                    return;
+                }
+                GameMapState.instance.cursorOverUI = true;
+            }}
+            onPointerLeave={() => {
+                if (!GameMapState.instance) {
+                    return;
+                }
+                GameMapState.instance.cursorOverUI = false
+            }}
         >
             {Actions.map(action => {
 

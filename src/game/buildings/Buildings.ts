@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, FrontSide, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
@@ -30,6 +30,9 @@ class Buildings {
         for (let i = 0; i < buildings.length; i++) {
             const [building] = buildings[i];
             building.castShadow = true;
+            building.receiveShadow = true;
+            const material = building.material as MeshStandardMaterial;
+            material.side = FrontSide;
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
             const boundingBox = new Box3().setFromObject(building);
@@ -138,18 +141,26 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
-
-                if (buildingType === "mine") {
-                    const state = instance.state as IMineState;
-                    for (const cellCoord of state.cells) {
-                        const resourceCell = GameUtils.getCell(cellCoord)!;
-                        const visual = resourceCell.resource!.visual!;
-                        console.assert(visual.visible === false);
-                        visual.visible = true;
-                    }
-                }
-
                 cell.buildingId = undefined;
+            }
+        }
+
+        if (buildingType === "mine") {
+            const state = instance.state as IMineState;
+            for (const cellCoord of state.cells) {
+                const resourceCell = GameUtils.getCell(cellCoord)!;
+                const visual = resourceCell.resource!.visual!;
+                console.assert(visual.visible === false);
+                visual.visible = true;
+            }
+
+            for (let x = 0; x < size.x; x++) {
+                cellCoords.set(instance.mapCoords.x + x, instance.mapCoords.y + size.z - 1);
+                const cell = GameUtils.getCell(cellCoords)!;
+                if (cell.pickableResource) {
+                    cell.pickableResource.visual.removeFromParent();
+                    cell.pickableResource = undefined;
+                }
             }
         }
 
@@ -168,10 +179,9 @@ class Buildings {
                         break;
                     }
                     
-                    if (state.timer >= miningFrequency) {                        
-                        const cellCoords = state.cells[state.currentCell];
-                        const cell = GameUtils.getCell(cellCoords)!;
-                        const resource = cell.resource!;                       
+                    if (state.timer >= miningFrequency) {
+                        const cell = GameUtils.getCell(state.cells[state.currentCell])!;
+                        const resource = cell.resource!;
                         
                         const size = buildingSizes[instance.buildingType];
                         cellCoords.set(instance.mapCoords.x + state.outputSlot, instance.mapCoords.y + size.z - 1);
@@ -186,7 +196,12 @@ class Buildings {
                             const sector = GameUtils.getSector(sectorCoords)!;
                             const visual = utils.createObject(sector.layers.resources, resource.type);
                             visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-                            meshes.load(`/models/resources/${resource.type}.glb`).then(([mesh]) => visual.add(mesh));                            
+                            meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
+                                const mesh = _mesh.clone();
+                                visual.add(mesh);
+                                mesh.position.y = 0.5;
+                                mesh.castShadow = true;
+                            });
                             outputCell.pickableResource = {
                                 type: resource.type,
                                 visual
@@ -206,7 +221,7 @@ class Buildings {
                             }      
 
                         } else {
-                            console.log(`${resource.type} mine output is full`);
+                            // mine output is full
                         }                  
                     } else {
                         state.timer += time.deltaTime;
