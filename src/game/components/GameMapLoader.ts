@@ -111,7 +111,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    resources.create(sectorInstance, localCoords, cellInstance, cell.resource as RawResourceType);
+                    resources.create(sectorInstance, localCoords, cellInstance, cell.resource);
                 }
 
                 if (cell.unitCount !== undefined) {                    

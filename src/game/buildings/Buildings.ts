@@ -44,11 +44,6 @@ class Buildings {
 
     public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
 
-        if (buildingType === "mine") {
-            console.log("Ignoring mine");
-            return;
-        }
-
         const { layers, buildings } = GameMapState.instance;
 
         const instanceId = `${this._instanceId}`;
@@ -69,8 +64,7 @@ class Buildings {
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                const cell = GameUtils.getCell(cellCoords)!;
-                cell.buildingId = instanceId;
+                const cell = GameUtils.getCell(cellCoords)!;                
                 if (cell.resource) {
                     resourceCells.push(cellCoords.clone());
                 }
@@ -83,23 +77,30 @@ class Buildings {
             visual,
             mapCoords,
             state: (() => {
-                // switch (buildingType) {
-                //     case "mine": {                       
-                //         console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
-                //         const mineState: IMineState = {
-                //             currentCell: 0,
-                //             timer: 0,
-                //             outputSlot: 0,
-                //             cells: resourceCells
-                //         };
-                //         return mineState;
-                //     }
-                // }
+                switch (buildingType) {
+                    case "mine": {
+                        console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
+                        const mineState: IMineState = {
+                            currentCell: 0,
+                            timer: 0,
+                            outputSlot: 0,
+                            cells: resourceCells
+                        };
+                        return mineState;
+                    }
+                }
                 return null;
             })()
         };
 
         buildings.set(instanceId, buildingInstance);
+        for (let i = 0; i < size.z; i++) {
+            for (let j = 0; j < size.x; j++) {
+                cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                const cell = GameUtils.getCell(cellCoords)!;
+                cell.buildingId = instanceId;                
+            }
+        }
 
         visual.position.set(
             sectorCoords.x * mapSize + localCoords.x * cellSize + sectorOffset, 

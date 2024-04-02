@@ -1,4 +1,4 @@
-import { Box2, Camera, OrthographicCamera, Vector2, Vector3 } from "three";
+import { Box2, Camera, Line3, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
 import { pools } from "../engine/core/Pools";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
@@ -21,6 +21,13 @@ import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
 import { BuildingType, buildingSizes } from "./buildings/BuildingTypes";
 
+const cellCoords = new Vector2();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
+const plane = new Plane();
+const triangle = new Triangle();
+const line = new Line3();
+
 const { elevationStep, cellSize, mapRes } = config.game;
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
     const { sectors } = GameMapState.instance;
@@ -29,9 +36,6 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
         return -1;
     }
     let selectedVertexIndex = -1;
-    const plane = pools.plane.getOne();
-    const triangle = pools.triangle.getOne();
-    const line = pools.line3.getOne();
     const [rayEnd, v1, v2, v3, intersection] = pools.vec3.get(5);
     const normalizedPos = pools.vec2.getOne();
     const { width, height } = engine.screenRect;
@@ -79,10 +83,10 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     }
     GameUtils.worldToMap(intersection, cellCoordsOut);
 
-    const sectorCoords = sectorCoordsOut ?? pools.vec2.getOne();
-    let cell = GameUtils.getCell(cellCoordsOut, sectorCoords);
-    let sectorX = sectorCoords.x;
-    let sectorY = sectorCoords.y;
+    const _sectorCoords = sectorCoordsOut ?? sectorCoords;
+    let cell = GameUtils.getCell(cellCoordsOut, _sectorCoords);
+    let sectorX = _sectorCoords.x;
+    let sectorY = _sectorCoords.y;
     let selectedVertexIndex = cell ? pickSectorTriangle(sectorX, sectorY, screenPos, camera) : -1;
 
     if (selectedVertexIndex < 0 && cell) {
@@ -127,7 +131,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
             sectorX * mapRes + selectedCell % mapRes,
             sectorY * mapRes + Math.floor(selectedCell / mapRes)
         );
-        sectorCoords.set(sectorX, sectorY);
+        _sectorCoords.set(sectorX, sectorY);
         cell = GameMapState.instance.sectors.get(`${sectorX},${sectorY}`)!.cells[selectedCell];
     }
 
@@ -241,16 +245,33 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
     if (button === 0) {
         const size = buildingSizes[buildingType];
         const allowed = (() => {
-            const mapCoords = pools.vec2.getOne();
-            for (let i = 0; i < size.z; ++i) {
-                for (let j = 0; j < size.x; ++j) {
-                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
-                    const _cell = GameUtils.getCell(mapCoords);
-                    if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
-                        return false;
+            if (buildingType === "mine") {
+                let resourceCells = 0;
+                for (let i = 0; i < size.z; ++i) {
+                    for (let j = 0; j < size.x; ++j) {
+                        cellCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
+                        const _cell = GameUtils.getCell(cellCoords);
+                        if (!_cell) {
+                            return false;
+                        }
+                        if (_cell.resource) {
+                            resourceCells++;
+                        }
                     }
                 }
-            }
+                return resourceCells > 0;
+
+            } else {                
+                for (let i = 0; i < size.z; ++i) {
+                    for (let j = 0; j < size.x; ++j) {
+                        cellCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
+                        const _cell = GameUtils.getCell(cellCoords);
+                        if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
+                            return false;
+                        }
+                    }
+                }
+            }            
             return true;
         })();
         if (allowed) {
@@ -293,7 +314,6 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
 }
 
 export function onTerrain(mapCoords: Vector2, tileType: TileType) {
-    const [sectorCoords, localCoords] = pools.vec2.get(2);
     GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
     const terrainTileIndex = TileTypes.indexOf(tileType);
     console.assert(terrainTileIndex >= 0);
@@ -401,7 +421,6 @@ export function onAction(touchButton: number) {
     const state = GameMapState.instance;
     const props = GameMapProps.instance;
 
-    const [sectorCoords, localCoords] = pools.vec2.get(2);
     const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
     if (!cell) {
         createSector(sectorCoords.clone());
