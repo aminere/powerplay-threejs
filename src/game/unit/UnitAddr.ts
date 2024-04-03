@@ -9,14 +9,25 @@ export interface IUnitAddr {
     localCoords: Vector2;
     sectorCoords: Vector2;
     cellIndex: number;
-    sector?: ISector;
+    sector: ISector;
+}
+
+export function makeUnitAddr() {
+    const addr: IUnitAddr = {
+        mapCoords: new Vector2(),
+        localCoords: new Vector2(),
+        sectorCoords: new Vector2(),
+        cellIndex: 0,
+        sector: null!,
+    };
+    return addr;
 }
 
 const { mapRes } = config.game;
 export function computeUnitAddr(mapCoords: Vector2, addrOut: IUnitAddr) {
     addrOut.mapCoords.copy(mapCoords);
-    GameUtils.getCell(mapCoords, addrOut.sectorCoords, addrOut.localCoords);
-    addrOut.sector = GameMapState.instance.sectors.get(`${addrOut.sectorCoords.x},${addrOut.sectorCoords.y}`);
+    GameUtils.getCell(mapCoords, addrOut.sectorCoords, addrOut.localCoords)!;
+    addrOut.sector = GameMapState.instance.sectors.get(`${addrOut.sectorCoords.x},${addrOut.sectorCoords.y}`)!;
     addrOut.cellIndex = addrOut.localCoords.y * mapRes + addrOut.localCoords.x;
 }
 

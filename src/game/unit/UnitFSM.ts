@@ -4,9 +4,10 @@ import { IUnit } from "./IUnit";
 
 export class UnitFSM extends StateMachine<IUnit> {
     public switchState(state: Constructor<State<IUnit>> | null) {        
-        super.switchState(state);
+        const newState = super.switchState(state);
         const isIdle = state === null;
         this._owner.isIdle = isIdle;        
+        return newState;
     }
 }
 

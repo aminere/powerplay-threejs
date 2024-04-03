@@ -1,4 +1,4 @@
-import { Quaternion, SkinnedMesh, Vector2, Vector3 } from "three"
+import { Quaternion, SkinnedMesh, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { IUnit, IUnitAnim, IUnitFlowfieldInfo, UnitType } from "./IUnit";
@@ -7,7 +7,7 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
-import { IUnitAddr, computeUnitAddr } from "./UnitAddr";
+import { computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { unitAnimation } from "./UnitAnimation";
 import { cmdFogRemoveCircle } from "../../Events";
 
@@ -90,19 +90,9 @@ export class Unit implements IUnit {
     private _velocity = new Vector3();
     private _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
-    private _targetCell: IUnitAddr = {
-        mapCoords: new Vector2(),
-        localCoords: new Vector2(),
-        sectorCoords: new Vector2(),
-        cellIndex: 0
-    };
+    private _targetCell = makeUnitAddr();
     private _obj: SkinnedMesh;    
-    private _coords: IUnitAddr = {
-        mapCoords: new Vector2(),
-        localCoords: new Vector2(),
-        sectorCoords: new Vector2(),
-        cellIndex: 0
-    };
+    private _coords = makeUnitAddr();
     private _motionId = 0;
     private _lastCompletedMotionId = 0;
     private _isColliding = false;

@@ -130,8 +130,7 @@ class UnitMotion {
         }
         const flowfields = flowField.compute(destMapCoords, sectors)!;
         console.assert(flowfields);
-        const resource = destCell.resource?.type;
-        const nextState = resource ? MiningState : null;
+        const nextState = destCell.resource ? MiningState : null;
         let unitCount = 0;
         let motionId: number | null = null;
         for (const unit of units) {

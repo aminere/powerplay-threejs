@@ -328,10 +328,6 @@ class UnitsManager {
 
                         const dx = nextMapCoords.x - unit.coords.mapCoords.x;
                         const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                        const { localCoords } = unit.coords;
-                        localCoords.x += dx;
-                        localCoords.y += dy;
-
                         cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
 
                         const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
@@ -344,7 +340,11 @@ class UnitsManager {
                         } else {
                             nextCell.units = [unit];
                         }
-
+                        
+                        // update unit coords
+                        const { localCoords } = unit.coords;
+                        localCoords.x += dx;
+                        localCoords.y += dy;
                         if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                             // entered a new sector
                             computeUnitAddr(nextMapCoords, unit.coords);

@@ -35,6 +35,7 @@ export class StateMachine<T> {
         this._currentState?.exit(this._owner);
         this._currentState = newState;
         newState?.enter(this._owner);
+        return newState;
     }
 
     public getState<U>(state: Constructor<U>) {
