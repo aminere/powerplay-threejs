@@ -158,13 +158,13 @@ class UnitMotion {
 
         if (motionId !== null) {
             console.assert(unitCount > 0);
-            flowField.setMotionUnitCount(motionId, unitCount);            
+            flowField.setMotionUnitCount(motionId, unitCount);
         }
 
-        if (GameMapProps.instance.debugFlowFields) {
-            for (const sector of GameMapState.instance.sectors.values()) {
-                sector.flowfieldViewer.visible = false;
-            }
+        for (const sector of GameMapState.instance.sectors.values()) {
+            sector.flowfieldViewer.visible = false;
+        }
+        if (GameMapProps.instance.debugFlowFields) {            
             for (const sectorCoords of sectors) {
                 const sector = GameUtils.getSector(sectorCoords)!;
                 sector.flowfieldViewer.update(flowfields, sector, sectorCoords);

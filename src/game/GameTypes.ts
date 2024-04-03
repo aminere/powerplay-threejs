@@ -2,7 +2,7 @@ import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
-import { RawResourceType } from "./GameDefinitions";
+import { RawResourceType, ResourceType } from "./GameDefinitions";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
@@ -37,7 +37,7 @@ export interface IResource {
 }
 
 interface IPickableResource {
-    type: RawResourceType;    
+    type: RawResourceType | ResourceType;    
     visual: Object3D;
 }
 

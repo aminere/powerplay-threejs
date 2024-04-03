@@ -28,7 +28,7 @@ export const MineralTypes = [
 
 export const RawResourceTypes = [
     ...MineralTypes,
-    "tree"
+    "wood"
 ] as const;
 
 export const ResourceTypes = [

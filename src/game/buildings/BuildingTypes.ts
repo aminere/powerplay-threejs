@@ -14,6 +14,11 @@ export type BuildingType = typeof BuildingTypes[number];
 export interface IFactoryState {
     input: RawResourceType | ResourceType;
     output: ResourceType;
+
+    active: boolean;
+    inputFull: boolean;
+    outputFull: boolean;
+    timer: number;
 }
 
 export interface IAssemblyState {
@@ -27,14 +32,18 @@ export interface IMineState {
     timer: number;
     outputSlot: number;
     active: boolean;
+    outputFull: boolean;
+    depleted: boolean;
 }
+
+export type TBuildingState = IFactoryState | IAssemblyState | IMineState;
 
 export interface IBuildingInstance {
     id: string;
     buildingType: BuildingType;    
     visual: Object3D;
     mapCoords: Vector2;
-    state: IFactoryState | IAssemblyState | IMineState | null;
+    state: TBuildingState | null;
 }
 
 export const buildingSizes: Record<BuildingType, Vector3> = {
