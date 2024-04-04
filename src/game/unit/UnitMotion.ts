@@ -109,7 +109,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
 class UnitMotion {
 
-    public npcMove(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
+    public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
         const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords);
         if (!sectors) {
             console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
@@ -122,7 +122,7 @@ class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public move(units: IUnit[], destMapCoords: Vector2, destCell: ICell) {
+    public moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell) {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);

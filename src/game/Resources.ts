@@ -19,7 +19,7 @@ class Resources {
         const visual = utils.createObject(sector.layers.resources, type); 
         
         const fileName = (() => {
-            if (type === "tree") {                
+            if (type === "wood") {                
                 return trees[MathUtils.randInt(0, trees.length - 1)];
             } else {
                 return type;

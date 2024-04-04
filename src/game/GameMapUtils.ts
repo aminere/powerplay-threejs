@@ -309,7 +309,7 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         if (cell.isEmpty) {
-            resources.create(sector, localCoords, cell, "tree");
+            resources.create(sector, localCoords, cell, "wood");
         }
     } else if (button === 2) {
         if (cell.resource) {

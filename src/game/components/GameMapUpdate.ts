@@ -262,7 +262,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }, {} as Record<string, IUnit[]>);
 
                             for (const units of Object.values(groups)) {
-                                unitMotion.move(units, targetCellCoords, targetCell);
+                                unitMotion.moveGroup(units, targetCellCoords, targetCell);
                             }
                         }
                     }

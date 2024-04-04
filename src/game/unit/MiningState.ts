@@ -1,19 +1,21 @@
 import { State } from "../fsm/StateMachine";
 import { IUnit } from "./IUnit";
-import { Object3D, Vector2 } from "three";
-import { pools } from "../../engine/core/Pools";
+import { Vector2 } from "three";
 import { time } from "../../engine/core/Time";
 import { unitAnimation } from "./UnitAnimation";
 import { copyUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { unitMotion } from "./UnitMotion";
+import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 import { GameMapState } from "../components/GameMapState";
-import { GameUtils } from "../GameUtils";
 
 enum MiningStep {
     GoToResource,
     Mine,
-    GoToBase,
+    GoToFactory,
 }
+
+const buildingCenter = new Vector2();
+const inputSlot = new Vector2();
 
 export class MiningState extends State<IUnit> {
 
@@ -23,8 +25,9 @@ export class MiningState extends State<IUnit> {
     private _miningTimer!: number;
     private _targetResource = makeUnitAddr();
     private _potentialTarget = new Vector2(-1, -1);
+    private _closestFactory: IBuildingInstance | null = null;
 
-    override enter(unit: IUnit) {        
+    override enter(unit: IUnit) {
         this._step = MiningStep.GoToResource;
         copyUnitAddr(unit.targetCell, this._targetResource);
         this._potentialTarget.set(-1, -1);
@@ -37,71 +40,72 @@ export class MiningState extends State<IUnit> {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (isTarget) {
                     if (unit.motionId > 0) {
-                        unitMotion.onUnitArrived(unit);    
+                        unitMotion.onUnitArrived(unit);
                     }
                     unit.collidable = false;
                     this._step = MiningStep.Mine;
-                    this._miningTimer = 1;                    
-                    unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });                    
+                    this._miningTimer = 1;
+                    unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
                 }
             }
-                break;
+                break;            
 
-            // case MiningStep.GoToBase: {
-            //     const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
-            //     if (isTarget) {
-            //         if (unit.motionId > 0) {
-            //             unitMotion.onUnitArrived(unit);    
-            //         }
-            //         this._step = MiningStep.GoToResource;                    
-            //         // TODO
-            //         // unitUtils.moveTo(unit, this._targetResource.mapCoords);
-            //     }
-            // }
-            //     break;
+            case MiningStep.GoToFactory: {
+                const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
+                if (isTarget) {
+                    console.log("MiningState: Arrived at factory");
+                    if (unit.motionId > 0) {
+                        unitMotion.onUnitArrived(unit);
+                    }
+                    this._step = MiningStep.GoToResource;
+                    unitMotion.moveUnit(unit, this._targetResource.mapCoords);
+                }
+            }
+            break;
 
-            case MiningStep.Mine:
+            case MiningStep.Mine: {
                 this._miningTimer -= time.deltaTime;
                 if (this._miningTimer < 0) {
 
-                    // TODO
-                    // const cell = GameUtils.getCell(unit.targetCell.mapCoords);
+                    const factorySize = buildingSizes["factory"];
+                    if (!this._closestFactory) {
+                        // TODO search in a spiral pattern across sectors
+                        // requires that buildings are stored in sectors instead of a global map
+                        const { buildings } = GameMapState.instance;
+                        let distToClosestBuilding = 999999;
+                        
+                        for (const [, instance] of buildings) {
+                            if (instance.buildingType !== "factory") {
+                                continue;
+                            }
+                            buildingCenter.set(
+                                Math.round(instance.mapCoords.x + factorySize.x / 2),
+                                Math.round(instance.mapCoords.y + factorySize.z / 2)
+                            );
+                            const dist = buildingCenter.distanceTo(unit.coords.mapCoords);
+                            if (dist < distToClosestBuilding) {
+                                distToClosestBuilding = dist;
+                                this._closestFactory = instance;
+                                inputSlot.set(
+                                    this._closestFactory.mapCoords.x,
+                                    this._closestFactory.mapCoords.y + factorySize.z - 1
+                                );
+                            }
+                        }
+                    }
 
-                    // const { layers } = GameMapState.instance;
-                    // let distToClosestBuilding = 999999;
-                    // let closestBuilding: Object3D | null = null;
-                    // const worldPos = pools.vec3.getOne();
-                    // for (const building of layers.buildings.children) {
-                    //     building.getWorldPosition(worldPos);
-                    //     const dist = worldPos.distanceTo(unit.obj.position);
-                    //     if (dist < distToClosestBuilding) {
-                    //         distToClosestBuilding = dist;
-                    //         closestBuilding = building;
-                    //     }
-                    // }
-                    // if (!closestBuilding) {
-                    //     // TODO scan other sectors
-                    //     console.assert(false, "No building found");
-                    // } else {
-
-                    //     console.assert(false, "Not implemented");
-                    //     // closestBuilding.getWorldPosition(worldPos);
-                    //     // const targetBuilding = pools.vec2.getOne();
-                    //     // GameUtils.worldToMap(worldPos, targetBuilding);
-                    //     // if (flowField.compute(targetBuilding)) {
-                    //     //     unitUtils.moveTo(unit, targetBuilding, false);
-                    //     //     unitUtils.setAnimation(unit, "run", {
-                    //     //         transitionDuration: .3,
-                    //     //         scheduleCommonAnim: true
-                    //     //     });
-                    //     // } else {
-                    //     //     console.assert(false, "No path found");
-                    //     // }
-                    // }
-                    // this._step = MiningStep.GoToBase;
+                    if (this._closestFactory) {                        
+                        unitMotion.moveUnit(unit, inputSlot, false);
+                        unitAnimation.setAnimation(unit, "run", {
+                            transitionDuration: .3,
+                            scheduleCommonAnim: true
+                        });
+                        this._step = MiningStep.GoToFactory;
+                        console.log(`MiningState: Moving to factory at ${inputSlot.x}, ${inputSlot.y}`);
+                    }
                 }
                 break;
-
+            }
         }
     }
 }

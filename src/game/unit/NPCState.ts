@@ -100,7 +100,7 @@ export class NPCState extends State<IUnit> {
     private follow(unit: IUnit, target: IUnit) {
         switch (this._step) {
             case NpcStep.Attack: {
-                unitMotion.npcMove(unit, target.coords.mapCoords, false);
+                unitMotion.moveUnit(unit, target.coords.mapCoords, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
@@ -109,7 +109,7 @@ export class NPCState extends State<IUnit> {
                 break;
 
             default:
-                unitMotion.npcMove(unit, target.coords.mapCoords);
+                unitMotion.moveUnit(unit, target.coords.mapCoords);
                 break;
         }
         this._step = NpcStep.Follow;
