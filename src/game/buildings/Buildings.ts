@@ -10,6 +10,7 @@ import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
+import gsap from "gsap";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -293,16 +294,18 @@ class Buildings {
                             const inputCell = getCellFromAddr(state.inputCell);
                             if (inputCell.nonPickableResource && !outputCell.pickableResource) {
                                 state.state = FactoryState.inserting;
-                                console.log("inserting resource..");
+                                const visual = inputCell.nonPickableResource.visual;
+                                gsap.to(visual.position, {
+                                    z: visual.position.z - cellSize,
+                                    duration: .5,
+                                    onComplete: () => {
+                                        state.state = FactoryState.processing;
+                                        state.timer = 0;
+                                        inputCell.nonPickableResource?.visual.removeFromParent();
+                                        inputCell.nonPickableResource = undefined;
+                                    }
+                                });
                             }
-                        }
-                            break;
-
-                        case FactoryState.inserting: {
-                            // state.state = FactoryState.processing;
-                            // state.timer = 0;
-                            // state.inputFull = false;
-                            // console.log(`Factory ${instance.mapCoords.x}, ${instance.mapCoords.y} started production of ${state.output}`);
                         }
                             break;
 
@@ -310,9 +313,9 @@ class Buildings {
                             const productionTime = 2;
                             if (state.timer >= productionTime) {
                                 // production done
-                                const { sector, localCoords, cellIndex } = state.outputCell;
-                                const _outputCell = sector.cells[cellIndex];
-                                console.assert(!_outputCell.pickableResource);
+                                const { sector, localCoords } = state.outputCell;
+                                const outputCell = getCellFromAddr(state.outputCell);
+                                console.assert(!outputCell.pickableResource);
                                 const visual = utils.createObject(sector.layers.resources, state.output);
                                 visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
@@ -321,7 +324,7 @@ class Buildings {
                                     mesh.position.y = 0.5;
                                     mesh.castShadow = true;
                                 });
-                                _outputCell.pickableResource = {
+                                outputCell.pickableResource = {
                                     type: state.output,
                                     visual
                                 };
