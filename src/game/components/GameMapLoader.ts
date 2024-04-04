@@ -2,7 +2,7 @@
 import { Euler, MathUtils, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { ISerializedGameMap } from "../GameSerialization";
+import { ISerializedFactory, ISerializedGameMap } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
@@ -140,10 +140,19 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             unitsManager.spawn(mapCoords);
         }
 
-        for (const [buildingType, mapCoordsList] of Object.entries(data.buildings)) {
-            for (const mapCoords of mapCoordsList) {
-                GameUtils.getCell(mapCoords, sectorCoords, localCoords);
-                buildings.create(buildingType as BuildingType, sectorCoords, localCoords);
+        for (const [buildingType, instances] of Object.entries(data.buildings)) {
+            for (const instance of instances) {
+                GameUtils.getCell(instance.mapCoords, sectorCoords, localCoords);
+                switch (buildingType) {
+                    case "factory": {
+                        const factory = instance as ISerializedFactory;
+                        buildings.createFactory(sectorCoords, localCoords, factory.input, factory.output);
+                    }
+                        break;
+
+                    default:
+                        buildings.create(buildingType as BuildingType, sectorCoords, localCoords);
+                }
             }
         }
     }

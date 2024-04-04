@@ -5,12 +5,13 @@ import { pools } from "../../engine/core/Pools";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
-import { BuildingType, BuildingTypes, FactoryState, IBuildingInstance, IFactoryState, IMineState, TBuildingState, buildingSizes } from "./BuildingTypes";
+import { BuildingType, BuildingTypes, FactoryState, IBuildingInstance, IFactoryState, IMineState, buildingSizes } from "./BuildingTypes";
 import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
 import gsap from "gsap";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -48,6 +49,32 @@ class Buildings {
         return this._buildings.get(buildingType)!.boundingBox;
     }
 
+    public createFactory(sectorCoords: Vector2, localCoords: Vector2, input: RawResourceType | ResourceType, output: ResourceType) {
+
+        const instance = this.create("factory", sectorCoords, localCoords);
+
+        const { mapCoords } = instance;
+        const size = buildingSizes["factory"];
+        cellCoords.set(mapCoords.x + size.x - 1, mapCoords.y + size.z - 1);
+        const outputCell = makeUnitAddr();
+        computeUnitAddr(cellCoords, outputCell);
+
+        cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
+        const inputCell = makeUnitAddr();
+        computeUnitAddr(cellCoords, inputCell);
+
+        const factoryState: IFactoryState = {
+            input,
+            output,
+            state: FactoryState.idle,
+            inputCell,
+            outputCell,
+            timer: 0
+        };
+
+        instance.state = factoryState;
+    }    
+
     public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
 
         const { layers, buildings } = GameMapState.instance;
@@ -67,62 +94,44 @@ class Buildings {
         const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
         const size = buildingSizes[buildingType];
 
-        let buildingState: TBuildingState | null = null;
-        switch (buildingType) {
-            case "mine": {
-                const resourceCells = new Array<Vector2>();
-                for (let i = 0; i < size.z; i++) {
-                    for (let j = 0; j < size.x; j++) {
-                        cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                        const cell = GameUtils.getCell(cellCoords)!;
-                        if (cell.resource) {
-                            resourceCells.push(cellCoords.clone());
-                            cell.resource.visual.visible = false;
+        const buildingState = (() => {
+            switch (buildingType) {
+                case "mine": {
+                    const resourceCells = new Array<Vector2>();
+                    for (let i = 0; i < size.z; i++) {
+                        for (let j = 0; j < size.x; j++) {
+                            cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                            const cell = GameUtils.getCell(cellCoords)!;
+                            if (cell.resource) {
+                                resourceCells.push(cellCoords.clone());
+                                cell.resource.visual.visible = false;
+                            }
                         }
                     }
+    
+                    console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
+                    const outputCells = [...Array(size.x)].map((_, i) => {
+                        cellCoords.set(mapCoords.x + i, mapCoords.y + size.z - 1);
+                        const outputCell = makeUnitAddr();
+                        computeUnitAddr(cellCoords, outputCell);
+                        return outputCell;
+                    });
+                    const mineState: IMineState = {
+                        cells: resourceCells,
+                        active: true,
+                        depleted: false,
+                        currentResource: 0,
+                        outputSlot: 0,
+                        outputCells,
+                        timer: 0
+                    };
+                    return mineState;
                 }
 
-                console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
-                const outputCells = [...Array(size.x)].map((_, i) => {
-                    cellCoords.set(mapCoords.x + i, mapCoords.y + size.z - 1);
-                    const outputCell = makeUnitAddr();
-                    computeUnitAddr(cellCoords, outputCell);
-                    return outputCell;
-                });
-                const mineState: IMineState = {
-                    cells: resourceCells,
-                    active: true,
-                    depleted: false,
-                    currentResource: 0,
-                    outputSlot: 0,
-                    outputCells,
-                    timer: 0
-                };
-                buildingState = mineState;
+                default:
+                    return null;
             }
-                break;
-
-            case "factory": {
-                cellCoords.set(mapCoords.x + size.x - 1, mapCoords.y + size.z - 1);
-                const outputCell = makeUnitAddr();
-                computeUnitAddr(cellCoords, outputCell);
-
-                cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
-                const inputCell = makeUnitAddr();
-                computeUnitAddr(cellCoords, inputCell);
-
-                const factoryState: IFactoryState = {
-                    input: "aluminium",
-                    output: "steel",
-                    state: FactoryState.idle,
-                    inputCell,
-                    outputCell,
-                    timer: 0
-                };
-                buildingState = factoryState;
-            }
-                break;
-        }
+        })();        
 
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
@@ -152,6 +161,7 @@ class Buildings {
 
         cellCoords.set(mapCoords.x + Math.round(size.x / 2), mapCoords.y + Math.round(size.z / 2));
         cmdFogAddCircle.post({ mapCoords: cellCoords, radius: 20 });
+        return buildingInstance;
     }
 
     public clear(instanceId: string) {
@@ -294,10 +304,11 @@ class Buildings {
                             const inputCell = getCellFromAddr(state.inputCell);
                             if (inputCell.nonPickableResource && !outputCell.pickableResource) {
                                 state.state = FactoryState.inserting;
-                                const visual = inputCell.nonPickableResource.visual;
+                                const visual = inputCell.nonPickableResource.visual;                                
                                 gsap.to(visual.position, {
                                     z: visual.position.z - cellSize,
-                                    duration: .5,
+                                    duration: 1,
+                                    delay: .5,
                                     onComplete: () => {
                                         state.state = FactoryState.processing;
                                         state.timer = 0;

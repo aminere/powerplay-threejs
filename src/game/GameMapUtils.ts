@@ -18,7 +18,7 @@ import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
 import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
-import { BuildingType, buildingSizes } from "./buildings/BuildingTypes";
+import { buildingSizes } from "./buildings/BuildingTypes";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -226,7 +226,7 @@ export function onCancelDrag() {
     gameMapState.previousConveyors.length = 0;
 }
 
-export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
+function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
     if (button === 0) {
         Elevation.elevate(mapCoords, sectorCoords, localCoords, 1, radius);
     } else if (button === 2) {
@@ -234,7 +234,7 @@ export function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoor
     }
 }
 
-export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
+function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
         if (cell.isEmpty) {
             roads.create(mapCoords);
@@ -246,7 +246,10 @@ export function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     }
 }
 
-export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, buildingType: BuildingType) {
+function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+    const props = GameMapProps.instance;
+    const { buildingType } = props;
+
     if (button === 0) {
         const size = buildingSizes[buildingType];
         const allowed = (() => {
@@ -280,7 +283,15 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
             return true;
         })();
         if (allowed) {
-            buildings.create(buildingType, sectorCoords, localCoords);
+            switch (buildingType) {
+                case "factory": {
+                    buildings.createFactory(sectorCoords, localCoords, props.factoryInput, props.factoryOutput);
+                }
+                break;
+                default: {
+                    buildings.create(buildingType, sectorCoords, localCoords);
+                }
+            }            
         }
 
     } else if (button === 2) {
@@ -290,7 +301,7 @@ export function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: IC
     }
 }
 
-export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: MineralType) {
+function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: MineralType) {
     const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
@@ -304,7 +315,7 @@ export function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICe
     }
 }
 
-export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
+function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
     const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
@@ -318,7 +329,7 @@ export function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell,
     }
 }
 
-export function onTerrain(mapCoords: Vector2, tileType: TileType) {
+function onTerrain(mapCoords: Vector2, tileType: TileType) {
     GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
     const terrainTileIndex = TileTypes.indexOf(tileType);
     console.assert(terrainTileIndex >= 0);
@@ -329,7 +340,7 @@ export function onTerrain(mapCoords: Vector2, tileType: TileType) {
     Sector.updateCellTexture(sector, localCoords, tileIndex);
 }
 
-export function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
+function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {
         if (cell.isEmpty) {
             conveyors.createAndFit(cell, mapCoords);
@@ -448,7 +459,7 @@ export function onAction(touchButton: number) {
                 break;
 
             case "building": {
-                onBuilding(sectorCoords, localCoords, cell, touchButton, props.buildingType);
+                onBuilding(sectorCoords, localCoords, cell, touchButton);
             }
                 break;
 
