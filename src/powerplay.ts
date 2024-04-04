@@ -22,7 +22,7 @@ export { GameMapState } from "./game/components/GameMapState";
 export { createSectors } from "./game/GameMapUtils";
 
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation, ISerializedFactory, TSerializedBuilding } from "./game/GameSerialization";
-export type { IFactoryState } from "./game/buildings/BuildingTypes";
+export type { IFactoryState, IBuildingInstance } from "./game/buildings/BuildingTypes";
 
 export { Animator } from "./engine/components/Animator";
 
