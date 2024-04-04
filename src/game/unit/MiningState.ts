@@ -48,7 +48,7 @@ export class MiningState extends State<IUnit> {
                     unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
                 }
             }
-                break;            
+                break;
 
             case MiningStep.GoToFactory: {
                 const isTarget = unit.targetCell.mapCoords.equals(this._potentialTarget);
@@ -61,7 +61,7 @@ export class MiningState extends State<IUnit> {
                     unitMotion.moveUnit(unit, this._targetResource.mapCoords);
                 }
             }
-            break;
+                break;
 
             case MiningStep.Mine: {
                 this._miningTimer -= time.deltaTime;
@@ -73,7 +73,7 @@ export class MiningState extends State<IUnit> {
                         // requires that buildings are stored in sectors instead of a global map
                         const { buildings } = GameMapState.instance;
                         let distToClosestBuilding = 999999;
-                        
+
                         for (const [, instance] of buildings) {
                             if (instance.buildingType !== "factory") {
                                 continue;
@@ -94,7 +94,7 @@ export class MiningState extends State<IUnit> {
                         }
                     }
 
-                    if (this._closestFactory) {                        
+                    if (this._closestFactory) {
                         unitMotion.moveUnit(unit, inputSlot, false);
                         unitAnimation.setAnimation(unit, "run", {
                             transitionDuration: .3,
