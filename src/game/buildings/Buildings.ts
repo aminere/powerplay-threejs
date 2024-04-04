@@ -115,7 +115,8 @@ class Buildings {
             buildingType,
             visual,
             mapCoords,
-            state: buildingState
+            state: buildingState,
+            deleted: false
         };
 
         buildings.set(instanceId, buildingInstance);
@@ -143,6 +144,7 @@ class Buildings {
         const { buildings } = GameMapState.instance;
         const instance = buildings.get(instanceId)!;
         buildings.delete(instanceId);
+        instance.deleted = true;
         instance.visual.removeFromParent();
 
         const mapCoords = pools.vec2.getOne();
@@ -157,6 +159,7 @@ class Buildings {
         }
 
         if (buildingType === "mine") {
+            // restore resources under the mine
             const state = instance.state as IMineState;
             for (const cellCoord of state.cells) {
                 const resourceCell = GameUtils.getCell(cellCoord)!;
@@ -165,6 +168,7 @@ class Buildings {
                 visual.visible = true;
             }
 
+            // destroy any resources that were mined but not picked up
             for (let x = 0; x < size.x; x++) {
                 cellCoords.set(instance.mapCoords.x + x, instance.mapCoords.y + size.z - 1);
                 const cell = GameUtils.getCell(cellCoords)!;

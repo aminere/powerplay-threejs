@@ -46,7 +46,8 @@ class Resources {
         const resourceInstance: IResource = {
             visual,
             type,
-            amount: 100
+            amount: 100,
+            closestFactory: null
         };
 
         cell.resource = resourceInstance;

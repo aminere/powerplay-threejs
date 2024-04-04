@@ -44,6 +44,7 @@ export interface IBuildingInstance {
     visual: Object3D;
     mapCoords: Vector2;
     state: TBuildingState | null;
+    deleted: boolean;
 }
 
 export const buildingSizes: Record<BuildingType, Vector3> = {
