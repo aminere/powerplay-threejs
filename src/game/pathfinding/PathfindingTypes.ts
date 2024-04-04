@@ -15,8 +15,8 @@ export interface PathfindingNode<T> {
 }
 
 export interface IPathfindingContext<T> {
-    evaluated: Array<PathfindingNode<T>>;
-    toEvaluate: Array<PathfindingNode<T>>;
+    evaluated: Map<string, boolean>;
+    toEvaluate: Map<string, PathfindingNode<T>>;
     start: Vector2;
     end: Vector2;
     getCell: (coords: Vector2) => T | null;

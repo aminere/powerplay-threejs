@@ -3,21 +3,30 @@ import { GameUtils } from "../GameUtils";
 import { IPathfindingContext, IPathfindingOptions, NeighborCheckStatus, PathfindingNode } from "./PathfindingTypes";
 import { ICell } from "../GameTypes";
 import { astar } from "./AStar";
-import { utils } from "../../engine/Utils";
 
 type TNode = PathfindingNode<ICell>;
+const maxIterations = 2048;
 
 class CellPathfinder {
 
-    private _toEvaluate = new Array<TNode>();
-    private _evaluated = new Array<TNode>();
+    private _toEvaluate = new Map<string, TNode>();
+    private _evaluated = new Map<string, boolean>();
+
+    private _context: IPathfindingContext<ICell> = {
+        evaluated: this._evaluated,
+        toEvaluate: this._toEvaluate,
+        start: new Vector2(),
+        end: new Vector2(),
+        getCell: GameUtils.getCell,
+        isWalkable: cell => cell.isWalkable
+    };
 
     public findPath(startCell: Vector2, endCell: Vector2, options?: IPathfindingOptions<ICell>) {        
 
         const toEvaluate = this._toEvaluate;
         const evaluated = this._evaluated;
-        toEvaluate.length = 0;
-        evaluated.length = 0;
+        toEvaluate.clear();
+        evaluated.clear();
 
         const startNode: TNode = {
             coords: new Vector2().copy(startCell),
@@ -26,46 +35,41 @@ class CellPathfinder {
             parent: null,
             cell: GameUtils.getCell(startCell)!
         };
-        toEvaluate.push(startNode);
+        toEvaluate.set(`${startCell.x},${startCell.y}`, startNode);
 
-        const context: IPathfindingContext<ICell> = {
-            evaluated,
-            toEvaluate,
-            start: new Vector2().copy(startCell),
-            end: new Vector2().copy(endCell),
-            getCell: GameUtils.getCell,
-            isWalkable: cell => cell.isWalkable
-        };
+        const context = this._context;
+        context.start.copy(startCell);
+        context.end.copy(endCell);
 
         let iteration = 0;
-        const maxIterations = 2048;
         while (true) {
-            let nodeWithLowestFCost = -1;
-            let lowestFCost = Infinity;            
-            for (let i = 0; i < toEvaluate.length; ++i) {
-                const node = toEvaluate[i];
+            let nodeWithLowestFCost: string | null = null;
+            let lowestFCost = Infinity;      
+            
+            for (const [id, node] of toEvaluate) {
                 const fcost = node.gcost + node.hcost;
                 if (fcost < lowestFCost) {
-                    nodeWithLowestFCost = i;
+                    nodeWithLowestFCost = id;
                     lowestFCost = fcost;
                 } else if (fcost === lowestFCost) {
-                    if (node.hcost < toEvaluate[nodeWithLowestFCost].hcost) {
-                        nodeWithLowestFCost = i;                        
+                    const lowestNode = toEvaluate.get(nodeWithLowestFCost!)!;
+                    if (node.hcost < lowestNode.hcost) {
+                        nodeWithLowestFCost = id;                        
                     }
                 }
             }
 
-            if (nodeWithLowestFCost < 0) {
+            if (nodeWithLowestFCost === null) {
                 return null;
             }
 
-            const currentNode = toEvaluate[nodeWithLowestFCost];
+            const currentNode = toEvaluate.get(nodeWithLowestFCost)!;
             if (currentNode.coords.equals(context.end)) {
                 return astar.makePath(currentNode);                
             }
 
-            evaluated.push(currentNode);
-            utils.fastDelete(toEvaluate, nodeWithLowestFCost);
+            evaluated.set(nodeWithLowestFCost, true);
+            toEvaluate.delete(nodeWithLowestFCost!);
 
             const leftStatus = astar.checkNeighbor(context, currentNode, -1, 0, options);
             const rightStatus = astar.checkNeighbor(context, currentNode, 1, 0, options);

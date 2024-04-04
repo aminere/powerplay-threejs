@@ -273,8 +273,8 @@ class UnitsManager {
                     // move away from blocked cell
                     awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
                     unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * steerAmount * .1;
-                    unit.desiredPos.z += awayDirection.y * steerAmount * .1;
+                    unit.desiredPos.x += awayDirection.x * steerAmount * .5;
+                    unit.desiredPos.z += awayDirection.y * steerAmount * .5;
                     GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
                 }
             }

@@ -47,7 +47,6 @@ class Resources {
             visual,
             type,
             amount: 100,
-            closestFactory: null
         };
 
         cell.resource = resourceInstance;

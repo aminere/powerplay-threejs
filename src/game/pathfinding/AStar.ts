@@ -12,7 +12,8 @@ class AStar {
     ) {
         mapCoords.set(node.coords.x + dx, node.coords.y + dy);
     
-        if (context.evaluated.find(n => n.coords.equals(mapCoords))) {
+        const id = `${mapCoords.x},${mapCoords.y}`;
+        if (context.evaluated.has(id)) {
             return NeighborCheckStatus.AlreadyEvaluated;
         }
     
@@ -33,15 +34,16 @@ class AStar {
     
         const neighborGCost = node.gcost + (options?.getCost?.(node.coords, mapCoords) ?? 1);
         const neighborHCost = mapCoords.distanceTo(context.end);
-        const visited = context.toEvaluate.find(n => n.coords.equals(mapCoords));
+        const visited = context.toEvaluate.get(id);
         if (!visited) {
-            context.toEvaluate.push({
+            const currentNode: PathfindingNode<T> = {
                 coords: mapCoords.clone(),
                 gcost: neighborGCost,
                 hcost: neighborHCost,
                 parent: node,
                 cell
-            });
+            };
+            context.toEvaluate.set(id, currentNode);
         } else if (visited.gcost > neighborGCost) {
             visited.gcost = neighborGCost;
             visited.hcost = neighborHCost;

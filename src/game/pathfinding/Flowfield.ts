@@ -1,7 +1,6 @@
 import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
-import { pools } from "../../engine/core/Pools";
 
 export type TFlowField = {
     integration: number;
@@ -46,6 +45,9 @@ const directionPalette = [
     new Vector2(0, 1).normalize(),
     new Vector2(1, 1).normalize()
 ];
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
+const currentCoords = new Vector2();
 
 export type TFlowFieldMap = Map<string, TFlowField[]>;
 type TFlowfieldMotion = {
@@ -60,8 +62,7 @@ class FlowField {
 
     public compute(targetCoords: Vector2, sectors: Vector2[]) {
 
-        const [currentSectorCoords, currentLocalCoords] = pools.vec2.get(2);
-        const cell = GameUtils.getCell(targetCoords, currentSectorCoords, currentLocalCoords);
+        const cell = GameUtils.getCell(targetCoords, sectorCoords, localCoords);
         if (!cell) {
             return null;
         }       
@@ -73,8 +74,8 @@ class FlowField {
             flowfields.set(`${sectorCoords.x},${sectorCoords.y}`, flowField);
         }
         
-        const currentFlowfield = flowfields.get(`${currentSectorCoords.x},${currentSectorCoords.y}`)!;
-        const cellIndex = currentLocalCoords.y * mapRes + currentLocalCoords.x;
+        const currentFlowfield = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
         currentFlowfield[cellIndex].integration = 0;
 
         openList.clear();
@@ -84,15 +85,14 @@ class FlowField {
         visitedCells.set(targetCellId, true);
 
         let processedCells = 0;
-        const [currentCoords, neighborCoords, neighborSectorCoords, neighborLocalCoords] = pools.vec2.get(4);
         while (openList.size > 0) {
             const currentCoordsStr = shiftSet(openList)!;
             const [x, y] = currentCoordsStr.split(",").map(Number);
             currentCoords.set(x, y);
-            const currentCell = GameUtils.getCell(currentCoords, currentSectorCoords, currentLocalCoords);
+            const currentCell = GameUtils.getCell(currentCoords, sectorCoords, localCoords);
             console.assert(currentCell);
-            const flowField = flowfields.get(`${currentSectorCoords.x},${currentSectorCoords.y}`)!;
-            const currentIndex = currentLocalCoords.y * mapRes + currentLocalCoords.x;
+            const flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+            const currentIndex = localCoords.y * mapRes + localCoords.x;
 
             for (const [dx, dy] of gridNeighbors) {
                 neighborCoords.set(currentCoords.x + dx, currentCoords.y + dy);
@@ -143,7 +143,6 @@ class FlowField {
         visitedCells.set(targetCellId, true);
 
         let processedCells = 0;
-        const [currentCoords, neighborCoords] = pools.vec2.get(2);
         while (openList.size > 0) {
             const currentCoordsStr = shiftSet(openList)!;
             const [x, y] = currentCoordsStr.split(",").map(Number);
