@@ -124,7 +124,7 @@ class FlowField {
             }            
         }
 
-        console.log(`processed cells: ${processedCells}`);
+        // console.log(`processed cells: ${processedCells}`);
         return flowfields;
     }
 
@@ -331,7 +331,7 @@ class FlowField {
         if (motion.unitCount === 0) {
             this._motions.delete(motionId);
         }    
-        console.log(`remaining motions: ${this._motions.size}`);
+        // console.log(`remaining motions: ${this._motions.size}`);
     }
 }
 
