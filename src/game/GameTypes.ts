@@ -30,13 +30,13 @@ export interface IConveyorItem {
     localT: number;
 }
 
-export interface IResource {
+export interface IRawResource {
     visual: Object3D;
     type: RawResourceType;
     amount: number;
 }
 
-interface IPickableResource {
+interface IResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
 }
@@ -52,8 +52,9 @@ export interface ICell {
     roadTile?: number;
     conveyor?: IConveyor;
     buildingId?: string;
-    resource?: IResource;
-    pickableResource?: IPickableResource;
+    resource?: IRawResource;
+    pickableResource?: IResource;
+    nonPickableResource?: IResource;
     rail?: {        
         axis: Axis;        
         tip: RailTip;

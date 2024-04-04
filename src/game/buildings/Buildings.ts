@@ -5,17 +5,16 @@ import { pools } from "../../engine/core/Pools";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
-import { BuildingType, BuildingTypes, IBuildingInstance, IFactoryState, IMineState, TBuildingState, buildingSizes } from "./BuildingTypes";
+import { BuildingType, BuildingTypes, FactoryState, IBuildingInstance, IFactoryState, IMineState, TBuildingState, buildingSizes } from "./BuildingTypes";
 import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
+import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
-const sectorCoords = new Vector2();
-const localCoords = new Vector2();
 
 class Buildings {
 
@@ -55,18 +54,18 @@ class Buildings {
         const instanceId = `${this._instanceId}`;
         this._instanceId++;
 
-        const { prefab, boundingBox }  = this._buildings.get(buildingType)!;
+        const { prefab, boundingBox } = this._buildings.get(buildingType)!;
         const visual = prefab.clone();
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
-        
+
         const box3Helper = new Box3Helper(boundingBox);
         visual.add(box3Helper);
         box3Helper.visible = false;
 
         const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
         const size = buildingSizes[buildingType];
-        
+
         let buildingState: TBuildingState | null = null;
         switch (buildingType) {
             case "mine": {
@@ -74,40 +73,54 @@ class Buildings {
                 for (let i = 0; i < size.z; i++) {
                     for (let j = 0; j < size.x; j++) {
                         cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                        const cell = GameUtils.getCell(cellCoords)!;                
+                        const cell = GameUtils.getCell(cellCoords)!;
                         if (cell.resource) {
                             resourceCells.push(cellCoords.clone());
                             cell.resource.visual.visible = false;
                         }
                     }
                 }
-    
+
                 console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
+                const outputCells = [...Array(size.x)].map((_, i) => {
+                    cellCoords.set(mapCoords.x + i, mapCoords.y + size.z - 1);
+                    const outputCell = makeUnitAddr();
+                    computeUnitAddr(cellCoords, outputCell);
+                    return outputCell;
+                });
                 const mineState: IMineState = {
-                    currentCell: 0,
-                    timer: 0,
-                    outputSlot: 0,
                     cells: resourceCells,
                     active: true,
-                    outputFull: false,
-                    depleted: false
+                    depleted: false,
+                    currentResource: 0,
+                    outputSlot: 0,
+                    outputCells,
+                    timer: 0
                 };
                 buildingState = mineState;
             }
-            break;
+                break;
 
             case "factory": {
+                cellCoords.set(mapCoords.x + size.x - 1, mapCoords.y + size.z - 1);
+                const outputCell = makeUnitAddr();
+                computeUnitAddr(cellCoords, outputCell);
+
+                cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
+                const inputCell = makeUnitAddr();
+                computeUnitAddr(cellCoords, inputCell);
+
                 const factoryState: IFactoryState = {
                     input: "aluminium",
                     output: "steel",
-                    active: false,
-                    inputFull: false,
-                    outputFull: false,
+                    state: FactoryState.idle,
+                    inputCell,
+                    outputCell,
                     timer: 0
-                };                
+                };
                 buildingState = factoryState;
             }
-            break;
+                break;
         }
 
         const buildingInstance: IBuildingInstance = {
@@ -124,18 +137,18 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords)!;
-                cell.buildingId = instanceId;                
+                cell.buildingId = instanceId;
             }
         }
 
         visual.position.set(
-            sectorCoords.x * mapSize + localCoords.x * cellSize + sectorOffset, 
+            sectorCoords.x * mapSize + localCoords.x * cellSize + sectorOffset,
             0,
             sectorCoords.y * mapSize + localCoords.y * cellSize + sectorOffset
         );
 
-        layers.buildings.add(visual);        
-        
+        layers.buildings.add(visual);
+
         cellCoords.set(mapCoords.x + Math.round(size.x / 2), mapCoords.y + Math.round(size.z / 2));
         cmdFogAddCircle.post({ mapCoords: cellCoords, radius: 20 });
     }
@@ -183,43 +196,61 @@ class Buildings {
         cmdFogRemoveCircle.post({ mapCoords, radius: 20 });
     }
 
-    public update() {        
+    public update() {
         const { buildings } = GameMapState.instance;
-        for (const instance of buildings.values()) {            
+        for (const instance of buildings.values()) {
             switch (instance.buildingType) {
-                case "mine": {                    
+                case "mine": {
                     const miningFrequency = 2;
-                    const state = instance.state as IMineState;                    
+                    const state = instance.state as IMineState;
                     if (state.depleted) {
                         break;
                     }
-                    
+
                     if (!state.active) {
-                        if (!state.outputFull) {
+
+                        let outputFull = true;
+                        for (let i = 0; i < state.outputCells.length; i++) {
+                            const addr = state.outputCells[i];
+                            const outputCell = getCellFromAddr(addr);
+                            if (!outputCell.pickableResource) {
+                                outputFull = false;
+                                state.outputSlot = i;
+                                break;
+                            }
+                        }
+                        
+                        if (!outputFull) {
                             state.active = true;
                             state.timer = 0;
                         }
+
                     } else {
+
                         if (state.timer >= miningFrequency) {
-                            const cell = GameUtils.getCell(state.cells[state.currentCell])!;
-                            const resource = cell.resource!;
-                            
-                            const size = buildingSizes[instance.buildingType];
-                            cellCoords.set(instance.mapCoords.x + state.outputSlot, instance.mapCoords.y + size.z - 1);
-                            let outputCell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
+                            const cell = GameUtils.getCell(state.cells[state.currentResource])!;
+                            const resource = cell.resource!;                            
+
+                            let outputCell = getCellFromAddr(state.outputCells[state.outputSlot]);
                             if (outputCell.pickableResource) {
+
                                 // slot full, find next empty slot
-                                state.outputSlot = (state.outputSlot + 1) % size.x;
-                                cellCoords.set(instance.mapCoords.x + state.outputSlot, instance.mapCoords.y + size.z - 1);
-                                outputCell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
+                                const startingSlot = state.outputSlot;
+                                state.outputSlot = (state.outputSlot + 1) % state.outputCells.length;
+                                while (startingSlot !== state.outputSlot) {
+                                    outputCell = getCellFromAddr(state.outputCells[state.outputSlot]);
+                                    if (!outputCell.pickableResource) {
+                                        break;
+                                    }
+                                    state.outputSlot = (state.outputSlot + 1) % state.outputCells.length;
+                                }                                
                             }
-    
+
                             if (outputCell.pickableResource) {
-                                state.outputFull = true;
                                 state.active = false;
-    
+
                             } else {
-                                const sector = GameUtils.getSector(sectorCoords)!;
+                                const { sector, localCoords } = state.outputCells[state.outputSlot];
                                 const visual = utils.createObject(sector.layers.resources, resource.type);
                                 visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
@@ -232,51 +263,56 @@ class Buildings {
                                     type: resource.type,
                                     visual
                                 };
-                                state.outputSlot = (state.outputSlot + 1) % size.x;
-    
+                                state.outputSlot = (state.outputSlot + 1) % state.outputCells.length;
+
                                 resource.amount -= 1;
                                 state.timer = 0;
                                 if (resource.amount === 0) {
                                     resources.clear(cell);
-                                    if (state.currentCell < state.cells.length - 1) {
-                                        state.currentCell++;
+                                    if (state.currentResource < state.cells.length - 1) {
+                                        state.currentResource++;
                                     } else {
                                         console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
                                         state.depleted = true;
                                     }
-                                }      
-                                
-                            }                  
+                                }
+
+                            }
                         } else {
                             state.timer += time.deltaTime;
                         }
-                    }                    
+                    }
                 }
-                break;
+                    break;
 
                 case "factory": {
                     const state = instance.state as IFactoryState;
-                    if (!state.active) {
-                        if (state.inputFull && !state.outputFull) {
-                            state.active = true;
-                            state.timer = 0;
-                            state.inputFull = false;
-                            console.log(`Factory ${instance.mapCoords.x}, ${instance.mapCoords.y} started production of ${state.output}`);
-                        }     
-                    } else {
-                        const productionTime = 2;
-                        if (state.timer >= productionTime) {
-                            // production done
-                            const size = buildingSizes[instance.buildingType];
-                            cellCoords.set(instance.mapCoords.x + size.x - 1, instance.mapCoords.y + size.z - 1);
-                            const outputCell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
+                    switch (state.state) {
+                        case FactoryState.idle: {                            
+                            const outputCell = getCellFromAddr(state.outputCell);
+                            const inputCell = getCellFromAddr(state.inputCell);
+                            if (inputCell.nonPickableResource && !outputCell.pickableResource) {
+                                state.state = FactoryState.inserting;
+                                console.log("inserting resource..");
+                            }
+                        }
+                            break;
 
-                            if (outputCell.pickableResource) {
-                                state.outputFull = true;
-                                state.active = false;
+                        case FactoryState.inserting: {
+                            // state.state = FactoryState.processing;
+                            // state.timer = 0;
+                            // state.inputFull = false;
+                            // console.log(`Factory ${instance.mapCoords.x}, ${instance.mapCoords.y} started production of ${state.output}`);
+                        }
+                            break;
 
-                            } else {
-                                const sector = GameUtils.getSector(sectorCoords)!;
+                        case FactoryState.processing: {
+                            const productionTime = 2;
+                            if (state.timer >= productionTime) {
+                                // production done
+                                const { sector, localCoords, cellIndex } = state.outputCell;
+                                const _outputCell = sector.cells[cellIndex];
+                                console.assert(!_outputCell.pickableResource);
                                 const visual = utils.createObject(sector.layers.resources, state.output);
                                 visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
@@ -285,20 +321,20 @@ class Buildings {
                                     mesh.position.y = 0.5;
                                     mesh.castShadow = true;
                                 });
-                                outputCell.pickableResource = {
+                                _outputCell.pickableResource = {
                                     type: state.output,
                                     visual
                                 };
-                                
-                                state.active = false;
-                            }
+                                state.state = FactoryState.idle;
 
-                        } else {
-                            state.timer += time.deltaTime;
+                            } else {
+                                state.timer += time.deltaTime;
+                            }
                         }
-                    }                   
+                            break;
+                    }
                 }
-                break;
+                    break;
             }
         }
     }

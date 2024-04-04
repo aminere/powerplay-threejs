@@ -38,3 +38,8 @@ export function copyUnitAddr(src: IUnitAddr, dest: IUnitAddr) {
     dest.cellIndex = src.cellIndex;
     dest.sector = src.sector;
 }
+
+export function getCellFromAddr(addr: IUnitAddr) {
+    return addr.sector.cells[addr.cellIndex];
+}
+

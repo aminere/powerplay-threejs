@@ -1,4 +1,4 @@
-import { Axis, ICell, IConveyor, IResource, RailTip } from "./GameTypes";
+import { Axis, ICell, IConveyor, IRawResource, RailTip } from "./GameTypes";
 import { Object3D, Vector2, Vector3 } from "three";
 import { IUnit } from "./unit/IUnit";
 
@@ -44,7 +44,7 @@ export class Cell implements ICell {
     }
 
     public get resource() { return this._resource; }
-    public set resource(value: IResource | undefined) {
+    public set resource(value: IRawResource | undefined) {
         this._resource = value;
         const empty = value === undefined;
         this._isEmpty = empty;
@@ -81,7 +81,7 @@ export class Cell implements ICell {
     private _isWalkable = true;
     private _flowFieldCost = 1;
     private _buildingId: string | undefined = undefined;
-    private _resource: IResource | undefined = undefined;
+    private _resource: IRawResource | undefined = undefined;
     private _conveyor: IConveyor | undefined = undefined;
     private _roadTile: number | undefined = undefined;
     private _units: IUnit[] | undefined = undefined;    
