@@ -86,6 +86,181 @@ function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDes
     otherDesiredPos.sub(toTarget);
 };
 
+function updateUnits(units: IUnit[]) {
+    const props = FlockProps.instance;
+    const { repulsion, positionDamp } = props;
+    const separationDist = props.separation;
+    const steerAmount = props.speed * time.deltaTime;
+    const avoidanceSteerAmount = props.avoidanceSpeed * time.deltaTime;
+
+    for (let i = 0; i < units.length; ++i) {
+        const unit = units[i];
+        if (!unit.isAlive) {
+            continue;
+        }
+
+        unit.fsm.update();
+
+        const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
+        const neighbors = getUnitNeighbors(unit);
+        for (const neighbor of neighbors) {
+
+            const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
+            if (!(unit.collidable && neighbor.collidable)) {
+                continue;
+            }
+
+            const dist = otherDesiredPos.distanceTo(desiredPos);
+            if (dist < separationDist) {
+                unit.isColliding = true;
+                neighbor.isColliding = true;
+                const moveAmount = Math.min((separationDist - dist), avoidanceSteerAmount);
+                if (neighbor.motionId > 0) {
+                    if (unit.motionId > 0) {
+                        moveAwayFromEachOther(moveAmount, desiredPos, otherDesiredPos);
+
+                    } else {
+                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        desiredPos.add(toTarget);
+                    }
+                } else {
+                    if (unit.motionId > 0) {
+                        toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        otherDesiredPos.add(toTarget);
+
+                        // if other unit was part of my motion, stop
+                        if (neighbor.lastCompletedMotionId === unit.motionId) {
+                            onUnitArrived(unit);
+                        }
+
+                    } else {
+                        moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
+                    }
+                }
+            }
+        }
+
+        unit.desiredPosValid = false;
+        const needsMotion = unit.motionId > 0 || unit.isColliding;
+        let avoidedCell = false;
+
+        if (needsMotion) {
+            GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+            const newCell = GameUtils.getCell(nextMapCoords);
+            const walkableCell = newCell !== null && newCell.isWalkable;
+            if (!walkableCell) {
+                avoidedCell = true;
+                avoidedCellCoords.copy(nextMapCoords);
+
+                // move away from blocked cell
+                awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
+                unit.desiredPos.copy(unit.obj.position);
+                unit.desiredPos.x += awayDirection.x * steerAmount * .5;
+                unit.desiredPos.z += awayDirection.y * steerAmount * .5;
+                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+            }
+        }
+
+        if (avoidedCell) {
+            const miningState = unit.fsm.getState(MiningState);
+            if (miningState) {
+                miningState.potentialTarget = avoidedCellCoords;
+            }
+        }
+
+        let hasMoved = false;
+        if (needsMotion) {
+            if (unit.motionId > 0) {
+                if (avoidedCell) {
+                    nextPos.copy(unit.obj.position);
+                    mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
+                } else {
+                    nextPos.copy(unit.desiredPos);
+                }
+                hasMoved = true;
+            } else if (unit.isColliding) {
+                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+                if (collisionAnim) {
+                    collisionAnim.reset();
+                } else {
+                    engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
+                }
+            }
+        }
+
+        unit.isColliding = false;
+        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+        if (collisionAnim) {
+            console.assert(unit.motionId === 0);
+            nextPos.copy(unit.obj.position);
+            mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
+            hasMoved = true;
+        }
+
+        if (hasMoved) {
+            GameUtils.worldToMap(nextPos, nextMapCoords);
+            if (nextMapCoords.equals(unit.coords.mapCoords)) {
+                unitMotion.updateRotation(unit, unit.obj.position, nextPos);
+                unit.obj.position.copy(nextPos);
+                if (!unit.fsm.currentState) {
+                    if (unit.arriving) {
+                        if (unit.velocity.length() < 0.01) {
+                            onUnitArrived(unit);
+                        }
+                    }
+                }
+
+            } else {
+
+                // moved to a new cell
+                const nextCell = GameUtils.getCell(nextMapCoords);
+                const validCell = nextCell !== null && nextCell.isWalkable;
+                if (validCell) {
+                    unitMotion.updateRotation(unit, unit.obj.position, nextPos);
+                    unit.obj.position.copy(nextPos);
+
+                    const dx = nextMapCoords.x - unit.coords.mapCoords.x;
+                    const dy = nextMapCoords.y - unit.coords.mapCoords.y;
+                    cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+
+                    const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
+                    const unitIndex = currentCell.units!.indexOf(unit);
+                    console.assert(unitIndex >= 0);
+                    utils.fastDelete(currentCell.units!, unitIndex);
+                    if (nextCell.units) {
+                        console.assert(!nextCell.units.includes(unit));
+                        nextCell.units.push(unit);
+                    } else {
+                        nextCell.units = [unit];
+                    }
+
+                    // update unit coords
+                    const { localCoords } = unit.coords;
+                    localCoords.x += dx;
+                    localCoords.y += dy;
+                    if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
+                        // entered a new sector
+                        computeUnitAddr(nextMapCoords, unit.coords);
+                    } else {
+                        unit.coords.mapCoords.copy(nextMapCoords);
+                        unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                    }
+
+                    if (unit.motionId > 0) {
+                        if (!unit.fsm.currentState) {
+                            const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                            if (reachedTarget) {
+                                unit.arriving = true;
+                                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 class UnitsManager {
 
     public get units() { return this._units; }
@@ -110,7 +285,8 @@ class UnitsManager {
                 { name: "idle" },
                 { name: "walk" },
                 { name: "run" },
-                { name: "carry" }
+                { name: "carry-idle" },
+                { name: "carry-run" }
             ],
         });
 
@@ -121,7 +297,7 @@ class UnitsManager {
         skeletonManager.dispose();
         skeletonPool.dispose();
         this._units.length = 0;
-        this._selectedUnits.length = 0;    
+        this._selectedUnits.length = 0;
         this._dragStarted = false;
         this._spawnUnitRequest = null;
     }
@@ -165,11 +341,11 @@ class UnitsManager {
                                         this._selectedUnits.push(unit);
                                     }
                                 }
-        
+
                                 cmdSetSelectedElems.post({ units: this._selectedUnits });
-        
+
                             } else {
-        
+
                                 if (!gameMapState.action) {
                                     const dx = input.touchPos.x - this._selectionStart.x;
                                     const dy = input.touchPos.y - this._selectionStart.y;
@@ -180,206 +356,22 @@ class UnitsManager {
                                         cmdStartSelection.post(this._selectionStart);
                                     }
                                 }
-        
+
                             }
                         }
                     }
-                }                
+                }
             }
 
         } else if (input.touchJustReleased) {
-
             if (this._dragStarted) {
                 this._dragStarted = false;
             }
-        }        
-
-        const props = FlockProps.instance;
-        const { repulsion } = props;
-        const units = this._units;
-        const separationDist = props.separation;
-        const steerAmount = props.speed * time.deltaTime;
-        const avoidanceSteerAmount = props.avoidanceSpeed * time.deltaTime;
+        }       
 
         skeletonPool.update();
-        this.handleSpawnRequests();        
-
-        // steering & collision avoidance
-        for (let i = 0; i < units.length; ++i) {
-            const unit = units[i];
-            if (!unit.isAlive) {
-                continue;
-            }
-
-            const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
-            const neighbors = getUnitNeighbors(unit);
-            for (const neighbor of neighbors) {
-
-                const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
-                if (!(unit.collidable && neighbor.collidable)) {
-                    continue;
-                }
-
-                const dist = otherDesiredPos.distanceTo(desiredPos);
-                if (dist < separationDist) {
-                    unit.isColliding = true;
-                    neighbor.isColliding = true;
-                    const moveAmount = Math.min((separationDist - dist), avoidanceSteerAmount);
-                    if (neighbor.motionId > 0) {
-                        if (unit.motionId > 0) {
-                            moveAwayFromEachOther(moveAmount, desiredPos, otherDesiredPos);
-
-                        } else {
-                            toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            desiredPos.add(toTarget);
-                        }
-                    } else {
-                        if (unit.motionId > 0) {
-                            toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                            otherDesiredPos.add(toTarget);
-
-                            // if other unit was part of my motion, stop
-                            if (neighbor.lastCompletedMotionId === unit.motionId) {
-                                onUnitArrived(unit);
-                            }
-
-                        } else {
-                            moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
-                        }
-                    }
-                }
-            }
-        }
-
-        const { positionDamp } = props;
-
-        for (let i = 0; i < units.length; ++i) {
-            const unit = units[i];
-            if (!unit.isAlive) {
-                continue;
-            }
-
-            unit.desiredPosValid = false;
-            const needsMotion = unit.motionId > 0 || unit.isColliding;
-            let avoidedCell = false;
-
-            if (needsMotion) {
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                const newCell = GameUtils.getCell(nextMapCoords);
-                const walkableCell = newCell !== null && newCell.isWalkable;
-                if (!walkableCell) {
-                    avoidedCell = true;
-                    avoidedCellCoords.copy(nextMapCoords);
-
-                    // move away from blocked cell
-                    awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                    unit.desiredPos.copy(unit.obj.position);
-                    unit.desiredPos.x += awayDirection.x * steerAmount * .5;
-                    unit.desiredPos.z += awayDirection.y * steerAmount * .5;
-                    GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-                }
-            }
-
-            if (avoidedCell) {
-                const miningState = unit.fsm.getState(MiningState);
-                if (miningState) {
-                    miningState.potentialTarget = avoidedCellCoords;
-                }
-            }
-
-            unit.fsm.update();
-
-            let hasMoved = false;
-            if (needsMotion) {
-                if (unit.motionId > 0) {
-                    if (avoidedCell) {
-                        nextPos.copy(unit.obj.position);
-                        mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
-                    } else {
-                        nextPos.copy(unit.desiredPos);
-                    }
-                    hasMoved = true;
-                } else if (unit.isColliding) {
-                    const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                    if (collisionAnim) {
-                        collisionAnim.reset();
-                    } else {
-                        engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
-                    }
-                }
-            }
-
-            unit.isColliding = false;
-            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-            if (collisionAnim) {
-                console.assert(unit.motionId === 0);
-                nextPos.copy(unit.obj.position);
-                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
-                hasMoved = true;
-            }
-
-            if (hasMoved) {
-                GameUtils.worldToMap(nextPos, nextMapCoords);
-                if (!nextMapCoords.equals(unit.coords.mapCoords)) {
-                    const nextCell = GameUtils.getCell(nextMapCoords);
-                    const validCell = nextCell !== null && nextCell.isWalkable;
-                    if (validCell) {
-                        unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                        unit.obj.position.copy(nextPos);
-
-                        const dx = nextMapCoords.x - unit.coords.mapCoords.x;
-                        const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
-
-                        const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
-                        const unitIndex = currentCell.units!.indexOf(unit);
-                        console.assert(unitIndex >= 0);
-                        utils.fastDelete(currentCell.units!, unitIndex);
-                        if (nextCell.units) {
-                            console.assert(!nextCell.units.includes(unit));
-                            nextCell.units.push(unit);
-                        } else {
-                            nextCell.units = [unit];
-                        }
-                        
-                        // update unit coords
-                        const { localCoords } = unit.coords;
-                        localCoords.x += dx;
-                        localCoords.y += dy;
-                        if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
-                            // entered a new sector
-                            computeUnitAddr(nextMapCoords, unit.coords);
-                        } else {
-                            unit.coords.mapCoords.copy(nextMapCoords);
-                            unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                        }
-
-                        if (unit.motionId > 0) {
-                            if (!unit.fsm.currentState) {
-                                const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                                if (reachedTarget) {
-                                    unit.arriving = true;
-                                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-                                }
-                            }
-                        }
-                    }
-
-                } else {
-                    unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                    unit.obj.position.copy(nextPos);
-
-                    if (!unit.fsm.currentState) {
-                        if (unit.arriving) {
-                            if (unit.velocity.length() < 0.01) {
-                                onUnitArrived(unit);
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
+        this.handleSpawnRequests();
+        updateUnits(this._units);        
     }
 
     public createUnit(props: IUnitProps) {
@@ -395,7 +387,6 @@ class UnitsManager {
         obj.add(box3Helper);
         box3Helper.visible = false;
         return unit;
-
         // const createNpc = (pos: Vector3) => {
         //     const npcModel = SkeletonUtils.clone(npcObj);
         //     const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
