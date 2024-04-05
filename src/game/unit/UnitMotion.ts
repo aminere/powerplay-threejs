@@ -128,6 +128,12 @@ class UnitMotion {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
             return;
         }
+
+        if (destCell.pickableResource) {
+            console.log(`TODO pickable resource found`);
+            return;
+        }
+
         const flowfields = flowField.compute(destMapCoords, sectors)!;
         console.assert(flowfields);
         const nextState = destCell.resource ? MiningState : null;

@@ -250,6 +250,13 @@ export function updateUnits(units: IUnit[]) {
                 }
             }
         }
+
+        if (unit.resource) {
+            // TODO
+            // const visual = unit.resource.visual;                        
+            // const localToSkeleton = multiplyMatrices(skeleton spine2, offset);
+            // const world = multiplyMatrices(unit.world, localToSkeleton);
+        }
     }
 }
 

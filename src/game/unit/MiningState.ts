@@ -12,6 +12,7 @@ import { utils } from "../../engine/Utils";
 import { config } from "../config";
 import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType } from "../GameDefinitions";
+import { engine } from "../../engine/Engine";
 
 enum MiningStep {
     GoToResource,
@@ -188,9 +189,23 @@ export class MiningState extends State<IUnit> {
                         if (cell.resource.amount === 0) {
                             resources.clear(cell);
                         }
+
+                        // TODO
+                        // const resourceType = cell.resource.type;
+                        // const visual = utils.createObject(engine.scene!, resourceType);
+                        // meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
+                        //     const mesh = _mesh.clone();
+                        //     visual.add(mesh);
+                        //     mesh.castShadow = true;
+                        // });
+                        // unit.resource = {
+                        //     visual,
+                        //     type: resourceType
+                        // };
+
                         this.goToFactory(unit, cell.resource.type);
                     } else {
-                        stopMining(unit);                        
+                        stopMining(unit);
                     }
                 }
                 break;
