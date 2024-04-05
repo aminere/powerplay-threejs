@@ -60,14 +60,16 @@ class Buildings {
         computeUnitAddr(cellCoords, outputCell);
 
         cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
-        const inputCell = makeUnitAddr();
-        computeUnitAddr(cellCoords, inputCell);
+        const inputCellAddr = makeUnitAddr();
+        computeUnitAddr(cellCoords, inputCellAddr);
+        const inputCell = getCellFromAddr(inputCellAddr);
+        inputCell.acceptsResource = input;
 
         const factoryState: IFactoryState = {
             input,
             output,
             state: FactoryState.idle,
-            inputCell,
+            inputCell: inputCellAddr,
             outputCell,
             timer: 0
         };
@@ -200,6 +202,19 @@ class Buildings {
                     cell.pickableResource.visual.removeFromParent();
                     cell.pickableResource = undefined;
                 }
+            }
+        } else if (buildingType === "factory") {
+            const state = instance.state as IFactoryState;
+            const inputCell = getCellFromAddr(state.inputCell);
+            inputCell.acceptsResource = undefined;
+            if (inputCell.nonPickableResource) {
+                inputCell.nonPickableResource.visual.removeFromParent();
+                inputCell.nonPickableResource = undefined;
+            }
+            const outputCell = getCellFromAddr(state.outputCell);
+            if (outputCell.pickableResource) {
+                outputCell.pickableResource.visual.removeFromParent();
+                outputCell.pickableResource = undefined;
             }
         }
 

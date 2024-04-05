@@ -55,8 +55,10 @@ export interface ICell {
     resource?: IRawResource;
     pickableResource?: IResource;
     nonPickableResource?: IResource;
+    acceptsResource?: RawResourceType | ResourceType;
+
     rail?: {        
-        axis: Axis;        
+        axis: Axis;
         tip: RailTip;
         worldPos: Vector3;
         mapCoords: Vector2;

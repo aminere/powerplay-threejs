@@ -135,6 +135,10 @@ class UnitMotion {
             if (hasResource) {
                 return false;
             }
+            if (destCell.acceptsResource) {
+                // must reject later per unit
+                return false;
+            }
             if (!destCell.isWalkable) {
                 return true;
             }
@@ -161,6 +165,13 @@ class UnitMotion {
 
             if (!isDirectionValid(flowfields, unit)) {
                 continue;
+            }
+
+            if (destCell.acceptsResource) {
+                const unitResource = unit.resource?.type;
+                if (destCell.nonPickableResource || unitResource !== destCell.acceptsResource) {
+                    continue;
+                }
             }
 
             if (motionId === null) {

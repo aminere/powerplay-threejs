@@ -13,11 +13,15 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
 import { cmdFogMoveCircle } from "../../Events";
 import { computeUnitAddr } from "./UnitAddr";
+import { ICell } from "../GameTypes";
+import { unitUtils } from "./UnitUtils";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
 const awayDirection = new Vector2();
 const avoidedCellCoords = new Vector2();
+const avoidedCellSector = new Vector2();
+const avoidedCellLocalCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
@@ -140,14 +144,14 @@ export function updateUnits(units: IUnit[]) {
 
         unit.desiredPosValid = false;
         const needsMotion = unit.motionId > 0 || unit.isColliding;
-        let avoidedCell = false;
+        let avoidedCell: ICell | null | undefined = undefined;        
 
         if (needsMotion) {
             GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-            const newCell = GameUtils.getCell(nextMapCoords);
-            const walkableCell = newCell !== null && newCell.isWalkable;
+            const newCell = GameUtils.getCell(nextMapCoords, avoidedCellSector, avoidedCellLocalCoords);
+            const walkableCell = newCell?.isWalkable;
             if (!walkableCell) {
-                avoidedCell = true;
+                avoidedCell = newCell;
                 avoidedCellCoords.copy(nextMapCoords);
 
                 // move away from blocked cell
@@ -159,17 +163,30 @@ export function updateUnits(units: IUnit[]) {
             }
         }
 
-        if (avoidedCell) {
+        if (avoidedCell !== undefined) {
             const miningState = unit.fsm.getState(MiningState);
             if (miningState) {
                 miningState.potentialTarget = avoidedCellCoords;
+            } else {
+                if (avoidedCell) {
+                    if (avoidedCell.acceptsResource) {
+                        const carriedResource = unit.resource?.type;
+                        if (carriedResource === avoidedCell.acceptsResource) {
+                            const sector = GameUtils.getSector(avoidedCellSector)!;
+                            unitUtils.depositResource(unit, avoidedCell, sector, avoidedCellLocalCoords);
+                            if (unit.motionId > 0) {
+                                onUnitArrived(unit);
+                            }
+                        }
+                    }
+                }
             }
         }
 
         let hasMoved = false;
         if (needsMotion) {
             if (unit.motionId > 0) {
-                if (avoidedCell) {
+                if (avoidedCell !== undefined) {
                     nextPos.copy(unit.obj.position);
                     mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
                 } else {
@@ -212,7 +229,7 @@ export function updateUnits(units: IUnit[]) {
 
                 // moved to a new cell
                 const nextCell = GameUtils.getCell(nextMapCoords);
-                const validCell = nextCell !== null && nextCell.isWalkable;
+                const validCell = nextCell?.isWalkable;
                 if (validCell) {
                     unitMotion.updateRotation(unit, unit.obj.position, nextPos);
                     unit.obj.position.copy(nextPos);

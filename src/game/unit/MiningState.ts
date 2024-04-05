@@ -9,9 +9,9 @@ import { IBuildingInstance, IFactoryState } from "../buildings/BuildingTypes";
 import { GameMapState } from "../components/GameMapState";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
-import { config } from "../config";
 import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { unitUtils } from "./UnitUtils";
 
 enum MiningStep {
     GoToResource,
@@ -21,7 +21,6 @@ enum MiningStep {
 
 const inputSlot = new Vector2();
 const closestInputSlot = new Vector2();
-const { cellSize } = config.game;
 
 function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType | ResourceType, closestInputSlotOut: Vector2) {
     // TODO search in a spiral pattern across sectors
@@ -183,25 +182,9 @@ export class MiningState extends State<IUnit> {
                             this.goToFactory(unit, factoryState.input as RawResourceType);                            
 
                         } else {
-                            console.log(`depositing resource`);
+                            
                             const { sector, localCoords } = factoryState.inputCell;
-                            const visual = utils.createObject(sector.layers.resources, factoryState.input);
-                            visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-                            meshes.load(`/models/resources/${factoryState.input}.glb`).then(([_mesh]) => {
-                                const mesh = _mesh.clone();
-                                visual.add(mesh);
-                                mesh.position.y = 0.5;
-                                mesh.castShadow = true;
-                            }); 
-                            inputCell.nonPickableResource = {
-                                type: factoryState.input,
-                                visual
-                            };
-
-                            console.assert(unit.resource);
-                            unit.resource!.visual.removeFromParent();
-                            unit.resource = null;
-
+                            unitUtils.depositResource(unit, inputCell, sector, localCoords);
                             this.goToResource(unit);
                         }
                     }
