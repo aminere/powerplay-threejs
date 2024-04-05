@@ -104,12 +104,13 @@ class UnitsManager {
     async preload() {
         await skeletonManager.load({
             skin: "/models/characters/Worker.json",
+
+            // globally shared animations
             animations: [
                 { name: "idle" },
                 { name: "walk" },
-                // { name: "pick" },
                 { name: "run" },
-                { name: "hurt" }
+                { name: "carry" }
             ],
         });
 

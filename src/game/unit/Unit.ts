@@ -10,6 +10,7 @@ import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { unitAnimation } from "./UnitAnimation";
 import { cmdFogRemoveCircle } from "../../Events";
+import { IResource } from "../GameTypes";
 
 export interface IUnitProps {
     obj: SkinnedMesh;
@@ -41,6 +42,7 @@ export class Unit implements IUnit {
     public get animation() { return this._animation; }
     public get skeleton() { return this._skeleton; }
     public get unitsInRange() { return this._unitsInRange; }
+    public get resource() { return this._resource; }
 
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
@@ -55,6 +57,7 @@ export class Unit implements IUnit {
         }
         this._motionId = value;
     }
+    public set resource(value: IResource | null) { this._resource = value; }
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
@@ -105,6 +108,7 @@ export class Unit implements IUnit {
     private _animation: IUnitAnim;
     private _skeleton: IUniqueSkeleton | null = null;
     private _unitsInRange: Array<[IUnit, number]> = [];
+    private _resource: IResource | null = null;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

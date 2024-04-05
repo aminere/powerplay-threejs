@@ -36,7 +36,7 @@ export interface IRawResource {
     amount: number;
 }
 
-interface IResource {
+export interface IResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
 }

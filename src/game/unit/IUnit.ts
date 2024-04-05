@@ -2,6 +2,7 @@ import { AnimationAction, Quaternion, SkinnedMesh, Vector2, Vector3 } from "thre
 import { StateMachine } from "../fsm/StateMachine";
 import { IUniqueSkeleton } from "../animation/SkeletonPool";
 import { IUnitAddr } from "./UnitAddr";
+import { IResource } from "../GameTypes";
 
 export enum UnitType {
     Worker,
@@ -44,5 +45,6 @@ export interface IUnit {
     animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
     unitsInRange: Array<[IUnit, number]>;
+    resource: IResource | null;
 }
 
