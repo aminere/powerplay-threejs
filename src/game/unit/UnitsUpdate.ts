@@ -1,4 +1,4 @@
-import { MathUtils, Vector2, Vector3 } from "three";
+import { MathUtils, Matrix4, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { IUnit } from "./IUnit";
 import { config } from "../config";
@@ -20,6 +20,9 @@ const awayDirection = new Vector2();
 const avoidedCellCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
+const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
+const pickedItemlocalToSkeleton = new Matrix4();
+            
 const { mapRes } = config.game;
 
 function onUnitArrived(unit: IUnit) {
@@ -252,10 +255,12 @@ export function updateUnits(units: IUnit[]) {
         }
 
         if (unit.resource) {
-            // TODO
-            // const visual = unit.resource.visual;                        
-            // const localToSkeleton = multiplyMatrices(skeleton spine2, offset);
-            // const world = multiplyMatrices(unit.world, localToSkeleton);
+            // attach the resource to the unit
+            const visual = unit.resource.visual;
+            const skeleton = unitAnimation.getSkeleton(unit);
+            const spine2 = skeleton.getObjectByName("Spine2")!;
+            pickedItemlocalToSkeleton.multiplyMatrices(spine2.matrixWorld, pickedItemOffset);
+            visual.matrix.multiplyMatrices(unit.obj.matrixWorld, pickedItemlocalToSkeleton);
         }
     }
 }

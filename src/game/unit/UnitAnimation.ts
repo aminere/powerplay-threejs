@@ -52,6 +52,15 @@ class UnitAnimation {
         }
     }    
 
+    public getSkeleton(unit: IUnit) {
+        if (unit.skeleton) {
+            return unit.skeleton.armature;
+        } else {
+            const skeleton = skeletonManager.getSkeleton(unit.animation.name)!;
+            return skeleton?.armature;
+        }
+    }
+
     private setCommonAnimation(unit: IUnit, animation: string) {
         if (unit.skeleton) {
             skeletonPool.releaseSkeleton(unit);

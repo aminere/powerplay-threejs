@@ -190,18 +190,20 @@ export class MiningState extends State<IUnit> {
                             resources.clear(cell);
                         }
 
-                        // TODO
-                        // const resourceType = cell.resource.type;
-                        // const visual = utils.createObject(engine.scene!, resourceType);
-                        // meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
-                        //     const mesh = _mesh.clone();
-                        //     visual.add(mesh);
-                        //     mesh.castShadow = true;
-                        // });
-                        // unit.resource = {
-                        //     visual,
-                        //     type: resourceType
-                        // };
+                        const resourceType = cell.resource.type;
+                        const { pickedItems: layer } = GameMapState.instance.layers;                        
+                        const visual = utils.createObject(layer, resourceType);
+                        visual.matrixAutoUpdate = false;
+                        visual.matrixWorldAutoUpdate = false;
+                        meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
+                            const mesh = _mesh.clone();
+                            visual.add(mesh);
+                            mesh.castShadow = true;
+                        });
+                        unit.resource = {
+                            visual,
+                            type: resourceType
+                        };
 
                         this.goToFactory(unit, cell.resource.type);
                     } else {

@@ -50,7 +50,8 @@ export class GameMapState {
         trains: utils.createObject(root(), "trains"),
         cars: utils.createObject(root(), "cars"),
         buildings: utils.createObject(root(), "buildings"),
-        conveyors: utils.createObject(root(), "conveyors")
+        conveyors: utils.createObject(root(), "conveyors"),
+        pickedItems: utils.createObject(root(), "pickedItems")
     };
     public buildings = new Map<string, IBuildingInstance>();
     public selectedBuilding: IBuildingInstance | null = null;
