@@ -50,6 +50,7 @@ class SkeletonManager {
         });
 
         const skeletons = utils.createObject(engine.scene!, "Skeletons");
+        skeletons.visible = false;
         skinnedMeshes.forEach((skinnedMesh, i) => {
             const rootBone = skinnedMesh.skeleton.bones[0];
             const armature = rootBone.parent!;

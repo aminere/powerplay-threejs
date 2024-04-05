@@ -7,13 +7,28 @@ class UnitAnimation {
 
     public setAnimation(
         unit: IUnit,
-        animation: string,
+        _animation: string,
         props?: {
             transitionDuration?: number;
             scheduleCommonAnim?: boolean;
             destAnimLoopMode?: LoopMode;
         }
     ) {
+
+        const animation = (() => {
+            if (unit.resource) {
+                if (_animation === "idle") {
+                    return "carry-idle";
+                } else if (_animation === "run") {
+                    return "carry-run";
+                } else {
+                    return _animation;
+                }
+            } else {
+                return _animation;
+            }
+        })();
+
         if (animation === unit.animation!.name) {
             return;
         }

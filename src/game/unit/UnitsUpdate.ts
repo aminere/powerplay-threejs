@@ -125,7 +125,10 @@ export function updateUnits(units: IUnit[]) {
 
                         // if other unit was part of my motion, stop
                         if (neighbor.lastCompletedMotionId === unit.motionId) {
-                            onUnitArrived(unit);
+                            const isMining = unit.fsm.getState(MiningState) !== null;
+                            if (!isMining) {
+                                onUnitArrived(unit);
+                            }
                         }
 
                     } else {
@@ -168,7 +171,7 @@ export function updateUnits(units: IUnit[]) {
             if (unit.motionId > 0) {
                 if (avoidedCell) {
                     nextPos.copy(unit.obj.position);
-                    mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
+                    mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
                 } else {
                     nextPos.copy(unit.desiredPos);
                 }

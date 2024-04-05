@@ -11,8 +11,7 @@ import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { config } from "../config";
 import { meshes } from "../../engine/resources/Meshes";
-import { RawResourceType } from "../GameDefinitions";
-import { engine } from "../../engine/Engine";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
 
 enum MiningStep {
     GoToResource,
@@ -24,7 +23,7 @@ const inputSlot = new Vector2();
 const closestInputSlot = new Vector2();
 const { cellSize } = config.game;
 
-function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType, closestInputSlotOut: Vector2) {
+function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType | ResourceType, closestInputSlotOut: Vector2) {
     // TODO search in a spiral pattern across sectors
     // requires that buildings are stored in sectors instead of a global map
     const { buildings } = GameMapState.instance;
@@ -56,12 +55,29 @@ function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType, clos
     return closestFactory;
 }
 
+function pickResource(unit: IUnit, resourceType: RawResourceType | ResourceType) {
+    const { pickedItems: layer } = GameMapState.instance.layers;
+    const visual = utils.createObject(layer, resourceType);
+    visual.matrixAutoUpdate = false;
+    visual.matrixWorldAutoUpdate = false;
+    meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
+        const mesh = _mesh.clone();
+        visual.add(mesh);
+        mesh.castShadow = true;
+    });
+    unit.resource = {
+        visual,
+        type: resourceType
+    };
+}
+
 function stopMining(unit: IUnit) {
     if (unit.motionId > 0) {
         unitMotion.onUnitArrived(unit);
     }
     unit.fsm.switchState(null);
     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
+    unit.collidable = true;
 }
 
 export class MiningState extends State<IUnit> {
@@ -92,7 +108,7 @@ export class MiningState extends State<IUnit> {
         unitMotion.moveUnit(unit, this._targetResource.mapCoords);
     }     
 
-    private goToFactory(unit: IUnit, resourceType: RawResourceType) {
+    private goToFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
         const factory = findClosestFreeFactory(unit, resourceType, closestInputSlot);
         this._closestFactory = factory;
         if (this._closestFactory) {
@@ -130,6 +146,14 @@ export class MiningState extends State<IUnit> {
                         unit.collidable = false;
                         this._miningTimer = 1;
                         unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+
+                    } else if (cell.pickableResource) {
+
+                        pickResource(unit, cell.pickableResource.type);
+                        this.goToFactory(unit, cell.pickableResource.type);
+                        cell.pickableResource.visual.removeFromParent();
+                        cell.pickableResource = undefined;
+
                     } else {
                         stopMining(unit);
                     }                    
@@ -173,6 +197,11 @@ export class MiningState extends State<IUnit> {
                                 type: factoryState.input,
                                 visual
                             };
+
+                            console.assert(unit.resource);
+                            unit.resource!.visual.removeFromParent();
+                            unit.resource = null;
+
                             this.goToResource(unit);
                         }
                     }
@@ -185,27 +214,13 @@ export class MiningState extends State<IUnit> {
                 if (this._miningTimer < 0) {
                     const cell = getCellFromAddr(this._targetResource);
                     if (cell.resource && cell.resource.amount > 0) {
-                        cell.resource.amount -= 1;
+                        const resourceType = cell.resource.type;
+                        cell.resource.amount -= 1;                        
                         if (cell.resource.amount === 0) {
                             resources.clear(cell);
                         }
-
-                        const resourceType = cell.resource.type;
-                        const { pickedItems: layer } = GameMapState.instance.layers;                        
-                        const visual = utils.createObject(layer, resourceType);
-                        visual.matrixAutoUpdate = false;
-                        visual.matrixWorldAutoUpdate = false;
-                        meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
-                            const mesh = _mesh.clone();
-                            visual.add(mesh);
-                            mesh.castShadow = true;
-                        });
-                        unit.resource = {
-                            visual,
-                            type: resourceType
-                        };
-
-                        this.goToFactory(unit, cell.resource.type);
+                        pickResource(unit, resourceType);
+                        this.goToFactory(unit, resourceType);
                     } else {
                         stopMining(unit);
                     }

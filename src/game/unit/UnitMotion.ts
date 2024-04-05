@@ -127,16 +127,27 @@ class UnitMotion {
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
             return;
-        }
+        }        
 
-        if (destCell.pickableResource) {
-            console.log(`TODO pickable resource found`);
+        const hasResource = destCell.resource || destCell.pickableResource;
+
+        const invalidMove = (() => {
+            if (hasResource) {
+                return false;
+            }
+            if (!destCell.isWalkable) {
+                return true;
+            }
+            return false;
+        })();
+
+        if (invalidMove) {
             return;
         }
 
         const flowfields = flowField.compute(destMapCoords, sectors)!;
         console.assert(flowfields);
-        const nextState = destCell.resource ? MiningState : null;
+        const nextState = hasResource ? MiningState : null;
         let unitCount = 0;
         let motionId: number | null = null;
         for (const unit of units) {
