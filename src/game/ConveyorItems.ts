@@ -188,11 +188,14 @@ class ConveyorItems {
         const lowestT = halfItemSize;
         const edge = lowestT + halfItemSize;        
         const existingItems = cell.conveyor!.items;
+
+        
+
         for (const item of existingItems) {
             const itemEdge = item.localT - item.size / 2;
             if (itemEdge < edge) {
                 console.log(`no space in conveyor ${cell.id}`);
-                return;
+                return false;
             }
         }
         
@@ -223,6 +226,7 @@ class ConveyorItems {
         projectOnConveyor(item, lowestT);
         cell.conveyor!.items.push(item);
         this._items.push(item);
+        return true;
     }
 
     public removeItem(item: IConveyorItem) {

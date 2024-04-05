@@ -318,11 +318,14 @@ class Buildings {
 
                 case "factory": {
                     const state = instance.state as IFactoryState;
+                    const inputCell = getCellFromAddr(state.inputCell);
+                    const outputCell = getCellFromAddr(state.outputCell);
+
                     switch (state.state) {
                         case FactoryState.idle: {                            
-                            const outputCell = getCellFromAddr(state.outputCell);
-                            const inputCell = getCellFromAddr(state.inputCell);
-                            if (!outputCell.pickableResource) {
+                            if (outputCell.pickableResource) {
+                                // output full, can't process
+                            } else {
                                 if (inputCell.nonPickableResource) {
                                     state.state = FactoryState.inserting;
                                     const visual = inputCell.nonPickableResource.visual;                                
@@ -337,32 +340,8 @@ class Buildings {
                                             inputCell.nonPickableResource = undefined;
                                         }
                                     });
-                                } else {
-                                    // check nearby conveyor
-                                    const inputCoords = state.inputCell.mapCoords;
-                                    cellCoords.set(inputCoords.x, inputCoords.y + 1);
-                                    const cell = GameUtils.getCell(cellCoords);
-                                    const conveyor = cell?.conveyor;
-                                    if (conveyor) {
-                                        let itemToGet = -1;
-                                        for (let i = 0; i < conveyor.items.length; i++) {
-                                            const item = conveyor.items[i];
-                                            if (item.type === state.input) {
-                                                itemToGet = i;
-                                                break;
-                                            }
-                                        }
-                                        if (itemToGet >= 0) {
-                                            const item = conveyor.items[itemToGet];
-                                            utils.fastDelete(conveyor.items, itemToGet);
-                                            conveyorItems.removeItem(item);
-                                            const resourceType = item.type;
-                                            const { sector, localCoords } = state.inputCell;
-                                            resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
-                                        }
-                                    }
                                 }
-                            }                            
+                            }                                                       
                         }
                             break;
 
@@ -374,24 +353,75 @@ class Buildings {
                                 const outputCell = getCellFromAddr(state.outputCell);
                                 console.assert(!outputCell.pickableResource);
                                 const visual = utils.createObject(sector.layers.resources, state.output);
-                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y - 1) * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
                                     const mesh = _mesh.clone();
                                     visual.add(mesh);
                                     mesh.position.y = 0.5;
                                     mesh.castShadow = true;
                                 });
-                                outputCell.pickableResource = {
-                                    type: state.output,
-                                    visual
-                                };
-                                state.state = FactoryState.idle;
+
+                                state.state = FactoryState.outputting;
+                                gsap.to(visual.position, {
+                                    z: visual.position.z + cellSize,
+                                    duration: 1,
+                                    delay: .5,
+                                    onComplete: () => {
+                                        state.state = FactoryState.idle;
+                                        outputCell.pickableResource = {
+                                            type: state.output,
+                                            visual
+                                        };
+                                    }
+                                });
 
                             } else {
                                 state.timer += time.deltaTime;
                             }
                         }
                             break;
+                    }
+
+                    // check nearby conveyors
+                    if (!inputCell.nonPickableResource) {
+                        const inputCoords = state.inputCell.mapCoords;
+                        cellCoords.set(inputCoords.x, inputCoords.y + 1);
+                        const cell = GameUtils.getCell(cellCoords);
+                        const conveyor = cell?.conveyor;
+                        if (conveyor) {
+                            let itemToGet = -1;
+                            for (let i = 0; i < conveyor.items.length; i++) {
+                                const item = conveyor.items[i];
+                                if (item.type === state.input) {
+                                    itemToGet = i;
+                                    break;
+                                }
+                            }
+                            if (itemToGet >= 0) {
+                                const item = conveyor.items[itemToGet];
+                                utils.fastDelete(conveyor.items, itemToGet);
+                                conveyorItems.removeItem(item);
+                                const resourceType = item.type;
+                                const { sector, localCoords } = state.inputCell;
+                                // this will set inputCell.nonPickableResource
+                                resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
+                            }
+                        }
+                    }        
+                    
+                    if (outputCell.pickableResource) {
+                        const outputCoords = state.outputCell.mapCoords;
+                        cellCoords.set(outputCoords.x, outputCoords.y + 1);
+                        const cell = GameUtils.getCell(cellCoords);
+                        const conveyor = cell?.conveyor;
+                        if (conveyor) {
+                            const added = conveyorItems.addItem(cell, cellCoords, state.output);
+                            if (added) {
+                                const { visual } = outputCell.pickableResource;
+                                visual.removeFromParent();
+                                outputCell.pickableResource = undefined;
+                            }
+                        }
                     }
                 }
                     break;

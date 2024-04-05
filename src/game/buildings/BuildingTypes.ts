@@ -15,7 +15,8 @@ export type BuildingType = typeof BuildingTypes[number];
 export enum FactoryState {
     idle,
     inserting,
-    processing,    
+    processing,
+    outputting
 }
 
 export interface IFactoryState {
