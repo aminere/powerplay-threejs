@@ -12,6 +12,8 @@ import { utils } from "../../engine/Utils";
 import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
 import gsap from "gsap";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { resourceUtils } from "../ResourceUtils";
+import { conveyorItems } from "../ConveyorItems";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -36,7 +38,10 @@ class Buildings {
             material.side = FrontSide;
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
-            const boundingBox = new Box3().setFromObject(building);
+            if (!building.geometry.boundingBox) {
+                building.geometry.computeBoundingBox();
+            }
+            const boundingBox = building.geometry.boundingBox!.clone();            
             boundingBox.max.y = size.y;
             this._buildings.set(buildingType, {
                 prefab: building,
@@ -317,21 +322,47 @@ class Buildings {
                         case FactoryState.idle: {                            
                             const outputCell = getCellFromAddr(state.outputCell);
                             const inputCell = getCellFromAddr(state.inputCell);
-                            if (inputCell.nonPickableResource && !outputCell.pickableResource) {
-                                state.state = FactoryState.inserting;
-                                const visual = inputCell.nonPickableResource.visual;                                
-                                gsap.to(visual.position, {
-                                    z: visual.position.z - cellSize,
-                                    duration: 1,
-                                    delay: .5,
-                                    onComplete: () => {
-                                        state.state = FactoryState.processing;
-                                        state.timer = 0;
-                                        inputCell.nonPickableResource?.visual.removeFromParent();
-                                        inputCell.nonPickableResource = undefined;
+                            if (!outputCell.pickableResource) {
+                                if (inputCell.nonPickableResource) {
+                                    state.state = FactoryState.inserting;
+                                    const visual = inputCell.nonPickableResource.visual;                                
+                                    gsap.to(visual.position, {
+                                        z: visual.position.z - cellSize,
+                                        duration: 1,
+                                        delay: .5,
+                                        onComplete: () => {
+                                            state.state = FactoryState.processing;
+                                            state.timer = 0;
+                                            inputCell.nonPickableResource?.visual.removeFromParent();
+                                            inputCell.nonPickableResource = undefined;
+                                        }
+                                    });
+                                } else {
+                                    // check nearby conveyor
+                                    const inputCoords = state.inputCell.mapCoords;
+                                    cellCoords.set(inputCoords.x, inputCoords.y + 1);
+                                    const cell = GameUtils.getCell(cellCoords);
+                                    const conveyor = cell?.conveyor;
+                                    if (conveyor) {
+                                        let itemToGet = -1;
+                                        for (let i = 0; i < conveyor.items.length; i++) {
+                                            const item = conveyor.items[i];
+                                            if (item.type === state.input) {
+                                                itemToGet = i;
+                                                break;
+                                            }
+                                        }
+                                        if (itemToGet >= 0) {
+                                            const item = conveyor.items[itemToGet];
+                                            utils.fastDelete(conveyor.items, itemToGet);
+                                            conveyorItems.removeItem(item);
+                                            const resourceType = item.type;
+                                            const { sector, localCoords } = state.inputCell;
+                                            resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
+                                        }
                                     }
-                                });
-                            }
+                                }
+                            }                            
                         }
                             break;
 

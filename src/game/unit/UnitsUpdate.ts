@@ -14,7 +14,7 @@ import { engineState } from "../../engine/EngineState";
 import { cmdFogMoveCircle } from "../../Events";
 import { computeUnitAddr } from "./UnitAddr";
 import { ICell } from "../GameTypes";
-import { unitUtils } from "./UnitUtils";
+import { resourceUtils } from "../ResourceUtils";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -173,7 +173,7 @@ export function updateUnits(units: IUnit[]) {
                         const carriedResource = unit.resource?.type;
                         if (carriedResource === avoidedCell.acceptsResource) {
                             const sector = GameUtils.getSector(avoidedCellSector)!;
-                            unitUtils.depositResource(unit, avoidedCell, sector, avoidedCellLocalCoords);
+                            resourceUtils.depositResource(unit, avoidedCell, sector, avoidedCellLocalCoords);
                             if (unit.motionId > 0) {
                                 onUnitArrived(unit);
                             }

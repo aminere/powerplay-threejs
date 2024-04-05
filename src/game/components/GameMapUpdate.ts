@@ -229,7 +229,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 const cell = GameUtils.getCell(state.highlightedCellCoords);
                                 if (cell?.conveyor) {
                                     // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
-                                    conveyorItems.addItem(cell, state.highlightedCellCoords);
+                                    conveyorItems.addItem(cell, state.highlightedCellCoords, "aluminium");
 
                                 } else {
                                     cmdSetSelectedElems.post({});

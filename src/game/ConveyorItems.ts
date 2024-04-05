@@ -1,13 +1,14 @@
-import { Box3, Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
+import { Box3, Box3Helper, Object3D, Vector2, Vector3 } from "three";
 import { ICell, IConveyorItem } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { utils } from "../engine/Utils";
-import { meshes } from "../engine/resources/Meshes";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
 import { ConveyorUtils } from "./ConveyorUtils";
 import { GameMapState } from "./components/GameMapState";
+import { RawResourceType, ResourceType } from "./GameDefinitions";
+import { meshes } from "../engine/resources/Meshes";
 
 const { conveyorHeight, cellSize, conveyorSpeed } = config.game;
 const halfCellSize = cellSize / 2;
@@ -33,7 +34,7 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
     GameUtils.mapToWorld(item.mapCoords, worldPos);
     const { direction, startAxis, endAxis } = item.owner.config;
     const isCorner = endAxis !== undefined;
-    const { position } = item.obj;
+    const { position } = item.visual;
     if (isCorner) {
         const [flipX, angle] = ConveyorUtils.getConveyorTransform(direction, startAxis);
         const _curve = flipX ? curveFlipped : curve;
@@ -59,15 +60,11 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
 
 class ConveyorItems {
 
-    private _item!: Mesh;
     private _itemsRoot!: Object3D;
     private _items = new Array<IConveyorItem>();
 
     public async preload() {
-        this._itemsRoot = utils.createObject(GameMapState.instance.layers.conveyors, "items");
-        const [item] = await meshes.load("/models/resources/iron-ore.glb");
-        item.castShadow = true;
-        this._item = item;
+        this._itemsRoot = utils.createObject(GameMapState.instance.layers.conveyors, "items");        
     }
 
     public dispose() {
@@ -184,7 +181,7 @@ class ConveyorItems {
         }
     }
 
-    public addItem(cell: ICell, mapCoords: Vector2) {
+    public addItem(cell: ICell, mapCoords: Vector2, resourceType: RawResourceType | ResourceType) {
 
         const itemSize = 1 / 3;
         const halfItemSize = itemSize / 2;
@@ -199,26 +196,41 @@ class ConveyorItems {
             }
         }
         
-        const obj = this._item.clone();
-        const bbox = new Box3().setFromObject(obj);
-        const box3Helper = new Box3Helper(bbox);
-        box3Helper.visible = false;
-        obj.add(box3Helper);
-        obj.scale.multiplyScalar(cellSize).multiplyScalar(itemSize);
-        obj.position.y = conveyorHeight * cellSize;
+        const visual = utils.createObject(this._itemsRoot, resourceType);
+        meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
+            const mesh = _mesh.clone();
+            mesh.castShadow = true;
+            if (!mesh.geometry.boundingBox) {
+                mesh.geometry.computeBoundingBox();
+            }
+            const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
+            box3Helper.visible = false;
+            mesh.add(box3Helper);
+            mesh.scale.multiplyScalar(cellSize).multiplyScalar(itemSize);
+            mesh.position.y = conveyorHeight * cellSize;
+            visual.add(mesh);
+        });        
 
         const item: IConveyorItem = {
             size: itemSize,
-            obj: obj,
+            visual,
             owner: cell.conveyor!,
             mapCoords: mapCoords.clone(),
-            localT: lowestT
+            localT: lowestT,
+            type: resourceType
         };
 
         projectOnConveyor(item, lowestT);
-        this._itemsRoot.add(obj);
         cell.conveyor!.items.push(item);
         this._items.push(item);
+    }
+
+    public removeItem(item: IConveyorItem) {
+        // assume it was already removed from the owner conveyor
+        const index = this._items.indexOf(item);
+        console.assert(index >= 0);
+        utils.fastDelete(this._items, index);
+        item.visual.removeFromParent();
     }
 }
 

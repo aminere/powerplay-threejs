@@ -11,7 +11,7 @@ import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { unitUtils } from "./UnitUtils";
+import { resourceUtils } from "../ResourceUtils";
 
 enum MiningStep {
     GoToResource,
@@ -184,7 +184,7 @@ export class MiningState extends State<IUnit> {
                         } else {
                             
                             const { sector, localCoords } = factoryState.inputCell;
-                            unitUtils.depositResource(unit, inputCell, sector, localCoords);
+                            resourceUtils.depositResource(unit, inputCell, sector, localCoords);
                             this.goToResource(unit);
                         }
                     }

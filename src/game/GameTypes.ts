@@ -24,10 +24,11 @@ export interface IConveyorConfig {
 
 export interface IConveyorItem {
     size: number;
-    obj: Object3D;
+    visual: Object3D;
     owner: IConveyor;
     mapCoords: Vector2;
     localT: number;
+    type: RawResourceType | ResourceType;
 }
 
 export interface IRawResource {
