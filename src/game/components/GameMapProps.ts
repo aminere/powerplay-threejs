@@ -69,6 +69,8 @@ export class GameMapProps extends ComponentProps {
         new Vector2(.5, 10),
         new Vector2(1, 30)
     ]);
+
     debugFlowFields = false;
+    saveToDisk = false;
 }
 
