@@ -5,6 +5,9 @@ import { ComponentProps } from "./ecs/ComponentProps";
 import { TArray } from "./serialization/TArray";
 import { LoopMode } from "./serialization/Types";
 
+const lightDir = new Vector3();
+const worldPos = new Vector3();
+
 class Utils {
     public updateCameraAspect(camera: Camera, width: number, height: number) {
         const orthoCamera = camera as OrthographicCamera;
@@ -23,11 +26,10 @@ class Utils {
         }
     }
 
-    private _dummy = new Vector3();
-    private _dummy2 = new Vector3();
     public updateDirectionalLightTarget(light: DirectionalLight) {
-        const lightDir = light.getWorldDirection(this._dummy);
-        light.target.position.copy(light.getWorldPosition(this._dummy2)).sub(lightDir);
+        light.getWorldDirection(lightDir);
+        light.getWorldPosition(worldPos);
+        light.target.position.subVectors(worldPos, lightDir);
         light.target.updateMatrixWorld();
     }
 

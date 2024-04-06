@@ -567,7 +567,8 @@ export function updateCameraSize() {
 
     updateCameraBounds();
     const cameraLeft = -orthoSize * state.cameraZoom * aspect;
-    const _shadowRange = Math.max(Math.abs(cameraLeft) * shadowRange, 10);
+    const cameraArea = Math.abs(cameraLeft);
+    const _shadowRange = Math.max(cameraArea * shadowRange, 10);
     state.light.shadow.camera.left = -_shadowRange;
     state.light.shadow.camera.right = _shadowRange;
     state.light.shadow.camera.top = _shadowRange;

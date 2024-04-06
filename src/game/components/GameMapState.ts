@@ -72,13 +72,18 @@ export class GameMapState {
         GameMapState._instance = this;
 
         this.cameraRoot = root().getObjectByName("camera-root")!;
-        const camera = this.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;
+        const camera = this.cameraRoot.getObjectByProperty("type", "OrthographicCamera") as OrthographicCamera;        
         this.camera = camera;
         this.cameraPivot = this.camera.parent!;
 
         const light = this.cameraRoot.getObjectByProperty("type", "DirectionalLight") as DirectionalLight;
         this.light = light;
-        light.shadow.camera.far = camera.far;
+        
+        // configure for best shadows
+        camera.position.z = 150;
+        camera.far = 300;
+        light.shadow.camera.far = 200;
+        light.position.set(51, 87, 15);        
 
         const [, rotationY] = config.camera.rotation;
         this.cameraAngleRad = MathUtils.degToRad(rotationY);

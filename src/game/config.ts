@@ -50,7 +50,7 @@ export const config: IConfig = {
         zoomSpeed: .001,
         panMargin: 0.01,
         panSpeed: 30,
-        shadowRange: 2
+        shadowRange: 1.5
     },
     terrain: {
         atlasTileCount: 35
