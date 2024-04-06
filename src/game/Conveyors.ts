@@ -4,7 +4,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { Axis, ICell } from "./GameTypes";
 import { time } from "../engine/core/Time";
-import { ConveyorUtils } from "./ConveyorUtils";
+import { conveyorUtils } from "./ConveyorUtils";
 import { conveyorItems } from "./ConveyorItems";
 import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
@@ -54,20 +54,20 @@ class Conveyors {
         curvedBaseMaterial.side = DoubleSide;
 
         conveyor.geometry.scale(conveyorWidth, 1, 1);
-        const conveyorInstances = ConveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);
+        const conveyorInstances = conveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);
         layers.conveyors.add(conveyorInstances);
         this._conveyors = conveyorInstances;
 
         conveyorTop.geometry.scale(conveyorWidth, 1, 1);
         const topMaterial = conveyorTop.material as MeshBasicMaterial;
-        const conveyorTopInstances = ConveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
+        const conveyorTopInstances = conveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
         layers.conveyors.add(conveyorTopInstances);
         this._conveyorTops = conveyorTopInstances;
 
-        this._curvedConveyor = ConveyorUtils.makeCurvedConveyor(curvedConveyor0, 1);
-        this._invCurvedConveyor = ConveyorUtils.makeCurvedConveyor(curvedConveyor0, -1);
-        this._curvedConveyorTop = ConveyorUtils.makeCurvedConveyor(curvedConveyorTop0, 1);
-        this._invCurvedConveyorTop = ConveyorUtils.makeCurvedConveyor(curvedConveyorTop0, -1);
+        this._curvedConveyor = conveyorUtils.makeCurvedConveyor(curvedConveyor0, 1);
+        this._invCurvedConveyor = conveyorUtils.makeCurvedConveyor(curvedConveyor0, -1);
+        this._curvedConveyorTop = conveyorUtils.makeCurvedConveyor(curvedConveyorTop0, 1);
+        this._invCurvedConveyorTop = conveyorUtils.makeCurvedConveyor(curvedConveyorTop0, -1);
         this._curvedConveyorTop.material = topMaterial;
         this._invCurvedConveyorTop.material = topMaterial;
 
@@ -105,7 +105,7 @@ class Conveyors {
         GameUtils.mapToWorld(mapCoords, worldPos);
         if (endAxis !== undefined) {
 
-            const [invertedMesh, angle] = ConveyorUtils.getConveyorTransform(direction, startAxis);
+            const [invertedMesh, angle] = conveyorUtils.getConveyorTransform(direction, startAxis);
             const baseMesh = invertedMesh ? this._invCurvedConveyor.clone() : this._curvedConveyor.clone();
             const topMesh = invertedMesh ? this._invCurvedConveyorTop.clone() : this._curvedConveyorTop.clone();
             baseMesh.position.copy(worldPos);
@@ -114,7 +114,7 @@ class Conveyors {
             baseMesh.add(topMesh);
             topMesh.position.y = conveyorHeight;
             GameMapState.instance.layers.conveyors.add(baseMesh);
-            cell.conveyor.config.endAxis = ConveyorUtils.getPerpendicularAxis(startAxis);
+            cell.conveyor.config.endAxis = conveyorUtils.getPerpendicularAxis(startAxis);
             cell.conveyor.visual.mesh = baseMesh;
 
         } else {
@@ -129,7 +129,7 @@ class Conveyors {
     }
 
     private setStraightTransform(position: Vector3, direction: Vector2, instanceIndex: number) {
-        const angle = ConveyorUtils.getAngle(direction);
+        const angle = conveyorUtils.getAngle(direction);
         rotation.setFromAxisAngle(GameUtils.vec3.up, angle);
         matrix.compose(position, rotation, scale);
         this._conveyors.setMatrixAt(instanceIndex, matrix);
@@ -159,8 +159,8 @@ class Conveyors {
             const neighborInfo = (() => {
                 const isCorner = conveyor.config.endAxis !== undefined;
                 if (!isCorner) {
-                    const isExit = ConveyorUtils.isStraightExit(neighborCell, neighborCoords);
-                    const isEntry = ConveyorUtils.isStraightEntry(neighborCell, neighborCoords);
+                    const isExit = conveyorUtils.isStraightExit(neighborCell, neighborCoords);
+                    const isEntry = conveyorUtils.isStraightEntry(neighborCell, neighborCoords);
                     const neighborCount = isExit ? (isEntry ? 0 : 1) : (isEntry ? 1 : 2);
                     return { neighborCount, isExit };
                 } else {
@@ -220,9 +220,12 @@ class Conveyors {
                             // become a corner
                             console.assert(neighborCount === 1);
                             neighborDir.add(direction);
+                            
+                            const serializedItems = conveyorUtils.serializeItems(neighborCell.conveyor!);
                             this.clearStraightConveyor(neighborCell);
-                            const newNeighborAxis = neighborInfo.isExit ? ConveyorUtils.getPerpendicularAxis(newAxis) : newAxis;
-                            this.create(neighborCell, neighborCoords, neighborDir, newNeighborAxis, ConveyorUtils.getPerpendicularAxis(newNeighborAxis));
+                            const newNeighborAxis = neighborInfo.isExit ? conveyorUtils.getPerpendicularAxis(newAxis) : newAxis;
+                            this.create(neighborCell, neighborCoords, neighborDir, newNeighborAxis, conveyorUtils.getPerpendicularAxis(newNeighborAxis));
+                            conveyorItems.addSerializedItems(neighborCell, neighborCoords, serializedItems);
                         }
                     }
 
@@ -261,13 +264,15 @@ class Conveyors {
             const { startAxis, endAxis, direction } = neighborCell.conveyor.config;
             const isCorner = endAxis !== undefined;
             if (isCorner) {
-                const isExit = ConveyorUtils.isCornerExit(neighborCell, neighborCoords);
+                const isExit = conveyorUtils.isCornerExit(neighborCell, neighborCoords);
+                const serializedItems = conveyorUtils.serializeItems(neighborCell.conveyor);
                 this.clearCurvedConveyor(neighborCell);
-                const newAxis = isExit ? startAxis : ConveyorUtils.getPerpendicularAxis(startAxis);
+                const newAxis = isExit ? startAxis : conveyorUtils.getPerpendicularAxis(startAxis);
                 const sx = newAxis === "x" ? 1 : 0;
                 const sy = 1 - sx;
                 direction.set(direction.x * sx, direction.y * sy);
                 this.create(neighborCell, neighborCoords, direction, newAxis);
+                conveyorItems.addSerializedItems(neighborCell, neighborCoords, serializedItems);
             }
         }
     }
@@ -275,6 +280,10 @@ class Conveyors {
     public clearCurvedConveyor(cell: ICell) {
         const { visual } = cell.conveyor!;
         visual.mesh!.removeFromParent();
+        // remove items
+        for (const item of cell.conveyor!.items) {            
+            conveyorItems.removeItem(item);
+        }
         cell.conveyor = undefined;
     }
 
@@ -300,6 +309,12 @@ class Conveyors {
         this._conveyors.instanceMatrix.needsUpdate = true;
         this._conveyorTops.count = newCount;
         this._conveyorTops.instanceMatrix.needsUpdate = true;
+
+        // remove items
+        for (const item of cell.conveyor!.items) {            
+            conveyorItems.removeItem(item);
+        }
+
         cell.conveyor = undefined;
     }
 
@@ -322,8 +337,8 @@ class Conveyors {
         //         return false;
         //     }
 
-        //     const isEntry = ConveyorUtils.isStraightEntry(cell, coords);
-        //     const isExit =  ConveyorUtils.isStraightExit(cell, coords);
+        //     const isEntry = conveyorUtils.isStraightEntry(cell, coords);
+        //     const isExit =  conveyorUtils.isStraightExit(cell, coords);
         //     const isEdge = isEntry || isExit;
         //     if (isEdge) {
         //         const isPerpendicular = startAxis !== axis;
@@ -379,7 +394,7 @@ class Conveyors {
             //     if (perpendicularNeighbor) {
             //         const _neighborCoords = perpendicularNeighbor;
             //         cornerDir.copy(direction).add(_neighborCoords).sub(coords);                    
-            //         this.create(cell, coords, cornerDir, axis, ConveyorUtils.getPerpendicularAxis(axis));
+            //         this.create(cell, coords, cornerDir, axis, conveyorUtils.getPerpendicularAxis(axis));
 
             //     } else {
             //         this.create(cell, coords, direction, axis, endAxis);
@@ -412,7 +427,7 @@ class Conveyors {
                 if (end.x !== start.x) {
                     const dirX = Math.sign(dx);
                     cornerDir.set(dirX, dirY);
-                    create(start2, cornerDir, dragAxis, ConveyorUtils.getPerpendicularAxis(dragAxis));
+                    create(start2, cornerDir, dragAxis, conveyorUtils.getPerpendicularAxis(dragAxis));
 
                 } else {
                     create(start, offset2, "z");
@@ -441,7 +456,7 @@ class Conveyors {
                 if (end.y !== start.y) {
                     const dirY = Math.sign(dy);
                     cornerDir.set(dirX, dirY);
-                    create(start2, cornerDir, dragAxis, ConveyorUtils.getPerpendicularAxis(dragAxis));
+                    create(start2, cornerDir, dragAxis, conveyorUtils.getPerpendicularAxis(dragAxis));
 
                 } else {
                     create(start, offset2, "x");

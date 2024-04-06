@@ -1,11 +1,11 @@
-import { Box3, Box3Helper, Object3D, Vector2, Vector3 } from "three";
+import { Box3Helper, Object3D, Vector2, Vector3 } from "three";
 import { ICell, IConveyorItem } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { utils } from "../engine/Utils";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
-import { ConveyorUtils } from "./ConveyorUtils";
+import { conveyorUtils } from "./ConveyorUtils";
 import { GameMapState } from "./components/GameMapState";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 import { meshes } from "../engine/resources/Meshes";
@@ -36,7 +36,7 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
     const isCorner = endAxis !== undefined;
     const { position } = item.visual;
     if (isCorner) {
-        const [flipX, angle] = ConveyorUtils.getConveyorTransform(direction, startAxis);
+        const [flipX, angle] = conveyorUtils.getConveyorTransform(direction, startAxis);
         const _curve = flipX ? curveFlipped : curve;
         _curve.evaluate(localT, curvePos);
         curvePos
@@ -56,6 +56,24 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
         position.x = startX + direction.x * localT * cellSize;
         position.z = startZ + direction.y * localT * cellSize;
     }
+}
+
+function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType, size: number) {
+    const visual = utils.createObject(root, resourceType);
+    meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
+        const mesh = _mesh.clone();
+        // mesh.castShadow = true;
+        if (!mesh.geometry.boundingBox) {
+            mesh.geometry.computeBoundingBox();
+        }
+        const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
+        box3Helper.visible = false;
+        mesh.add(box3Helper);
+        mesh.scale.multiplyScalar(cellSize).multiplyScalar(size);
+        mesh.position.y = conveyorHeight * cellSize;
+        visual.add(mesh);
+    });
+    return visual;
 }
 
 class ConveyorItems {
@@ -183,10 +201,10 @@ class ConveyorItems {
 
     public addItem(cell: ICell, mapCoords: Vector2, resourceType: RawResourceType | ResourceType) {
 
-        const itemSize = 1 / 3;
+        const itemSize = 1 / 2;
         const halfItemSize = itemSize / 2;
         const lowestT = halfItemSize;
-        const edge = lowestT + halfItemSize;        
+        const edge = lowestT + halfItemSize;
         const existingItems = cell.conveyor!.items;
 
         for (const item of existingItems) {
@@ -196,22 +214,8 @@ class ConveyorItems {
                 return false;
             }
         }
-        
-        const visual = utils.createObject(this._itemsRoot, resourceType);
-        meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
-            const mesh = _mesh.clone();
-            // mesh.castShadow = true;
-            if (!mesh.geometry.boundingBox) {
-                mesh.geometry.computeBoundingBox();
-            }
-            const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
-            box3Helper.visible = false;
-            mesh.add(box3Helper);
-            mesh.scale.multiplyScalar(cellSize).multiplyScalar(itemSize);
-            mesh.position.y = conveyorHeight * cellSize;
-            visual.add(mesh);
-        });        
 
+        const visual = createItemVisual(this._itemsRoot, resourceType, itemSize);
         const item: IConveyorItem = {
             size: itemSize,
             visual,
@@ -227,8 +231,29 @@ class ConveyorItems {
         return true;
     }
 
+    public addSerializedItems(cell: ICell, mapCoords: Vector2, serializedItems: Array<{
+        size: number;
+        localT: number;
+        type: RawResourceType | ResourceType;
+    }>) {
+        for (const serializedItem of serializedItems) {
+            const visual = createItemVisual(this._itemsRoot, serializedItem.type, serializedItem.size);
+            const item: IConveyorItem = {
+                size: serializedItem.size,
+                visual,
+                owner: cell.conveyor!,
+                mapCoords: mapCoords.clone(),
+                localT: serializedItem.localT,
+                type: serializedItem.type
+            };
+            projectOnConveyor(item, serializedItem.localT);
+            cell.conveyor!.items.push(item);
+            this._items.push(item);
+        }
+    }
+
+    /** Assumes it was already removed from the owner conveyor */
     public removeItem(item: IConveyorItem) {
-        // assume it was already removed from the owner conveyor
         const index = this._items.indexOf(item);
         console.assert(index >= 0);
         utils.fastDelete(this._items, index);

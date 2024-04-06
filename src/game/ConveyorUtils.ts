@@ -1,7 +1,7 @@
 import { BufferGeometry, Material, InstancedMesh, Vector2, Mesh, Vector3 } from "three";
 import { pools } from "../engine/core/Pools";
 import { BezierPath } from "./BezierPath";
-import { ICell, Axis } from "./GameTypes";
+import { ICell, Axis, IConveyor } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 
@@ -28,8 +28,8 @@ const directionToAngle = {
     "-1,0": -halfPi
 };
 
-export class ConveyorUtils {
-    public static createInstancedMesh(name: string, geometry: BufferGeometry, material: Material | Material[]) {
+class ConveyorUtils {
+    public createInstancedMesh(name: string, geometry: BufferGeometry, material: Material | Material[]) {
         const mesh = new InstancedMesh(geometry, material, maxConveyors);
         mesh.name = name;
         mesh.frustumCulled = false;
@@ -39,21 +39,21 @@ export class ConveyorUtils {
         return mesh;
     }
     
-    public static getAngle(direction: Vector2) {
+    public getAngle(direction: Vector2) {
         const key = `${direction.x},${direction.y}` as keyof typeof directionToAngle;
         const angle = directionToAngle[key];
         console.assert(angle !== undefined, `Invalid direction: ${direction.x},${direction.y}`);
         return angle;
     }
     
-    public static getConveyorTransform(direction: Vector2, startAxis: Axis) {
+    public getConveyorTransform(direction: Vector2, startAxis: Axis) {
         const key = `${direction.x},${direction.y},${startAxis}` as keyof typeof cornerTransforms;
         const transform = cornerTransforms[key] as [boolean, number];
         console.assert(transform !== undefined, `Invalid transform: ${direction.x},${direction.y},${startAxis}`);
         return transform;
     }
     
-    public static makeCurvedConveyor(mesh: Mesh, xDir: number) {
+    public makeCurvedConveyor(mesh: Mesh, xDir: number) {
         const curvedMesh = mesh.clone();
         curvedMesh.geometry = (curvedMesh.geometry as THREE.BufferGeometry).clone();
         curvedMesh.geometry.computeBoundingBox();
@@ -94,21 +94,21 @@ export class ConveyorUtils {
         return curvedMesh;
     }    
     
-    public static isStraightExit(cell: ICell, mapCoords: Vector2) {
+    public isStraightExit(cell: ICell, mapCoords: Vector2) {
         const { direction } = cell.conveyor!.config;
         neighborCoords.addVectors(mapCoords, direction);
         const exit = GameUtils.getCell(neighborCoords);
         return !exit?.conveyor;
     }
     
-    public static isStraightEntry(cell: ICell, mapCoords: Vector2) {
+    public isStraightEntry(cell: ICell, mapCoords: Vector2) {
         const { direction } = cell.conveyor!.config;
         neighborCoords.subVectors(mapCoords, direction);
         const entry = GameUtils.getCell(neighborCoords);
         return !entry?.conveyor;
     }    
     
-    public static isCornerExit(cell: ICell, mapCoords: Vector2) {
+    public isCornerExit(cell: ICell, mapCoords: Vector2) {
         const { startAxis, direction } = cell.conveyor!.config;
         const sx = startAxis === "x" ? 0 : 1;
         const sy = 1 - sx;
@@ -117,7 +117,7 @@ export class ConveyorUtils {
         return !exit?.conveyor;
     }
     
-    public static isCornerEntry(cell: ICell, mapCoords: Vector2) {
+    public isCornerEntry(cell: ICell, mapCoords: Vector2) {
         const { startAxis, direction } = cell.conveyor!.config;
         const sy = startAxis === "x" ? 0 : 1;
         const sx = 1 - sy;
@@ -126,7 +126,20 @@ export class ConveyorUtils {
         return !entry?.conveyor;
     }
     
-    public static getPerpendicularAxis(axis: Axis) {
+    public getPerpendicularAxis(axis: Axis) {
         return axis === "x" ? "z" : "x";
     }    
+
+    public serializeItems(conveyor: IConveyor) {
+        return conveyor.items.map(item => {
+            return {
+                size: item.size,
+                localT: item.localT,
+                type: item.type
+            };
+        });
+    }
 }
+
+export const conveyorUtils = new ConveyorUtils();
+
