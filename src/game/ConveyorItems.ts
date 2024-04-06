@@ -189,8 +189,6 @@ class ConveyorItems {
         const edge = lowestT + halfItemSize;        
         const existingItems = cell.conveyor!.items;
 
-        
-
         for (const item of existingItems) {
             const itemEdge = item.localT - item.size / 2;
             if (itemEdge < edge) {
@@ -202,7 +200,7 @@ class ConveyorItems {
         const visual = utils.createObject(this._itemsRoot, resourceType);
         meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
             const mesh = _mesh.clone();
-            mesh.castShadow = true;
+            // mesh.castShadow = true;
             if (!mesh.geometry.boundingBox) {
                 mesh.geometry.computeBoundingBox();
             }

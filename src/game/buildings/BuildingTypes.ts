@@ -35,12 +35,13 @@ export interface IAssemblyState {
 }
 
 export interface IMineState {
-    cells: Vector2[];
+    resourceCells: Vector2[];
+    currentResource: number;
     active: boolean;
+    outputting: boolean;
+
     depleted: boolean;
-    currentResource: number;    
-    outputSlot: number;   
-    outputCells: IUnitAddr[];    
+    outputCell: IUnitAddr;    
     timer: number;
 }
 
