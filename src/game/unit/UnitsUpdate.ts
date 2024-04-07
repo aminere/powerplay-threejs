@@ -260,9 +260,7 @@ export function updateUnits(units: IUnit[]) {
 
                     const miningState = unit.fsm.getState(MiningState);
                     if (miningState) {
-                        if (nextCell.pickableResource || nextCell.acceptsResource) {
-                            miningState.potentialTarget = nextMapCoords;
-                        }
+                        miningState.potentialTarget = nextMapCoords;
                     } else {
                         if (nextCell.acceptsResource) {
                             const carriedResource = unit.resource?.type;
