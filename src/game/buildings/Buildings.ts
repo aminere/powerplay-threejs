@@ -139,10 +139,10 @@ class Buildings {
 
                     const mineState: IMineState = {
                         resourceCells,
+                        currentResourceCell: 0,
+                        minedResource: null,
                         active: true,
-                        outputting: false,
                         depleted: false,
-                        currentResource: 0,
                         outputCell: outputCellAddr,
                         timer: 0
                     };
@@ -255,15 +255,25 @@ class Buildings {
                     if (!state.active) {
                         
                         const outputCell = getCellFromAddr(state.outputCell);
-                        if (!outputCell.pickableResource && !state.outputting) {
-                            state.active = true;
-                            state.timer = 0;
+                        if (!outputCell.pickableResource) {
+                            if (state.minedResource) {
+
+                                if (outputCell.conveyor) {
+                                    if (conveyorItems.addItem(outputCell, state.outputCell.mapCoords, state.minedResource)) {
+                                        state.minedResource = null;
+                                    }
+                                }
+
+                            } else {
+                                state.active = true;
+                                state.timer = 0;    
+                            }
                         }                        
 
                     } else {
 
                         if (state.timer >= miningFrequency) {
-                            const cell = GameUtils.getCell(state.resourceCells[state.currentResource])!;
+                            const cell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
                             const resource = cell.resource!;                            
 
                             const outputCell = getCellFromAddr(state.outputCell);
@@ -272,39 +282,49 @@ class Buildings {
                             resource.amount -= 1;
                             if (resource.amount === 0) {
                                 resources.clear(cell);
-                                if (state.currentResource < state.resourceCells.length - 1) {
-                                    state.currentResource++;
+                                if (state.currentResourceCell < state.resourceCells.length - 1) {
+                                    state.currentResourceCell++;
                                 } else {
                                     console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
                                     state.depleted = true;
                                 }
                             }
                             
-                            const { sector, localCoords } = state.outputCell;
-                            const visual = utils.createObject(sector.layers.resources, resource.type);
-                            visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y - 1) * cellSize + cellSize / 2);
-                            meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
-                                const mesh = _mesh.clone();
-                                visual.add(mesh);
-                                mesh.position.y = 0.5;
-                                mesh.castShadow = true;
-                            });
-
                             state.active = false;
-                            state.outputting = true;
-                            gsap.to(visual.position, {
-                                z: visual.position.z + cellSize,
-                                duration: 1,
-                                delay: .5,
-                                onComplete: () => {
-                                    state.outputting = false;
-                                    outputCell.pickableResource = {
-                                        type: resource.type,
-                                        visual
-                                    };
-                                }
-                            });
+                            state.minedResource = resource.type;
 
+                            const { sector, localCoords } = state.outputCell;
+                            if (outputCell.conveyor) {
+
+                                if (conveyorItems.addItem(outputCell, state.outputCell.mapCoords, resource.type)) {
+                                    state.minedResource = null;
+                                }
+
+                            } else {
+                                const visual = utils.createObject(sector.layers.resources, resource.type);
+                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y - 1) * cellSize + cellSize / 2);
+                                meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
+                                    const mesh = _mesh.clone();
+                                    visual.add(mesh);
+                                    mesh.position.y = 0.5;
+                                    mesh.castShadow = true;
+                                });
+    
+                                gsap.to(visual.position, {
+                                    z: visual.position.z + cellSize,
+                                    duration: 1,
+                                    delay: .5,
+                                    onComplete: () => {
+                                        console.assert(state.minedResource !== null, "Mined resource must be set");
+                                        outputCell.pickableResource = {
+                                            type: state.minedResource!,
+                                            visual
+                                        };
+                                        state.minedResource = null;
+                                    }
+                                });
+                            }
+                            
                         } else {
                             state.timer += time.deltaTime;
                         }
@@ -313,12 +333,9 @@ class Buildings {
                     // check nearby conveyors
                     const outputCell = getCellFromAddr(state.outputCell);
                     if (outputCell.pickableResource) {
-                        const outputCoords = state.outputCell.mapCoords;
-                        cellCoords.set(outputCoords.x, outputCoords.y + 1);
-                        const conveyorCell = GameUtils.getCell(cellCoords);
-                        const conveyor = conveyorCell?.conveyor;
+                        const conveyor = outputCell?.conveyor;
                         if (conveyor) {
-                            const added = conveyorItems.addItem(conveyorCell, cellCoords, outputCell.pickableResource.type);
+                            const added = conveyorItems.addItem(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
                             if (added) {
                                 const { visual } = outputCell.pickableResource;
                                 visual.removeFromParent();
@@ -398,10 +415,7 @@ class Buildings {
 
                     // check nearby conveyors
                     if (!inputCell.nonPickableResource) {
-                        const inputCoords = state.inputCell.mapCoords;
-                        cellCoords.set(inputCoords.x, inputCoords.y + 1);
-                        const cell = GameUtils.getCell(cellCoords);
-                        const conveyor = cell?.conveyor;
+                        const conveyor = inputCell?.conveyor;
                         if (conveyor) {
                             let itemToGet = -1;
                             for (let i = 0; i < conveyor.items.length; i++) {
@@ -418,7 +432,8 @@ class Buildings {
                                 const resourceType = item.type;
                                 const { sector, localCoords } = state.inputCell;
                                 // this will set inputCell.nonPickableResource
-                                resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
+                                const resource = resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
+                                resource.visual.position.z -= cellSize; // since conveyor is on the same cell, shift the resource inwards
                             }
                         }
                     }        

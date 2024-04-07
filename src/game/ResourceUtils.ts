@@ -3,7 +3,7 @@
 import { Vector2 } from "three";
 import { config } from "./config";
 import { IUnit } from "./unit/IUnit";
-import { ICell, ISector } from "./GameTypes";
+import { ICell, IResource, ISector } from "./GameTypes";
 import { utils } from "../engine/Utils";
 import { meshes } from "../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
@@ -31,10 +31,12 @@ class ResourceUtils {
             mesh.position.y = 0.5;
             mesh.castShadow = true;
         });
-        cell.nonPickableResource = {
+        const resource: IResource = {
             type: resourceType,
             visual
         };
+        cell.nonPickableResource = resource;
+        return resource;
     }
 }
 

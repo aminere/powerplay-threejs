@@ -39,7 +39,7 @@ function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType | Res
         }
 
         const otherInputCell = getCellFromAddr(otherState.inputCell);
-        if (otherInputCell.nonPickableResource) {
+        if (otherInputCell.nonPickableResource || otherInputCell.conveyor) {
             continue;
         }
 

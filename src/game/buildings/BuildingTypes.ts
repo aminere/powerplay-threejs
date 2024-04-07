@@ -36,9 +36,10 @@ export interface IAssemblyState {
 
 export interface IMineState {
     resourceCells: Vector2[];
-    currentResource: number;
+    currentResourceCell: number;
+
+    minedResource: RawResourceType | null;
     active: boolean;
-    outputting: boolean;
 
     depleted: boolean;
     outputCell: IUnitAddr;    
