@@ -34,6 +34,27 @@ export function GameMapUI(props: IGameUIProps) {
                 const buildingType = GameMapProps.instance.buildingType;
                 const size = buildingSizes[buildingType];
                 gameMapState.tileSelector.setSize(size.x, size.z);
+
+                switch(buildingType) {
+                    case "factory": {
+                        const inputX = 0;
+                        const inputY = size.z;
+                        const outputX = size.x - 1;
+                        const outputY = -1;
+                        gameMapState.tileSelector.setTile(inputX, inputY);
+                        gameMapState.tileSelector.setTile(outputX, outputY);
+                    }
+                    break;
+
+                    case "mine": {
+                        const inputX = 0;
+                        const inputY = size.z;
+                        gameMapState.tileSelector.setTile(inputX, inputY);
+                    }
+                    break;
+
+                }
+
             } else {
                 gameMapState.tileSelector.setSize(1, 1);
             }

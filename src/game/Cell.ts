@@ -43,6 +43,9 @@ export class Cell implements ICell {
         this.setWalkable(empty);
     }
 
+    public get isSlot() { return this._isSlot; }
+    public set isSlot(value: boolean) { this._isSlot = value; }
+
     public get resource() { return this._resource; }
     public set resource(value: IRawResource | undefined) {
         this._resource = value;
@@ -79,6 +82,7 @@ export class Cell implements ICell {
 
     private _isEmpty = true;
     private _isWalkable = true;
+    private _isSlot = false;
     private _flowFieldCost = 1;
     private _buildingId: string | undefined = undefined;
     private _resource: IRawResource | undefined = undefined;

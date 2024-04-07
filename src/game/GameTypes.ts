@@ -48,6 +48,7 @@ export interface ICell {
     viewCount: number;
     isEmpty: boolean;
     isWalkable: boolean;
+    isSlot: boolean;
     hasUnits: boolean;
 
     roadTile?: number;

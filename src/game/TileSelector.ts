@@ -28,12 +28,23 @@ export class TileSector extends Object3D {
             depthTest: false,
         });
 
-        this.initGeometry();
+        this.setSize(this._size.x, this._size.y);
     }
 
     public setSize(x: number, z: number) {
-        this.size.set(x, z);
-        this.initGeometry();
+        this._size.set(x, z);
+        if (this.children.length > 0) {
+            this.clear();
+        }
+        for (let i = 0; i < this._size.y; ++i) {
+            for (let j = 0; j < this._size.x; ++j) {
+                this.add(this.createMesh(j, i));                
+            }
+        }
+    }
+
+    public setTile(x: number, z: number) {
+        this.add(this.createMesh(x, z));
     }
 
     public setPosition(mapCoords: Vector2, sectors: Map<string, ISector>) {
@@ -79,41 +90,28 @@ export class TileSector extends Object3D {
         }
     }
 
-    private initGeometry() {
+    private createMesh(x: number, y: number) {
+        const geometry = new BufferGeometry()
+            .setAttribute('position', new BufferAttribute(new Float32Array([
+                0, 0, 0,
+                cellSize, 0, 0,
+                cellSize, 0, cellSize,
+                0, 0, cellSize
+            ]), 3))
+            .setAttribute("uv", new BufferAttribute(new Float32Array([
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1
+            ]), 2))
+            .setIndex([0, 2, 1, 0, 3, 2]);
 
-        const createMesh = (x: number, y: number) => {
-            const geometry = new BufferGeometry()
-                .setAttribute('position', new BufferAttribute(new Float32Array([
-                    0, 0, 0,
-                    cellSize, 0, 0,
-                    cellSize, 0, cellSize,
-                    0, 0, cellSize
-                ]), 3))
-                .setAttribute("uv", new BufferAttribute(new Float32Array([
-                    0, 0,
-                    1, 0,
-                    1, 1,
-                    0, 1
-                ]), 2))
-                .setIndex([0, 2, 1, 0, 3, 2]);
-
-            const yOffset = 0.01;
-            const mesh = new Mesh(geometry, this._material).translateY(yOffset);
-            const { elevationStep } = config.game;
-            mesh.scale.set(1, elevationStep, 1);
-            mesh.position.set(x * cellSize, 0.001, y * cellSize);
-            return mesh;
-        };
-        
-        if (this.children.length > 0) {
-            this.clear();
-        }       
-
-        for (let i = 0; i < this._size.y; ++i) {
-            for (let j = 0; j < this._size.x; ++j) {
-                this.add(createMesh(j, i));                
-            }
-        }
-    }
+        const yOffset = 0.01;
+        const mesh = new Mesh(geometry, this._material).translateY(yOffset);
+        const { elevationStep } = config.game;
+        mesh.scale.set(1, elevationStep, 1);
+        mesh.position.set(x * cellSize, 0.001, y * cellSize);
+        return mesh;
+    };
 }
 

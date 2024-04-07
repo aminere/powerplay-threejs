@@ -38,11 +38,14 @@ class Buildings {
             material.side = FrontSide;
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
-            if (!building.geometry.boundingBox) {
-                building.geometry.computeBoundingBox();
-            }
-            const boundingBox = building.geometry.boundingBox!.clone();            
-            boundingBox.max.y = size.y;
+            // if (!building.geometry.boundingBox) {
+            //     building.geometry.computeBoundingBox();
+            // }
+            // const boundingBox = building.geometry.boundingBox!.clone();            
+            // boundingBox.max.y = size.y;
+            const boundingBox = new Box3();
+            boundingBox.min.set(0, 0, 0);
+            boundingBox.max.copy(size);
             this._buildings.set(buildingType, {
                 prefab: building,
                 boundingBox
@@ -58,24 +61,32 @@ class Buildings {
 
         const instance = this.create("factory", sectorCoords, localCoords);
 
-        const { mapCoords } = instance;
         const size = buildingSizes["factory"];
-        cellCoords.set(mapCoords.x + size.x - 1, mapCoords.y + size.z - 1);
-        const outputCell = makeUnitAddr();
-        computeUnitAddr(cellCoords, outputCell);
+        const inputX = 0;
+        const inputY = size.z;
+        const outputX = size.x - 1;
+        const outputY = -1;
 
-        cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
+        const { mapCoords } = instance;
+        cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
+        const outputCellAddr = makeUnitAddr();
+        computeUnitAddr(cellCoords, outputCellAddr);
+        const outputCell = getCellFromAddr(outputCellAddr);
+        outputCell.isSlot = true;
+
+        cellCoords.set(mapCoords.x + inputX, mapCoords.y + inputY);
         const inputCellAddr = makeUnitAddr();
         computeUnitAddr(cellCoords, inputCellAddr);
         const inputCell = getCellFromAddr(inputCellAddr);
         inputCell.acceptsResource = input;
+        inputCell.isSlot = true;
 
         const factoryState: IFactoryState = {
             input,
             output,
             state: FactoryState.idle,
             inputCell: inputCellAddr,
-            outputCell,
+            outputCell: outputCellAddr,
             timer: 0
         };
 
@@ -115,11 +126,16 @@ class Buildings {
                             }
                         }
                     }
+
+                    const outputX = 0;
+                    const outputY = size.z;
     
                     console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
-                    cellCoords.set(mapCoords.x, mapCoords.y + size.z - 1);
-                    const outputCell = makeUnitAddr();
-                    computeUnitAddr(cellCoords, outputCell);
+                    cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
+                    const outputCellAddr = makeUnitAddr();
+                    computeUnitAddr(cellCoords, outputCellAddr);
+                    const outputCell = getCellFromAddr(outputCellAddr);
+                    outputCell.isSlot = true;
 
                     const mineState: IMineState = {
                         resourceCells,
@@ -127,7 +143,7 @@ class Buildings {
                         outputting: false,
                         depleted: false,
                         currentResource: 0,
-                        outputCell,
+                        outputCell: outputCellAddr,
                         timer: 0
                     };
                     return mineState;

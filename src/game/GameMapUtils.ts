@@ -252,46 +252,86 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
 
     if (button === 0) {
         const size = buildingSizes[buildingType];
-        const allowed = (() => {
-            if (buildingType === "mine") {
-                let resourceCells = 0;
-                for (let i = 0; i < size.z; ++i) {
-                    for (let j = 0; j < size.x; ++j) {
-                        cellCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
-                        const _cell = GameUtils.getCell(cellCoords);
-                        if (!_cell) {
-                            return false;
-                        }
-                        if (_cell.resource && !_cell.buildingId) {
-                            resourceCells++;
-                        }
-                    }
-                }
-                return resourceCells > 0;
 
-            } else {                
+        // TODO is units under the structure, move them away
+        const allowed = (() => {
+
+            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits && !cell.isSlot);
+
+            const validateCells = (isValid: (cell: ICell | null) => boolean) => {
                 for (let i = 0; i < size.z; ++i) {
                     for (let j = 0; j < size.x; ++j) {
                         cellCoords.set(sectorCoords.x * mapRes + localCoords.x + j, sectorCoords.y * mapRes + localCoords.y + i);
                         const _cell = GameUtils.getCell(cellCoords);
-                        if (!_cell || !_cell.isEmpty || _cell.hasUnits) {
+                        if (!isValid(_cell)) {
                             return false;
                         }
                     }
                 }
-            }            
-            return true;
+                return true;
+            };
+
+            switch (buildingType) {
+                case "mine": {
+
+                    let resourceCount = 0;
+                    const cellsValid = validateCells(cell => {
+                        if (!cell || cell.hasUnits) {
+                            return false;
+                        }
+                        
+                        if (cell.resource && !cell.buildingId) {
+                            resourceCount++;
+                            return true;
+                        } else {
+                            return cell.isEmpty;
+                        }
+                    });
+
+                    return cellsValid && resourceCount > 0 && (() => {
+                        const outputX = 0;
+                        const outputY = size.z;
+                        cellCoords.set(sectorCoords.x * mapRes + localCoords.x + outputX, sectorCoords.y * mapRes + localCoords.y + outputY);
+                        const outputCell = GameUtils.getCell(cellCoords);
+                        const outputValid = validateCell(outputCell);
+                        return outputValid;
+                    })();
+                }
+
+                case "factory": {
+
+                    const cellsValid = validateCells(validateCell);
+
+                    const inputX = 0;
+                    const inputY = size.z;
+                    const outputX = size.x - 1;
+                    const outputY = -1;
+                    cellCoords.set(sectorCoords.x * mapRes + localCoords.x + inputX, sectorCoords.y * mapRes + localCoords.y + inputY);
+                    const inputCell = GameUtils.getCell(cellCoords);
+                    const inputValid = validateCell(inputCell);
+                    cellCoords.set(sectorCoords.x * mapRes + localCoords.x + outputX, sectorCoords.y * mapRes + localCoords.y + outputY);
+                    const outputCell = GameUtils.getCell(cellCoords);
+                    const outputValid = validateCell(outputCell);
+
+                    return (cellsValid && inputValid && outputValid);
+                }
+
+                default: {
+                    return validateCells(validateCell);
+                }
+            }
+
         })();
         if (allowed) {
             switch (buildingType) {
                 case "factory": {
                     buildings.createFactory(sectorCoords, localCoords, props.factoryInput, props.factoryOutput);
                 }
-                break;
+                    break;
                 default: {
                     buildings.create(buildingType, sectorCoords, localCoords);
                 }
-            }            
+            }
         }
 
     } else if (button === 2) {
@@ -399,7 +439,7 @@ function disposeSectors() {
         });
     }
     sectors.clear();
-} 
+}
 
 export function createSectors(size: number) {
     const state = GameMapState.instance;
@@ -542,9 +582,9 @@ export function onAction(touchButton: number) {
                         const cellUnits = [...cell.units];
                         for (const unit of cellUnits) {
                             unitsManager.kill(unit);
-                        }                    
+                        }
                     }
-                }                
+                }
             }
         }
     }
