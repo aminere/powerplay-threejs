@@ -131,21 +131,17 @@ class UnitMotion {
 
         const hasResource = destCell.resource || destCell.pickableResource;
 
-        const invalidMove = (() => {
+        const validMove = (() => {
             if (hasResource) {
-                return false;
-            }
-            if (destCell.acceptsResource) {
-                // must reject later per unit
-                return false;
-            }
-            if (!destCell.isWalkable) {
                 return true;
             }
-            return false;
+            if (!destCell.isWalkable) {
+                return false;
+            }
+            return true;
         })();
 
-        if (invalidMove) {
+        if (!validMove) {
             return;
         }
 
@@ -165,13 +161,6 @@ class UnitMotion {
 
             if (!isDirectionValid(flowfields, unit)) {
                 continue;
-            }
-
-            if (destCell.acceptsResource) {
-                const unitResource = unit.resource?.type;
-                if (destCell.nonPickableResource || unitResource !== destCell.acceptsResource) {
-                    continue;
-                }
             }
 
             if (motionId === null) {
