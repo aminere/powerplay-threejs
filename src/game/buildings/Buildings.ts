@@ -14,11 +14,27 @@ import gsap from "gsap";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { resourceUtils } from "../ResourceUtils";
 import { conveyorItems } from "../ConveyorItems";
+import { ICell } from "../GameTypes";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
+
+function processOutputCell(cell: ICell, mapCoords: Vector2) {
+    if (!cell.pickableResource) {
+        return;
+    }
+    const conveyor = cell.conveyor;
+    if (conveyor) {
+        const added = conveyorItems.addItem(cell, mapCoords, cell.pickableResource.type);
+        if (added) {
+            const { visual } = cell.pickableResource;
+            visual.removeFromParent();
+            cell.pickableResource = undefined;
+        }
+    }
+}
 
 class Buildings {
 
@@ -91,7 +107,7 @@ class Buildings {
         };
 
         instance.state = factoryState;
-    }    
+    }
 
     public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
 
@@ -129,7 +145,7 @@ class Buildings {
 
                     const outputX = 0;
                     const outputY = size.z;
-    
+
                     console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
                     cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
                     const outputCellAddr = makeUnitAddr();
@@ -152,7 +168,7 @@ class Buildings {
                 default:
                     return null;
             }
-        })();        
+        })();
 
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
@@ -253,7 +269,7 @@ class Buildings {
                     }
 
                     if (!state.active) {
-                        
+
                         const outputCell = getCellFromAddr(state.outputCell);
                         if (!outputCell.pickableResource) {
                             if (state.minedResource) {
@@ -265,19 +281,20 @@ class Buildings {
                                 }
 
                             } else {
+                                // start mining a new resource
                                 state.active = true;
-                                state.timer = 0;    
+                                state.timer = 0;
                             }
-                        }                        
+                        }
 
                     } else {
 
                         if (state.timer >= miningFrequency) {
                             const cell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
-                            const resource = cell.resource!;                            
+                            const resource = cell.resource!;
 
                             const outputCell = getCellFromAddr(state.outputCell);
-                            console.assert(!outputCell.pickableResource);                           
+                            console.assert(!outputCell.pickableResource);
 
                             resource.amount -= 1;
                             if (resource.amount === 0) {
@@ -289,14 +306,14 @@ class Buildings {
                                     state.depleted = true;
                                 }
                             }
-                            
+
                             state.active = false;
                             state.minedResource = resource.type;
 
                             const { sector, localCoords } = state.outputCell;
                             if (outputCell.conveyor) {
 
-                                if (conveyorItems.addItem(outputCell, state.outputCell.mapCoords, resource.type)) {
+                                if (conveyorItems.addItem(outputCell, state.outputCell.mapCoords, state.minedResource)) {
                                     state.minedResource = null;
                                 }
 
@@ -309,7 +326,7 @@ class Buildings {
                                     mesh.position.y = 0.5;
                                     mesh.castShadow = true;
                                 });
-    
+
                                 gsap.to(visual.position, {
                                     z: visual.position.z + cellSize,
                                     duration: 1,
@@ -324,26 +341,14 @@ class Buildings {
                                     }
                                 });
                             }
-                            
+
                         } else {
                             state.timer += time.deltaTime;
                         }
                     }
 
-                    // check nearby conveyors
-                    const outputCell = getCellFromAddr(state.outputCell);
-                    if (outputCell.pickableResource) {
-                        const conveyor = outputCell?.conveyor;
-                        if (conveyor) {
-                            const added = conveyorItems.addItem(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
-                            if (added) {
-                                const { visual } = outputCell.pickableResource;
-                                visual.removeFromParent();
-                                outputCell.pickableResource = undefined;
-                            }
-                        }
-                    }
-                    
+                    processOutputCell(getCellFromAddr(state.outputCell), state.outputCell.mapCoords);
+
                 }
                     break;
 
@@ -353,13 +358,13 @@ class Buildings {
                     const outputCell = getCellFromAddr(state.outputCell);
 
                     switch (state.state) {
-                        case FactoryState.idle: {                            
+                        case FactoryState.idle: {
                             if (outputCell.pickableResource) {
                                 // output full, can't process
                             } else {
                                 if (inputCell.nonPickableResource) {
                                     state.state = FactoryState.inserting;
-                                    const visual = inputCell.nonPickableResource.visual;                                
+                                    const visual = inputCell.nonPickableResource.visual;
                                     gsap.to(visual.position, {
                                         z: visual.position.z - cellSize,
                                         duration: 1,
@@ -372,39 +377,49 @@ class Buildings {
                                         }
                                     });
                                 }
-                            }                                                       
+                            }
                         }
                             break;
 
                         case FactoryState.processing: {
                             const productionTime = 2;
                             if (state.timer >= productionTime) {
+
                                 // production done
                                 const { sector, localCoords } = state.outputCell;
                                 const outputCell = getCellFromAddr(state.outputCell);
-                                console.assert(!outputCell.pickableResource);
-                                const visual = utils.createObject(sector.layers.resources, state.output);
-                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y + 1) * cellSize + cellSize / 2);
-                                meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
-                                    const mesh = _mesh.clone();
-                                    visual.add(mesh);
-                                    mesh.position.y = 0.5;
-                                    mesh.castShadow = true;
-                                });
 
-                                state.state = FactoryState.outputting;
-                                gsap.to(visual.position, {
-                                    z: visual.position.z - cellSize,
-                                    duration: 1,
-                                    delay: .5,
-                                    onComplete: () => {
+                                if (outputCell.conveyor) {
+
+                                    if (conveyorItems.addItem(outputCell, state.outputCell.mapCoords, state.output)) {
                                         state.state = FactoryState.idle;
-                                        outputCell.pickableResource = {
-                                            type: state.output,
-                                            visual
-                                        };
                                     }
-                                });
+
+                                } else {
+                                    console.assert(!outputCell.pickableResource);
+                                    const visual = utils.createObject(sector.layers.resources, state.output);
+                                    visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y + 1) * cellSize + cellSize / 2);
+                                    meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
+                                        const mesh = _mesh.clone();
+                                        visual.add(mesh);
+                                        mesh.position.y = 0.5;
+                                        mesh.castShadow = true;
+                                    });
+
+                                    state.state = FactoryState.outputting;
+                                    gsap.to(visual.position, {
+                                        z: visual.position.z - cellSize,
+                                        duration: 1,
+                                        delay: .5,
+                                        onComplete: () => {
+                                            state.state = FactoryState.idle;
+                                            outputCell.pickableResource = {
+                                                type: state.output,
+                                                visual
+                                            };
+                                        }
+                                    });
+                                }
 
                             } else {
                                 state.timer += time.deltaTime;
@@ -415,7 +430,7 @@ class Buildings {
 
                     // check nearby conveyors
                     if (!inputCell.nonPickableResource) {
-                        const conveyor = inputCell?.conveyor;
+                        const conveyor = inputCell.conveyor;
                         if (conveyor) {
                             let itemToGet = -1;
                             for (let i = 0; i < conveyor.items.length; i++) {
@@ -436,22 +451,9 @@ class Buildings {
                                 resource.visual.position.z -= cellSize; // since conveyor is on the same cell, shift the resource inwards
                             }
                         }
-                    }        
-                    
-                    if (outputCell.pickableResource) {
-                        const outputCoords = state.outputCell.mapCoords;
-                        cellCoords.set(outputCoords.x, outputCoords.y + 1);
-                        const cell = GameUtils.getCell(cellCoords);
-                        const conveyor = cell?.conveyor;
-                        if (conveyor) {
-                            const added = conveyorItems.addItem(cell, cellCoords, state.output);
-                            if (added) {
-                                const { visual } = outputCell.pickableResource;
-                                visual.removeFromParent();
-                                outputCell.pickableResource = undefined;
-                            }
-                        }
                     }
+
+                    processOutputCell(outputCell, state.outputCell.mapCoords);
                 }
                     break;
             }

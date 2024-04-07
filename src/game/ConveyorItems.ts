@@ -208,9 +208,9 @@ class ConveyorItems {
         const existingItems = cell.conveyor!.items;
 
         for (const item of existingItems) {
-            const itemEdge = item.localT - item.size / 2;
+            const itemEdge = item.localT - halfItemSize;
             if (itemEdge < edge) {
-                console.log(`no space in conveyor ${cell.id}`);
+                // console.log(`no space in conveyor ${cell.id}`);
                 return false;
             }
         }
