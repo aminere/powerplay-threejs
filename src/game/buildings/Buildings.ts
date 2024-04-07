@@ -367,7 +367,7 @@ class Buildings {
                                 const outputCell = getCellFromAddr(state.outputCell);
                                 console.assert(!outputCell.pickableResource);
                                 const visual = utils.createObject(sector.layers.resources, state.output);
-                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y - 1) * cellSize + cellSize / 2);
+                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y + 1) * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
                                     const mesh = _mesh.clone();
                                     visual.add(mesh);
@@ -377,7 +377,7 @@ class Buildings {
 
                                 state.state = FactoryState.outputting;
                                 gsap.to(visual.position, {
-                                    z: visual.position.z + cellSize,
+                                    z: visual.position.z - cellSize,
                                     duration: 1,
                                     delay: .5,
                                     onComplete: () => {

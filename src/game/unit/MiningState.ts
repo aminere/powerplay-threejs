@@ -90,6 +90,7 @@ export class MiningState extends State<IUnit> {
     private _closestFactory: IBuildingInstance | null = null;
 
     override enter(unit: IUnit) {
+        console.log(`MiningState enter`);
         this._step = MiningStep.GoToResource;
         copyUnitAddr(unit.targetCell, this._targetResource);
         this._potentialTarget.set(-1, -1);

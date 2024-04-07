@@ -167,19 +167,6 @@ export function updateUnits(units: IUnit[]) {
             const miningState = unit.fsm.getState(MiningState);
             if (miningState) {
                 miningState.potentialTarget = avoidedCellCoords;
-            } else {
-                if (avoidedCell) {
-                    if (avoidedCell.acceptsResource) {
-                        const carriedResource = unit.resource?.type;
-                        if (carriedResource === avoidedCell.acceptsResource) {
-                            const sector = GameUtils.getSector(avoidedCellSector)!;
-                            resourceUtils.depositResource(unit, avoidedCell, sector, avoidedCellLocalCoords);
-                            if (unit.motionId > 0) {
-                                onUnitArrived(unit);
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -270,6 +257,25 @@ export function updateUnits(units: IUnit[]) {
                             }
                         }
                     }
+
+                    const miningState = unit.fsm.getState(MiningState);
+                    if (miningState) {
+                        if (nextCell.pickableResource || nextCell.acceptsResource) {
+                            miningState.potentialTarget = nextMapCoords;
+                        }
+                    } else {
+                        if (nextCell.acceptsResource) {
+                            const carriedResource = unit.resource?.type;
+                            if (!nextCell.nonPickableResource && carriedResource === nextCell.acceptsResource) {
+                                const { sector, localCoords } = unit.coords;
+                                resourceUtils.depositResource(unit, nextCell, sector, localCoords);
+                                if (unit.motionId > 0) {
+                                    onUnitArrived(unit);
+                                }
+                            }
+                        }
+                    }
+
                 }
             }
         }
