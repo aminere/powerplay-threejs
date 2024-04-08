@@ -114,7 +114,7 @@ export class MiningState extends State<IUnit> {
                     scheduleCommonAnim: true
                 });
             } else {
-                unitMotion.moveUnit(unit, cellCoords);
+                unitMotion.moveUnit(unit, this._closestFactory.mapCoords);
             }            
             this._step = MiningStep.GoToFactory;
         } else {

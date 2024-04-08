@@ -144,7 +144,8 @@ export function updateUnits(units: IUnit[]) {
         }
 
         unit.desiredPosValid = false;
-        const needsMotion = unit.motionId > 0 || unit.isColliding;
+        const isMoving = unit.motionId > 0;
+        const needsMotion = isMoving || unit.isColliding;
         let avoidedCell: ICell | null | undefined = undefined;        
 
         if (needsMotion) {
@@ -164,7 +165,7 @@ export function updateUnits(units: IUnit[]) {
             }
         }
 
-        if (avoidedCell !== undefined) {
+        if (avoidedCell !== undefined && isMoving) {
             const miningState = unit.fsm.getState(MiningState);
             if (miningState) {
                 miningState.potentialTarget = avoidedCellCoords;
@@ -175,13 +176,13 @@ export function updateUnits(units: IUnit[]) {
                     if (instanceId === targetCell.building?.instanceId) {
                         const carriedResource = unit.resource;
                         if (carriedResource) {
-                            const buildingInstance = GameMapState.instance.buildings.get(instanceId);
-                            if (buildingInstance?.buildingType === "factory") {
+                            const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
+                            if (buildingInstance.buildingType === "factory") {
                                 const state = buildingInstance.state as IFactoryState;
                                 if (state.input === carriedResource.type) {
                                     state.inputReserve++;
                                     carriedResource.visual.removeFromParent();
-                                    unit.resource = null;         
+                                    unit.resource = null;
                                 }
                             }    
                         }
@@ -194,7 +195,7 @@ export function updateUnits(units: IUnit[]) {
 
         let hasMoved = false;
         if (needsMotion) {
-            if (unit.motionId > 0) {
+            if (isMoving) {
                 if (avoidedCell !== undefined) {
                     nextPos.copy(unit.obj.position);
                     mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
@@ -270,7 +271,7 @@ export function updateUnits(units: IUnit[]) {
                         unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                     }
 
-                    if (unit.motionId > 0) {
+                    if (isMoving) {
                         if (!unit.fsm.currentState) {
                             const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                             if (reachedTarget) {
