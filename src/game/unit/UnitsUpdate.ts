@@ -12,9 +12,10 @@ import { utils } from "../../engine/Utils";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
 import { cmdFogMoveCircle } from "../../Events";
-import { computeUnitAddr } from "./UnitAddr";
+import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { ICell } from "../GameTypes";
-import { resourceUtils } from "../ResourceUtils";
+import { GameMapState } from "../components/GameMapState";
+import { IFactoryState } from "../buildings/BuildingTypes";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -167,6 +168,27 @@ export function updateUnits(units: IUnit[]) {
             const miningState = unit.fsm.getState(MiningState);
             if (miningState) {
                 miningState.potentialTarget = avoidedCellCoords;
+            } else {
+                const buildingId = avoidedCell?.buildingId;
+                if (buildingId) {
+                    const targetCell = getCellFromAddr(unit.targetCell);
+                    if (buildingId === targetCell.buildingId) {
+                        const carriedResource = unit.resource;
+                        if (carriedResource) {
+                            const buildingInstance = GameMapState.instance.buildings.get(buildingId);
+                            if (buildingInstance?.buildingType === "factory") {
+                                const state = buildingInstance.state as IFactoryState;
+                                if (state.input === carriedResource.type) {
+                                    state.inputReserve++;
+                                    carriedResource.visual.removeFromParent();
+                                    unit.resource = null;         
+                                }
+                            }    
+                        }
+
+                        onUnitArrived(unit);
+                    }
+                }
             }
         }
 
@@ -257,23 +279,6 @@ export function updateUnits(units: IUnit[]) {
                             }
                         }
                     }
-
-                    const miningState = unit.fsm.getState(MiningState);
-                    if (miningState) {
-                        miningState.potentialTarget = nextMapCoords;
-                    } else {
-                        if (nextCell.acceptsResource) {
-                            const carriedResource = unit.resource?.type;
-                            if (!nextCell.nonPickableResource && carriedResource === nextCell.acceptsResource) {
-                                const { sector, localCoords } = unit.coords;
-                                resourceUtils.depositResource(unit, nextCell, sector, localCoords);
-                                if (unit.motionId > 0) {
-                                    onUnitArrived(unit);
-                                }
-                            }
-                        }
-                    }
-
                 }
             }
         }

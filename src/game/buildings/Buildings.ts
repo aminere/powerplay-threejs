@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, FrontSide, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
@@ -10,11 +10,10 @@ import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
-import gsap from "gsap";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { resourceUtils } from "../ResourceUtils";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
+import { objects } from "../../engine/resources/Objects";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -36,6 +35,29 @@ function processOutputCell(cell: ICell, mapCoords: Vector2) {
     }
 }
 
+function checkNearbyConveyors(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
+    cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
+    const cell = GameUtils.getCell(cellCoords);
+    const conveyor = cell?.conveyor;
+    if (conveyor) {
+        let itemToGet = -1;
+        for (let i = 0; i < conveyor.items.length; i++) {
+            const item = conveyor.items[i];
+            if (item.type === type) {
+                itemToGet = i;
+                break;
+            }
+        }
+        if (itemToGet >= 0) {
+            const item = conveyor.items[itemToGet];
+            utils.fastDelete(conveyor.items, itemToGet);
+            conveyorItems.removeItem(item);
+            return true;
+        }
+    }
+    return false;
+}
+
 class Buildings {
 
     private _instanceId = 1;
@@ -45,20 +67,38 @@ class Buildings {
     }>();
 
     public async preload() {
-        const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
+        // const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
+        // for (let i = 0; i < buildings.length; i++) {
+        //     const [building] = buildings[i];
+        //     building.castShadow = true;
+        //     building.receiveShadow = true;
+        //     const material = building.material as MeshStandardMaterial;
+        //     material.side = FrontSide;
+        //     const buildingType = BuildingTypes[i];
+        //     const size = buildingSizes[buildingType];
+        //     // if (!building.geometry.boundingBox) {
+        //     //     building.geometry.computeBoundingBox();
+        //     // }
+        //     // const boundingBox = building.geometry.boundingBox!.clone();            
+        //     // boundingBox.max.y = size.y;
+        //     const boundingBox = new Box3();
+        //     boundingBox.min.set(0, 0, 0);
+        //     boundingBox.max.copy(size);
+        //     this._buildings.set(buildingType, {
+        //         prefab: building,
+        //         boundingBox
+        //     });
+        // }
+
+        const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
         for (let i = 0; i < buildings.length; i++) {
-            const [building] = buildings[i];
-            building.castShadow = true;
-            building.receiveShadow = true;
-            const material = building.material as MeshStandardMaterial;
-            material.side = FrontSide;
+            const building = buildings[i];
+            building.traverse(child => {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            });
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
-            // if (!building.geometry.boundingBox) {
-            //     building.geometry.computeBoundingBox();
-            // }
-            // const boundingBox = building.geometry.boundingBox!.clone();            
-            // boundingBox.max.y = size.y;
             const boundingBox = new Box3();
             boundingBox.min.set(0, 0, 0);
             boundingBox.max.copy(size);
@@ -74,35 +114,26 @@ class Buildings {
     }
 
     public createFactory(sectorCoords: Vector2, localCoords: Vector2, input: RawResourceType | ResourceType, output: ResourceType) {
-
+        
         const instance = this.create("factory", sectorCoords, localCoords);
 
-        const size = buildingSizes["factory"];
-        const inputX = 0;
-        const inputY = size.z;
+        const size = buildingSizes.factory;
         const outputX = size.x - 1;
-        const outputY = -1;
+        const outputY = size.z - 1;
 
         const { mapCoords } = instance;
         cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
-        const outputCellAddr = makeUnitAddr();
-        computeUnitAddr(cellCoords, outputCellAddr);
-        const outputCell = getCellFromAddr(outputCellAddr);
-        outputCell.isSlot = true;
-
-        cellCoords.set(mapCoords.x + inputX, mapCoords.y + inputY);
-        const inputCellAddr = makeUnitAddr();
-        computeUnitAddr(cellCoords, inputCellAddr);
-        const inputCell = getCellFromAddr(inputCellAddr);
-        inputCell.acceptsResource = input;
-        inputCell.isSlot = true;
+        const outputCell = makeUnitAddr();
+        computeUnitAddr(cellCoords, outputCell);
 
         const factoryState: IFactoryState = {
             input,
             output,
             state: FactoryState.idle,
-            inputCell: inputCellAddr,
-            outputCell: outputCellAddr,
+            inputReserve: 0,
+            inputAccepFrequency: 1,
+            inputTimer: -1,
+            outputCell,
             timer: 0
         };
 
@@ -143,15 +174,13 @@ class Buildings {
                         }
                     }
 
-                    const outputX = 0;
-                    const outputY = size.z;
+                    const outputX = size.x - 1;
+                    const outputY = size.z - 1;
 
                     console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
                     cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
-                    const outputCellAddr = makeUnitAddr();
-                    computeUnitAddr(cellCoords, outputCellAddr);
-                    const outputCell = getCellFromAddr(outputCellAddr);
-                    outputCell.isSlot = true;
+                    const outputCell = makeUnitAddr();
+                    computeUnitAddr(cellCoords, outputCell);
 
                     const mineState: IMineState = {
                         resourceCells,
@@ -159,7 +188,7 @@ class Buildings {
                         minedResource: null,
                         active: true,
                         depleted: false,
-                        outputCell: outputCellAddr,
+                        outputCell,
                         timer: 0
                     };
                     return mineState;
@@ -240,12 +269,6 @@ class Buildings {
             }
         } else if (buildingType === "factory") {
             const state = instance.state as IFactoryState;
-            const inputCell = getCellFromAddr(state.inputCell);
-            inputCell.acceptsResource = undefined;
-            if (inputCell.nonPickableResource) {
-                inputCell.nonPickableResource.visual.removeFromParent();
-                inputCell.nonPickableResource = undefined;
-            }
             const outputCell = getCellFromAddr(state.outputCell);
             if (outputCell.pickableResource) {
                 outputCell.pickableResource.visual.removeFromParent();
@@ -319,27 +342,18 @@ class Buildings {
 
                             } else {
                                 const visual = utils.createObject(sector.layers.resources, resource.type);
-                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, (localCoords.y - 1) * cellSize + cellSize / 2);
+                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
                                 meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
                                     const mesh = _mesh.clone();
                                     visual.add(mesh);
                                     mesh.position.y = 0.5;
                                     mesh.castShadow = true;
                                 });
-
-                                gsap.to(visual.position, {
-                                    z: visual.position.z + cellSize,
-                                    duration: 1,
-                                    delay: .5,
-                                    onComplete: () => {
-                                        console.assert(state.minedResource !== null, "Mined resource must be set");
-                                        outputCell.pickableResource = {
-                                            type: state.minedResource!,
-                                            visual
-                                        };
-                                        state.minedResource = null;
-                                    }
-                                });
+                                outputCell.pickableResource = {
+                                    type: state.minedResource!,
+                                    visual
+                                };
+                                state.minedResource = null;
                             }
 
                         } else {
@@ -354,7 +368,6 @@ class Buildings {
 
                 case "factory": {
                     const state = instance.state as IFactoryState;
-                    const inputCell = getCellFromAddr(state.inputCell);
                     const outputCell = getCellFromAddr(state.outputCell);
 
                     switch (state.state) {
@@ -362,21 +375,11 @@ class Buildings {
                             if (outputCell.pickableResource) {
                                 // output full, can't process
                             } else {
-                                if (inputCell.nonPickableResource) {
-                                    state.state = FactoryState.inserting;
-                                    const visual = inputCell.nonPickableResource.visual;
-                                    gsap.to(visual.position, {
-                                        z: visual.position.z - cellSize,
-                                        duration: 1,
-                                        delay: .5,
-                                        onComplete: () => {
-                                            state.state = FactoryState.processing;
-                                            state.timer = 0;
-                                            inputCell.nonPickableResource?.visual.removeFromParent();
-                                            inputCell.nonPickableResource = undefined;
-                                        }
-                                    });
-                                }
+                                if (state.inputReserve > 0) {
+                                    state.inputReserve--;
+                                    state.state = FactoryState.processing;
+                                    state.timer = 0;
+                                }        
                             }
                         }
                             break;
@@ -405,20 +408,11 @@ class Buildings {
                                         mesh.position.y = 0.5;
                                         mesh.castShadow = true;
                                     });
-
-                                    state.state = FactoryState.outputting;
-                                    gsap.to(visual.position, {
-                                        z: visual.position.z - cellSize,
-                                        duration: 1,
-                                        delay: .5,
-                                        onComplete: () => {
-                                            state.state = FactoryState.idle;
-                                            outputCell.pickableResource = {
-                                                type: state.output,
-                                                visual
-                                            };
-                                        }
-                                    });
+                                    state.state = FactoryState.idle;
+                                    outputCell.pickableResource = {
+                                        type: state.output,
+                                        visual
+                                    };
                                 }
 
                             } else {
@@ -429,28 +423,40 @@ class Buildings {
                     }
 
                     // check nearby conveyors
-                    if (!inputCell.nonPickableResource) {
-                        const conveyor = inputCell.conveyor;
-                        if (conveyor) {
-                            let itemToGet = -1;
-                            for (let i = 0; i < conveyor.items.length; i++) {
-                                const item = conveyor.items[i];
-                                if (item.type === state.input) {
-                                    itemToGet = i;
+                    if (state.inputTimer < 0) {
+                        const size = buildingSizes.factory;
+                        let inputAccepted = false;
+                        for (let x = 0; x < size.x; ++x) {
+                            if (checkNearbyConveyors(state.input, instance.mapCoords, x, -1)) {
+                                state.inputReserve++;
+                                state.inputTimer = state.inputAccepFrequency;
+                                inputAccepted = true;
+                                break;
+                            }
+                            if (checkNearbyConveyors(state.input, instance.mapCoords, x, size.z)) {
+                                state.inputReserve++;
+                                state.inputTimer = state.inputAccepFrequency;
+                                inputAccepted = true;
+                                break;
+                            }
+                        }
+                        if (!inputAccepted) {
+                            for (let z = 0; z < size.z; ++z) {
+                                if (checkNearbyConveyors(state.input, instance.mapCoords, -1, z)) {
+                                    state.inputReserve++;
+                                    state.inputTimer = state.inputAccepFrequency;
+                                    break;
+                                }
+                                if (checkNearbyConveyors(state.input, instance.mapCoords, size.x, z)) {
+                                    state.inputReserve++;
+                                    state.inputTimer = state.inputAccepFrequency;
                                     break;
                                 }
                             }
-                            if (itemToGet >= 0) {
-                                const item = conveyor.items[itemToGet];
-                                utils.fastDelete(conveyor.items, itemToGet);
-                                conveyorItems.removeItem(item);
-                                const resourceType = item.type;
-                                const { sector, localCoords } = state.inputCell;
-                                // this will set inputCell.nonPickableResource
-                                const resource = resourceUtils.setResource(inputCell, sector, localCoords, resourceType);
-                                resource.visual.position.z -= cellSize; // since conveyor is on the same cell, shift the resource inwards
-                            }
                         }
+
+                    } else {
+                        state.inputTimer -= time.deltaTime;
                     }
 
                     processOutputCell(outputCell, state.outputCell.mapCoords);

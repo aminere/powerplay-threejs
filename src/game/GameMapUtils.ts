@@ -256,7 +256,7 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
         // TODO is units under the structure, move them away
         const allowed = (() => {
 
-            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits && !cell.isSlot);
+            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits);
 
             const validateCells = (isValid: (cell: ICell | null) => boolean) => {
                 for (let i = 0; i < size.z; ++i) {
@@ -288,32 +288,7 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                         }
                     });
 
-                    return cellsValid && resourceCount > 0 && (() => {
-                        const outputX = 0;
-                        const outputY = size.z;
-                        cellCoords.set(sectorCoords.x * mapRes + localCoords.x + outputX, sectorCoords.y * mapRes + localCoords.y + outputY);
-                        const outputCell = GameUtils.getCell(cellCoords);
-                        const outputValid = validateCell(outputCell);
-                        return outputValid;
-                    })();
-                }
-
-                case "factory": {
-
-                    const cellsValid = validateCells(validateCell);
-
-                    const inputX = 0;
-                    const inputY = size.z;
-                    const outputX = size.x - 1;
-                    const outputY = -1;
-                    cellCoords.set(sectorCoords.x * mapRes + localCoords.x + inputX, sectorCoords.y * mapRes + localCoords.y + inputY);
-                    const inputCell = GameUtils.getCell(cellCoords);
-                    const inputValid = validateCell(inputCell);
-                    cellCoords.set(sectorCoords.x * mapRes + localCoords.x + outputX, sectorCoords.y * mapRes + localCoords.y + outputY);
-                    const outputCell = GameUtils.getCell(cellCoords);
-                    const outputValid = validateCell(outputCell);
-
-                    return (cellsValid && inputValid && outputValid);
+                    return cellsValid && resourceCount > 0;
                 }
 
                 default: {

@@ -41,11 +41,7 @@ export class TileSector extends Object3D {
                 this.add(this.createMesh(j, i));                
             }
         }
-    }
-
-    public setTile(x: number, z: number) {
-        this.add(this.createMesh(x, z));
-    }
+    }    
 
     public setPosition(mapCoords: Vector2, sectors: Map<string, ISector>) {
         const offset = -mapRes / 2;

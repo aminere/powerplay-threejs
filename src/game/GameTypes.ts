@@ -48,7 +48,6 @@ export interface ICell {
     viewCount: number;
     isEmpty: boolean;
     isWalkable: boolean;
-    isSlot: boolean;
     hasUnits: boolean;
 
     roadTile?: number;
@@ -57,7 +56,6 @@ export interface ICell {
     resource?: IRawResource;
     pickableResource?: IResource;
     nonPickableResource?: IResource;
-    acceptsResource?: RawResourceType | ResourceType;
 
     rail?: {        
         axis: Axis;

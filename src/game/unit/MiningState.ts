@@ -5,13 +5,13 @@ import { time } from "../../engine/core/Time";
 import { unitAnimation } from "./UnitAnimation";
 import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
 import { unitMotion } from "./UnitMotion";
-import { IBuildingInstance, IFactoryState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IFactoryState, buildingSizes } from "../buildings/BuildingTypes";
 import { GameMapState } from "../components/GameMapState";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { resourceUtils } from "../ResourceUtils";
+import { GameUtils } from "../GameUtils";
 
 enum MiningStep {
     GoToResource,
@@ -19,15 +19,15 @@ enum MiningStep {
     GoToFactory,
 }
 
-const inputSlot = new Vector2();
-const closestInputSlot = new Vector2();
+const cellCoords = new Vector2();
 
-function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType | ResourceType, closestInputSlotOut: Vector2) {
+function findClosestFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
     // TODO search in a spiral pattern across sectors
     // requires that buildings are stored in sectors instead of a global map
     const { buildings } = GameMapState.instance;
     let distToClosest = 999999;
     let closestFactory: IBuildingInstance | null = null;
+    const size = buildingSizes.factory;
     for (const [, instance] of buildings) {
         if (instance.buildingType !== "factory") {
             continue;
@@ -38,17 +38,11 @@ function findClosestFreeFactory(unit: IUnit, resourceType: RawResourceType | Res
             continue;
         }
 
-        const otherInputCell = getCellFromAddr(otherState.inputCell);
-        if (otherInputCell.nonPickableResource || otherInputCell.conveyor) {
-            continue;
-        }
-
-        inputSlot.copy(otherState.inputCell.mapCoords);
-        const dist = inputSlot.distanceTo(unit.coords.mapCoords);
+        cellCoords.set(Math.round(instance.mapCoords.x + size.x / 2), Math.round(instance.mapCoords.y + size.z / 2));
+        const dist = cellCoords.distanceTo(unit.coords.mapCoords);
         if (dist < distToClosest) {
             distToClosest = dist;
             closestFactory = instance;
-            closestInputSlotOut.copy(inputSlot);
         }
     }
     return closestFactory;
@@ -109,18 +103,20 @@ export class MiningState extends State<IUnit> {
     }     
 
     private goToFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
-        const factory = findClosestFreeFactory(unit, resourceType, closestInputSlot);
+        const factory = findClosestFactory(unit, resourceType);
         this._closestFactory = factory;
         if (this._closestFactory) {
             const isMining = unit.animation.name === "pick";
+            const size = buildingSizes.factory;
+            cellCoords.set(Math.round(this._closestFactory.mapCoords.x + size.x / 2), Math.round(this._closestFactory.mapCoords.y + size.z / 2));
             if (isMining) {
-                unitMotion.moveUnit(unit, closestInputSlot, false);
+                unitMotion.moveUnit(unit, cellCoords, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
                 });
             } else {
-                unitMotion.moveUnit(unit, closestInputSlot);
+                unitMotion.moveUnit(unit, cellCoords);
             }            
             this._step = MiningStep.GoToFactory;
         } else {
@@ -171,21 +167,19 @@ export class MiningState extends State<IUnit> {
                     this._closestFactory = null;
 
                 } else {
-                    const arrived = unit.targetCell.mapCoords.equals(this._potentialTarget);
-                    if (arrived) {
+
+                    if (!Number.isNaN(this._potentialTarget.x)) {                        
+                        const potentialTarget = GameUtils.getCell(this._potentialTarget)!;
                         this._potentialTarget.set(NaN, NaN);
-
-                        // arrived at factory
-                        const factoryState = this._closestFactory!.state as IFactoryState;
-                        const inputCell = getCellFromAddr(factoryState.inputCell);
-                        if (inputCell.nonPickableResource) {
-                            console.log(`input full, finding next closest factory`);
-                            this.goToFactory(unit, factoryState.input as RawResourceType);                            
-
-                        } else {
-                            
-                            const { sector, localCoords } = factoryState.inputCell;
-                            resourceUtils.depositResource(unit, inputCell, sector, localCoords);
+                        
+                        const targetCell = getCellFromAddr(unit.targetCell);
+                        if (potentialTarget.buildingId === targetCell.buildingId) {
+                            // arrived at factory
+                            const factoryState = this._closestFactory!.state as IFactoryState;
+                            console.assert(factoryState.input === unit.resource!.type, `factory input is ${factoryState.input} and unit resource is ${unit.resource!.type}`);
+                            factoryState.inputReserve++;
+                            unit.resource!.visual.removeFromParent();
+                            unit.resource = null;
                             this.goToResource(unit);
                         }
                     }

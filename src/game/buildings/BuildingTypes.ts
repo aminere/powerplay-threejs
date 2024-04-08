@@ -14,17 +14,17 @@ export type BuildingType = typeof BuildingTypes[number];
 
 export enum FactoryState {
     idle,
-    inserting,
-    processing,
-    outputting
+    processing
 }
 
 export interface IFactoryState {
     input: RawResourceType | ResourceType;
     output: ResourceType;
 
+    inputReserve: number;
+    inputAccepFrequency: number;
+    inputTimer: number;
     state: FactoryState;
-    inputCell: IUnitAddr;
     outputCell: IUnitAddr;
     timer: number;
 }
@@ -58,9 +58,9 @@ export interface IBuildingInstance {
 }
 
 export const buildingSizes: Record<BuildingType, Vector3> = {
-    "hq":new Vector3(10, 4, 5),
-    "mine": new Vector3(2, 2, 2),
-    "factory": new Vector3(3, 2, 3),
-    "assembly": new Vector3(2, 2, 3)
+    "hq": new Vector3(10, 4, 5),
+    "mine": new Vector3(2, 1, 2),
+    "factory": new Vector3(3, 1.5, 3),
+    "assembly": new Vector3(4, 2, 4)
 };
 

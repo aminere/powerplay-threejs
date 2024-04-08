@@ -135,6 +135,11 @@ class UnitMotion {
             if (hasResource) {
                 return true;
             }
+
+            if (destCell.buildingId) {                
+                return true;
+            }
+
             if (!destCell.isWalkable) {
                 return false;
             }
