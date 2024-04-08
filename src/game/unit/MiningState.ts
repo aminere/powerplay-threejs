@@ -38,7 +38,7 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
             continue;
         }
 
-        cellCoords.set(Math.round(instance.mapCoords.x + size.x / 2), Math.round(instance.mapCoords.y + size.z / 2));
+        cellCoords.set(instance.mapCoords.x + (size.x - 1) / 2, instance.mapCoords.y + (size.z - 1) / 2);
         const dist = cellCoords.distanceTo(unit.coords.mapCoords);
         if (dist < distToClosest) {
             distToClosest = dist;
@@ -107,10 +107,8 @@ export class MiningState extends State<IUnit> {
         this._closestFactory = factory;
         if (this._closestFactory) {
             const isMining = unit.animation.name === "pick";
-            const size = buildingSizes.factory;
-            cellCoords.set(Math.round(this._closestFactory.mapCoords.x + size.x / 2), Math.round(this._closestFactory.mapCoords.y + size.z / 2));
             if (isMining) {
-                unitMotion.moveUnit(unit, cellCoords, false);
+                unitMotion.moveUnit(unit, this._closestFactory.mapCoords, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
@@ -171,9 +169,9 @@ export class MiningState extends State<IUnit> {
                     if (!Number.isNaN(this._potentialTarget.x)) {                        
                         const potentialTarget = GameUtils.getCell(this._potentialTarget)!;
                         this._potentialTarget.set(NaN, NaN);
-                        
+
                         const targetCell = getCellFromAddr(unit.targetCell);
-                        if (potentialTarget.buildingId === targetCell.buildingId) {
+                        if (potentialTarget.building?.instanceId === targetCell.building?.instanceId) {
                             // arrived at factory
                             const factoryState = this._closestFactory!.state as IFactoryState;
                             console.assert(factoryState.input === unit.resource!.type, `factory input is ${factoryState.input} and unit resource is ${unit.resource!.type}`);

@@ -42,6 +42,11 @@ export interface IResource {
     visual: Object3D;
 }
 
+export interface IBuilding {
+    instanceId: string;
+    edge: boolean;
+}
+
 export interface ICell {
     id: string;
     flowFieldCost: number;    
@@ -52,7 +57,7 @@ export interface ICell {
 
     roadTile?: number;
     conveyor?: IConveyor;
-    buildingId?: string;
+    building?: IBuilding;
     resource?: IRawResource;
     pickableResource?: IResource;
     nonPickableResource?: IResource;

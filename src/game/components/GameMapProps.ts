@@ -70,7 +70,7 @@ export class GameMapProps extends ComponentProps {
         new Vector2(1, 30)
     ]);
 
-    debugFlowFields = false;
+    debugPathfinding = false;    
     saveToDisk = false;
 }
 

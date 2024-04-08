@@ -280,7 +280,7 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                             return false;
                         }
                         
-                        if (cell.resource && !cell.buildingId) {
+                        if (cell.resource && !cell.building) {
                             resourceCount++;
                             return true;
                         } else {
@@ -310,8 +310,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
         }
 
     } else if (button === 2) {
-        if (cell.buildingId) {
-            buildings.clear(cell.buildingId);
+        if (cell.building) {
+            buildings.clear(cell.building.instanceId);
         }
     }
 }

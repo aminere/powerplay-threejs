@@ -6,6 +6,7 @@ import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { PathViewer } from "../pathfinding/PathViewer";
 
 const root = () => engine.scene!;
 
@@ -56,7 +57,11 @@ export class GameMapState {
     public buildings = new Map<string, IBuildingInstance>();
     public selectedBuilding: IBuildingInstance | null = null;
     public initialDragAxis: "x" | "z" | null= null;
-    public bounds: Box2 | null = null;    
+    public bounds: Box2 | null = null;
+    
+    public debug = {
+        path: new PathViewer()
+    };
 
     public get cursorOverUI() { return this._cursorOverUI; }
     public set cursorOverUI(value: boolean) {
@@ -91,6 +96,8 @@ export class GameMapState {
         this.tileSelector = new TileSector();
         this.tileSelector.visible = false;
         root().add(this.tileSelector);
+        
+        root().add(this.debug.path);
     }   
 
     public dispose() {

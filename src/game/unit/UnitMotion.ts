@@ -13,11 +13,13 @@ import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
+import { buildingSizes } from "../buildings/BuildingTypes";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
+const buildingCorners = [...Array(4)].map(() => new Vector2());
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -34,11 +36,27 @@ function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton 
 }
 
 const nextSector = new Vector2();
-function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords: Vector2) {
-    const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, { diagonals: () => false });
+function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
+
+    const destBuildingId = destCell.building?.instanceId;
+    const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, { 
+        diagonals: () => false,
+        isWalkable: destBuildingId ? (cell: ICell) => {
+
+            // allow to walk to the any cell in the destination building, the unit will stop when hitting the building
+            const cellBuildingId = cell.building?.instanceId;
+            if (cellBuildingId) {
+                return cellBuildingId === destBuildingId;    
+            }
+
+            return cell.isWalkable;
+        } : undefined
+    });
+
     if (!cellPath) {
         return null;
     }
+
     const currentSector = srcSectorCoords.clone();
     const sectors = new Set<string>();
     sectors.add(`${currentSector.x},${currentSector.y}`);
@@ -53,6 +71,13 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
         const [x, y] = s.split(",");
         return new Vector2(parseInt(x), parseInt(y));
     });
+
+    if (GameMapProps.instance.debugPathfinding) {
+        GameMapState.instance.debug.path.update(cellPath);
+    } else {
+        GameMapState.instance.debug.path.visible = false;
+    }
+
     return out;
 }
 
@@ -110,7 +135,9 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 class UnitMotion {
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
-        const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords);
+
+        const destCell = GameUtils.getCell(destMapCoords)!;
+        const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
             return;
@@ -123,11 +150,11 @@ class UnitMotion {
     }
 
     public moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell) {
-        const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords);
+        const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
             return;
-        }        
+        }
 
         const hasResource = destCell.resource || destCell.pickableResource;
 
@@ -136,14 +163,33 @@ class UnitMotion {
                 return true;
             }
 
-            if (destCell.buildingId) {                
+            if (destCell.building) {
+                if (!destCell.building.edge) {
+                    // find closest corner
+                    const instance = GameMapState.instance.buildings.get(destCell.building.instanceId)!;
+                    const srcCoords = units[0].coords.mapCoords;
+                    const size = buildingSizes[instance.buildingType];
+                    const corner0 = instance.mapCoords;
+                    buildingCorners[0].set(corner0.x, corner0.y);
+                    buildingCorners[1].set(corner0.x + size.x - 1, corner0.y);
+                    buildingCorners[2].set(corner0.x, corner0.y + size.z - 1);
+                    buildingCorners[3].set(corner0.x + size.x - 1, corner0.y + size.z - 1);                
+                    let closestDist = 999999;
+                    let closestCorner = -1;
+                    for (let i = 0; i < buildingCorners.length; ++i) {
+                        const dist = srcCoords.distanceTo(buildingCorners[i]);
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            closestCorner = i;
+                        }
+                    }
+                    destMapCoords.copy(buildingCorners[closestCorner]);
+                    destCell = GameUtils.getCell(destMapCoords)!;
+                }
                 return true;
             }
 
-            if (!destCell.isWalkable) {
-                return false;
-            }
-            return true;
+            return destCell.isWalkable;
         })();
 
         if (!validMove) {
@@ -185,7 +231,7 @@ class UnitMotion {
         for (const sector of GameMapState.instance.sectors.values()) {
             sector.flowfieldViewer.visible = false;
         }
-        if (GameMapProps.instance.debugFlowFields) {            
+        if (GameMapProps.instance.debugPathfinding) {            
             for (const sectorCoords of sectors) {
                 const sector = GameUtils.getSector(sectorCoords)!;
                 sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
@@ -244,7 +290,7 @@ class UnitMotion {
                             unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
                             unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
 
-                            if (GameMapProps.instance.debugFlowFields) {
+                            if (GameMapProps.instance.debugPathfinding) {
                                 coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
                                 coords.sector!.flowfieldViewer.visible = true;    
                             }

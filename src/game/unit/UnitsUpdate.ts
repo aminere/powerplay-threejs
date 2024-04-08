@@ -169,13 +169,13 @@ export function updateUnits(units: IUnit[]) {
             if (miningState) {
                 miningState.potentialTarget = avoidedCellCoords;
             } else {
-                const buildingId = avoidedCell?.buildingId;
-                if (buildingId) {
+                const instanceId = avoidedCell?.building?.instanceId;
+                if (instanceId) {
                     const targetCell = getCellFromAddr(unit.targetCell);
-                    if (buildingId === targetCell.buildingId) {
+                    if (instanceId === targetCell.building?.instanceId) {
                         const carriedResource = unit.resource;
                         if (carriedResource) {
-                            const buildingInstance = GameMapState.instance.buildings.get(buildingId);
+                            const buildingInstance = GameMapState.instance.buildings.get(instanceId);
                             if (buildingInstance?.buildingType === "factory") {
                                 const state = buildingInstance.state as IFactoryState;
                                 if (state.input === carriedResource.type) {

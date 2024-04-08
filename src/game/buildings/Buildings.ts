@@ -213,7 +213,11 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords)!;
-                cell.buildingId = instanceId;
+                const onEdge = i === 0 || j === 0 || i === size.z - 1 || j === size.x - 1;
+                cell.building = {
+                    instanceId,
+                    edge: onEdge                
+                };
             }
         }
 
@@ -244,7 +248,7 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
                 const cell = GameUtils.getCell(mapCoords)!;
-                cell.buildingId = undefined;
+                cell.building = undefined;
             }
         }
 
