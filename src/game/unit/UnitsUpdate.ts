@@ -184,7 +184,7 @@ export function updateUnits(units: IUnit[]) {
                                     carriedResource.visual.removeFromParent();
                                     unit.resource = null;
                                 }
-                            }    
+                            }
                         }
 
                         onUnitArrived(unit);
