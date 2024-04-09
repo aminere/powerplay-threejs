@@ -44,7 +44,7 @@ class SkeletonManager {
                 animations, 
                 currentAnim: 0,
                 loopMode: animation.isLooping === false ? "Once" : "Repeat",
-                speed: animation.name === "shoot" ? 0.5 : undefined
+                speed: animation.name === "shoot" ? 0.5 : 1
             }));
             this._skeletons.set(animation.name, { skeleton, armature });
             return skinnedMesh;
