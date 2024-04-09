@@ -48,6 +48,7 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
     return closestFactory;
 }
 
+
 function pickResource(unit: IUnit, resourceType: RawResourceType | ResourceType) {
     const { pickedItems: layer } = GameMapState.instance.layers;
     const visual = utils.createObject(layer, resourceType);
@@ -135,11 +136,10 @@ export class MiningState extends State<IUnit> {
 
                     const cell = getCellFromAddr(this._targetResource);
                     if (cell.resource) {
-                        console.assert(cell.resource.amount > 0, `resource amount is ${cell.resource.amount}`);
                         this._step = MiningStep.Mine;
-                        unit.collidable = false;
                         this._miningTimer = 1;
                         unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+                        unit.collidable = false;
 
                     } else if (cell.pickableResource) {
 
@@ -191,13 +191,14 @@ export class MiningState extends State<IUnit> {
                     const cell = getCellFromAddr(this._targetResource);
                     if (cell.resource && cell.resource.amount > 0) {
                         const resourceType = cell.resource.type;
-                        cell.resource.amount -= 1;                        
+                        cell.resource.amount -= 1;
                         if (cell.resource.amount === 0) {
                             resources.clear(cell);
                         }
                         pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);
                     } else {
+                        console.log("resource depleted");
                         stopMining(unit);
                     }
                 }
@@ -205,5 +206,11 @@ export class MiningState extends State<IUnit> {
             }
         }
     }
+
+    public onReachedDepletedResource(unit: IUnit) {
+        // TODO find closest similar resources
+        stopMining(unit);
+    }
+    
 }
 

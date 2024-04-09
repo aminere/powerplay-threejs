@@ -58,14 +58,16 @@ class Resources {
     }
 
     public loadModel(type: RawResourceType | ResourceType) {
-        switch (type) {
-            case "ak47": {
-                return objects.load(`/models/resources/${type}.json`).then(mesh => mesh as Mesh)
+        return meshes.load(`/models/resources/${type}.glb`).then(([mesh]) => {
+            switch (type) {
+                case "ak47": {
+                    mesh.rotation.set(0, Math.PI / 4, Math.PI / 2);
+                    mesh.scale.setScalar(2);
+                }
+                break;
             }
-            default: {
-                return meshes.load(`/models/resources/${type}.glb`).then(([mesh]) => mesh as Mesh);
-            }
-        }
+            return mesh;
+        });
     }
 }
 

@@ -25,15 +25,9 @@ const avoidedCellSector = new Vector2();
 const avoidedCellLocalCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
-const pickedItemOffset = new Matrix4()
-    .makeTranslation(-.5, 0, 0);
 
-const pickedAk47Offset = new Matrix4().compose(new Vector3(0.16, 0.14, -0.02), new Quaternion().setFromEuler(new Euler(
-    MathUtils.degToRad(-96.28),
-    MathUtils.degToRad(38.89),
-    MathUtils.degToRad(137.92)
-)), new Vector3(2, 2, 2));
-
+const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
+const pickedAk47Offset = new Matrix4().makeRotationFromEuler(new Euler(MathUtils.degToRad(-55.74), MathUtils.degToRad(5.67), MathUtils.degToRad(32.13)));
 const pickedItemlocalToSkeleton = new Matrix4();
             
 const { mapRes } = config.game;
@@ -280,11 +274,13 @@ export function updateUnits(units: IUnit[]) {
                     }
 
                     if (isMoving) {
-                        if (!unit.fsm.currentState) {
-                            const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                            if (reachedTarget) {
-                                unit.arriving = true;
-                                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+                        const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                        if (reachedTarget) {                            
+                            unit.arriving = true;
+                            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+                            const miningState = unit.fsm.getState(MiningState);
+                            if (miningState) {
+                                miningState.onReachedDepletedResource(unit);
                             }
                         }
                     }
