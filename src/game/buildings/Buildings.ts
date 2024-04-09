@@ -394,12 +394,14 @@ class Buildings {
                                     console.assert(!outputCell.pickableResource);
                                     const visual = utils.createObject(sector.layers.resources, state.output);
                                     visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-                                    meshes.load(`/models/resources/${state.output}.glb`).then(([_mesh]) => {
+
+                                    resources.loadModel(state.output).then(_mesh => {
                                         const mesh = _mesh.clone();
                                         visual.add(mesh);
                                         mesh.position.y = 0.5;
                                         mesh.castShadow = true;
                                     });
+                                    
                                     outputCell.pickableResource = {
                                         type: state.output,
                                         visual

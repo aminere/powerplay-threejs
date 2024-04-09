@@ -15,9 +15,16 @@ class UnitAnimation {
         }
     ) {
 
+        let destAnimSpeed: number | undefined = undefined;
         const animation = (() => {
             if (unit.resource) {
                 if (_animation === "idle") {
+
+                    if (unit.resource.type === "ak47") {
+                        destAnimSpeed = .5;
+                        return "shoot";
+                    }
+
                     return "carry-idle";
                 } else if (_animation === "run") {
                     return "carry-run";
@@ -39,12 +46,12 @@ class UnitAnimation {
             const skeletonId = getSkeletonId(unit.animation!.name, animation);
             
             if (unit.skeleton?.id === skeletonId) {
-                skeletonPool.transition({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode });
+                skeletonPool.transition({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode, destAnimSpeed });
             } else {
                 if (unit.skeleton) {
                     skeletonPool.releaseSkeleton(unit);
                 }
-                skeletonPool.applyTransitionSkeleton({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode });
+                skeletonPool.applyTransitionSkeleton({ unit, destAnim: animation, duration: transitionDuration, destAnimLoopMode, destAnimSpeed });
             }
     
             if (props.scheduleCommonAnim) {

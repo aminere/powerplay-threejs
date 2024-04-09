@@ -1,10 +1,10 @@
-import { MathUtils, Vector2 } from "three";
+import { MathUtils, Mesh, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
 import { meshes } from "../engine/resources/Meshes";
 import { objects } from "../engine/resources/Objects";
-import { RawResourceType } from "./GameDefinitions";
+import { RawResourceType, ResourceType } from "./GameDefinitions";
 
 const trees = [
     "palm.json",
@@ -55,6 +55,17 @@ class Resources {
     public clear(cell: ICell) {
         cell.resource!.visual.removeFromParent();
         cell.resource = undefined;
+    }
+
+    public loadModel(type: RawResourceType | ResourceType) {
+        switch (type) {
+            case "ak47": {
+                return objects.load(`/models/resources/${type}.json`).then(mesh => mesh as Mesh)
+            }
+            default: {
+                return meshes.load(`/models/resources/${type}.glb`).then(([mesh]) => mesh as Mesh);
+            }
+        }
     }
 }
 

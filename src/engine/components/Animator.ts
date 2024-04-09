@@ -15,6 +15,7 @@ export class AnimatorProps extends ComponentProps {
     @Attributes.enumOptions(LoopModes)
     loopMode: LoopMode = "Repeat";
 
+    speed = 1;
     repetitions = Infinity;
     autoStart = true;
 
@@ -54,6 +55,7 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
             if (info) {
                 const action = mixer.clipAction(info.clip);
                 utils.setLoopMode(action, this.props.loopMode, this.props.repetitions);
+                action.timeScale = this.props.speed;
                 return action;
             } else {
                 console.warn(`Animation '${animation}' not found`);

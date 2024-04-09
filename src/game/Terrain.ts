@@ -304,9 +304,9 @@ export class Terrain {
                             diffuseColor.rgb += gridColor.rgb;    
                         }
 
-                        if (cellX == 0. || cellY == 0.) {
-                            diffuseColor.r += .5;
-                        }
+                        // if (cellX == 0. || cellY == 0.) {
+                        //     diffuseColor.r += .5;
+                        // }
                     #endif
                     `
                 );

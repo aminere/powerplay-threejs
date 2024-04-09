@@ -37,7 +37,8 @@ export const ResourceTypes = [
     "steel",
     "wheel",
     "engine",
-    "truck-frame"
+    "truck-frame",
+    "ak47"
 ] as const;
 
 export const ProductTypes = [

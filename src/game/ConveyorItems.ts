@@ -8,7 +8,7 @@ import { BezierPath } from "./BezierPath";
 import { conveyorUtils } from "./ConveyorUtils";
 import { GameMapState } from "./components/GameMapState";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
-import { meshes } from "../engine/resources/Meshes";
+import { resources } from "./Resources";
 
 const { conveyorHeight, cellSize, conveyorSpeed } = config.game;
 const halfCellSize = cellSize / 2;
@@ -60,19 +60,20 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
 
 function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType, size: number) {
     const visual = utils.createObject(root, resourceType);
-    meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
-        const mesh = _mesh.clone();
-        // mesh.castShadow = true;
-        if (!mesh.geometry.boundingBox) {
-            mesh.geometry.computeBoundingBox();
-        }
-        const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
-        box3Helper.visible = false;
-        mesh.add(box3Helper);
-        mesh.scale.multiplyScalar(cellSize).multiplyScalar(size);
-        mesh.position.y = conveyorHeight * cellSize;
-        visual.add(mesh);
-    });
+    resources.loadModel(resourceType)
+        .then((_mesh) => {
+            const mesh = _mesh.clone();
+            // mesh.castShadow = true;
+            if (!mesh.geometry.boundingBox) {
+                mesh.geometry.computeBoundingBox();
+            }
+            const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
+            box3Helper.visible = false;
+            mesh.add(box3Helper);
+            mesh.scale.multiplyScalar(cellSize).multiplyScalar(size);
+            mesh.position.y = conveyorHeight * cellSize;
+            visual.add(mesh);
+        });
     return visual;
 }
 

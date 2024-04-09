@@ -1,4 +1,4 @@
-import { MathUtils, Matrix4, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { IUnit } from "./IUnit";
 import { config } from "../config";
@@ -25,7 +25,15 @@ const avoidedCellSector = new Vector2();
 const avoidedCellLocalCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
-const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
+const pickedItemOffset = new Matrix4()
+    .makeTranslation(-.5, 0, 0);
+
+const pickedAk47Offset = new Matrix4().compose(new Vector3(0.16, 0.14, -0.02), new Quaternion().setFromEuler(new Euler(
+    MathUtils.degToRad(-96.28),
+    MathUtils.degToRad(38.89),
+    MathUtils.degToRad(137.92)
+)), new Vector3(2, 2, 2));
+
 const pickedItemlocalToSkeleton = new Matrix4();
             
 const { mapRes } = config.game;
@@ -288,8 +296,19 @@ export function updateUnits(units: IUnit[]) {
             // attach the resource to the unit
             const visual = unit.resource.visual;
             const skeleton = unitAnimation.getSkeleton(unit);
-            const spine2 = skeleton.getObjectByName("Spine2")!;
-            pickedItemlocalToSkeleton.multiplyMatrices(spine2.matrixWorld, pickedItemOffset);
+
+            switch (unit.resource.type) {
+                case "ak47": {
+                    const parent = skeleton.getObjectByName("HandR")!;
+                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);
+                }
+                break;
+                default: {
+                    const parent = skeleton.getObjectByName("Spine2")!;
+                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedItemOffset);
+                }
+            }
+            
             visual.matrix.multiplyMatrices(unit.obj.matrixWorld, pickedItemlocalToSkeleton);
         }
     }

@@ -40,7 +40,8 @@ class UnitsManager {
                 { name: "walk" },
                 { name: "run" },
                 { name: "carry-idle" },
-                { name: "carry-run" }
+                { name: "carry-run" },
+                { name: "shoot" },
             ],
         });
 

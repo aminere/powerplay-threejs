@@ -46,6 +46,7 @@ class SkeletonPool {
         destAnim: string;
         duration?: number;
         destAnimLoopMode?: LoopMode;
+        destAnimSpeed?: number;
     }) {
         const { destAnim, unit, duration } = props;
         const id = getSkeletonId(unit.animation.name, destAnim);
@@ -66,7 +67,7 @@ class SkeletonPool {
             const _skeleton = skinnedMesh.skeleton;
             const rootBone = _skeleton.bones[0];
             const armature = rootBone.parent!;
-            const mixer = new AnimationMixer(armature);            
+            const mixer = new AnimationMixer(armature);
             mixer.clipAction(srcClip);
             mixer.clipAction(destClip);
             skeleton = {
@@ -93,6 +94,9 @@ class SkeletonPool {
         if (props.destAnimLoopMode) {
             utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
         }
+        if (props.destAnimSpeed !== undefined) {
+            destAction.timeScale = props.destAnimSpeed;
+        }
         
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
         skeleton.isFree = false;        
@@ -109,6 +113,7 @@ class SkeletonPool {
         destAnim: string;
         duration?: number;
         destAnimLoopMode?: LoopMode;
+        destAnimSpeed?: number;
     }) {
         const { destAnim, unit, duration } = props;
         const srcAction = unit.animation.action;
@@ -118,6 +123,9 @@ class SkeletonPool {
         if (props.destAnimLoopMode) {
             utils.setLoopMode(destAction, props.destAnimLoopMode, Infinity);
         }        
+        if (props.destAnimSpeed !== undefined) {
+            destAction.timeScale = props.destAnimSpeed;
+        }
         srcAction.crossFadeTo(destAction, duration ?? 1, false);
         unit.animation.name = destAnim;
         unit.animation.action = destAction;
