@@ -63,7 +63,7 @@ function createItemVisual(root: Object3D, resourceType: RawResourceType | Resour
     resources.loadModel(resourceType)
         .then((_mesh) => {
             const mesh = _mesh.clone();
-            // mesh.castShadow = true;
+            mesh.castShadow = true;
             if (!mesh.geometry.boundingBox) {
                 mesh.geometry.computeBoundingBox();
             }
