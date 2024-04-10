@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { IUnit } from "./IUnit";
 import { config } from "../config";

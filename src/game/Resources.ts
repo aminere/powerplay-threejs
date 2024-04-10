@@ -1,4 +1,4 @@
-import { MathUtils, Mesh, Vector2 } from "three";
+import { MathUtils, Vector2 } from "three";
 import { config } from "./config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
