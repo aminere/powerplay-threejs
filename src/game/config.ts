@@ -59,8 +59,8 @@ export const config: IConfig = {
         cellSize: 2,
         mapRes: 32,
         elevationStep: .2,
-        conveyorHeight: .3,
-        conveyorWidth: .6,        
+        conveyorHeight: .34,
+        conveyorWidth: .8,
         maxConveyors: 500,
         conveyorSpeed: 2
     },

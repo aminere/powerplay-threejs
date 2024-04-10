@@ -1,4 +1,4 @@
-import { DoubleSide, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
+import { FrontSide, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, NearestFilter, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
@@ -25,6 +25,7 @@ class Conveyors {
     private _invCurvedConveyorTop!: Mesh;
     private _straightCells: ICell[] = [];
     private _topTexture!: Texture;
+    private _topEmissiveTexture!: Texture;
     private _loaded = false;
     private _disposed = false;    
 
@@ -49,17 +50,19 @@ class Conveyors {
         }
 
         const baseMaterial = conveyor.material as MeshBasicMaterial;
-        baseMaterial.side = DoubleSide;
+        baseMaterial.side = FrontSide;
         const curvedBaseMaterial = curvedConveyor0.material as MeshBasicMaterial;
-        curvedBaseMaterial.side = DoubleSide;
+        curvedBaseMaterial.side = FrontSide;
 
         conveyor.geometry.scale(conveyorWidth, 1, 1);
         const conveyorInstances = conveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);
+        conveyorInstances.castShadow = true;
         layers.conveyors.add(conveyorInstances);
         this._conveyors = conveyorInstances;
 
         conveyorTop.geometry.scale(conveyorWidth, 1, 1);
-        const topMaterial = conveyorTop.material as MeshBasicMaterial;
+        const topMaterial = conveyorTop.material as MeshStandardMaterial;
+
         const conveyorTopInstances = conveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
         layers.conveyors.add(conveyorTopInstances);
         this._conveyorTops = conveyorTopInstances;
@@ -77,7 +80,10 @@ class Conveyors {
 
         const topTexture = topMaterial.map!;
         topTexture.wrapT = RepeatWrapping;
-        this._topTexture = topTexture;
+        this._topTexture = topTexture;        
+        const topEmissiveTexture = topMaterial.emissiveMap!;
+        topEmissiveTexture.wrapT = RepeatWrapping;
+        this._topEmissiveTexture = topEmissiveTexture;
         this._loaded = true;
     }
 
@@ -320,7 +326,9 @@ class Conveyors {
 
     public update() {
         console.assert(this._loaded);
-        this._topTexture.offset.y -= time.deltaTime * conveyorSpeed / cellSize;
+        const dy = time.deltaTime * conveyorSpeed / cellSize;
+        this._topTexture.offset.y -= dy;
+        this._topEmissiveTexture.offset.y -= dy;
         conveyorItems.update();
     }   
     

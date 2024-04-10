@@ -91,6 +91,7 @@ class ConveyorUtils {
     
         curvedMesh.geometry.computeVertexNormals();
         vertices.needsUpdate = true;
+        curvedMesh.castShadow = true;
         return curvedMesh;
     }    
     

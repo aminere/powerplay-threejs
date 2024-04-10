@@ -91,12 +91,13 @@ export class Trees extends Component<TreesProps> {
             }
         });
 
-        treeNoise.SetFrequency(.03);
-        treeNoise2.SetFrequency(.03 * .5);
+        const baseFreq = .03;
+        treeNoise.SetFrequency(baseFreq);
+        treeNoise2.SetFrequency(baseFreq * 2);
 
         const treeGeometries = treesManager.geometries;
         const { sectorRes } = this.props;
-        const treeCellSize = cellSize * 2;
+        const treeCellSize = cellSize * 1;
         const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
         const treeMapSize = treeMapRes * treeCellSize;
         const maxTreesPerSector = treeMapRes * treeMapRes;
@@ -133,6 +134,18 @@ export class Trees extends Component<TreesProps> {
                 const sector = sectors.get(`${sectorX},${sectorY}`);
                 const terrain = sector?.layers.terrain as Mesh;
                 const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+
+                // lower distribution by skipping some sectors
+                if (sectorY % 2 === 0) {
+                    if (sectorX % 2 === 0) {
+                        continue;
+                    }                    
+                } else {
+                    if (sectorX % 2 !== 0) {
+                        continue;
+                    }
+                }
+
                 for (let k = 0; k < treeMapRes; ++k) {
                     for (let l = 0; l < treeMapRes; ++l) {
                         const leftEdge = j === 0 && l < 2;
@@ -144,8 +157,8 @@ export class Trees extends Component<TreesProps> {
                             continue;
                         }
 
-                        const localX = MathUtils.randFloat(0, treeCellSize);
-                        const localY = MathUtils.randFloat(0, treeCellSize);
+                        const localX = MathUtils.randFloat(treeCellSize * .3, treeCellSize * .7);
+                        const localY = MathUtils.randFloat(treeCellSize * .3, treeCellSize * .7);
                         const plantSectorX = sectorX * treeMapSize;
                         const plantSectorY = sectorY * treeMapSize;
                         const plantWorldX = plantSectorX + l * treeCellSize + sectorOffset + localX;
@@ -168,7 +181,7 @@ export class Trees extends Component<TreesProps> {
                             const noiseY = (sectorY * mapRes) + localCoords.y;
                             const treeSample = treeNoise.GetNoise(noiseX, noiseY);
                             const treeSample2 = treeNoise2.GetNoise(noiseX, noiseY);
-                            if (treeSample > 0 && treeSample2 > 0) {
+                            if (treeSample > 0 && treeSample2 > .5) {
                                 const treeIndex = MathUtils.randInt(0, treeInstancedMeshes.length - 1);
                                 worldPos.setY(_minHeight * elevationStep);
                                 const minScale = 0.3;

@@ -184,7 +184,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         const trees = utils.createObject(root(), "trees");
         engineState.setComponent(trees, new Trees({ sectorRes: size }));
-        trees.visible = false;
+        // trees.visible = false;
 
         unitsManager.owner = owner;
         updateCameraSize();
