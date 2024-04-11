@@ -2,15 +2,23 @@ import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { ISector } from "./GameTypes";
 import { config } from "./config";
-import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
+
+const cellCoords = new Vector2();
+const neighborCoords = new Vector2();
+const neighborSectorCoords = new Vector2();
+const neighborLocalCoords = new Vector2();
+const cornerCoords = new Vector2();
+const leftCoords = new Vector2();
+const topCoords = new Vector2();
+const bottomCoords = new Vector2();
+const rightCoords = new Vector2();
 
 export class Elevation {
 
     private static _elevatedCells = new Map<ISector, Set<number>>();
     public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, size: Vector2) {
         Elevation._elevatedCells.clear();
-        const cellCoords = pools.vec2.getOne();        
         for (let i = 0; i < size.y; ++i) {
             for (let j = 0; j < size.x; ++j) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
@@ -120,7 +128,6 @@ export class Elevation {
         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + 1, sector, height, sectorCoords, true);
         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, sector, height, sectorCoords, true);
         allowed = allowed && Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, sector, height, sectorCoords, true);
-        const [neighborCoords, neighborSectorCoords, neighborLocalCoords] = pools.vec2.get(3);
         if (allowed) {
             for (const dy of [-1, 0, 1]) {
                 for (const dx of [-1, 0, 1]) {
@@ -338,7 +345,6 @@ export class Elevation {
             if (x === 0) {
                 if (z === 0) {
                     // top left corner
-                    const [cornerCoords, leftCoords, topCoords] = pools.vec2.get(3);
                     cornerCoords.set(sectorCoords.x - 1, sectorCoords.y - 1);
                     leftCoords.set(sectorCoords.x - 1, sectorCoords.y);
                     topCoords.set(sectorCoords.x, sectorCoords.y - 1);
@@ -360,7 +366,6 @@ export class Elevation {
 
                 } else if (z === mapRes) {
                     // bottom left corner
-                    const [cornerCoords, leftCoords, bottomCoords] = pools.vec2.get(3);
                     cornerCoords.set(sectorCoords.x - 1, sectorCoords.y + 1);
                     leftCoords.set(sectorCoords.x - 1, sectorCoords.y);
                     bottomCoords.set(sectorCoords.x, sectorCoords.y + 1);
@@ -381,7 +386,6 @@ export class Elevation {
                     }
                 } else {
                     // left edge
-                    const leftCoords = pools.vec2.getOne();
                     leftCoords.set(sectorCoords.x - 1, sectorCoords.y);
                     const leftSector = sectors.get(`${leftCoords.x},${leftCoords.y}`);
                     if (leftSector) {
@@ -392,7 +396,6 @@ export class Elevation {
             } else if (x === mapRes) {
                 if (z === 0) {
                     // top right corner
-                    const [cornerCoords, rightCoords, topCoords] = pools.vec2.get(3);
                     cornerCoords.set(sectorCoords.x + 1, sectorCoords.y - 1);
                     rightCoords.set(sectorCoords.x + 1, sectorCoords.y);
                     topCoords.set(sectorCoords.x, sectorCoords.y - 1);
@@ -413,7 +416,6 @@ export class Elevation {
                     }
                 } else if (z === mapRes) {
                     // bottom right corner
-                    const [cornerCoords, rightCoords, bottomCoords] = pools.vec2.get(3);
                     cornerCoords.set(sectorCoords.x + 1, sectorCoords.y + 1);
                     rightCoords.set(sectorCoords.x + 1, sectorCoords.y);
                     bottomCoords.set(sectorCoords.x, sectorCoords.y + 1);
@@ -434,7 +436,6 @@ export class Elevation {
                     }
                 } else {
                     // right edge
-                    const rightCoords = pools.vec2.getOne();
                     rightCoords.set(sectorCoords.x + 1, sectorCoords.y);
                     const rightSector = sectors.get(`${rightCoords.x},${rightCoords.y}`);
                     if (rightSector) {
@@ -444,7 +445,6 @@ export class Elevation {
                 }
             } else if (z === 0) {
                 // top edge
-                const topCoords = pools.vec2.getOne();
                 topCoords.set(sectorCoords.x, sectorCoords.y - 1);
                 const topSector = sectors.get(`${topCoords.x},${topCoords.y}`);
                 if (topSector) {
@@ -454,7 +454,6 @@ export class Elevation {
 
             } else if (z === mapRes) {
                 // bottom edge
-                const bottomCoords = pools.vec2.getOne();
                 bottomCoords.set(sectorCoords.x, sectorCoords.y + 1);
                 const bottomSector = sectors.get(`${bottomCoords.x},${bottomCoords.y}`);
                 if (bottomSector) {

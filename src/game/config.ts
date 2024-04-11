@@ -27,6 +27,7 @@ interface ITrainConfig {
     maxSpeed: number;
     acceleration: number;
     deceleration: number;
+    scale: number;
 }
 
 interface IPathfindingConfig {
@@ -67,7 +68,8 @@ export const config: IConfig = {
     train: {
         maxSpeed: 40,
         acceleration: 1,
-        deceleration: -3,       
+        deceleration: -3,
+        scale: 6
     },
     pathfinding: {
         cellWaitTime: .3

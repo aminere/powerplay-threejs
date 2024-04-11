@@ -30,16 +30,25 @@ export function GameMapUI(props: IGameUIProps) {
             gameMapState.action = newAction;
             setSelectedAction(newAction);
 
-            if (newAction === "building") {
-                const buildingType = GameMapProps.instance.buildingType;
-                const size = buildingSizes[buildingType];
-                gameMapState.tileSelector.setSize(size.x, size.z);
+            switch (newAction) {
+                case "building": {
+                    const buildingType = GameMapProps.instance.buildingType;
+                    const size = buildingSizes[buildingType];
+                    gameMapState.tileSelector.setSize(size.x, size.z);
+                }
+                break;
 
-            } else {
-                gameMapState.tileSelector.setSize(1, 1);
+                case "elevation": {
+                    const { brushSize } = GameMapProps.instance;
+                    gameMapState.tileSelector.setSize(brushSize, brushSize);
+                }
+                break;
+
+                default:
+                    gameMapState.tileSelector.setSize(1, 1);
             }
-
         }
+
     }, [selectedAction]);
 
     useEffect(() => {
@@ -136,12 +145,12 @@ export function GameMapUI(props: IGameUIProps) {
             {Actions.map(action => {
 
                 const ignoredActions: Action[] = [
-                    "elevation",
+                    // "elevation",
                     "terrain",
                     "car",
-                    "train",
+                    // "train",
                     "tree",
-                    "rail"
+                    // "rail"
                 ];
                 if (ignoredActions.includes(action)) {
                     return null;

@@ -7,6 +7,7 @@ import { Wagon } from "./Wagon";
 import { Object3D } from "three";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engineState } from "../../engine/EngineState";
+import { config } from "../config";
 
 export class TrainProps extends ComponentProps {
     constructor(props?: Partial<TrainProps>) {
@@ -20,6 +21,8 @@ export class TrainProps extends ComponentProps {
     cell: ICell = null!;
 }
 
+const { scale } = config.train;
+
 export class Train extends Component<TrainProps> {
     constructor(props?: Partial<TrainProps>) {
         super(new TrainProps(props));
@@ -29,9 +32,11 @@ export class Train extends Component<TrainProps> {
         const { numWagons, gap, wagonLength, cell } = this.props;
         for (let i = 0; i < numWagons; ++i) {
             const wagon = utils.createObject(owner, "wagon");
-            meshes.load("/test/train.glb").then(([_mesh]) => {
+            const model = i === (numWagons - 1) ? "locomotive" : "wagon";
+            meshes.load(`/models/${model}.glb`).then(([_mesh]) => {
                 const mesh = _mesh.clone();
                 mesh.castShadow = true;
+                mesh.scale.multiplyScalar(scale);
                 wagon.add(mesh);
             });
             // const mesh = new THREE.Mesh(new THREE.BoxGeometry(.5, .5, _wagonLength), new THREE.MeshBasicMaterial({ color: 0xff1000 }));

@@ -137,8 +137,21 @@ export class Terrain {
                     continentHeight * props.continentGain * props.continentWeight
                     + erosionHeight * props.erosionGain * props.erosionWeight
                 );
-                
-                const height = _height * 0; // TODO remove
+
+                let heightFactor = 1;
+
+                // lower distribution by skipping some sectors
+                // if (props.sectorY % 2 !== 0) {
+                //     if (props.sectorX % 2 !== 0) {
+                //         heightFactor = 0;
+                //     }
+                // } else {
+                //     if (props.sectorX % 2 === 0) {
+                //         heightFactor = 0;
+                //     }
+                // }
+
+                const height = _height * heightFactor; // TODO remove
                 const vertexIndex = i * verticesPerRow + j;
                 position.setY(vertexIndex, height);
 

@@ -35,6 +35,9 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(ResourceTypes)
     factoryOutput: ResourceType = "steel";
 
+    brushSize = 1;
+
+    saveToDisk = false;
     @Attributes.command("save")
     saveCommand = true;
 
@@ -71,6 +74,5 @@ export class GameMapProps extends ComponentProps {
     ]);
 
     debugPathfinding = false;    
-    saveToDisk = false;
 }
 

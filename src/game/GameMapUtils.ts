@@ -38,6 +38,8 @@ const max = new Vector2();
 const worldPos = new Vector3();
 
 const { elevationStep, cellSize, mapRes } = config.game;
+const { scale: trainScale } = config.train;
+
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
     const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorX},${sectorY}`);
@@ -527,7 +529,7 @@ export function onAction(touchButton: number) {
                 if (touchButton === 0) {
                     if (cell.rail) {
                         const { layers } = state;
-                        const wagonLength = 2;
+                        const wagonLength = cellSize * trainScale;
                         const numWagons = 4;
                         const gap = .3;
                         const train = utils.createObject(layers.trains, "train");

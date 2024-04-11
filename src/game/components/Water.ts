@@ -1,5 +1,5 @@
 
-import { Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, Vector3 } from "three";
+import { Euler, InstancedMesh, Material, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { time } from "../../engine/core/Time";
@@ -22,6 +22,9 @@ export class WaterProps extends ComponentProps {
 const { mapRes, cellSize } = config.game;
 
 export class Water extends Component<WaterProps> {
+
+    private _material: Material | null = null;
+
     constructor(props?: Partial<WaterProps>) {
         super(new WaterProps(props));
     }
@@ -36,9 +39,10 @@ export class Water extends Component<WaterProps> {
         const waterMaterial = new MeshStandardMaterial({
             flatShading: true,
             transparent: true,
-            opacity: 0.5,
-            color: 0x5199DB            
+            opacity: 0.6,
+            color: 0x339CFF          
         });
+        this._material = waterMaterial;        
 
         Object.defineProperty(waterMaterial, "onBeforeCompile", {
             enumerable: false,
@@ -102,10 +106,12 @@ export class Water extends Component<WaterProps> {
         owner.add(waterMesh);
     }
 
-    override update(owner: Object3D) {
-        const material = (owner.children[0] as Mesh).material as MeshStandardMaterial;
-        if (material.userData.shader) {
-            material.userData.shader.uniforms.time.value = time.time * this.props.speed;
+    override update() {
+        const shader = this._material?.userData.shader;
+        if (shader) {
+            shader.uniforms.time.value = time.time * this.props.speed;
+            shader.uniforms.frequency.value = this.props.frequency;
+            shader.uniforms.strength.value = this.props.strength;
         }
     }
 }
