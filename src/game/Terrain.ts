@@ -6,9 +6,6 @@ import { textures } from '../engine/resources/Textures';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
-    mapRes: Uniform<number>;
-    cellSize: Uniform<number>;
-    cellsPerRoadBlock: Uniform<number>;
     cellTexture: Uniform<DataTexture>;
     highlightTexture: Uniform<DataTexture>;
     gridTexture: Uniform<Texture>;
@@ -230,9 +227,6 @@ export class Terrain {
             enumerable: false,
             value: (shader: Shader) => { 
                 const uniforms: TerrainUniforms = {
-                    mapRes: { value: mapRes },
-                    cellSize: { value: cellSize },
-                    cellsPerRoadBlock: { value: cellsPerRoadBlock },
                     cellTexture: { value: cellTexture },
                     highlightTexture: { value: highlightTexture },
                     gridTexture: { value: gridTexture },
@@ -258,9 +252,6 @@ export class Terrain {
                 );
     
                 shader.fragmentShader = `
-                    uniform float mapRes;
-                    uniform float cellSize;
-                    uniform float cellsPerRoadBlock;
                     uniform sampler2D cellTexture;
                     uniform sampler2D highlightTexture;
                     uniform sampler2D gridTexture;
@@ -273,13 +264,18 @@ export class Terrain {
                     `#include <map_fragment>`,
                     `                
                     #ifdef USE_MAP
-                        float actualSize = cellSize * cellsPerRoadBlock;
-                        float localX = vPosition.x / actualSize;
-                        float localY = vPosition.z / actualSize;
+                        float localX = vPosition.x / ${cellSize}.;
+                        float localY = vPosition.z / ${cellSize}.;
                         float cellX = floor(localX);
-                        float cellY = floor(localY);                    
-                        float cx = (cellX / mapRes); // + (.5 / mapRes);
-                        float cy = (cellY / mapRes); // + (.5 / mapRes);
+                        float cellY = floor(localY);
+
+                        cellX = floor(cellX / ${cellsPerRoadBlock}.) * ${cellsPerRoadBlock}.;
+                        cellY = floor(cellY / ${cellsPerRoadBlock}.) * ${cellsPerRoadBlock}.;
+                        localX = vPosition.x / (${cellSize}. * ${cellsPerRoadBlock}.);
+                        localY = vPosition.z / (${cellSize}. * ${cellsPerRoadBlock}.);
+
+                        float cx = (cellX / ${mapRes}.); // + (.5 / mapRes);
+                        float cy = (cellY / ${mapRes}.); // + (.5 / mapRes);
                         float normalizedIndex = texture2D(cellTexture, vec2(cx, cy)).r;
                         float reconstructedIndex = round(normalizedIndex * ${lastTileIndex}.);
                         float lookUpY = floor(reconstructedIndex / ${tileMapRes}.);
@@ -291,10 +287,10 @@ export class Terrain {
                         diffuseColor *= tileColor;
                         
                         // FOG
-                        /*float cxn = (cellX - 1.) / mapRes;
-                        float cxp = (cellX + 1.) / mapRes;
-                        float cyn = (cellY - 1.) / mapRes;
-                        float cyp = (cellY + 1.) / mapRes;
+                        /*float cxn = (cellX - 1.) / ${mapRes}.;
+                        float cxp = (cellX + 1.) / ${mapRes}.;
+                        float cyn = (cellY - 1.) / ${mapRes}.;
+                        float cyp = (cellY + 1.) / ${mapRes}.;
                         vec4 c = texture2D(highlightTexture, vec2(cx, cy));
                         vec4 t = texture2D(highlightTexture, vec2(cx, cyn));
                         vec4 b = texture2D(highlightTexture, vec2(cx, cyp));

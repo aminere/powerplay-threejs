@@ -2,8 +2,8 @@ import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { Axis } from "./GameTypes";
 import { Sector } from "./Sector";
-import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
+import { config } from "./config";
 
 const neighborCombinations: {
     [key: string]: number; // tileIndex
@@ -39,17 +39,26 @@ function setRoadTile(sectorCoords: Vector2, localCoords: Vector2, roadTileIndex:
     return Sector.updateCellTexture(sector, localCoords, tileIndex);
 }    
 
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
+const mapCoords = new Vector2();
+const neighborCoord = new Vector2();
+const neighborSectorCoords = new Vector2();
+const neighborLocalCoords = new Vector2();
+const offset2 = new Vector2();
+const start2 = new Vector2();
+const { cellsPerRoadBlock} = config.game;
+
 function getRoadTile(mapCoords: Vector2) {
-    const [neighborCoord, neighborSector, neighbordLocalCoords] = pools.vec2.get(3);
-    const getNeighbor = (dx: number, dy: number) => {
-        neighborCoord.set(mapCoords.x + dx, mapCoords.y + dy);
-        const neighbor = GameUtils.getCell(neighborCoord, neighborSector, neighbordLocalCoords);
+    const getNeighbor = (dx: number, dy: number) => {        
+        neighborCoord.set(mapCoords.x + dx * cellsPerRoadBlock, mapCoords.y + dy * cellsPerRoadBlock);
+        const neighbor = GameUtils.getCell(neighborCoord, neighborSectorCoords, neighborLocalCoords);
         const hasRoadNeighbor = neighbor?.roadTile !== undefined;
         return {
             cell: hasRoadNeighbor ? neighbor : null,
             coords: neighborCoord.clone(),
-            neighborSector: neighborSector.clone(),
-            neighbordLocalCoords: neighbordLocalCoords.clone()
+            neighborSector: neighborSectorCoords.clone(),
+            neighbordLocalCoords: neighborLocalCoords.clone()
         }
     };
     const neighbors = [
@@ -66,7 +75,6 @@ function getRoadTile(mapCoords: Vector2) {
 class Roads {
 
     public onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
-        const [mapCoords, offset2, start2] = pools.vec2.get(3);
         const scan = (_start: Vector2, direction: Vector2, iterations: number) => {
             console.assert(iterations >= 0);
             for (let i = 0; i <= iterations; ++i) {
@@ -102,7 +110,6 @@ class Roads {
     }    
 
     public create(mapCoords: Vector2) {
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         const { tileIndex, neighbors } = getRoadTile(mapCoords);
         const rawTileIndex = setRoadTile(sectorCoords, localCoords, tileIndex);
@@ -119,7 +126,6 @@ class Roads {
 
     public clear(mapCoords: Vector2) {
         const { sectors } = GameMapState.instance;
-        const [sectorCoords, localCoords] = pools.vec2.get(2);
         const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         cell.roadTile = undefined;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;

@@ -13,7 +13,7 @@ import { cmdFogRemoveCircle } from "../../Events";
 import { IResource } from "../GameTypes";
 
 export interface IUnitProps {
-    obj: SkinnedMesh;
+    mesh: SkinnedMesh;
     type: UnitType;
     speed?: number;
     states: State<IUnit>[];
@@ -27,7 +27,7 @@ export class Unit implements IUnit {
     public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
-    public get obj() { return this._obj; }    
+    public get obj() { return this._mesh; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
@@ -66,7 +66,7 @@ export class Unit implements IUnit {
         this._health = value; 
         if (value <= 0 && this._isAlive) {
             this._fsm.switchState(null);
-            engineState.removeComponent(this._obj, UnitCollisionAnim);
+            engineState.removeComponent(this._mesh, UnitCollisionAnim);
             this._isAlive = false;            
             this._collidable = false;
             this._motionId = 0;
@@ -77,7 +77,7 @@ export class Unit implements IUnit {
             });
             setTimeout(() => {
                 const fadeDuration = 1;
-                engineState.setComponent(this._obj, new Fadeout({ duration: fadeDuration }));
+                engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
                 setTimeout(() => {
                     skeletonPool.releaseSkeleton(this);
                     cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
@@ -94,7 +94,7 @@ export class Unit implements IUnit {
     private _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell = makeUnitAddr();
-    private _obj: SkinnedMesh;    
+    private _mesh: SkinnedMesh;    
     private _coords = makeUnitAddr();
     private _motionId = 0;
     private _lastCompletedMotionId = 0;
@@ -117,14 +117,14 @@ export class Unit implements IUnit {
     private _speedFactor: number;
 
     constructor(props: IUnitProps, id: number) {
-        this._obj = props.obj;
+        this._mesh = props.mesh;
         this._type = props.type;
         this._id = id;
         this._fsm = new UnitFSM({ states: props.states, owner: this });
         this._speedFactor = props.speed ?? 1;
         this._animation = props.animation;
 
-        GameUtils.worldToMap(this._obj.position, this._coords.mapCoords);
+        GameUtils.worldToMap(this._mesh.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 

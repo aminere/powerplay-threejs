@@ -6,6 +6,7 @@ import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
 import { GameUtils } from "../GameUtils";
+import { config } from "../config";
 
 const identity = new Matrix4();
 class SkeletonManager {
@@ -64,7 +65,8 @@ class SkeletonManager {
         const armature0 = rootBone0.parent!;        
         const baseRotation = armature0.quaternion.clone();
 
-        const headOffset = new Vector3(0, 0, 1.8);
+        const { unitScale } = config.game;
+        const headOffset = new Vector3(0, 0, 2 * unitScale);
         const boundingBox = new Box3()
             .setFromObject(sharedSkinnedMesh)
             .expandByPoint(headOffset)

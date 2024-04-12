@@ -22,6 +22,8 @@ interface IGameConfig {
     conveyorWidth: number;
     maxConveyors: number;
     conveyorSpeed: number;
+    unitScale: number;
+    truckScale: number;
 }
 
 interface ITrainConfig {
@@ -59,19 +61,21 @@ export const config: IConfig = {
     },
     game: {
         cellSize: 2,
-        cellsPerRoadBlock: 3,
-        mapRes: 32,        
+        cellsPerRoadBlock: 1,
+        mapRes: 32,
         elevationStep: .2,
         conveyorHeight: .34,
         conveyorWidth: .8,
         maxConveyors: 500,
-        conveyorSpeed: 2
+        conveyorSpeed: 2,
+        unitScale: .7,
+        truckScale: 2.5
     },
     train: {
         maxSpeed: 40,
         acceleration: 1,
         deceleration: -3,
-        scale: 3
+        scale: 2
     },
     pathfinding: {
         cellWaitTime: .3

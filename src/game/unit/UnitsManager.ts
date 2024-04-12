@@ -11,9 +11,11 @@ import { GameMapState } from "../components/GameMapState";
 import { IUnitProps, Unit } from "./Unit";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 import { updateUnits } from "./UnitsUpdate";
+import { config } from "../config";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
+const { unitScale } = config.game;
 
 class UnitsManager {
 
@@ -129,18 +131,18 @@ class UnitsManager {
         updateUnits(this._units);
     }
 
-    public createUnit(props: IUnitProps) {
-        const { obj } = props;
-        obj.userData.unserializable = true;
-        obj.bindMode = "detached";
+    private createUnit(props: IUnitProps) {
+        const { mesh } = props;
+        mesh.userData.unserializable = true;
+        mesh.bindMode = "detached";
         const id = this._units.length;
         const unit = new Unit(props, id);
         this._units.push(unit);
-        this._owner.add(obj);
+        this._owner.add(mesh);
         cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
-        const box3Helper = new Box3Helper(obj.boundingBox);
-        obj.add(box3Helper);
-        box3Helper.visible = false;
+        const box3Helper = new Box3Helper(mesh.boundingBox);
+        mesh.add(box3Helper);
+        // box3Helper.visible = false;
         return unit;
         // const createNpc = (pos: Vector3) => {
         //     const npcModel = SkeletonUtils.clone(npcObj);
@@ -162,10 +164,11 @@ class UnitsManager {
         const sharedMesh = skeletonManager.sharedSkinnedMesh;
         const boundingBox = skeletonManager.boundingBox;
         const mesh = sharedMesh.clone();
+        mesh.scale.multiplyScalar(unitScale);
         mesh.boundingBox = boundingBox;
         GameUtils.mapToWorld(mapCoords, mesh.position);
         this.createUnit({
-            obj: mesh,
+            mesh,
             type: UnitType.Worker,
             states: [new MiningState()],
             animation: skeletonManager.applyIdleAnim(mesh)

@@ -18,8 +18,8 @@ const partHeight = 8;
 const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
-const headOffset = 2;
-const { cellSize, conveyorHeight } = config.game;
+const { cellSize, conveyorHeight, unitScale } = config.game;
+const headOffset = 2 * unitScale;
 
 function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number) {
     const { camera } = GameMapState.instance;
