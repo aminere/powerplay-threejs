@@ -33,6 +33,9 @@ export class GameMapUpdate extends Component<ComponentProps> {
     override update(_owner: Object3D) {
         
         const state = GameMapState.instance;
+        const { resolution: selectorResolution } = state.tileSelector;
+        const resolution = state.action === "road" ? selectorResolution : 1;
+
         if (input.touchInside && !state.cursorOverUI) {
             const { width, height } = engine.screenRect;
             const touchPos = input.touchPos;
@@ -43,14 +46,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
-                raycastOnCells(input.touchPos, state.camera, cellCoords);
-                if (state.action) {                    
+                raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
+                if (state.action) {   
                     if (cellCoords?.equals(state.selectedCellCoords) === false) {
-                        const { resolution } = state.tileSelector;
-                        const cellX = Math.floor(cellCoords.x / resolution);
-                        const cellY = Math.floor(cellCoords.y / resolution);
-                        state.tileSelector.setPosition(cellX * resolution, cellY * resolution, state.sectors);
-                        state.selectedCellCoords.copy(cellCoords!);
+                        state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
+                        state.selectedCellCoords.copy(cellCoords);
                     }
                 } else {
                     if (cellCoords?.equals(state.highlightedCellCoords) === false) {
@@ -96,7 +96,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (state.action) {
                             const cellCoords = pools.vec2.getOne();
                             if (!state.touchDragged) {
-                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords);
+                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                                 if (cell) {
                                     if (cellCoords?.equals(state.touchStartCoords) === false) {
                                         state.touchDragged = true;
@@ -105,7 +105,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                     }
                                 }
                             } else {
-                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords);
+                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                                 if (cell) {
                                     if (cellCoords?.equals(state.touchHoveredCoords) === false) {
                                         state.touchHoveredCoords.copy(cellCoords!);
@@ -121,7 +121,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (!state.cursorOverUI) {
                         if (state.action) {
                             const cellCoords = pools.vec2.getOne();
-                            const cell = raycastOnCells(input.touchPos, state.camera, cellCoords);
+                            const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                             if (cell) {
                                 if (cellCoords?.equals(state.touchHoveredCoords) === false) {
                                     state.touchHoveredCoords.copy(cellCoords!);
@@ -249,7 +249,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
                         const targetCellCoords = pools.vec2.getOne();
-                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords);
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, resolution);
                         if (targetCell) {
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {

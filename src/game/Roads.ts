@@ -37,7 +37,7 @@ function setRoadTile(sectorCoords: Vector2, localCoords: Vector2, roadTileIndex:
     const tileIndex = baseRoadTileIndex + roadTileIndex;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     return Sector.updateCellTexture(sector, localCoords, tileIndex);
-}    
+}
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -45,7 +45,7 @@ const mapCoords = new Vector2();
 const neighborCoord = new Vector2();
 const neighborSectorCoords = new Vector2();
 const neighborLocalCoords = new Vector2();
-const offset2 = new Vector2();
+const direction2 = new Vector2();
 const start2 = new Vector2();
 const { cellsPerRoadBlock} = config.game;
 
@@ -74,11 +74,13 @@ function getRoadTile(mapCoords: Vector2) {
 
 class Roads {
 
-    public onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis) {
+    public onDrag(start: Vector2, current: Vector2, cellsOut: Vector2[], dragAxis: Axis, resolution: number) {
         const scan = (_start: Vector2, direction: Vector2, iterations: number) => {
             console.assert(iterations >= 0);
             for (let i = 0; i <= iterations; ++i) {
-                mapCoords.copy(_start).addScaledVector(direction, i);
+                const dx = direction.x * i;
+                const dy = direction.y * i;
+                mapCoords.set(_start.x + dx * resolution, _start.y + dy * resolution);
                 const cell = GameUtils.getCell(mapCoords);
                 if (!cell || !cell.isEmpty) {
                     continue;
@@ -90,21 +92,23 @@ class Roads {
 
         if (dragAxis === "x") {
             const direction = new Vector2(Math.sign(current.x - start.x), 0);
-            const iterations = Math.abs(current.x - start.x);
+            const iterations = Math.abs(current.x - start.x) / resolution;
             scan(start, direction, iterations);
             if (current.y !== start.y) {
-                offset2.set(0, Math.sign(current.y - start.y));
-                start2.copy(start).addScaledVector(direction, iterations).add(offset2);
-                scan(start2, offset2, Math.abs(current.y - start.y) - 1);
+                direction2.set(0, Math.sign(current.y - start.y));
+                start2.set(start.x + (direction.x * iterations + direction2.x) * resolution, start.y + (direction.y * iterations + direction2.y) * resolution);
+                const iterations2 = Math.abs(current.y - start.y) / resolution;
+                scan(start2, direction2, iterations2 - 1);
             }
         } else {
             const direction = new Vector2(0, Math.sign(current.y - start.y));
-            const iterations = Math.abs(current.y - start.y);
+            const iterations = Math.abs(current.y - start.y) / resolution;
             scan(start, direction, iterations);
             if (current.x !== start.x) {
-                offset2.set(Math.sign(current.x - start.x), 0);
-                start2.copy(start).addScaledVector(direction, iterations).add(offset2);
-                scan(start2, offset2, Math.abs(current.x - start.x) - 1);
+                direction2.set(Math.sign(current.x - start.x), 0);
+                start2.set(start.x + (direction.x * iterations + direction2.x) * resolution, start.y + (direction.y * iterations + direction2.y) * resolution);
+                const iterations2 = Math.abs(current.x - start.x) / resolution;
+                scan(start2, direction2, iterations2 - 1);
             }
         }
     }    

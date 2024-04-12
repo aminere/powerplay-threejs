@@ -185,7 +185,7 @@ export class Terrain {
             const stride = i;
             // const indexNormalized = (32 + TileTypes.indexOf("rock")) / lastTileIndex;            
             // const indexNormalized = 16 / lastTileIndex;
-            const indexNormalized = 0;
+            const indexNormalized = 0 / lastTileIndex;
             cellTextureData[stride] = indexNormalized * 255;
         }             
 
@@ -264,18 +264,13 @@ export class Terrain {
                     `#include <map_fragment>`,
                     `                
                     #ifdef USE_MAP
-                        float localX = vPosition.x / ${cellSize}.;
-                        float localY = vPosition.z / ${cellSize}.;
+                        float localX = vPosition.x / ${cellSize * cellsPerRoadBlock}.;
+                        float localY = vPosition.z / ${cellSize * cellsPerRoadBlock}.;
                         float cellX = floor(localX);
                         float cellY = floor(localY);
 
-                        cellX = floor(cellX / ${cellsPerRoadBlock}.) * ${cellsPerRoadBlock}.;
-                        cellY = floor(cellY / ${cellsPerRoadBlock}.) * ${cellsPerRoadBlock}.;
-                        localX = vPosition.x / (${cellSize}. * ${cellsPerRoadBlock}.);
-                        localY = vPosition.z / (${cellSize}. * ${cellsPerRoadBlock}.);
-
-                        float cx = (cellX / ${mapRes}.); // + (.5 / mapRes);
-                        float cy = (cellY / ${mapRes}.); // + (.5 / mapRes);
+                        float cx = (cellX * ${cellsPerRoadBlock}. / ${mapRes}.); // + (.5 / mapRes);
+                        float cy = (cellY * ${cellsPerRoadBlock}. / ${mapRes}.); // + (.5 / mapRes);
                         float normalizedIndex = texture2D(cellTexture, vec2(cx, cy)).r;
                         float reconstructedIndex = round(normalizedIndex * ${lastTileIndex}.);
                         float lookUpY = floor(reconstructedIndex / ${tileMapRes}.);

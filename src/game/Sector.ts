@@ -53,19 +53,13 @@ export class Sector {
     }
 
     public static updateCellTexture(sector: ISector, localCoords: Vector2, tileIndex: number) {
-        const { mapRes, cellsPerRoadBlock } = config.game;
-
-        const cellX = Math.floor(localCoords.x / cellsPerRoadBlock) * cellsPerRoadBlock;
-        const cellY = Math.floor(localCoords.y / cellsPerRoadBlock) * cellsPerRoadBlock;
-        // const cellIndex = localCoords.y * mapRes + localCoords.x;
-        const cellIndex = cellY * mapRes + cellX;
-
+        const { mapRes } = config.game;
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
         const { atlasTileCount } = config.terrain;
         const tileCount = atlasTileCount;
         const lastTileIndex = tileCount - 1;
         const tileIndexNormalized = tileIndex / lastTileIndex;
         const rawTileIndex = Math.round(tileIndexNormalized * 255);
-        console.log(`updateCellTexture ${cellIndex} -> ${rawTileIndex}`);
         sector.textureData.terrain.set([rawTileIndex], cellIndex);        
         const uniforms = ((sector.layers.terrain as THREE.Mesh).material as THREE.Material).userData.shader.uniforms as TerrainUniforms;
         uniforms.cellTexture.value.needsUpdate = true;

@@ -61,7 +61,7 @@ export const config: IConfig = {
     },
     game: {
         cellSize: 2,
-        cellsPerRoadBlock: 1,
+        cellsPerRoadBlock: 2,
         mapRes: 32,
         elevationStep: .2,
         conveyorHeight: .34,

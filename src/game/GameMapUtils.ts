@@ -85,7 +85,7 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
     return selectedVertexIndex;
 }
 
-export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2, sectorCoordsOut?: Vector2) {
+export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2, resolution: number, sectorCoordsOut?: Vector2) {
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
@@ -143,17 +143,19 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
         cell = GameMapState.instance.sectors.get(`${sectorX},${sectorY}`)!.cells[selectedCell];
     }
 
+    cellCoordsOut.set(Math.floor(cellCoordsOut.x / resolution) * resolution, Math.floor(cellCoordsOut.y / resolution) * resolution);
     return cell;
 }
 
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
     const gameMapState = GameMapState.instance;
+    const {resolution } = gameMapState.tileSelector;
     switch (gameMapState.action) {
         case "road": {
             gameMapState.previousRoad.forEach(road => roads.clear(road));
             gameMapState.previousRoad.length = 0;
-            roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!);
+            roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!, resolution);
         }
             break;
 
