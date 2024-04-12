@@ -22,6 +22,7 @@ export class TrainProps extends ComponentProps {
 }
 
 const { scale } = config.train;
+const { cellSize } = config.game;
 
 export class Train extends Component<TrainProps> {
     constructor(props?: Partial<TrainProps>) {
@@ -36,7 +37,7 @@ export class Train extends Component<TrainProps> {
             meshes.load(`/models/${model}.glb`).then(([_mesh]) => {
                 const mesh = _mesh.clone();
                 mesh.castShadow = true;
-                mesh.scale.multiplyScalar(scale);
+                mesh.scale.multiplyScalar(scale * cellSize);
                 wagon.add(mesh);
             });
             // const mesh = new THREE.Mesh(new THREE.BoxGeometry(.5, .5, _wagonLength), new THREE.MeshBasicMaterial({ color: 0xff1000 }));

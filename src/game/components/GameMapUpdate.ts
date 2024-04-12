@@ -44,9 +44,12 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
                 raycastOnCells(input.touchPos, state.camera, cellCoords);
-                if (state.action) {
+                if (state.action) {                    
                     if (cellCoords?.equals(state.selectedCellCoords) === false) {
-                        state.tileSelector.setPosition(cellCoords!, state.sectors);
+                        const { resolution } = state.tileSelector;
+                        const cellX = Math.floor(cellCoords.x / resolution);
+                        const cellY = Math.floor(cellCoords.y / resolution);
+                        state.tileSelector.setPosition(cellX * resolution, cellY * resolution, state.sectors);
                         state.selectedCellCoords.copy(cellCoords!);
                     }
                 } else {

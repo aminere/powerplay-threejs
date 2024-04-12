@@ -11,8 +11,12 @@ const { cellSize, mapRes } = config.game;
 export class TileSector extends Object3D {
 
     public get size() { return this._size; }
+    public get resolution() { return this._resolution; }
+
+    public set resolution(value: number) { this._resolution = value; }
 
     private _size = new Vector2(1, 1);
+    private _resolution = 1;
     private _material: MeshBasicMaterial;
 
     constructor() {
@@ -43,13 +47,13 @@ export class TileSector extends Object3D {
         }
     }    
 
-    public setPosition(mapCoords: Vector2, sectors: Map<string, ISector>) {
+    public setPosition(x: number, y: number, sectors: Map<string, ISector>) {
         const offset = -mapRes / 2;
-        this.position.set((mapCoords.x + offset) * cellSize, 0, (mapCoords.y + offset) * cellSize);
-        this.fit(mapCoords, sectors);
+        this.position.set((x + offset) * cellSize, 0, (y + offset) * cellSize);
+        this.fit(x, y, sectors);
     }
         
-    public fit(mapCoords: Vector2, sectors: Map<string, ISector>) {
+    public fit(x: number, y: number, sectors: Map<string, ISector>) {
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
         const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
@@ -80,7 +84,7 @@ export class TileSector extends Object3D {
         let tileIndex = 0;    
         for (let i = 0; i < this._size.y; ++i) {
             for (let j = 0; j < this._size.x; ++j) {
-                fitTile(mapCoords.x + j, mapCoords.y + i, tileIndex);
+                fitTile(x + j, y + i, tileIndex);
                 ++tileIndex;              
             }
         }

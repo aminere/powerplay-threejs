@@ -12,6 +12,7 @@ import { GameMapState } from "../components/GameMapState";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapProps } from "../components/GameMapProps";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
+import { config } from "../config";
 
 export function GameMapUI(props: IGameUIProps) {
     const actionsElem = useRef<HTMLDivElement>(null);
@@ -44,8 +45,16 @@ export function GameMapUI(props: IGameUIProps) {
                 }
                 break;
 
+                case "road": {
+                    const { cellsPerRoadBlock } = config.game;
+                    gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
+                    gameMapState.tileSelector.resolution = cellsPerRoadBlock;
+                }
+                break;
+
                 default:
                     gameMapState.tileSelector.setSize(1, 1);
+                    gameMapState.tileSelector.resolution = 1;
             }
         }
 

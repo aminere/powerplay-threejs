@@ -160,7 +160,13 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
 
                     // active particle, update it
                     this.state.getVector3("direction", i, particleDirection);
-                    const speed = this.state.getData("speed", i);
+                    let speed = this.state.getData("speed", i);
+
+                    if (this.props.speedOverLife.length > 0) {
+                        const speedOverLife = evaluateValueOverLife(this.props.speedOverLife, lifeFactor);
+                        speed *= speedOverLife;
+                    }
+
                     particleVelocity.set(0, 0, 0).addScaledVector(particleDirection, speed);
 
                     // apply gravity

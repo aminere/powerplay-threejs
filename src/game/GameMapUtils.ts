@@ -461,7 +461,7 @@ export function onAction(touchButton: number) {
         switch (state.action) {
             case "elevation": {
                 onElevation(mapCoords, sectorCoords, localCoords, state.tileSelector.size, touchButton);
-                state.tileSelector.fit(mapCoords, state.sectors);
+                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
             }
                 break;
 
@@ -529,7 +529,7 @@ export function onAction(touchButton: number) {
                 if (touchButton === 0) {
                     if (cell.rail) {
                         const { layers } = state;
-                        const wagonLength = cellSize * trainScale;
+                        const wagonLength = cellSize * 2 * trainScale;
                         const numWagons = 4;
                         const gap = .3;
                         const train = utils.createObject(layers.trains, "train");

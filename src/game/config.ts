@@ -15,6 +15,7 @@ interface ITerrainConfig {
 
 interface IGameConfig {
     cellSize: number;
+    cellsPerRoadBlock: number;
     mapRes: number;
     elevationStep: number;
     conveyorHeight: number;
@@ -58,7 +59,8 @@ export const config: IConfig = {
     },
     game: {
         cellSize: 2,
-        mapRes: 32,
+        cellsPerRoadBlock: 3,
+        mapRes: 32,        
         elevationStep: .2,
         conveyorHeight: .34,
         conveyorWidth: .8,
@@ -69,7 +71,7 @@ export const config: IConfig = {
         maxSpeed: 40,
         acceleration: 1,
         deceleration: -3,
-        scale: 6
+        scale: 3
     },
     pathfinding: {
         cellWaitTime: .3

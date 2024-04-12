@@ -3,12 +3,12 @@ import { config } from './config';
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Sphere, Texture, Vector2, Vector3 } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/resources/Textures';
-import { TileTypes } from './GameDefinitions';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
     mapRes: Uniform<number>;
     cellSize: Uniform<number>;
+    cellsPerRoadBlock: Uniform<number>;
     cellTexture: Uniform<DataTexture>;
     highlightTexture: Uniform<DataTexture>;
     gridTexture: Uniform<Texture>;
@@ -58,7 +58,7 @@ export interface ITerrainPatch {
     erosion: Vector2[];
 }
 
-const { mapRes, cellSize, elevationStep } = config.game;
+const { mapRes, cellSize, elevationStep, cellsPerRoadBlock } = config.game;
 const verticesPerRow = mapRes + 1;
 const vertexCount = verticesPerRow * verticesPerRow;
 
@@ -186,8 +186,9 @@ export class Terrain {
         for (let i = 0; i < cellCount; ++i) {
              // const stride = i * 4;
             const stride = i;
-            let indexNormalized = (32 + TileTypes.indexOf("rock")) / lastTileIndex;            
-            indexNormalized = 0 / lastTileIndex;
+            // const indexNormalized = (32 + TileTypes.indexOf("rock")) / lastTileIndex;            
+            // const indexNormalized = 16 / lastTileIndex;
+            const indexNormalized = 0;
             cellTextureData[stride] = indexNormalized * 255;
         }             
 
@@ -231,6 +232,7 @@ export class Terrain {
                 const uniforms: TerrainUniforms = {
                     mapRes: { value: mapRes },
                     cellSize: { value: cellSize },
+                    cellsPerRoadBlock: { value: cellsPerRoadBlock },
                     cellTexture: { value: cellTexture },
                     highlightTexture: { value: highlightTexture },
                     gridTexture: { value: gridTexture },
@@ -258,6 +260,7 @@ export class Terrain {
                 shader.fragmentShader = `
                     uniform float mapRes;
                     uniform float cellSize;
+                    uniform float cellsPerRoadBlock;
                     uniform sampler2D cellTexture;
                     uniform sampler2D highlightTexture;
                     uniform sampler2D gridTexture;
@@ -270,8 +273,9 @@ export class Terrain {
                     `#include <map_fragment>`,
                     `                
                     #ifdef USE_MAP
-                        float localX = vPosition.x / cellSize;
-                        float localY = vPosition.z / cellSize;
+                        float actualSize = cellSize * cellsPerRoadBlock;
+                        float localX = vPosition.x / actualSize;
+                        float localY = vPosition.z / actualSize;
                         float cellX = floor(localX);
                         float cellY = floor(localY);                    
                         float cx = (cellX / mapRes); // + (.5 / mapRes);
