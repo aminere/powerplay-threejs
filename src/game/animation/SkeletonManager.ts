@@ -1,12 +1,11 @@
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 import { objects } from "../../engine/resources/Objects";
-import { Box3, Matrix4, Object3D, Skeleton, SkinnedMesh, Vector3 } from "three";
+import { Box3, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { engineState } from "../../engine/EngineState";
 import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
 import { GameUtils } from "../GameUtils";
-import { config } from "../config";
 
 const identity = new Matrix4();
 class SkeletonManager {
@@ -65,14 +64,11 @@ class SkeletonManager {
         const armature0 = rootBone0.parent!;        
         const baseRotation = armature0.quaternion.clone();
 
-        const { unitScale } = config.game;
-        const headOffset = new Vector3(0, 0, 2 * unitScale);
-        const boundingBox = new Box3()
-            .setFromObject(sharedSkinnedMesh)
-            .expandByPoint(headOffset)
-            .applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, GameUtils.vec3.one));
-
         this._sharedSkinnedMesh = sharedSkinnedMesh;
+        sharedSkinnedMesh.geometry.computeBoundingBox();
+
+        const boundingBox = sharedSkinnedMesh.geometry.boundingBox!.clone()
+        boundingBox.applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, GameUtils.vec3.one));
         this._boundingBox = boundingBox;
     }
 

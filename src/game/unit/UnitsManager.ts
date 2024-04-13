@@ -142,7 +142,7 @@ class UnitsManager {
         cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
         const box3Helper = new Box3Helper(mesh.boundingBox);
         mesh.add(box3Helper);
-        // box3Helper.visible = false;
+        box3Helper.visible = false;
         return unit;
         // const createNpc = (pos: Vector3) => {
         //     const npcModel = SkeletonUtils.clone(npcObj);
