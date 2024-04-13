@@ -90,8 +90,8 @@ class Conveyors {
         const topEmissiveTexture = topMaterial.emissiveMap!;
         topEmissiveTexture.wrapT = RepeatWrapping;
         this._topEmissiveTexture = topEmissiveTexture;
-        topMaterial.color.setHex(0x9E9E9E);
-        topMaterial.emissive.setHex(0x404040);
+        topMaterial.color.setHex(0xC2C2C2);
+        topMaterial.emissive.setHex(0);
         this._loaded = true;
     }
 
