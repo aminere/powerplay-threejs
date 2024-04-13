@@ -25,6 +25,7 @@ class Conveyors {
     private _invCurvedConveyorTop!: Mesh;
     private _straightCells: ICell[] = [];
     private _topTexture!: Texture;
+    private _topNormalTexture!: Texture;
     private _topEmissiveTexture!: Texture;
     private _loaded = false;
     private _disposed = false;    
@@ -81,9 +82,13 @@ class Conveyors {
         const topTexture = topMaterial.map!;
         topTexture.wrapT = RepeatWrapping;
         this._topTexture = topTexture;        
+        const topNormalTexture = topMaterial.normalMap!;
+        topNormalTexture.wrapT = RepeatWrapping;
+        this._topNormalTexture = topNormalTexture;
         const topEmissiveTexture = topMaterial.emissiveMap!;
         topEmissiveTexture.wrapT = RepeatWrapping;
         this._topEmissiveTexture = topEmissiveTexture;
+        topMaterial.color.setHex(0x9E9E9E);
         this._loaded = true;
     }
 
@@ -325,9 +330,9 @@ class Conveyors {
     }
 
     public update() {
-        console.assert(this._loaded);
         const dy = time.deltaTime * conveyorSpeed / cellSize;
         this._topTexture.offset.y -= dy;
+        this._topNormalTexture.offset.y -= dy;
         this._topEmissiveTexture.offset.y -= dy;
         conveyorItems.update();
     }   
