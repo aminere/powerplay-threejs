@@ -8,6 +8,7 @@ import { conveyorUtils } from "./ConveyorUtils";
 import { conveyorItems } from "./ConveyorItems";
 import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
+import { textures } from "../engine/resources/Textures";
 
 const matrix = new Matrix4();
 const worldPos = new Vector3();
@@ -25,7 +26,7 @@ class Conveyors {
     private _invCurvedConveyorTop!: Mesh;
     private _straightCells: ICell[] = [];
     private _topTexture!: Texture;
-    private _topNormalTexture!: Texture;
+    // private _topNormalTexture!: Texture;
     private _topEmissiveTexture!: Texture;
     private _loaded = false;
     private _disposed = false;    
@@ -79,16 +80,18 @@ class Conveyors {
         this._curvedConveyorTop.receiveShadow = true;
         this._invCurvedConveyorTop.receiveShadow = true;
 
-        const topTexture = topMaterial.map!;
+        const topTexture = textures.load("/images/conveyor2.png");
+        topMaterial.map = topTexture;
         topTexture.wrapT = RepeatWrapping;
         this._topTexture = topTexture;        
-        const topNormalTexture = topMaterial.normalMap!;
-        topNormalTexture.wrapT = RepeatWrapping;
-        this._topNormalTexture = topNormalTexture;
+        // const topNormalTexture = topMaterial.normalMap!;
+        // topNormalTexture.wrapT = RepeatWrapping;
+        // this._topNormalTexture = topNormalTexture;
         const topEmissiveTexture = topMaterial.emissiveMap!;
         topEmissiveTexture.wrapT = RepeatWrapping;
         this._topEmissiveTexture = topEmissiveTexture;
         topMaterial.color.setHex(0x9E9E9E);
+        topMaterial.emissive.setHex(0x404040);
         this._loaded = true;
     }
 
@@ -332,7 +335,7 @@ class Conveyors {
     public update() {
         const dy = time.deltaTime * conveyorSpeed / cellSize;
         this._topTexture.offset.y -= dy;
-        this._topNormalTexture.offset.y -= dy;
+        // this._topNormalTexture.offset.y -= dy;
         this._topEmissiveTexture.offset.y -= dy;
         conveyorItems.update();
     }   
