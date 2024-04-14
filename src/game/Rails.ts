@@ -33,7 +33,7 @@ export class Rails {
             const dx = current.x - start.x;
             if (dx === 0) {
                 const rail = railFactory.makeRail(1, 1);
-                Rails.setRail(rail, start, "x");
+                Rails.create(rail, start, "x");
             } else {
                 Rails.setStraightRailX(start, current);
             }
@@ -43,7 +43,7 @@ export class Rails {
             const dz = current.y - start.y;
             if (dz === 0) {
                 const rail = railFactory.makeRail(1, 0);
-                Rails.setRail(rail, start, "z");
+                Rails.create(rail, start, "z");
             } else {
                 Rails.setStraightRailZ(start, current);
             }
@@ -70,7 +70,7 @@ export class Rails {
                                 Rails.setStraightRailX(start, end1);
                             } else {
                                 const rail = railFactory.makeRail(1, 1);
-                                Rails.setRail(rail, start, dragAxis);
+                                Rails.create(rail, start, dragAxis);
                             }
                             railsOut.push(startCell);
                             Rails.setCurvedRail(dragAxis, start2, current);
@@ -90,7 +90,7 @@ export class Rails {
                                 Rails.setStraightRailZ(start2, current);
                             } else {
                                 const rail = railFactory.makeRail(1, 0);
-                                Rails.setRail(rail, start2, "z");
+                                Rails.create(rail, start2, "z");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
                         }
@@ -110,7 +110,7 @@ export class Rails {
                                 Rails.setStraightRailX(start2, current);
                             } else {
                                 const rail = railFactory.makeRail(1, 1);
-                                Rails.setRail(rail, start2, "x");
+                                Rails.create(rail, start2, "x");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
                         }
@@ -125,7 +125,7 @@ export class Rails {
                                 Rails.setStraightRailZ(start, end1);
                             } else {
                                 const rail = railFactory.makeRail(1, 0);
-                                Rails.setRail(rail, start, dragAxis);
+                                Rails.create(rail, start, dragAxis);
                             }
                             railsOut.push(startCell);
 
@@ -200,7 +200,7 @@ export class Rails {
         }
     }
 
-    private static setRail(
+    private static create(
         rail: THREE.Object3D,
         startCoords: Vector2,
         startAxis: Axis,
@@ -239,13 +239,13 @@ export class Rails {
     private static setStraightRailX(start: Vector2, end: Vector2) {
         const dx = end.x - start.x;
         const rail = railFactory.makeRail(Math.abs(dx) + 1, dx > 0 ? 1 : 3);
-        Rails.setRail(rail, start, "x", end, "x");
+        Rails.create(rail, start, "x", end, "x");
     }
 
     private static setStraightRailZ(start: Vector2, end: Vector2) {
         const dz = end.y - start.y;
         const rail = railFactory.makeRail(Math.abs(dz) + 1, dz > 0 ? 0 : 2);
-        Rails.setRail(rail, start, "z", end, "z");
+        Rails.create(rail, start, "z", end, "z");
     }
 
     private static setCurvedRail(initialDirection: Axis, start: Vector2, end: Vector2) {
@@ -284,6 +284,6 @@ export class Rails {
             }
         })();
         const rail = railFactory.makeCurvedRail(adx + 1, rotation, directionX);
-        Rails.setRail(rail, start, initialDirection, end, initialDirection === "x" ? "z" : "x");
+        Rails.create(rail, start, initialDirection, end, initialDirection === "x" ? "z" : "x");
     }
 }

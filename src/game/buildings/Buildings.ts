@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, FrontSide, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
@@ -104,8 +104,6 @@ class Buildings {
             const [building] = buildings[i];
             building.castShadow = true;
             building.receiveShadow = true;
-            const material = building.material as MeshStandardMaterial;
-            material.side = FrontSide;
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
             // if (!building.geometry.boundingBox) {

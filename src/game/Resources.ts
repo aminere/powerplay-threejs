@@ -67,13 +67,12 @@ class Resources {
             }
             const mesh = _mesh.clone();
             mesh.scale.setScalar(cellSize);
-            // switch (type) {
-            //     case "ak47": {
-            //         mesh.rotation.set(0, Math.PI / 4, Math.PI / 2);
-            //         mesh.scale.setScalar(2);
-            //     }
-            //     break;
-            // }
+            switch (type) {
+                case "ak47": {
+                    mesh.scale.multiplyScalar(1.8);
+                }
+                break;
+            }
             return mesh;
         });
     }

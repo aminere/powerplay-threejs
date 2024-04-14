@@ -4,9 +4,16 @@ import { config } from "./config";
 import { BezierPath } from "./BezierPath";
 import { IRail } from "./GameTypes";
 import { meshes } from "../engine/resources/Meshes";
-import { pools } from "../engine/core/Pools";
+
 const { cellSize } = config.game;
 const halfCell = cellSize / 2;
+const barOffset = cellSize / 4;
+const yOffset = 0.001;
+
+const point = new Vector3();
+const tangent = new Vector3();
+const curvedPos = new Vector3();
+const lookAt = new Vector3();
 
 class RailFactory {
 
@@ -15,19 +22,39 @@ class RailFactory {
         curve: BezierPath;
     }>();
 
-    private _railMesh!: Mesh;    
+    private _curvedRail!: Mesh; 
+    private _straightRail!: Mesh;   
+    private _barMesh!: Mesh;
 
     public async preload() {
-        const [rail] = await meshes.load('/models/rails.glb');
-        this._railMesh = rail.clone();
+        const [curvedRail] = await meshes.load('/models/rail-curved.glb');        
+        curvedRail.castShadow = true;
+        this._curvedRail = curvedRail.clone();
+
+        const [straightRail] = await meshes.load('/models/rail-straight.glb');
+        straightRail.castShadow = true;
+        this._straightRail = straightRail.clone();
+
+        const [barMesh] = await meshes.load('/models/rail-bar.glb');
+        this._barMesh = barMesh.clone();
     }
 
     public makeRail(length: number, rotation: number) {
         const container = new Object3D();
-        const mesh = this._railMesh.clone();
-        mesh.position.set(0, .01, -cellSize / 2);
+        const mesh = this._straightRail.clone();
+        mesh.position.set(0, yOffset, -halfCell);
         mesh.scale.set(cellSize, 1, length * cellSize);
         container.add(mesh);
+
+        for (let i = 0; i < length; ++i) {
+            const barMesh1 = this._barMesh.clone();
+            barMesh1.position.set(0, 0, i * cellSize - barOffset);
+            container.add(barMesh1);
+            const barMesh2 = this._barMesh.clone();
+            barMesh2.position.set(0, 0, i * cellSize + barOffset);
+            container.add(barMesh2);
+        }
+
         const rotationY = Math.PI / 2 * rotation;
         container.rotateY(rotationY);
         container.userData = {
@@ -62,9 +89,9 @@ class RailFactory {
                 new Vector3(x1, 0, z2),
                 new Vector3(x2, 0, z3),
                 new Vector3(x3, 0, z3)
-            ]);
+            ]);           
 
-            const mesh = this._railMesh.clone();
+            const mesh = this._curvedRail.clone();
             mesh.geometry = (mesh.geometry as THREE.BufferGeometry).clone();
             const vertices = mesh.geometry.getAttribute("position") as THREE.BufferAttribute;
             const minZ = 0;
@@ -79,14 +106,14 @@ class RailFactory {
             //         maxZ = z;
             //     }
             // }
-            const [point, bitangent, curvedPos, offset] = pools.vec3.get(4);
-            offset.set(halfCell, 0, 0);
             for (let i = 0; i < vertices.count; ++i) {
                 const t = (vertices.getZ(i) - minZ) / (maxZ - minZ);
                 curve.evaluate(t, point);
-                curve.evaluateBitangent(t, bitangent);
-                curvedPos.copy(point)
-                    .add(offset)
+                const bitangent = curve.evaluateBitangent(t, tangent);
+
+                curvedPos.copy(point);
+                curvedPos.x += halfCell;
+                curvedPos
                     .addScaledVector(bitangent, -vertices.getX(i) * cellSize)
                     .addScaledVector(GameUtils.vec3.up, vertices.getY(i));
                 vertices.setXYZ(i, curvedPos.x, curvedPos.y, curvedPos.z);
@@ -94,9 +121,25 @@ class RailFactory {
 
             vertices.needsUpdate = true;
             mesh.geometry.computeBoundingSphere();
-            mesh.position.set(-cellSize / 2, 0.001, -cellSize / 2);
+            mesh.position.set(-halfCell, yOffset, -halfCell);
             container.add(mesh);
             this._curvedRails.set(id, { mesh, curve });
+
+            const curveLength = curve.length;            
+            const startOffset = barOffset;            
+            let currentOffset = startOffset;
+            while (currentOffset < curveLength) {
+                const barMesh = this._barMesh.clone();
+                const t = currentOffset / curveLength;
+                curve.evaluate(t, point);
+                curve.evaluateTangent(t, tangent);
+                barMesh.position.copy(point);
+                barMesh.position.x += halfCell;
+                lookAt.addVectors(barMesh.position, tangent);
+                barMesh.lookAt(lookAt);
+                currentOffset += halfCell;
+                mesh.add(barMesh);
+            }
 
             container.userData = {
                 curve,

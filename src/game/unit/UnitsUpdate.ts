@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Matrix4, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { IUnit } from "./IUnit";
 import { config } from "../config";
@@ -27,7 +27,12 @@ const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
-const pickedAk47Offset = new Matrix4().makeRotationFromEuler(new Euler(MathUtils.degToRad(-55.74), MathUtils.degToRad(5.67), MathUtils.degToRad(32.13)));
+const pickedAk47Offset = new Matrix4().compose(
+    new Vector3(),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-55.74), MathUtils.degToRad(5.67), MathUtils.degToRad(32.13))),
+    new Vector3(1, 1, 1).multiplyScalar(1.5)
+);
+
 const pickedItemlocalToSkeleton = new Matrix4();
             
 const { mapRes } = config.game;

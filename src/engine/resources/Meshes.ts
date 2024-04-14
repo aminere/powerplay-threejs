@@ -1,5 +1,5 @@
 
-import { Mesh, Object3D } from "three";
+import { FrontSide, Mesh, Object3D } from "three";
 import { GLTFLoader, FBXLoader } from "three/examples/jsm/Addons.js";
 
 class Meshes {
@@ -24,6 +24,16 @@ class Meshes {
         const promise = this.loadScene(path)
             .then(root => {
                 const meshes = root.getObjectsByProperty("isMesh", true) as Mesh[];
+                for (const mesh of meshes) {
+                    const material = mesh.material;
+                    if (Array.isArray(material)) {
+                        for (const mat of material) {
+                            mat.side = FrontSide;
+                        }
+                    } else {
+                        material.side = FrontSide;
+                    }
+                }
                 this._cache.set(path, meshes);
                 this._loading.delete(path);
                 return meshes;

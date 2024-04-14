@@ -54,9 +54,6 @@ class Conveyors {
         }
 
         const baseMaterial = conveyor.material as MeshBasicMaterial;
-        baseMaterial.side = FrontSide;
-        const curvedBaseMaterial = curvedConveyor0.material as MeshBasicMaterial;
-        curvedBaseMaterial.side = FrontSide;
 
         conveyor.geometry.scale(width, 1, 1);
         const conveyorInstances = conveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);

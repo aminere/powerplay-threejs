@@ -1,6 +1,8 @@
 import { Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
-import { pools } from "../engine/core/Pools";
+
+const previous = new Vector3();
+const current = new Vector3();
 
 export class BezierPath {
 
@@ -10,8 +12,8 @@ export class BezierPath {
     public get length() {
         if (this._length === undefined) {
             let length = 0;
-            const steps = 40;
-            const [previous, current] = pools.vec3.get(2);
+            const steps = 256;
+            
             this.evaluate(0, previous);
             for (let i = 1; i <= steps; i++) {
                 const t = i / steps;
