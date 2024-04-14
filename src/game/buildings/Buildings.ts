@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, FrontSide, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
@@ -9,13 +9,13 @@ import { BuildingType, BuildingTypes, FactoryState, IBuildingInstance, IFactoryS
 import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
-import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
+import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
-import { objects } from "../../engine/resources/Objects";
 
 const { cellSize, mapRes } = config.game;
+const { itemSize } = config.conveyors;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
@@ -44,7 +44,7 @@ function tryFillAdjacentConveyors(cell: ICell, mapCoords: Vector2, resourceType:
     return tryFillConveyor(neighbor2);
 }
 
-function checkNearbyConveyors(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
+function tryGetFromAdjacentConveyors(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
     cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
     const cell = GameUtils.getCell(cellCoords);
     const conveyor = cell?.conveyor;
@@ -67,6 +67,29 @@ function checkNearbyConveyors(type: ResourceType | RawResourceType, mapCoords: V
     return false;
 }
 
+function onProductionDone(outputCellAddr: IUnitAddr, resource: ResourceType | RawResourceType) {
+    const outputCell = getCellFromAddr(outputCellAddr);
+    if (!tryFillAdjacentConveyors(outputCell, outputCellAddr.mapCoords, resource)) {
+        const { sector, localCoords } = outputCellAddr;
+        const visual = utils.createObject(sector.layers.resources, resource);
+        visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+
+        resources.loadModel(resource).then(_mesh => {
+            const mesh = _mesh.clone();
+            visual.add(mesh);
+            mesh.scale.multiplyScalar(itemSize);
+            mesh.position.y = 0.1;
+            mesh.castShadow = true;
+        });
+        
+        console.assert(!outputCell.pickableResource);
+        outputCell.pickableResource = {
+            type: resource,
+            visual
+        };
+    }
+}
+
 class Buildings {
 
     private _instanceId = 1;
@@ -76,38 +99,20 @@ class Buildings {
     }>();
 
     public async preload() {
-        // const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
-        // for (let i = 0; i < buildings.length; i++) {
-        //     const [building] = buildings[i];
-        //     building.castShadow = true;
-        //     building.receiveShadow = true;
-        //     const material = building.material as MeshStandardMaterial;
-        //     material.side = FrontSide;
-        //     const buildingType = BuildingTypes[i];
-        //     const size = buildingSizes[buildingType];
-        //     // if (!building.geometry.boundingBox) {
-        //     //     building.geometry.computeBoundingBox();
-        //     // }
-        //     // const boundingBox = building.geometry.boundingBox!.clone();            
-        //     // boundingBox.max.y = size.y;
-        //     const boundingBox = new Box3();
-        //     boundingBox.min.set(0, 0, 0);
-        //     boundingBox.max.copy(size);
-        //     this._buildings.set(buildingType, {
-        //         prefab: building,
-        //         boundingBox
-        //     });
-        // }
-
-        const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
+        const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
         for (let i = 0; i < buildings.length; i++) {
-            const building = buildings[i];
-            building.traverse(child => {
-                child.castShadow = true;
-                child.receiveShadow = true;
-            });
+            const [building] = buildings[i];
+            building.castShadow = true;
+            building.receiveShadow = true;
+            const material = building.material as MeshStandardMaterial;
+            material.side = FrontSide;
             const buildingType = BuildingTypes[i];
             const size = buildingSizes[buildingType];
+            // if (!building.geometry.boundingBox) {
+            //     building.geometry.computeBoundingBox();
+            // }
+            // const boundingBox = building.geometry.boundingBox!.clone();            
+            // boundingBox.max.y = size.y;
             const boundingBox = new Box3();
             boundingBox.min.set(0, 0, 0);
             boundingBox.max.copy(size);
@@ -116,6 +121,24 @@ class Buildings {
                 boundingBox
             });
         }
+
+        // const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
+        // for (let i = 0; i < buildings.length; i++) {
+        //     const building = buildings[i];
+        //     building.traverse(child => {
+        //         child.castShadow = true;
+        //         child.receiveShadow = true;
+        //     });
+        //     const buildingType = BuildingTypes[i];
+        //     const size = buildingSizes[buildingType];
+        //     const boundingBox = new Box3();
+        //     boundingBox.min.set(0, 0, 0);
+        //     boundingBox.max.copy(size);
+        //     this._buildings.set(buildingType, {
+        //         prefab: building,
+        //         boundingBox
+        //     });
+        // }
     }
 
     public getBoundingBox(buildingType: BuildingType) {
@@ -149,7 +172,7 @@ class Buildings {
         instance.state = factoryState;
     }
 
-    public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
+    public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {        
 
         const { layers, buildings } = GameMapState.instance;
 
@@ -185,8 +208,8 @@ class Buildings {
 
                     const outputX = size.x - 1;
                     const outputY = size.z - 1;
-
-                    console.assert(resourceCells.length > 0, "Mine must be placed on a resource");
+                    const depleted = resourceCells.length === 0;                    
+                    
                     cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
                     const outputCell = makeUnitAddr();
                     computeUnitAddr(cellCoords, outputCell);
@@ -194,8 +217,8 @@ class Buildings {
                     const mineState: IMineState = {
                         resourceCells,
                         currentResourceCell: 0,
-                        active: true,
-                        depleted: false,
+                        active: !depleted,
+                        depleted,
                         outputCell,
                         timer: 0
                     };
@@ -310,9 +333,6 @@ class Buildings {
                             const cell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
                             const resource = cell.resource!;
 
-                            const outputCell = getCellFromAddr(state.outputCell);
-                            console.assert(!outputCell.pickableResource);
-
                             resource.amount -= 1;
                             if (resource.amount === 0) {
                                 resources.clear(cell);
@@ -326,22 +346,7 @@ class Buildings {
                             }
 
                             state.active = false;
-
-                            if (!tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, resource.type)) {
-                                const { sector, localCoords } = state.outputCell;
-                                const visual = utils.createObject(sector.layers.resources, resource.type);
-                                visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-                                meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
-                                    const mesh = _mesh.clone();
-                                    visual.add(mesh);
-                                    mesh.position.y = 0.1;
-                                    mesh.castShadow = true;
-                                });
-                                outputCell.pickableResource = {
-                                    type: resource.type,
-                                    visual
-                                };                                
-                            }
+                            onProductionDone(state.outputCell, resource.type);
 
                         } else {
                             state.timer += time.deltaTime;
@@ -378,28 +383,8 @@ class Buildings {
                             const productionTime = 2;
                             if (state.timer >= productionTime) {
 
-                                // production done
                                 state.state = FactoryState.idle;
-                                const outputCell = getCellFromAddr(state.outputCell);                                
-
-                                if (!tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, state.output)) {
-                                    const { sector, localCoords } = state.outputCell;
-                                    console.assert(!outputCell.pickableResource);
-                                    const visual = utils.createObject(sector.layers.resources, state.output);
-                                    visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-
-                                    resources.loadModel(state.output).then(_mesh => {
-                                        const mesh = _mesh.clone();
-                                        visual.add(mesh);
-                                        mesh.position.y = 0.1;
-                                        mesh.castShadow = true;
-                                    });
-                                    
-                                    outputCell.pickableResource = {
-                                        type: state.output,
-                                        visual
-                                    };
-                                }
+                                onProductionDone(state.outputCell, state.output);
 
                             } else {
                                 state.timer += time.deltaTime;
@@ -408,18 +393,18 @@ class Buildings {
                             break;
                     }
 
-                    // check nearby conveyors
+                    // check nearby conveyors for input
                     if (state.inputTimer < 0) {
                         const size = buildingSizes.factory;
                         let inputAccepted = false;
                         for (let x = 0; x < size.x; ++x) {
-                            if (checkNearbyConveyors(state.input, instance.mapCoords, x, -1)) {
+                            if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, -1)) {
                                 state.inputReserve++;
                                 state.inputTimer = state.inputAccepFrequency;
                                 inputAccepted = true;
                                 break;
                             }
-                            if (checkNearbyConveyors(state.input, instance.mapCoords, x, size.z)) {
+                            if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, size.z)) {
                                 state.inputReserve++;
                                 state.inputTimer = state.inputAccepFrequency;
                                 inputAccepted = true;
@@ -428,12 +413,12 @@ class Buildings {
                         }
                         if (!inputAccepted) {
                             for (let z = 0; z < size.z; ++z) {
-                                if (checkNearbyConveyors(state.input, instance.mapCoords, -1, z)) {
+                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, -1, z)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
                                     break;
                                 }
-                                if (checkNearbyConveyors(state.input, instance.mapCoords, size.x, z)) {
+                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, size.x, z)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
                                     break;

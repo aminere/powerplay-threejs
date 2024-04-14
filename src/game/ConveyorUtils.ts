@@ -5,7 +5,7 @@ import { ICell, Axis, IConveyor } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 
-const { conveyorWidth, maxConveyors } = config.game;
+const { width, maxCount } = config.conveyors;
 const neighborCoords = new Vector2();
 const halfPi = Math.PI / 2;
 
@@ -30,7 +30,7 @@ const directionToAngle = {
 
 class ConveyorUtils {
     public createInstancedMesh(name: string, geometry: BufferGeometry, material: Material | Material[]) {
-        const mesh = new InstancedMesh(geometry, material, maxConveyors);
+        const mesh = new InstancedMesh(geometry, material, maxCount);
         mesh.name = name;
         mesh.frustumCulled = false;
         mesh.matrixAutoUpdate = false;
@@ -84,7 +84,7 @@ class ConveyorUtils {
             curve.evaluateBitangent(t, bitangent);
             curvedPos.copy(point)
                 .add(offset)
-                .addScaledVector(bitangent, -vertices.getX(i) * conveyorWidth)
+                .addScaledVector(bitangent, -vertices.getX(i) * width)
                 .addScaledVector(GameUtils.vec3.up, vertices.getY(i));
             vertices.setXYZ(i, curvedPos.x, curvedPos.y, curvedPos.z);
         }

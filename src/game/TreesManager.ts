@@ -2,7 +2,7 @@ import { BufferGeometry } from "three";
 import { meshes } from "../engine/resources/Meshes";
 
 const trees = [
-    "palm-high",
+    // "palm-high",
     // "palm-round",
     "palm-big",
     "palm"

@@ -13,7 +13,9 @@ import { textures } from "../engine/resources/Textures";
 const matrix = new Matrix4();
 const worldPos = new Vector3();
 const rotation = new Quaternion();
-const { cellSize, conveyorWidth, conveyorHeight, conveyorSpeed } = config.game;
+const { cellSize } = config.game;
+const { width, height, speed } = config.conveyors;
+
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
 const neighborCoords = new Vector2();
 
@@ -56,13 +58,13 @@ class Conveyors {
         const curvedBaseMaterial = curvedConveyor0.material as MeshBasicMaterial;
         curvedBaseMaterial.side = FrontSide;
 
-        conveyor.geometry.scale(conveyorWidth, 1, 1);
+        conveyor.geometry.scale(width, 1, 1);
         const conveyorInstances = conveyorUtils.createInstancedMesh("conveyors", conveyor.geometry, baseMaterial);
         conveyorInstances.castShadow = true;
         layers.conveyors.add(conveyorInstances);
         this._conveyors = conveyorInstances;
 
-        conveyorTop.geometry.scale(conveyorWidth, 1, 1);
+        conveyorTop.geometry.scale(width, 1, 1);
         const topMaterial = conveyorTop.material as MeshStandardMaterial;
 
         const conveyorTopInstances = conveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
@@ -90,7 +92,7 @@ class Conveyors {
         const topEmissiveTexture = topMaterial.emissiveMap!;
         topEmissiveTexture.wrapT = RepeatWrapping;
         this._topEmissiveTexture = topEmissiveTexture;
-        topMaterial.color.setHex(0xC2C2C2);
+        topMaterial.color.setHex(0xD1D1D1);
         topMaterial.emissive.setHex(0);
         this._loaded = true;
     }
@@ -126,7 +128,7 @@ class Conveyors {
             baseMesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);
             baseMesh.scale.copy(scale);
             baseMesh.add(topMesh);
-            topMesh.position.y = conveyorHeight;
+            topMesh.position.y = height;
             GameMapState.instance.layers.conveyors.add(baseMesh);
             cell.conveyor.config.endAxis = conveyorUtils.getPerpendicularAxis(startAxis);
             cell.conveyor.visual.mesh = baseMesh;
@@ -149,7 +151,7 @@ class Conveyors {
         this._conveyors.setMatrixAt(instanceIndex, matrix);
         this._conveyors.instanceMatrix.needsUpdate = true;
         worldPos.copy(position);
-        worldPos.y = conveyorHeight * cellSize;
+        worldPos.y = height * cellSize;
         matrix.setPosition(worldPos);
         this._conveyorTops.setMatrixAt(instanceIndex, matrix);
         this._conveyorTops.instanceMatrix.needsUpdate = true;
@@ -333,7 +335,7 @@ class Conveyors {
     }
 
     public update() {
-        const dy = time.deltaTime * conveyorSpeed / cellSize;
+        const dy = time.deltaTime * speed / cellSize;
         this._topTexture.offset.y -= dy;
         // this._topNormalTexture.offset.y -= dy;
         this._topEmissiveTexture.offset.y -= dy;

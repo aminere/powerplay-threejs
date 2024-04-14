@@ -28,14 +28,17 @@ class Resources {
 
         if (fileName.endsWith(".json")) {
             objects.load(`/models/resources/${fileName}`)
-                .then((obj) => {
-                    visual.add(obj.clone());
+                .then((_obj) => {
+                    const obj = _obj.clone();
+                    obj.scale.setScalar(cellSize);
+                    visual.add(obj);
                 });
         } else {
             meshes.load(`/models/resources/${fileName}.glb`)
                 .then((_meshes) => {
                     for (const _mesh of _meshes) {
                         const mesh = _mesh.clone();
+                        mesh.scale.setScalar(cellSize);
                         mesh.castShadow = true;
                         visual.add(mesh);
                     }
@@ -58,14 +61,19 @@ class Resources {
     }
 
     public loadModel(type: RawResourceType | ResourceType) {
-        return meshes.load(`/models/resources/${type}.glb`).then(([mesh]) => {
-            switch (type) {
-                case "ak47": {
-                    mesh.rotation.set(0, Math.PI / 4, Math.PI / 2);
-                    mesh.scale.setScalar(2);
-                }
-                break;
+        return meshes.load(`/models/resources/${type}.glb`).then(([_mesh]) => {
+            if (!_mesh.geometry.boundingBox) {
+                _mesh.geometry.computeBoundingBox();
             }
+            const mesh = _mesh.clone();
+            mesh.scale.setScalar(cellSize);
+            // switch (type) {
+            //     case "ak47": {
+            //         mesh.rotation.set(0, Math.PI / 4, Math.PI / 2);
+            //         mesh.scale.setScalar(2);
+            //     }
+            //     break;
+            // }
             return mesh;
         });
     }

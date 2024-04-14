@@ -10,7 +10,9 @@ import { GameMapState } from "./components/GameMapState";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 import { resources } from "./Resources";
 
-const { conveyorHeight, cellSize, conveyorSpeed } = config.game;
+const { cellSize } = config.game;
+const { height, speed, itemSize, itemScale } = config.conveyors;
+
 const halfCellSize = cellSize / 2;
 const worldPos = new Vector3();
 const curvePos = new Vector3();
@@ -58,20 +60,16 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
     }
 }
 
-function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType, size: number) {
+function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType, itemSize: number) {
     const visual = utils.createObject(root, resourceType);
     resources.loadModel(resourceType)
-        .then((_mesh) => {
-            const mesh = _mesh.clone();
+        .then((mesh) => {
             mesh.castShadow = true;
-            if (!mesh.geometry.boundingBox) {
-                mesh.geometry.computeBoundingBox();
-            }
             const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
             box3Helper.visible = false;
             mesh.add(box3Helper);
-            mesh.scale.multiplyScalar(cellSize).multiplyScalar(size);
-            mesh.position.y = conveyorHeight * cellSize;
+            mesh.scale.multiplyScalar(itemSize * itemScale);
+            mesh.position.y = height * cellSize;
             visual.add(mesh);
         });
     return visual;
@@ -92,7 +90,7 @@ class ConveyorItems {
 
     public update() {
 
-        const step = time.deltaTime * conveyorSpeed / cellSize;
+        const step = time.deltaTime * speed;
 
         for (const item of this._items) {
             let newT = item.localT + step;
@@ -202,7 +200,6 @@ class ConveyorItems {
 
     public addItem(cell: ICell, mapCoords: Vector2, resourceType: RawResourceType | ResourceType) {
 
-        const itemSize = 1 / 2;
         const halfItemSize = itemSize / 2;
         const lowestT = halfItemSize;
         const edge = lowestT + halfItemSize;

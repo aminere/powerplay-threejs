@@ -18,12 +18,17 @@ interface IGameConfig {
     cellsPerRoadBlock: number;
     mapRes: number;
     elevationStep: number;
-    conveyorHeight: number;
-    conveyorWidth: number;
-    maxConveyors: number;
-    conveyorSpeed: number;
     unitScale: number;
     truckScale: number;
+}
+
+interface IConveyorConfig {
+    itemSize: number;
+    itemScale: number;
+    width: number;
+    height: number;
+    maxCount: number;
+    speed: number;
 }
 
 interface ITrainConfig {
@@ -42,6 +47,7 @@ interface IConfig {
     camera: ICameraConfig;
     terrain: ITerrainConfig;
     game: IGameConfig;
+    conveyors: IConveyorConfig;
     train: ITrainConfig;
     pathfinding: IPathfindingConfig;
 }
@@ -64,12 +70,16 @@ export const config: IConfig = {
         cellsPerRoadBlock: 2,
         mapRes: 32,
         elevationStep: .2,
-        conveyorHeight: .34,
-        conveyorWidth: .8,
-        maxConveyors: 500,
-        conveyorSpeed: 1,
-        unitScale: .7,
-        truckScale: 2.5
+        unitScale: .5,
+        truckScale: 2.5        
+    },
+    conveyors: {
+        itemSize: .5, // relative to the cell
+        itemScale: 1,
+        width: .8,
+        height: .34,
+        maxCount: 500,
+        speed: 1
     },
     train: {
         maxSpeed: 40,
