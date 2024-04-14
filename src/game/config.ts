@@ -60,14 +60,14 @@ export const config: IConfig = {
         atlasTileCount: 35
     },
     game: {
-        cellSize: 2,
+        cellSize: 1,
         cellsPerRoadBlock: 2,
         mapRes: 32,
         elevationStep: .2,
         conveyorHeight: .34,
         conveyorWidth: .8,
         maxConveyors: 500,
-        conveyorSpeed: 2,
+        conveyorSpeed: 1,
         unitScale: .7,
         truckScale: 2.5
     },

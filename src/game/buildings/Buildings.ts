@@ -269,23 +269,15 @@ class Buildings {
                 console.assert(visual.visible === false);
                 visual.visible = true;
             }
-
-            // destroy any resources that were mined but not picked up
-            for (let x = 0; x < size.x; x++) {
-                cellCoords.set(instance.mapCoords.x + x, instance.mapCoords.y + size.z - 1);
-                const cell = GameUtils.getCell(cellCoords)!;
-                if (cell.pickableResource) {
-                    cell.pickableResource.visual.removeFromParent();
-                    cell.pickableResource = undefined;
-                }
-            }
+            
         } else if (buildingType === "factory") {
-            const state = instance.state as IFactoryState;
-            const outputCell = getCellFromAddr(state.outputCell);
-            if (outputCell.pickableResource) {
-                outputCell.pickableResource.visual.removeFromParent();
-                outputCell.pickableResource = undefined;
-            }
+            
+            // const state = instance.state as IFactoryState;
+            // const outputCell = getCellFromAddr(state.outputCell);
+            // if (outputCell.pickableResource) {
+            //     outputCell.pickableResource.visual.removeFromParent();
+            //     outputCell.pickableResource = undefined;
+            // }
         }
 
         mapCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));
@@ -324,6 +316,7 @@ class Buildings {
                             resource.amount -= 1;
                             if (resource.amount === 0) {
                                 resources.clear(cell);
+                                utils.fastDelete(state.resourceCells, state.currentResourceCell);
                                 if (state.currentResourceCell < state.resourceCells.length - 1) {
                                     state.currentResourceCell++;
                                 } else {
@@ -341,7 +334,7 @@ class Buildings {
                                 meshes.load(`/models/resources/${resource.type}.glb`).then(([_mesh]) => {
                                     const mesh = _mesh.clone();
                                     visual.add(mesh);
-                                    mesh.position.y = 0.5;
+                                    mesh.position.y = 0.1;
                                     mesh.castShadow = true;
                                 });
                                 outputCell.pickableResource = {
@@ -398,7 +391,7 @@ class Buildings {
                                     resources.loadModel(state.output).then(_mesh => {
                                         const mesh = _mesh.clone();
                                         visual.add(mesh);
-                                        mesh.position.y = 0.5;
+                                        mesh.position.y = 0.1;
                                         mesh.castShadow = true;
                                     });
                                     
