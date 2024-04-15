@@ -52,7 +52,8 @@ export class GameMapState {
         cars: utils.createObject(root(), "cars"),
         buildings: utils.createObject(root(), "buildings"),
         conveyors: utils.createObject(root(), "conveyors"),
-        pickedItems: utils.createObject(root(), "pickedItems")
+        pickedItems: utils.createObject(root(), "pickedItems"),
+        trees: utils.createObject(root(), "trees")
     };
     public buildings = new Map<string, IBuildingInstance>();
     public rails = new Map<string, Object3D>();

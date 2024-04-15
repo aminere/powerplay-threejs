@@ -15,14 +15,13 @@ import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { GameMapProps } from "./GameMapProps";
 import { conveyorItems } from "../ConveyorItems";
-import { treesManager } from "../TreesManager";
+import { trees } from "../Trees";
 import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
 import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
-import { Trees } from "./Trees";
 import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
 import { BuildingType } from "../buildings/BuildingTypes";
@@ -190,7 +189,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await buildings.preload();
         await conveyors.preload();
         await conveyorItems.preload();
-        await treesManager.preload();
+        await trees.preload();
         await railFactory.preload();
         await unitsManager.preload();
     }   
@@ -210,10 +209,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         const props = utils.createObject(root(), "env-props");
         engineState.setComponent(props, new EnvProps({ sectorRes: size }));
-
-        const trees = utils.createObject(root(), "trees");
-        engineState.setComponent(trees, new Trees({ sectorRes: size }));
-        // trees.visible = false;
 
         unitsManager.owner = owner;
         updateCameraSize();
@@ -237,6 +232,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         conveyors.dispose();
         conveyorItems.dispose();
+        trees.dispose();
         unitsManager.dispose();
         fogOfWar.dispose();
 

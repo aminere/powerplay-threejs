@@ -14,11 +14,13 @@ import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
 import { buildingSizes } from "../buildings/BuildingTypes";
+import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
+const destSectorCoords = new Vector2();
 const buildingCorners = [...Array(4)].map(() => new Vector2());
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
@@ -43,42 +45,51 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
         diagonals: () => false,
         isWalkable: destBuildingId ? (cell: ICell) => {
 
-            // allow to walk to the any cell in the destination building, the unit will stop when hitting the building
+            // allow to walk to any cell in the destination building, the unit will stop when hitting the building
             const cellBuildingId = cell.building?.instanceId;
             if (cellBuildingId) {
-                return cellBuildingId === destBuildingId;    
+                if (destCell.pickableResource) {
+                    // unless the destination is an output cell, all building cells are not walkable except for the output cell
+                    return cell.pickableResource !== undefined;
+                } else {                    
+                    return cellBuildingId === destBuildingId;    
+                }
             }
 
             return cell.isWalkable;
         } : undefined
     });
 
-    if (!cellPath) {
-        return null;
-    }
-
-    const currentSector = srcSectorCoords.clone();
-    const sectors = new Set<string>();
-    sectors.add(`${currentSector.x},${currentSector.y}`);
-    for (const cell of cellPath) {
-        GameUtils.getCell(cell, nextSector);
-        if (!currentSector.equals(nextSector)) {
-            sectors.add(`${nextSector.x},${nextSector.y}`);
-            currentSector.copy(nextSector);
+    if (cellPath) {
+        const currentSector = srcSectorCoords.clone();
+        const sectors = new Set<string>();
+        sectors.add(`${currentSector.x},${currentSector.y}`);
+        for (const cell of cellPath) {
+            GameUtils.getCell(cell, nextSector);
+            if (!currentSector.equals(nextSector)) {
+                sectors.add(`${nextSector.x},${nextSector.y}`);
+                currentSector.copy(nextSector);
+            }
         }
-    }
-    const out = Array.from(sectors).map(s => { 
-        const [x, y] = s.split(",");
-        return new Vector2(parseInt(x), parseInt(y));
-    });
+        const out = Array.from(sectors).map(s => { 
+            const [x, y] = s.split(",");
+            return new Vector2(parseInt(x), parseInt(y));
+        });
+    
+        if (GameMapProps.instance.debugPathfinding) {
+            GameMapState.instance.debug.path.update(cellPath);
+        } else {
+            GameMapState.instance.debug.path.visible = false;
+        }
+    
+        return out;
 
-    if (GameMapProps.instance.debugPathfinding) {
-        GameMapState.instance.debug.path.update(cellPath);
     } else {
-        GameMapState.instance.debug.path.visible = false;
-    }
 
-    return out;
+        // cell pathfinder failed, use coarse sector pathfinder
+        GameUtils.getCell(destMapCoords, destSectorCoords)
+        return sectorPathfinder.findPath(srcSectorCoords, destSectorCoords);
+    }    
 }
 
 function onUnitArrived(unit: IUnit) {

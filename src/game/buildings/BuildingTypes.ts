@@ -55,9 +55,9 @@ export interface IBuildingInstance {
 }
 
 export const buildingSizes: Record<BuildingType, Vector3> = {
-    "hq": new Vector3(10, 4, 5),
-    "mine": new Vector3(4, 2, 4),
-    "factory": new Vector3(6, 3, 6),
+    "mine": new Vector3(3, 2, 3),
+    "factory": new Vector3(4, 3, 4),
+    "hq": new Vector3(10, 4, 5),    
     "assembly": new Vector3(8, 4, 8)
 };
 

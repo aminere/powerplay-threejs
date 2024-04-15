@@ -27,4 +27,4 @@ export type { IFactoryState, IBuildingInstance } from "./game/buildings/Building
 
 export { Animator } from "./engine/components/Animator";
 export { Particles } from "./engine/components/Particles";
-
+export { trees } from "./game/Trees";

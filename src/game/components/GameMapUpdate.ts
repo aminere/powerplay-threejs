@@ -18,6 +18,7 @@ import { time } from "../../engine/core/Time";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { trees } from "../Trees";
 
 const cellCoords = new Vector2();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -88,8 +89,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                 } else {
                     // debug
-                    const cell = GameUtils.getCell(state.highlightedCellCoords);
-                    console.log(cell);
+                    // const cell = GameUtils.getCell(state.highlightedCellCoords);
+                    // console.log(cell);
                 }                
             }
         } else if (input.touchPressed) {
@@ -281,6 +282,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
         conveyors.update();
         unitsManager.update();
         buildings.update();
+        trees.update();
     }
 
     private checkKeyboardCameraPan() {

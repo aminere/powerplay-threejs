@@ -1,29 +1,22 @@
-
-import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
-import { Component } from "../../engine/ecs/Component";
-import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { BufferAttribute, BufferGeometry, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
+import { meshes } from "../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
-import { config } from "../config";
-import { GameUtils } from "../GameUtils";
-import { time } from "../../engine/core/Time";
-import { textures } from "../../engine/resources/Textures";
-import { GameMapState } from "./GameMapState";
-import { treesManager } from "../TreesManager";
+import { config } from "./config";
+import { time } from "../engine/core/Time";
+import { textures } from "../engine/resources/Textures";
+import { GameMapState } from "./components/GameMapState";
+import { GameUtils } from "./GameUtils";
 
-export class TreesProps extends ComponentProps {
+const models = [
+    // "palm-high",
+    // "palm-round",
+    "palm-big",
+    "palm"
+];
 
-    sectorRes = 1;
-    speed = .1;
-    strength = 2;
-    frequency = .05;
-    heightVar = 40;
-
-    constructor(props?: Partial<TreesProps>) {
-        super();
-        this.deserialize(props);
-    }
-}
-
+const speed = .1;
+const strength = 2;
+const frequency = .05;
 const treeNoise = new FastNoiseLite();
 treeNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 const treeNoise2 = new FastNoiseLite();
@@ -34,43 +27,63 @@ const sectorOffset = -mapSize / 2;
 const dummyTree = new Object3D();
 dummyTree.name = "Tree";
 
-export class Trees extends Component<TreesProps> {
-    constructor(props?: Partial<TreesProps>) {
-        super(new TreesProps(props));
+class Trees {
+
+    private _material!: Material;
+    private _geometries: BufferGeometry[] = [];
+    private _active = false;
+
+    public async preload() {
+        if (this._geometries.length > 0) {
+            return;
+        }
+        const treeMeshes = await Promise.all(models.map(s => meshes.load(`/models/trees/${s}.fbx`)));
+        this._geometries = treeMeshes.map(m => m[0].geometry);
     }
 
-    override start(owner: Object3D) {
+    public dispose() {
 
+    }
+
+    public update() {
+        if (!this._active) {
+            return;
+        }
+        
+        const uniforms = this._material.userData?.shader?.uniforms;
+        if (uniforms) {
+            uniforms.time.value = time.time * speed;
+            uniforms.strength.value = strength;
+        }
+    }
+
+    public generate(sectorRes: number) {
         const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
         const perlin = textures.load("/images/perlin.png");
         perlin.wrapS = RepeatWrapping;
         perlin.wrapT = RepeatWrapping;
-        const treeMaterial = new MeshStandardMaterial({
-            map: atlas,
-            flatShading: true
-        });
+        const material = new MeshStandardMaterial({ map: atlas, flatShading: true });
+        this._material = material;
 
-        Object.defineProperty(treeMaterial, "onBeforeCompile", {
+        Object.defineProperty(material, "onBeforeCompile", {
             enumerable: false,
             value: (shader: WebGLProgramParametersWithUniforms) => {
                 const uniforms = {
                     time: { value: 0 },
-                    strength: { value: this.props.strength },
-                    frequency: { value: this.props.frequency },
-                    heightVar: { value: this.props.heightVar },
+                    strength: { value: strength },
+                    frequency: { value: frequency },
                     perlin: { value: perlin }
                 };
                 shader.uniforms = {
                     ...shader.uniforms,
                     ...uniforms
                 };
-                treeMaterial.userData.shader = shader;
+                material.userData.shader = shader;
 
                 shader.vertexShader = `               
                 uniform float time;
                 uniform float strength;
                 uniform float frequency;
-                uniform float heightVar;
                 uniform sampler2D perlin;
                 ${shader.vertexShader}
                 `;
@@ -95,8 +108,6 @@ export class Trees extends Component<TreesProps> {
         treeNoise.SetFrequency(baseFreq);
         treeNoise2.SetFrequency(baseFreq * 2);
 
-        const treeGeometries = treesManager.geometries;
-        const { sectorRes } = this.props;
         const treeCellSize = cellSize * 1;
         const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
         const treeMapSize = treeMapRes * treeCellSize;
@@ -113,9 +124,15 @@ export class Trees extends Component<TreesProps> {
         const verticesPerRow = mapRes + 1;
         const { sectors } = GameMapState.instance;
 
-        const treeInstancedMeshes = treeGeometries.map((geometry, index) => {
-            const instancedMesh = new InstancedMesh(geometry, treeMaterial, maxTrees);
-            instancedMesh.name = `${treesManager.trees[index]}`;
+        const owner = GameMapState.instance.layers.trees;
+        if (owner.children.length > 0) {
+            owner.clear();
+            // TODO clear resources
+        }
+
+        const treeInstancedMeshes = this._geometries.map((geometry, index) => {
+            const instancedMesh = new InstancedMesh(geometry, material, maxTrees);
+            instancedMesh.name = `${models[index]}`;
             instancedMesh.castShadow = true;
             instancedMesh.frustumCulled = false;
             instancedMesh.matrixAutoUpdate = false;
@@ -139,7 +156,7 @@ export class Trees extends Component<TreesProps> {
                 if (sectorY % 2 === 0) {
                     if (sectorX % 2 === 0) {
                         continue;
-                    }                    
+                    }
                 } else {
                     if (sectorX % 2 !== 0) {
                         continue;
@@ -193,7 +210,7 @@ export class Trees extends Component<TreesProps> {
                                 const count = treeMesh.count;
                                 treeMesh.instancedMesh.setMatrixAt(count, matrix);
                                 treeMesh.count = count + 1;
-                                
+
                                 cell.resource = {
                                     type: "wood",
                                     amount: 100,
@@ -209,16 +226,9 @@ export class Trees extends Component<TreesProps> {
         for (const treeMesh of treeInstancedMeshes) {
             treeMesh.instancedMesh.count = treeMesh.count;
         }
-    }
-
-    override update(owner: Object3D) {
-        const material = (owner.children[0] as InstancedMesh)?.material as Material;
-        const uniforms = material?.userData?.shader?.uniforms;
-        if (uniforms) {
-            uniforms.time.value = time.time * this.props.speed;
-            uniforms.heightVar.value = this.props.heightVar;
-            uniforms.strength.value = this.props.strength;
-        }
+        this._active = true;
     }
 }
+
+export const trees = new Trees();
 

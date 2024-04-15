@@ -21,7 +21,7 @@ class SectorPathfinder {
         isWalkable: () => true
     };
 
-    public findPath(startCell: Vector2, endCell: Vector2) {        
+    public findPath(startSector: Vector2, endSector: Vector2) {        
 
         const toEvaluate = this._toEvaluate;
         const evaluated = this._evaluated;
@@ -29,17 +29,17 @@ class SectorPathfinder {
         evaluated.clear();
 
         const startNode: TNode = {
-            coords: new Vector2().copy(startCell),
+            coords: new Vector2().copy(startSector),
             gcost: 0,
             hcost: 0,
             parent: null,
-            cell: GameUtils.getSector(startCell)!
+            cell: GameUtils.getSector(startSector)!
         };
-        toEvaluate.set(`${startCell.x},${startCell.y}`, startNode);
+        toEvaluate.set(`${startSector.x},${startSector.y}`, startNode);
 
         const context = this._context;
-        context.start.copy(startCell);
-        context.end.copy(endCell);
+        context.start.copy(startSector);
+        context.end.copy(endSector);
 
         let iteration = 0;
         while (true) {

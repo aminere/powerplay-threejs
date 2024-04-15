@@ -19,6 +19,7 @@ const mapCoordsTopLeft = new Vector2();
 const mapCoords = new Vector2();
 const minimapPos = new Vector2(100, 30);
 const minimapSize = 350;
+// const unitsCanvasOffsetX = 70;
 
 const canvasStyle = {
     width: "100%",
@@ -33,22 +34,22 @@ const crispCanvasStyle = {
     ...canvasStyle
 } as const;
 
-const minimapTransform = new Matrix3();
-function makeMinimapTransform(angleDeg: number, offset: number) {
-    minimapTransform.identity();
-    minimapTransform.translate(-offset, -offset);
-    minimapTransform.rotate(-angleDeg * MathUtils.DEG2RAD);
-    minimapTransform.scale(1, .5);
-    minimapTransform.translate(minimapPos.x, minimapPos.y);
-    minimapTransform.invert();
+const screenToCanvas = new Matrix3();
+function makeScreenToCanvasTransform(angleDeg: number, offset: number) {
+    screenToCanvas.identity();
+    screenToCanvas.translate(-offset, -offset);
+    screenToCanvas.rotate(-angleDeg * MathUtils.DEG2RAD);
+    screenToCanvas.scale(1, .5);
+    screenToCanvas.translate(minimapPos.x, minimapPos.y);
+    screenToCanvas.invert();
 }
 
 function updateCameraPos(clientX: number, clientY: number, offset: number) {
-    const { left, top, height } = engine.screenRect;
+    const { left: startX, top, height } = engine.screenRect;
     const startY = top + height - minimapSize;
 
-    // calc coordinate in minimap space
-    mapCoords.set(clientX - offset - left, clientY - startY - offset).applyMatrix3(minimapTransform);
+    // convert from screen to canvas space
+    mapCoords.set(clientX - offset - startX, clientY - offset - startY).applyMatrix3(screenToCanvas);
 
     // convert to map space
     const { sectorRes } = GameMapState.instance;
@@ -68,7 +69,7 @@ export function Minimap() {
     const fogRef = useRef<HTMLCanvasElement | null>(null);
     const resourcesRef = useRef<HTMLCanvasElement | null>(null);
     const envPixelsRef = useRef<ImageData | null>(null);
-    const unitsPixelsRef = useRef<ImageData | null>(null);
+    // const unitsPixelsRef = useRef<ImageData | null>(null);
     const fogPixelsRef = useRef<ImageData | null>(null);
     const resourcePixelsRef = useRef<ImageData | null>(null);
     const cameraRef = useRef<HTMLCanvasElement | null>(null);
@@ -100,11 +101,8 @@ export function Minimap() {
         resourcePixelsRef.current = resourcesPixels;
 
         const unitsCanvas = unitsRef.current!;
-        unitsCanvas.width = texRes / 4;
-        unitsCanvas.height = texRes / 4;
-        const unitsCtx = unitsCanvas.getContext("2d")!;
-        const unitsPixels = unitsCtx.createImageData(unitsCanvas.width, unitsCanvas.height);
-        unitsPixelsRef.current = unitsPixels;
+        unitsCanvas.width = minimapSize;
+        unitsCanvas.height = minimapSize;
 
         const fogCanvas = fogRef.current!;
         fogCanvas.width = texRes;
@@ -178,7 +176,7 @@ export function Minimap() {
             setInitialized(true);
         }
 
-        makeMinimapTransform(45, minimapSize / 2);
+        makeScreenToCanvasTransform(45, minimapSize / 2);
         
     }, []);
 
@@ -191,19 +189,17 @@ export function Minimap() {
             const { sectorRes } = GameMapState.instance;
             const texRes = mapRes * sectorRes;
             
+            const unitsCanvas = unitsRef.current!;
+            const unitsCtx = unitsCanvas.getContext("2d")!;
             const { units } = unitsManager;
-            const unitsPixels = unitsPixelsRef.current!;
-            unitsPixels.data.fill(0);
+            unitsCtx.clearRect(0, 0, unitsCanvas.width, unitsCanvas.height);
+            unitsCtx.fillStyle = "blue";
             for (const unit of units) {
                 const { x, y } = unit.coords.mapCoords;
-                const xu = Math.min(Math.round(x / texRes * unitsPixels.width), unitsPixels.width - 1);
-                const yu = Math.min(Math.round(y / texRes * unitsPixels.height), unitsPixels.height - 1);
-                const index = (yu * unitsPixels.width + xu) * 4;
-                unitsPixels.data.set([0, 0, 255, 255], index);
+                const xu = Math.min(Math.round(x / texRes * unitsCanvas.width), unitsCanvas.width - 1);
+                const yu = Math.min(Math.round(y / texRes * unitsCanvas.height), unitsCanvas.height - 1);
+                unitsCtx.fillRect(xu - 2, yu - 2, 4, 4);
             }
-
-            const unitsCtx = unitsRef.current!.getContext("2d")!;
-            unitsCtx.putImageData(unitsPixels, 0, 0);
 
             const fogCtx = fogRef.current!.getContext("2d")!;
             fogCtx.putImageData(fogPixelsRef.current!, 0, 0);
@@ -253,7 +249,7 @@ export function Minimap() {
         const onRotateMinimap = (angleDeg: number) => {
             const cameraCanvas = cameraRef.current!;
             const size = cameraCanvas.width;
-            makeMinimapTransform(angleDeg, size / 2);
+            makeScreenToCanvasTransform(angleDeg, size / 2);
             const container = root.current?.firstChild as HTMLDivElement;
             container.style.transform = `translate(${minimapPos.x}px, ${minimapPos.y}px) scaleY(.5) rotate(${angleDeg}deg)`;
         };
@@ -298,11 +294,19 @@ export function Minimap() {
             }}
         >
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />
-            <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />
+            <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />            
             <canvas ref={unitsRef} style={{ ...crispCanvasStyle, zIndex: 3 }} />
             <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4, display: "none" }} />
-            <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />
+            <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />            
         </div>
+        {/* <canvas
+            ref={unitsRef}
+            style={{
+                ...crispCanvasStyle,
+                transform: `translate(${minimapPos.x - unitsCanvasOffsetX}px, ${minimapPos.y}px)`,
+                width: `calc(100% + ${unitsCanvasOffsetX * 2}px)`,
+                zIndex: 3
+            }} /> */}
     </div>
 }
 

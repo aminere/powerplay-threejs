@@ -44,6 +44,9 @@ export class GameMapProps extends ComponentProps {
     @Attributes.command("regen")
     regenCommand = true;
 
+    @Attributes.command("trees")
+    treesCommand = true;
+
     size = 1;
     continentFreqInv = 30;    
     erosionFreqInv = 50;
