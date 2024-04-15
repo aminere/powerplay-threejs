@@ -1,4 +1,4 @@
-import { Vector2 } from "three";
+import { Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
 import { railFactory } from "./RailFactory";
 import { Axis, ICell, ICurvedRailConfig, IRailConfig, IStraightRailConfig } from "./GameTypes";
@@ -6,6 +6,9 @@ import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
 
 const neighborCoord = new Vector2();
+const sectorCoords = new Vector2();
+const sectorCoords2 = new Vector2();
+const worldPos = new Vector3();
 
 export class Rails {
     
@@ -206,25 +209,25 @@ export class Rails {
         endCoords?: Vector2,
         endAxis?: Axis
     ) {
+        GameUtils.mapToWorld(startCoords, worldPos);
+
         const rail = (() => {
             switch (config.type) {
                 case "curved": {
                     const { turnRadius, rotation, directionX } = config.config as ICurvedRailConfig;
-                    return railFactory.makeCurvedRail(turnRadius, rotation, directionX);
+                    return railFactory.makeCurvedRail(worldPos, turnRadius, rotation, directionX);
                 }
 
                 default: {
                     const { length, rotation } = config.config as IStraightRailConfig;
-                    return railFactory.makeRail(length, rotation);
+                    return railFactory.makeRail(worldPos, length, rotation);
                 }
             }
         })();
 
-        const [sectorCoords, sectorCoords2] = pools.vec2.get(2);
         const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
 
-        GameUtils.mapToWorld(startCoords, rail.position);
         GameMapState.instance.layers.rails.add(rail);
         startCell.rail = {
             obj: rail,

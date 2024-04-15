@@ -42,7 +42,7 @@ export class Water extends Component<WaterProps> {
             opacity: 0.5,
             color: 0x339CFF
         });
-        this._material = waterMaterial;        
+        this._material = waterMaterial;
 
         Object.defineProperty(waterMaterial, "onBeforeCompile", {
             enumerable: false,

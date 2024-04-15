@@ -117,5 +117,7 @@ export interface ISector {
 export interface IRailUserData {    
     curve?: BezierPath;
     rotation: number;
+    barInstanceIndex: number;
+    barCount: number;
 }
 
