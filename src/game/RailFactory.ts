@@ -2,7 +2,7 @@ import { GameUtils } from "./GameUtils";
 import { Mesh, Object3D, Vector3 } from "three";
 import { config } from "./config";
 import { BezierPath } from "./BezierPath";
-import { IRail } from "./GameTypes";
+import { IRailUserData } from "./GameTypes";
 import { meshes } from "../engine/resources/Meshes";
 
 const { cellSize } = config.game;
@@ -57,9 +57,10 @@ class RailFactory {
 
         const rotationY = Math.PI / 2 * rotation;
         container.rotateY(rotationY);
-        container.userData = {
+        const userData: IRailUserData = {
             rotation: rotationY
-        } as IRail;
+        };
+        container.userData = userData;
         return container;
     }
 
@@ -71,10 +72,11 @@ class RailFactory {
         container.rotateY(rotationY);
         if (existingRail) {
             container.add(existingRail.mesh.clone());
-            container.userData = {
+            const userData: IRailUserData = {
                 curve: existingRail.curve,
                 rotation: rotationY
-            } as IRail;
+            };
+            container.userData = userData;
         } else {
             const x1 = 0;
             const x2 = (cellSize * turnRadius / 2 - halfCell) * directionX;
@@ -141,10 +143,11 @@ class RailFactory {
                 mesh.add(barMesh);
             }
 
-            container.userData = {
+            const userData: IRailUserData = {
                 curve,
                 rotation: rotationY
-            } as IRail;
+            };
+            container.userData = userData;
         }
         return container;
     }

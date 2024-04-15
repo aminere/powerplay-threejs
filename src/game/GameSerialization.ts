@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import { IConveyorConfig } from "./GameTypes";
+import { Axis, IConveyorConfig, IRailConfig } from "./GameTypes";
 import { BuildingType } from "./buildings/BuildingTypes";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 
@@ -33,9 +33,18 @@ export interface ISerializedFactory extends ISerializedBuilding {
 
 export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory;
 
+export interface ISerializedRail {
+    config: IRailConfig;
+    startCoords: Vector2,
+    startAxis: Axis,
+    endCoords?: Vector2,
+    endAxis?: Axis
+}
+
 export interface ISerializedGameMap {
     size: number;
     sectors: ISerializedSector[];
     buildings: Record<BuildingType, TSerializedBuilding[]>;
+    rails: ISerializedRail[];
 }
 

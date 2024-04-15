@@ -39,8 +39,8 @@ export class Water extends Component<WaterProps> {
         const waterMaterial = new MeshStandardMaterial({
             flatShading: true,
             transparent: true,
-            opacity: 0.6,
-            color: 0x339CFF          
+            opacity: 0.5,
+            color: 0x339CFF
         });
         this._material = waterMaterial;        
 

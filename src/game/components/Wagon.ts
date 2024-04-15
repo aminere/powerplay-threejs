@@ -1,7 +1,7 @@
 
 import { Object3D, Vector3 } from "three";
 import { BezierPath } from "../BezierPath";
-import { Axis, ICell, IRail } from "../GameTypes";
+import { Axis, ICell, IRailUserData } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
 import { pools } from "../../engine/core/Pools";
@@ -27,7 +27,7 @@ interface IMotionSegment {
 function processSegment(startingCell: ICell) {
     const rail = startingCell.rail!;
     const railObj = rail.obj!;
-    const info = railObj.userData as IRail;
+    const info = railObj.userData as IRailUserData;
     if (info.curve) {        
         return info.curve.length;
     } else {
@@ -54,7 +54,7 @@ function traverseTrack(startingCell: ICell) {
         const endPos = endCell?.rail?.worldPos;
         
         const railObj = currentCell.rail!.obj!;
-        const info = railObj.userData as IRail;
+        const info = railObj.userData as IRailUserData;
         const startAxis = currentCell?.rail?.axis!;
         const endAxis = endCell?.rail?.axis ?? currentCell.rail!.axis;
         const direction = (() => {

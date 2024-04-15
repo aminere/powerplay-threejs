@@ -1,4 +1,4 @@
-import { FrontSide, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
+import { InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
 import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";

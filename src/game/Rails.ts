@@ -1,9 +1,11 @@
 import { Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { railFactory } from "./RailFactory";
-import { Axis, ICell } from "./GameTypes";
+import { Axis, ICell, ICurvedRailConfig, IRailConfig, IStraightRailConfig } from "./GameTypes";
 import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
+
+const neighborCoord = new Vector2();
 
 export class Rails {
     
@@ -12,9 +14,9 @@ export class Rails {
         const obj = cell.rail?.obj ?? endCell?.rail?.obj;
         console.assert(obj);
         obj?.removeFromParent();
-        delete cell.rail;
+        cell.rail = undefined;        
         if (endCell) {
-            delete endCell.rail;
+            endCell.rail = undefined;
         }
     }
 
@@ -32,8 +34,7 @@ export class Rails {
         if (start.y === current.y) {
             const dx = current.x - start.x;
             if (dx === 0) {
-                const rail = railFactory.makeRail(1, 1);
-                Rails.create(rail, start, "x");
+                Rails.create({ type: "straight", config: { length: 1, rotation: 1 }}, start, "x");
             } else {
                 Rails.setStraightRailX(start, current);
             }
@@ -42,8 +43,7 @@ export class Rails {
         } else if (start.x === current.x) {
             const dz = current.y - start.y;
             if (dz === 0) {
-                const rail = railFactory.makeRail(1, 0);
-                Rails.create(rail, start, "z");
+                Rails.create({ type: "straight", config: { length: 1, rotation: 0 }}, start, "z");
             } else {
                 Rails.setStraightRailZ(start, current);
             }
@@ -69,8 +69,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailX(start, end1);
                             } else {
-                                const rail = railFactory.makeRail(1, 1);
-                                Rails.create(rail, start, dragAxis);
+                                Rails.create({ type: "straight", config: { length: 1, rotation: 1 }}, start, dragAxis);
                             }
                             railsOut.push(startCell);
                             Rails.setCurvedRail(dragAxis, start2, current);
@@ -89,8 +88,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailZ(start2, current);
                             } else {
-                                const rail = railFactory.makeRail(1, 0);
-                                Rails.create(rail, start2, "z");
+                                Rails.create({ type: "straight", config: { length: 1, rotation: 0 }}, start2, "z");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
                         }
@@ -109,8 +107,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailX(start2, current);
                             } else {
-                                const rail = railFactory.makeRail(1, 1);
-                                Rails.create(rail, start2, "x");
+                                Rails.create({ type: "straight", config: { length: 1, rotation: 1 }}, start2, "x");
                             }
                             railsOut.push(GameUtils.getCell(start2)!);
                         }
@@ -124,8 +121,7 @@ export class Rails {
                             if (straightSectionLength > 0) {
                                 Rails.setStraightRailZ(start, end1);
                             } else {
-                                const rail = railFactory.makeRail(1, 0);
-                                Rails.create(rail, start, dragAxis);
+                                Rails.create({ type: "straight", config: { length: 1, rotation: 0 }}, start, dragAxis);
                             }
                             railsOut.push(startCell);
 
@@ -138,75 +134,92 @@ export class Rails {
         }
     }
 
-    public static onEndDrag(rail: ICell[]) {
-        // link to neighbors
-        for (const cell of rail) {
-            const neighborCoord = pools.vec2.getOne();
-            const { mapCoords, endCell, axis } = cell.rail!;
+    public static tryLinkRails(cell: ICell) {
+        
+        const { mapCoords, endCell, axis } = cell.rail!;
+        for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            neighborCoord.set(mapCoords.x + offset[0], mapCoords.y + offset[1]);
+            const neighbor = GameUtils.getCell(neighborCoord);
+            if (neighbor === endCell) {
+                continue;
+            }
+            if (neighbor?.rail) {
+                if (axis === neighbor.rail.axis) {
+                    const [offsetX, offsetZ] = offset;
+                    if ((axis === "x" && offsetZ !== 0) || (axis === "z" && offsetX !== 0)) {
+                        continue;
+                    }
+                    if (!cell.rail!.neighbors) {
+                        cell.rail!.neighbors = { x: {}, z: {} };
+                    }
+                    if (!neighbor.rail.neighbors) {
+                        neighbor.rail.neighbors = { x: {}, z: {} };
+                    }
+                    const _offset = axis === "x" ? offsetX : offsetZ;
+                    const dir = Math.sign(_offset);
+                    cell.rail!.neighbors[axis][`${dir}`] = neighbor;
+                    neighbor.rail!.neighbors[axis][`${-dir}`] = cell;
+                }
+            }
+        }
+
+        if (endCell) {
+            const { mapCoords: mapCoords2, endCell: endCell2, axis: axis2 } = endCell.rail!;
             for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-                neighborCoord.set(mapCoords.x + offset[0], mapCoords.y + offset[1]);
+                neighborCoord.set(mapCoords2.x + offset[0], mapCoords2.y + offset[1]);
                 const neighbor = GameUtils.getCell(neighborCoord);
-                if (neighbor === endCell) {
+                if (neighbor === endCell2) {
                     continue;
                 }
                 if (neighbor?.rail) {
-                    if (axis === neighbor.rail.axis) {
+                    if (axis2 === neighbor.rail.axis) {
                         const [offsetX, offsetZ] = offset;
-                        if ((axis === "x" && offsetZ !== 0) || (axis === "z" && offsetX !== 0)) {
+                        if ((axis2 === "x" && offsetZ !== 0) || (axis2 === "z" && offsetX !== 0)) {
                             continue;
                         }
-                        if (!cell.rail!.neighbors) {
-                            cell.rail!.neighbors = { x: {}, z: {} };
+                        if (!endCell.rail!.neighbors) {
+                            endCell.rail!.neighbors = { x: {}, z: {} };
                         }
                         if (!neighbor.rail.neighbors) {
                             neighbor.rail.neighbors = { x: {}, z: {} };
                         }
-                        const _offset = axis === "x" ? offsetX : offsetZ;
+                        const _offset = axis2 === "x" ? offsetX : offsetZ;
                         const dir = Math.sign(_offset);
-                        cell.rail!.neighbors[axis][`${dir}`] = neighbor;
-                        neighbor.rail!.neighbors[axis][`${-dir}`] = cell;
-                    }
-                }
-            }
-
-            if (endCell) {
-                const { mapCoords: mapCoords2, endCell: endCell2, axis: axis2 } = endCell.rail!;
-                for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-                    neighborCoord.set(mapCoords2.x + offset[0], mapCoords2.y + offset[1]);
-                    const neighbor = GameUtils.getCell(neighborCoord);
-                    if (neighbor === endCell2) {
-                        continue;
-                    }
-                    if (neighbor?.rail) {
-                        if (axis2 === neighbor.rail.axis) {
-                            const [offsetX, offsetZ] = offset;
-                            if ((axis2 === "x" && offsetZ !== 0) || (axis2 === "z" && offsetX !== 0)) {
-                                continue;
-                            }
-                            if (!endCell.rail!.neighbors) {
-                                endCell.rail!.neighbors = { x: {}, z: {} };
-                            }
-                            if (!neighbor.rail.neighbors) {
-                                neighbor.rail.neighbors = { x: {}, z: {} };
-                            }
-                            const _offset = axis2 === "x" ? offsetX : offsetZ;
-                            const dir = Math.sign(_offset);
-                            endCell.rail!.neighbors[axis2][`${dir}`] = neighbor;
-                            neighbor.rail!.neighbors[axis2][`${-dir}`] = endCell;
-                        }
+                        endCell.rail!.neighbors[axis2][`${dir}`] = neighbor;
+                        neighbor.rail!.neighbors[axis2][`${-dir}`] = endCell;
                     }
                 }
             }
         }
     }
 
-    private static create(
-        rail: THREE.Object3D,
+    public static onEndDrag(rail: ICell[]) {
+        for (const cell of rail) {
+            Rails.tryLinkRails(cell);
+        }
+    }
+
+    public static create(
+        config: IRailConfig,
         startCoords: Vector2,
         startAxis: Axis,
         endCoords?: Vector2,
         endAxis?: Axis
     ) {
+        const rail = (() => {
+            switch (config.type) {
+                case "curved": {
+                    const { turnRadius, rotation, directionX } = config.config as ICurvedRailConfig;
+                    return railFactory.makeCurvedRail(turnRadius, rotation, directionX);
+                }
+
+                default: {
+                    const { length, rotation } = config.config as IStraightRailConfig;
+                    return railFactory.makeRail(length, rotation);
+                }
+            }
+        })();
+
         const [sectorCoords, sectorCoords2] = pools.vec2.get(2);
         const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
         const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
@@ -219,8 +232,10 @@ export class Rails {
             endCell,
             worldPos: rail.position.clone(),
             tip: "start",
-            mapCoords: startCoords.clone()
-        };        
+            mapCoords: startCoords.clone(),
+            config
+        };
+
         if (endCoords) {
             console.assert(endAxis);
             const endPos = pools.vec3.getOne();
@@ -234,18 +249,18 @@ export class Rails {
                 mapCoords: endCoords!.clone()
             };
         }
+
+        return startCell;
     }
 
     private static setStraightRailX(start: Vector2, end: Vector2) {
         const dx = end.x - start.x;
-        const rail = railFactory.makeRail(Math.abs(dx) + 1, dx > 0 ? 1 : 3);
-        Rails.create(rail, start, "x", end, "x");
+        Rails.create({ type: "straight", config: { length: Math.abs(dx) + 1, rotation: dx > 0 ? 1 : 3 }}, start, "x", end, "x");
     }
 
     private static setStraightRailZ(start: Vector2, end: Vector2) {
         const dz = end.y - start.y;
-        const rail = railFactory.makeRail(Math.abs(dz) + 1, dz > 0 ? 0 : 2);
-        Rails.create(rail, start, "z", end, "z");
+        Rails.create({ type: "straight", config: { length: Math.abs(dz) + 1, rotation: dz > 0 ? 0 : 2 }}, start, "z", end, "z");
     }
 
     private static setCurvedRail(initialDirection: Axis, start: Vector2, end: Vector2) {
@@ -282,8 +297,13 @@ export class Rails {
                     }
                 }
             }
-        })();
-        const rail = railFactory.makeCurvedRail(adx + 1, rotation, directionX);
-        Rails.create(rail, start, initialDirection, end, initialDirection === "x" ? "z" : "x");
+        })();        
+        Rails.create(
+            { type: "curved", config: { turnRadius: adx + 1, rotation, directionX }}, 
+            start, 
+            initialDirection, 
+            end, 
+            initialDirection === "x" ? "z" : "x"
+        );
     }
 }

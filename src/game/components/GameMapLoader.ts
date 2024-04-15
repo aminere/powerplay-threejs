@@ -26,6 +26,8 @@ import { Trees } from "./Trees";
 import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
 import { BuildingType } from "../buildings/BuildingTypes";
+import { Rails } from "../Rails";
+import { ICell } from "../GameTypes";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -91,6 +93,10 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         for (const sector of data.sectors) {
 
             const [x, y] = sector.key.split(",").map(i => parseInt(i));
+            if (x < 0 || y < 0) {
+                continue;
+            }
+            
             sectorCoords.set(x, y);
 
             const sectorInstance = (() => {
@@ -155,6 +161,25 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 }
             }
         }
+
+        // load rails
+        const railCells: ICell[] = [];
+        for (const rail of data.rails) {               
+            const startCoords = new Vector2(rail.startCoords.x, rail.startCoords.y);
+            const endCoords = rail.endCoords ? new Vector2(rail.endCoords.x, rail.endCoords.y) : undefined;
+            const startCell = Rails.create(
+                rail.config, 
+                startCoords, 
+                rail.startAxis,
+                endCoords,
+                rail.endAxis
+            );
+            railCells.push(startCell);
+        }
+        for (const cell of railCells) {
+            Rails.tryLinkRails(cell);
+        }
+
     }
 
     private async preload() {

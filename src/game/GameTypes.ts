@@ -47,6 +47,37 @@ export interface IBuilding {
     edge: boolean;
 }
 
+export interface IStraightRailConfig {
+    length: number;
+    rotation: number;
+}
+
+export interface ICurvedRailConfig {
+    turnRadius: number;
+    rotation: number;
+    directionX: number;
+}
+
+export interface IRailConfig {
+    type: "straight" | "curved";
+    config: IStraightRailConfig | ICurvedRailConfig;
+}
+
+export interface IRail {
+    axis: Axis;
+    tip: RailTip;
+    worldPos: Vector3;
+    mapCoords: Vector2;
+    endCell?: ICell;
+    neighbors?: {
+        [key in Axis]: {
+            [direction: string]: ICell;
+        }
+    };
+    obj?: Object3D;
+    config?: IRailConfig;
+}
+
 export interface ICell {
     id: string;
     flowFieldCost: number;    
@@ -57,24 +88,11 @@ export interface ICell {
 
     roadTile?: number;
     conveyor?: IConveyor;
-    building?: IBuilding;
+    building?: IBuilding;    
+    rail?: IRail;
     resource?: IRawResource;
     pickableResource?: IResource;
     nonPickableResource?: IResource;
-
-    rail?: {        
-        axis: Axis;
-        tip: RailTip;
-        worldPos: Vector3;
-        mapCoords: Vector2;
-        endCell?: ICell;
-        neighbors?: {
-            [key in Axis]: {
-                [direction: string]: ICell;
-            }
-        };
-        obj?: Object3D;
-    };
     
     units?: IUnit[];
 }
@@ -96,7 +114,7 @@ export interface ISector {
     flowfieldViewer: FlowfieldViewer;
 }
 
-export interface IRail {    
+export interface IRailUserData {    
     curve?: BezierPath;
     rotation: number;
 }

@@ -1,5 +1,4 @@
-import { Axis, IBuilding, ICell, IConveyor, IRawResource, RailTip } from "./GameTypes";
-import { Object3D, Vector2, Vector3 } from "three";
+import { IBuilding, ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
 import { IUnit } from "./unit/IUnit";
 
 export class Cell implements ICell {
@@ -11,19 +10,12 @@ export class Cell implements ICell {
     public id: string;
     public viewCount = -1;
     
-    public rail?: {        
-        axis: Axis;        
-        tip: RailTip;
-        worldPos: Vector3;
-        mapCoords: Vector2;
-        endCell?: ICell;
-        neighbors?: {
-            [key in Axis]: {
-                [direction: string]: ICell;
-            }
-        };
-        obj?: Object3D;
-    };    
+    public get rail() { return this._rail; }
+    public set rail(value: IRail | undefined) {
+        this._rail = value;
+        const empty = value === undefined;
+        this._isEmpty = empty;
+    }
 
     public get building() { return this._building; }
     public set building(value: IBuilding | undefined) { 
@@ -81,6 +73,7 @@ export class Cell implements ICell {
     private _isWalkable = true;
     private _flowFieldCost = 1;
     private _building: IBuilding | undefined = undefined;
+    private _rail: IRail | undefined = undefined;
     private _resource: IRawResource | undefined = undefined;
     private _conveyor: IConveyor | undefined = undefined;
     private _roadTile: number | undefined = undefined;
