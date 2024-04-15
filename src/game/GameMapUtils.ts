@@ -490,7 +490,7 @@ export function onAction(touchButton: number) {
             case "tree": {
                 onTree(sectorCoords, localCoords, cell, touchButton);
             }
-                break;
+                break;           
 
             case "car": {
                 if (touchButton === 0) {
@@ -565,6 +565,17 @@ export function onAction(touchButton: number) {
                     }
                 }
             }
+            break;
+
+            case "rail": {
+                if (touchButton === 2) {
+                    if (cell.rail) {
+                        Rails.clear(cell);
+                    }
+                }
+            }
+            break;
+
         }
     }
 }

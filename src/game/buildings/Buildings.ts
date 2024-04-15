@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
@@ -102,15 +102,21 @@ class Buildings {
         const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
         for (let i = 0; i < buildings.length; i++) {
             const [building] = buildings[i];
+            const buildingType = BuildingTypes[i];            
+
+            const material = building.material as MeshStandardMaterial;
+            material.color.setHex((() => {
+                switch (buildingType) {
+                    case "factory": return 0xFFD9D6;
+                    case "mine": return 0xD2F7FE;
+                    default: return 0xFFFFFF;
+                }
+            })())
+
             building.castShadow = true;
             building.receiveShadow = true;
-            const buildingType = BuildingTypes[i];
-            const size = buildingSizes[buildingType];
-            // if (!building.geometry.boundingBox) {
-            //     building.geometry.computeBoundingBox();
-            // }
-            // const boundingBox = building.geometry.boundingBox!.clone();            
-            // boundingBox.max.y = size.y;
+            
+            const size = buildingSizes[buildingType];            
             const boundingBox = new Box3();
             boundingBox.min.set(0, 0, 0);
             boundingBox.max.copy(size);

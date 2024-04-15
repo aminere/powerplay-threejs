@@ -26,7 +26,7 @@ interface IMotionSegment {
 
 function processSegment(startingCell: ICell) {
     const rail = startingCell.rail!;
-    const railObj = rail.obj!;
+    const railObj = rail.visual!;
     const info = railObj.userData as IRailUserData;
     if (info.curve) {        
         return info.curve.length;
@@ -53,7 +53,7 @@ function traverseTrack(startingCell: ICell) {
         const startPos = currentCell.rail!.worldPos!;
         const endPos = endCell?.rail?.worldPos;
         
-        const railObj = currentCell.rail!.obj!;
+        const railObj = currentCell.rail!.visual!;
         const info = railObj.userData as IRailUserData;
         const startAxis = currentCell?.rail?.axis!;
         const endAxis = endCell?.rail?.axis ?? currentCell.rail!.axis;

@@ -1,7 +1,7 @@
-import { Vector2, Vector3 } from "three";
+import { Matrix4, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
 import { railFactory } from "./RailFactory";
-import { Axis, ICell, ICurvedRailConfig, IRailConfig, IStraightRailConfig } from "./GameTypes";
+import { Axis, ICell, ICurvedRailConfig, IRailConfig, IRailUserData, IStraightRailConfig } from "./GameTypes";
 import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
 
@@ -9,18 +9,105 @@ const neighborCoord = new Vector2();
 const sectorCoords = new Vector2();
 const sectorCoords2 = new Vector2();
 const worldPos = new Vector3();
+const matrix = new Matrix4();
 
 export class Rails {
     
+    public static create(
+        config: IRailConfig,
+        startCoords: Vector2,
+        startAxis: Axis,
+        endCoords?: Vector2,
+        endAxis?: Axis
+    ) {
+        GameUtils.mapToWorld(startCoords, worldPos);
+
+        const visual = (() => {
+            switch (config.type) {
+                case "curved": {
+                    const { turnRadius, rotation, directionX } = config.config as ICurvedRailConfig;
+                    return railFactory.makeCurvedRail(worldPos, turnRadius, rotation, directionX);
+                }
+
+                default: {
+                    const { length, rotation } = config.config as IStraightRailConfig;
+                    return railFactory.makeRail(worldPos, length, rotation);
+                }
+            }
+        })();
+
+        if (!visual) {
+            console.warn("Rail instance count reached");
+            return null;
+        }
+
+        const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
+        const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
+
+        startCell.rail = {
+            visual,
+            axis: startAxis,
+            endCell,
+            worldPos: visual.position.clone(),
+            tip: "start",
+            mapCoords: startCoords.clone(),
+            config
+        };
+
+        if (endCoords) {
+            console.assert(endAxis);
+            const endPos = pools.vec3.getOne();
+            GameUtils.mapToWorld(endCoords!, endPos)
+            endCell!.rail = {
+                visual,
+                axis: endAxis!,
+                endCell: startCell,
+                worldPos: endPos.clone(),
+                tip: "end",
+                mapCoords: endCoords!.clone()
+            };
+        }
+
+        GameMapState.instance.layers.rails.add(visual);
+        GameMapState.instance.rails.set(startCell.id, visual);
+        return startCell;
+    }
+
     public static clear(cell: ICell) {
-        const endCell = cell.rail?.endCell;
-        const obj = cell.rail?.obj ?? endCell?.rail?.obj;
-        console.assert(obj);
-        obj?.removeFromParent();
-        cell.rail = undefined;        
+        console.assert(cell.rail);        
+        const visual = cell.rail!.visual!;
+        visual.removeFromParent();        
+        const userData = visual?.userData as IRailUserData;
+        const startIndex = userData.barInstanceIndex;
+        const barsToRemove = userData.barCount;
+        const endIndex = startIndex + barsToRemove;
+        const instanceCount = railFactory.railBars.count;
+        let current = 0;
+        for (let i = endIndex; i < instanceCount; ++i) {
+            railFactory.railBars.getMatrixAt(i, matrix);
+            railFactory.railBars.setMatrixAt(startIndex + current, matrix);
+            current++;
+        }
+        railFactory.railBars.count = instanceCount - barsToRemove;
+        railFactory.railBars.instanceMatrix.needsUpdate = true;        
+
+        const cellId = cell.rail!.tip === "start" ? cell.id : cell.rail!.endCell!.id;
+        const { rails } = GameMapState.instance;
+        console.assert(rails.has(cellId));
+        rails.delete(cellId);
+
+        for (const [,visual] of rails) {
+            const userData = visual.userData as IRailUserData;
+            if (userData.barInstanceIndex >= endIndex) {
+                userData.barInstanceIndex -= barsToRemove;
+            }
+        }
+
+        const endCell = cell.rail!.endCell;
         if (endCell) {
             endCell.rail = undefined;
         }
+        cell.rail = undefined;
     }
 
     public static onDrag(start: Vector2, current: Vector2, dragAxis: Axis, railsOut: ICell[]) {
@@ -200,60 +287,6 @@ export class Rails {
         for (const cell of rail) {
             Rails.tryLinkRails(cell);
         }
-    }
-
-    public static create(
-        config: IRailConfig,
-        startCoords: Vector2,
-        startAxis: Axis,
-        endCoords?: Vector2,
-        endAxis?: Axis
-    ) {
-        GameUtils.mapToWorld(startCoords, worldPos);
-
-        const rail = (() => {
-            switch (config.type) {
-                case "curved": {
-                    const { turnRadius, rotation, directionX } = config.config as ICurvedRailConfig;
-                    return railFactory.makeCurvedRail(worldPos, turnRadius, rotation, directionX);
-                }
-
-                default: {
-                    const { length, rotation } = config.config as IStraightRailConfig;
-                    return railFactory.makeRail(worldPos, length, rotation);
-                }
-            }
-        })();
-
-        const startCell = GameUtils.getCell(startCoords, sectorCoords)!;
-        const endCell = endCoords ? GameUtils.getCell(endCoords, sectorCoords2)! : undefined;
-
-        GameMapState.instance.layers.rails.add(rail);
-        startCell.rail = {
-            obj: rail,
-            axis: startAxis,
-            endCell,
-            worldPos: rail.position.clone(),
-            tip: "start",
-            mapCoords: startCoords.clone(),
-            config
-        };
-
-        if (endCoords) {
-            console.assert(endAxis);
-            const endPos = pools.vec3.getOne();
-            GameUtils.mapToWorld(endCoords!, endPos)
-            endCell!.rail = {
-                obj: rail,
-                axis: endAxis!,
-                endCell: startCell,
-                worldPos: endPos.clone(),
-                tip: "end",
-                mapCoords: endCoords!.clone()
-            };
-        }
-
-        return startCell;
     }
 
     private static setStraightRailX(start: Vector2, end: Vector2) {

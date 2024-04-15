@@ -9,7 +9,7 @@ import { GameMapState } from "./components/GameMapState";
 const { cellSize } = config.game;
 const halfCell = cellSize / 2;
 const barOffset = cellSize / 4;
-const yOffset = 0.001;
+const yOffset = 0.03;
 
 const point = new Vector3();
 const tangent = new Vector3();
@@ -23,6 +23,8 @@ const matrix = new Matrix4();
 const barMatrix = new Matrix4();
 
 class RailFactory {
+
+    public get railBars() { return this._railBars; }
 
     private _curvedRails = new Map<string, {
         mesh: THREE.Object3D;
@@ -73,6 +75,11 @@ class RailFactory {
         container.updateMatrix();
 
         let instanceIndex = this._railBars.count;
+        const barCount = length * 2;
+        if (instanceIndex + barCount > maxBarCount) {
+            return null;
+        }
+
         for (let i = 0; i < length; ++i) {
             barMatrix.makeTranslation(0, 0, 0 + i * cellSize - barOffset);
             matrix.multiplyMatrices(container.matrix, barMatrix);
@@ -86,7 +93,7 @@ class RailFactory {
         const userData: IRailUserData = {
             rotation: rotationY,
             barInstanceIndex: this._railBars.count,
-            barCount: length * 2
+            barCount
         };
 
         this._railBars.count = instanceIndex;
@@ -129,17 +136,7 @@ class RailFactory {
                 mesh.geometry = (mesh.geometry as THREE.BufferGeometry).clone();
                 const vertices = mesh.geometry.getAttribute("position") as THREE.BufferAttribute;
                 const minZ = 0;
-                const maxZ = 1;
-                // let [minZ, maxZ] = [Infinity, -Infinity];
-                // for (let i = 0; i < vertices.count; ++i) {
-                //     const z = vertices.getZ(i);
-                //     if (z < minZ) {
-                //         minZ = z;
-                //     }
-                //     if (z > maxZ) {
-                //         maxZ = z;
-                //     }
-                // }
+                const maxZ = 1;                
                 for (let i = 0; i < vertices.count; ++i) {
                     const t = (vertices.getZ(i) - minZ) / (maxZ - minZ);
                     curve.evaluate(t, point);
@@ -155,6 +152,7 @@ class RailFactory {
     
                 vertices.needsUpdate = true;
                 mesh.geometry.computeBoundingSphere();
+                mesh.geometry.computeVertexNormals();
                 mesh.position.set(-halfCell, yOffset, -halfCell);
                 mesh.updateMatrix();
                 container.add(mesh);
@@ -168,9 +166,13 @@ class RailFactory {
         const startOffset = barOffset;
         let currentOffset = startOffset;
 
-        let instanceIndex = this._railBars.count;
-        let barCount = 0;
-        while (currentOffset < curveLength) {
+        const startInstanceIndex = this._railBars.count;
+        const barCount = Math.ceil((curveLength - startOffset) / halfCell);
+        if (startInstanceIndex + barCount > maxBarCount) {
+            return null;
+        }
+
+        for (let i = 0; i < barCount; ++i) {
             const t = currentOffset / curveLength;
             curve.evaluate(t, point);
             curve.evaluateTangent(t, tangent);
@@ -184,21 +186,20 @@ class RailFactory {
             );
 
             matrix.copy(container.matrix).multiply(mesh.matrix).multiply(barMatrix);
-            this._railBars.setMatrixAt(instanceIndex, matrix);
-            instanceIndex++;
-
+            this._railBars.setMatrixAt(startInstanceIndex + i, matrix);
+            
             currentOffset += halfCell;
-            barCount++;
         }
         
         const userData: IRailUserData = {
             curve,
             rotation: rotationY,
-            barInstanceIndex: this._railBars.count,
+            barInstanceIndex: startInstanceIndex,
             barCount
         };
+
         container.userData = userData;
-        this._railBars.count = instanceIndex;
+        this._railBars.count = this._railBars.count + barCount;
         this._railBars.instanceMatrix.needsUpdate = true;
         return container;
     }

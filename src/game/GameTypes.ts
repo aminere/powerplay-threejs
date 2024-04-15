@@ -74,7 +74,7 @@ export interface IRail {
             [direction: string]: ICell;
         }
     };
-    obj?: Object3D;
+    visual?: Object3D;
     config?: IRailConfig;
 }
 

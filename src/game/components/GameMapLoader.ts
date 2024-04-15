@@ -174,7 +174,9 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 endCoords,
                 rail.endAxis
             );
-            railCells.push(startCell);
+            if (startCell) {
+                railCells.push(startCell);
+            }
         }
         for (const cell of railCells) {
             Rails.tryLinkRails(cell);
