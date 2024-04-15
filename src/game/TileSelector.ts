@@ -64,9 +64,9 @@ export class TileSector extends Object3D {
             const tilePosition = tileGeometry.getAttribute('position') as BufferAttribute;
             if (cell) {
                 const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
-                const geometry = (sector?.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
+                const geometry = (sector?.layers.terrain as Mesh).geometry as BufferGeometry;
                 const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
-                const position = geometry.getAttribute("position") as THREE.BufferAttribute;                
+                const position = geometry.getAttribute("position") as BufferAttribute;                
                 tilePosition.setY(0, position.getY(startVertexIndex));
                 tilePosition.setY(1, position.getY(startVertexIndex + 1));
                 tilePosition.setY(2, position.getY(startVertexIndex + verticesPerRow + 1));

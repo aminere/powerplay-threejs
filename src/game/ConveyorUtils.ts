@@ -1,4 +1,4 @@
-import { BufferGeometry, Material, InstancedMesh, Vector2, Mesh, Vector3 } from "three";
+import { BufferGeometry, Material, InstancedMesh, Vector2, Mesh, Vector3, BufferAttribute } from "three";
 import { pools } from "../engine/core/Pools";
 import { BezierPath } from "./BezierPath";
 import { ICell, Axis, IConveyor } from "./GameTypes";
@@ -55,7 +55,7 @@ class ConveyorUtils {
     
     public makeCurvedConveyor(mesh: Mesh, xDir: number) {
         const curvedMesh = mesh.clone();
-        curvedMesh.geometry = (curvedMesh.geometry as THREE.BufferGeometry).clone();
+        curvedMesh.geometry = (curvedMesh.geometry as BufferGeometry).clone();
         curvedMesh.geometry.computeBoundingBox();
         const minZ = curvedMesh.geometry.boundingBox!.min.z;
         const maxZ = curvedMesh.geometry.boundingBox!.max.z;
@@ -75,7 +75,7 @@ class ConveyorUtils {
             new Vector3(x3, 0, z3)
         ]);
     
-        const vertices = curvedMesh.geometry.getAttribute("position") as THREE.BufferAttribute;
+        const vertices = curvedMesh.geometry.getAttribute("position") as BufferAttribute;
         const [point, bitangent, curvedPos, offset] = pools.vec3.get(4);
         offset.set(0, 0, -halfCell);
         for (let i = 0; i < vertices.count; ++i) {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { config } from "../config";
-import { MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
+import { BufferAttribute, MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
@@ -82,9 +82,8 @@ export function Minimap() {
 
         const { sectorRes, sectors } = GameMapState.instance;
         const texRes = mapRes * sectorRes;
-        const size = minimapSize; // texRes;
-        root.current!.style.width = `${size}px`;
-        root.current!.style.height = `${size}px`;
+        root.current!.style.width = `${minimapSize}px`;
+        root.current!.style.height = `${minimapSize}px`;
 
         const envCanvas = envRef.current!;
         envCanvas.width = texRes;
@@ -115,8 +114,8 @@ export function Minimap() {
         fogPixelsRef.current = fogPixels;
 
         const cameraCanvas = cameraRef.current!;
-        cameraCanvas.width = size;
-        cameraCanvas.height = size;
+        cameraCanvas.width = minimapSize;
+        cameraCanvas.height = minimapSize;
         const cameraCtx = cameraCanvas.getContext("2d")!;
         cameraCtx.strokeStyle = "white";
         cameraCtx.lineWidth = 2;
@@ -125,7 +124,7 @@ export function Minimap() {
             for (let j = 0; j < sectorRes; ++j) {
                 const sector = sectors.get(`${j},${i}`)!;
                 const terrain = sector.layers.terrain as Mesh;
-                const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                const position = terrain.geometry.getAttribute("position") as BufferAttribute;
                 for (let k = 0; k < mapRes; k++) {
                     for (let l = 0; l < mapRes; l++) {
                         const startVertexIndex = k * verticesPerRow + l;
@@ -148,7 +147,16 @@ export function Minimap() {
                             const xr = Math.floor(x / texRes * resourcesPixels.width);
                             const yr = Math.floor(y / texRes * resourcesPixels.height);
                             const resourcesIndex = (yr * resourcesPixels.width + xr) * 4;
-                            resourcesPixels.data.set([0, 255, 0, 255], resourcesIndex);
+                            switch (cell.resource.type) {
+                                case "wood": {
+                                    resourcesPixels.data.set([0, 128, 0, 255], resourcesIndex);
+                                }
+                                break;
+
+                                default: 
+                                resourcesPixels.data.set([32, 32, 32, 255], resourcesIndex);
+                            }
+                            
                         } else {
                             envPixels.data.set([196, 146, 111, 255], index); // sand
                         }
@@ -170,7 +178,7 @@ export function Minimap() {
             setInitialized(true);
         }
 
-        makeMinimapTransform(45, size / 2);
+        makeMinimapTransform(45, minimapSize / 2);
         
     }, []);
 
@@ -292,7 +300,7 @@ export function Minimap() {
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />
             <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />
             <canvas ref={unitsRef} style={{ ...crispCanvasStyle, zIndex: 3 }} />
-            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4 }} />
+            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4, display: "none" }} />
             <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />
         </div>
     </div>

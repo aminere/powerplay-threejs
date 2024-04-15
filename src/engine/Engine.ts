@@ -92,12 +92,12 @@ class Engine {
         const scene = new ObjectLoader().parse(data) as Scene;
         this._scene = scene;
         this._sceneStarted = false;
-        const cameras: THREE.Camera[] = [];
+        const cameras: Camera[] = [];
         engineState.clear();        
         scene.traverse(obj => {
             serialization.postDeserializeObject(obj);
             serialization.postDeserializeComponents(obj);
-            const camera = obj as THREE.Camera;
+            const camera = obj as Camera;
             if (camera.isCamera) {
                 cameras.push(camera);
             }

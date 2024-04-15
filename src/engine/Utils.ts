@@ -1,4 +1,4 @@
-import { AnimationAction, Camera, DirectionalLight, LoopOnce, LoopPingPong, LoopRepeat, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import { AnimationAction, Camera, DirectionalLight, Line, LoopOnce, LoopPingPong, LoopRepeat, Mesh, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { config } from "../game/config";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
@@ -45,8 +45,8 @@ class Utils {
     }
 
     public disposeObject(obj: Object3D) {
-        const mesh = obj as THREE.Mesh;
-        const line = obj as THREE.Line;
+        const mesh = obj as Mesh;
+        const line = obj as Line;
         if (mesh.isMesh) {
             mesh.geometry.dispose();
             if (Array.isArray(mesh.material)) {

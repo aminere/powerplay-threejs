@@ -1,5 +1,5 @@
 
-import { Euler, InstancedMesh, Material, Matrix4, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Shader, Vector3 } from "three";
+import { Euler, InstancedMesh, Material, Matrix4, MeshStandardMaterial, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, Vector3, WebGLProgramParametersWithUniforms } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { time } from "../../engine/core/Time";
@@ -46,7 +46,7 @@ export class Water extends Component<WaterProps> {
 
         Object.defineProperty(waterMaterial, "onBeforeCompile", {
             enumerable: false,
-            value: (shader: Shader) => { 
+            value: (shader: WebGLProgramParametersWithUniforms) => {
                 const uniforms = {
                     time: { value: 0 },
                     strength: { value: this.props.strength },
@@ -78,7 +78,7 @@ export class Water extends Component<WaterProps> {
                     rawNoise = rawNoise * 2. - 1.;                    
                     transformed.z = rawNoise * strength;
                     `
-                );                
+                );
             }
         });     
 

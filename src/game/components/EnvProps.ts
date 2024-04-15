@@ -1,5 +1,5 @@
 
-import { InstancedMesh, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { BufferAttribute, InstancedMesh, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { textures } from "../../engine/resources/Textures";
@@ -84,7 +84,7 @@ export class EnvProps extends Component<EnvPropsProps> {
                         const sectorY = i;
                         const sector = sectors.get(`${sectorX},${sectorY}`);
                         const terrain = sector?.layers.terrain as Mesh;
-                        const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                        const position = terrain.geometry.getAttribute("position") as BufferAttribute;
 
                         for (let k = 0; k < propMapRes; ++k) {
                             for (let l = 0; l < propMapRes; ++l) {

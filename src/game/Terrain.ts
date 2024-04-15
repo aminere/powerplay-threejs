@@ -1,6 +1,6 @@
 
 import { config } from './config';
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Shader, Sphere, Texture, Vector2, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Sphere, Texture, Vector2, Vector3, WebGLProgramParametersWithUniforms } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/resources/Textures';
 
@@ -225,7 +225,7 @@ export class Terrain {
 
         Object.defineProperty(terrainMaterial, "onBeforeCompile", {
             enumerable: false,
-            value: (shader: Shader) => { 
+            value: (shader: WebGLProgramParametersWithUniforms) => {
                 const uniforms: TerrainUniforms = {
                     cellTexture: { value: cellTexture },
                     highlightTexture: { value: highlightTexture },

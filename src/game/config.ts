@@ -67,11 +67,11 @@ export const config: IConfig = {
     },
     game: {
         cellSize: 1,
-        cellsPerRoadBlock: 2,
+        cellsPerRoadBlock: 4,
         mapRes: 32,
         elevationStep: .2,
-        unitScale: .5,
-        truckScale: 2.5        
+        unitScale: 1,
+        truckScale: 2.5
     },
     conveyors: {
         itemSize: .5, // relative to the cell
@@ -85,7 +85,7 @@ export const config: IConfig = {
         maxSpeed: 40,
         acceleration: 1,
         deceleration: -3,
-        scale: 2
+        scale: 3
     },
     pathfinding: {
         cellWaitTime: .3

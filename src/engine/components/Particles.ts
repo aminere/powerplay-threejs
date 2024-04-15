@@ -215,9 +215,9 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
 
     private updateGeometry(owner: Points) {
         const geometry = owner.geometry;
-        const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
-        const colors = geometry.getAttribute("color") as THREE.BufferAttribute;
-        const sizes = geometry.getAttribute("size") as THREE.BufferAttribute;
+        const positions = geometry.getAttribute("position") as BufferAttribute;
+        const colors = geometry.getAttribute("color") as BufferAttribute;
+        const sizes = geometry.getAttribute("size") as BufferAttribute;
         let index = 0;
         let particlesToProcess = this.state.particleCount;
         const particlePos = pools.vec3.getOne();

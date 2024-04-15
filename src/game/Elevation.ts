@@ -1,4 +1,4 @@
-import { Vector2 } from "three";
+import { BufferAttribute, BufferGeometry, Mesh, Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { ISector } from "./GameTypes";
 import { config } from "./config";
@@ -35,8 +35,8 @@ export class Elevation {
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-        const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-        const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+        const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+        const position = geometry.getAttribute("position") as BufferAttribute;
         const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
         const [minHeight, _, __, maxHeight] = [
             position.getY(startVertexIndex),
@@ -70,8 +70,8 @@ export class Elevation {
 
         // apply vertex operations
         for (const [sector, operations] of this._vertexOperations) {
-            const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-            const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+            const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+            const position = geometry.getAttribute("position") as BufferAttribute;
             for (const [index, height] of operations) {
                 position.setY(index, height);
             }

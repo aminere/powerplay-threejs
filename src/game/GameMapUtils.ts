@@ -1,4 +1,4 @@
-import { Box2, Camera, Line3, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
+import { Box2, BufferAttribute, BufferGeometry, Camera, Line3, Mesh, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
@@ -53,8 +53,8 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
     const { ray } = GameUtils.rayCaster;
     rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
     line.set(ray.origin, rayEnd);
-    const geometry = (sector.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-    const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+    const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+    const position = geometry.getAttribute("position") as BufferAttribute;
     const indices = geometry.getIndex()!.array;
     const mapSize = mapRes * cellSize;
     const offset = -mapSize / 2;

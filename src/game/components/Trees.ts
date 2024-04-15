@@ -1,5 +1,5 @@
 
-import { InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Shader, Vector2, Vector3 } from "three";
+import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import FastNoiseLite from "fastnoise-lite";
@@ -52,7 +52,7 @@ export class Trees extends Component<TreesProps> {
 
         Object.defineProperty(treeMaterial, "onBeforeCompile", {
             enumerable: false,
-            value: (shader: Shader) => {
+            value: (shader: WebGLProgramParametersWithUniforms) => {
                 const uniforms = {
                     time: { value: 0 },
                     strength: { value: this.props.strength },
@@ -133,7 +133,7 @@ export class Trees extends Component<TreesProps> {
                 const sectorY = i;
                 const sector = sectors.get(`${sectorX},${sectorY}`);
                 const terrain = sector?.layers.terrain as Mesh;
-                const position = terrain.geometry.getAttribute("position") as THREE.BufferAttribute;
+                const position = terrain.geometry.getAttribute("position") as BufferAttribute;
 
                 // lower distribution by skipping some sectors
                 if (sectorY % 2 === 0) {
@@ -193,9 +193,12 @@ export class Trees extends Component<TreesProps> {
                                 const count = treeMesh.count;
                                 treeMesh.instancedMesh.setMatrixAt(count, matrix);
                                 treeMesh.count = count + 1;
-
-                                // TODO handle trees as resources
-                                // cell.resource = dummyTree;
+                                
+                                cell.resource = {
+                                    type: "wood",
+                                    amount: 100,
+                                    visual: dummyTree
+                                };
                             }
                         }
                     }

@@ -1,5 +1,5 @@
 import { GameUtils } from "./GameUtils";
-import { InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from "three";
 import { config } from "./config";
 import { BezierPath } from "./BezierPath";
 import { IRailUserData } from "./GameTypes";
@@ -27,7 +27,7 @@ class RailFactory {
     public get railBars() { return this._railBars; }
 
     private _curvedRails = new Map<string, {
-        mesh: THREE.Object3D;
+        mesh: Object3D;
         curve: BezierPath;
     }>();
 
@@ -133,8 +133,8 @@ class RailFactory {
                 ]);           
     
                 const mesh = this._curvedRail.clone();
-                mesh.geometry = (mesh.geometry as THREE.BufferGeometry).clone();
-                const vertices = mesh.geometry.getAttribute("position") as THREE.BufferAttribute;
+                mesh.geometry = (mesh.geometry as BufferGeometry).clone();
+                const vertices = mesh.geometry.getAttribute("position") as BufferAttribute;
                 const minZ = 0;
                 const maxZ = 1;                
                 for (let i = 0; i < vertices.count; ++i) {

@@ -1,4 +1,4 @@
-import { Mesh, Object3D, ObjectLoader, SkinnedMesh } from "three";
+import { DirectionalLight, Mesh, Object3D, ObjectLoader, SkinnedMesh } from "three";
 import { Component, IComponentState } from "../ecs/Component";
 import { componentFactory } from "../ecs/ComponentFactory";
 import { utils } from "../Utils";
@@ -87,7 +87,7 @@ class Serialization {
     }
 
     public postDeserializeObject(obj: Object3D) {        
-        const light = obj as THREE.DirectionalLight;
+        const light = obj as DirectionalLight;
         if (light.isDirectionalLight) {
             utils.updateDirectionalLightTarget(light);
         }
