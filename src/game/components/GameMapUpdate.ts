@@ -86,7 +86,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (input.touchButton === 0) {
                         state.touchStartCoords.copy(state.selectedCellCoords);
                     }
-                }
+                } else {
+                    // debug
+                    const cell = GameUtils.getCell(state.highlightedCellCoords);
+                    console.log(cell);
+                }                
             }
         } else if (input.touchPressed) {
 

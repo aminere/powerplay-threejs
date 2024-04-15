@@ -297,14 +297,20 @@ class Buildings {
                 visual.visible = true;
             }
             
+            const outputCell = getCellFromAddr(state.outputCell);
+            if (outputCell.pickableResource) {
+                outputCell.pickableResource.visual.removeFromParent();
+                outputCell.pickableResource = undefined;
+            }
+
         } else if (buildingType === "factory") {
             
-            // const state = instance.state as IFactoryState;
-            // const outputCell = getCellFromAddr(state.outputCell);
-            // if (outputCell.pickableResource) {
-            //     outputCell.pickableResource.visual.removeFromParent();
-            //     outputCell.pickableResource = undefined;
-            // }
+            const state = instance.state as IFactoryState;
+            const outputCell = getCellFromAddr(state.outputCell);
+            if (outputCell.pickableResource) {
+                outputCell.pickableResource.visual.removeFromParent();
+                outputCell.pickableResource = undefined;
+            }
         }
 
         mapCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));

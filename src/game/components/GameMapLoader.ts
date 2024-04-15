@@ -1,5 +1,5 @@
 
-import { Euler, MathUtils, Object3D, Vector2 } from "three";
+import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { ISerializedFactory, ISerializedGameMap } from "../GameSerialization";
@@ -116,7 +116,9 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    resources.create(sectorInstance, localCoords, cellInstance, cell.resource);
+                    if (cell.resource !== "wood") {
+                        resources.create(sectorInstance, localCoords, cellInstance, cell.resource);
+                    }
                 }
 
                 if (cell.unitCount !== undefined) {                    
@@ -132,8 +134,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 }
             }
 
-            const geometry = (sectorInstance.layers.terrain as THREE.Mesh).geometry as THREE.BufferGeometry;
-            const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+            const geometry = (sectorInstance.layers.terrain as Mesh).geometry as BufferGeometry;
+            const position = geometry.getAttribute("position") as BufferAttribute;
             for (const elevation of sector.elevation) {
                 position.setY(elevation.vertexIndex, elevation.height);
             }

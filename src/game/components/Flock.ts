@@ -10,9 +10,9 @@ export class FlockProps extends ComponentProps {
     radius = 20;
     count = 50;
     npcCount = 4;
-    separation = 0.6;    
-    speed = 4;
-    avoidanceSpeed = 5;
+    separation = 1;    
+    speed = 7;
+    avoidanceSpeed = 8;
     repulsion = .2;
     positionDamp = .05;
 
