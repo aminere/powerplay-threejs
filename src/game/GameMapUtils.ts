@@ -324,7 +324,8 @@ function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, but
     const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
-        if (cell.isEmpty) {
+        const units = cell.units?.length ?? 0;
+        if (cell.isEmpty && units === 0) {
             resources.create(sector, localCoords, cell, type);
         }
     } else if (button === 2) {
@@ -536,7 +537,7 @@ export function onAction(touchButton: number) {
                         const gap = .3;
                         const train = utils.createObject(layers.trains, "train");
                         engineState.setComponent(train, new Train({
-                            cell,
+                            cell: mapCoords,
                             wagonLength,
                             numWagons,
                             gap

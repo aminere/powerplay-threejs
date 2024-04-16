@@ -60,7 +60,7 @@ function projectOnConveyor(item: IConveyorItem, localT: number) {
     }
 }
 
-function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType, itemSize: number) {
+function createItemVisual(root: Object3D, resourceType: RawResourceType | ResourceType) {
     const visual = utils.createObject(root, resourceType);
     resources.loadModel(resourceType)
         .then((mesh) => {
@@ -68,7 +68,7 @@ function createItemVisual(root: Object3D, resourceType: RawResourceType | Resour
             const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
             box3Helper.visible = false;
             mesh.add(box3Helper);
-            mesh.scale.multiplyScalar(itemSize * itemScale);
+            mesh.scale.multiplyScalar(itemScale);
             mesh.position.y = height * cellSize;
             visual.add(mesh);
         });
@@ -213,7 +213,7 @@ class ConveyorItems {
             }
         }
 
-        const visual = createItemVisual(this._itemsRoot, resourceType, itemSize);
+        const visual = createItemVisual(this._itemsRoot, resourceType);
         const item: IConveyorItem = {
             size: itemSize,
             visual,
@@ -235,7 +235,7 @@ class ConveyorItems {
         type: RawResourceType | ResourceType;
     }>) {
         for (const serializedItem of serializedItems) {
-            const visual = createItemVisual(this._itemsRoot, serializedItem.type, serializedItem.size);
+            const visual = createItemVisual(this._itemsRoot, serializedItem.type);
             const item: IConveyorItem = {
                 size: serializedItem.size,
                 visual,

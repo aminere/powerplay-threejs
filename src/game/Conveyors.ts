@@ -1,5 +1,4 @@
 import { InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
-import { objects } from "../engine/resources/Objects";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { Axis, ICell } from "./GameTypes";
@@ -9,12 +8,13 @@ import { conveyorItems } from "./ConveyorItems";
 import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
 import { textures } from "../engine/resources/Textures";
+import { meshes } from "../engine/resources/Meshes";
 
 const matrix = new Matrix4();
 const worldPos = new Vector3();
 const rotation = new Quaternion();
 const { cellSize } = config.game;
-const { width, height, speed } = config.conveyors;
+const { width, height, speed} = config.conveyors;
 
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
 const neighborCoords = new Vector2();
@@ -28,8 +28,6 @@ class Conveyors {
     private _invCurvedConveyorTop!: Mesh;
     private _straightCells: ICell[] = [];
     private _topTexture!: Texture;
-    // private _topNormalTexture!: Texture;
-    private _topEmissiveTexture!: Texture;
     private _loaded = false;
     private _disposed = false;    
 
@@ -42,17 +40,21 @@ class Conveyors {
         }
 
         this._disposed = false;
-        const [conveyor, conveyorTop, curvedConveyor0, curvedConveyorTop0] = await Promise.all([
-            objects.load(`/models/conveyor.json`),
-            objects.load(`/models/conveyor-top.json`),
-            objects.load(`/models/conveyor-curved.json`),
-            objects.load("/models/conveyor-curved-top.json")
-        ]) as [Mesh, Mesh, Mesh, Mesh];
+        const [_conveyor, _conveyorTop, _curvedConveyor0, _curvedConveyorTop0] = await Promise.all([
+            meshes.load(`/models/conveyor.glb`),
+            meshes.load(`/models/conveyor-top.glb`),
+            meshes.load(`/models/conveyor-curved.glb`),
+            meshes.load("/models/conveyor-curved-top.glb")
+        ]) as [Mesh[], Mesh[], Mesh[], Mesh[]];
 
         if (this._disposed) {
             return;
         }
 
+        const conveyor = _conveyor[0];
+        const conveyorTop = _conveyorTop[0];
+        const curvedConveyor0 = _curvedConveyor0[0];
+        const curvedConveyorTop0 = _curvedConveyorTop0[0];
         const baseMaterial = conveyor.material as MeshBasicMaterial;
 
         conveyor.geometry.scale(width, 1, 1);
@@ -63,6 +65,7 @@ class Conveyors {
 
         conveyorTop.geometry.scale(width, 1, 1);
         const topMaterial = conveyorTop.material as MeshStandardMaterial;
+        topMaterial.metalness = .2;
 
         const conveyorTopInstances = conveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
         layers.conveyors.add(conveyorTopInstances);
@@ -83,14 +86,7 @@ class Conveyors {
         topMaterial.map = topTexture;
         topTexture.wrapT = RepeatWrapping;
         this._topTexture = topTexture;        
-        // const topNormalTexture = topMaterial.normalMap!;
-        // topNormalTexture.wrapT = RepeatWrapping;
-        // this._topNormalTexture = topNormalTexture;
-        const topEmissiveTexture = topMaterial.emissiveMap!;
-        topEmissiveTexture.wrapT = RepeatWrapping;
-        this._topEmissiveTexture = topEmissiveTexture;
         topMaterial.color.setHex(0xD1D1D1);
-        topMaterial.emissive.setHex(0);
         this._loaded = true;
     }
 
@@ -123,7 +119,7 @@ class Conveyors {
             const topMesh = invertedMesh ? this._invCurvedConveyorTop.clone() : this._curvedConveyorTop.clone();
             baseMesh.position.copy(worldPos);
             baseMesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);
-            baseMesh.scale.copy(scale);
+            baseMesh.scale.copy(scale);            
             baseMesh.add(topMesh);
             topMesh.position.y = height;
             GameMapState.instance.layers.conveyors.add(baseMesh);
@@ -334,8 +330,6 @@ class Conveyors {
     public update() {
         const dy = time.deltaTime * speed / cellSize;
         this._topTexture.offset.y -= dy;
-        // this._topNormalTexture.offset.y -= dy;
-        this._topEmissiveTexture.offset.y -= dy;
         conveyorItems.update();
     }   
     

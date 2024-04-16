@@ -1,5 +1,5 @@
 
-import { Object3D, Vector3 } from "three";
+import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "../BezierPath";
 import { Axis, ICell, IRailUserData } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
@@ -156,20 +156,22 @@ class WagonProps extends ComponentProps {
         this.deserialize(props);
     }
 
-    startingCell: ICell = null!;
+    startingCell = new Vector2();
     startingDist = 0;
     trackLimit = 0;
 }
 
-export class Wagon extends Component<WagonProps> {   
+interface IWagonState {
+    speed: number;
+    distanceToTravel: number;
+    distanceTraveled: number;
+    canAccelerate: boolean;
+    motion: IMotionSegment[];
+    currentMotionSegment: number;
+    isMoving: boolean;
+}
 
-    private _speed = 0;
-    private _distanceToTravel!: number;
-    private _distanceTraveled!: number;
-    private _canAccelerate = true;
-    private _motion: IMotionSegment[] = [];
-    private _currentMotionSegment = 0;
-    private _isMoving = false;
+export class Wagon extends Component<WagonProps, IWagonState> {   
 
     constructor(props?: Partial<WagonProps>) {
         super(new WagonProps(props));
@@ -177,11 +179,18 @@ export class Wagon extends Component<WagonProps> {
 
     override start(owner: Object3D) {
         const { startingCell, startingDist, trackLimit } = this.props;
-        const [trackLength, motion] = traverseTrack(startingCell);
-        this._distanceTraveled = startingDist;
-        this._distanceToTravel = trackLength - startingDist - trackLimit;
-        this._motion = motion;
-        this._isMoving = true;
+        const _startingCell = GameUtils.getCell(startingCell)!;
+        const [trackLength, motion] = traverseTrack(_startingCell);
+
+        this.setState({
+            speed: 0,
+            distanceToTravel: trackLength - startingDist - trackLimit,
+            distanceTraveled: startingDist,
+            canAccelerate: true,
+            motion,
+            currentMotionSegment: 0,
+            isMoving: true,
+        });        
 
         let previousSegmentEndDist = 0;
         let currentSegment = motion[0];
@@ -191,7 +200,7 @@ export class Wagon extends Component<WagonProps> {
                 if (startingDist < segment.endDist) {
                     previousSegmentEndDist = motion[i - 1].endDist;
                     currentSegment = segment;
-                    this._currentMotionSegment = i;
+                    this.state.currentMotionSegment = i;
                     break;
                 }
             }
@@ -208,38 +217,38 @@ export class Wagon extends Component<WagonProps> {
 
     override update(owner: Object3D) {
 
-        if (!this._isMoving) {
+        if (!this.state.isMoving) {
             return;
         }
 
         const { maxSpeed, acceleration, deceleration } = config.train;
-        if (this._canAccelerate) {   
-            const newSpeed = this._speed + acceleration * time.deltaTime;         
+        if (this.state.canAccelerate) {   
+            const newSpeed = this.state.speed + acceleration * time.deltaTime;         
             const distanceToStop = newSpeed * newSpeed / (2 * -deceleration);
-            if (this._distanceToTravel < distanceToStop) {
-                this._canAccelerate = false;
+            if (this.state.distanceToTravel < distanceToStop) {
+                this.state.canAccelerate = false;
             }
         }
 
-        if (this._canAccelerate) {
-            this._speed += acceleration * time.deltaTime;
-            if (this._speed > maxSpeed) {
-                this._speed = maxSpeed;
+        if (this.state.canAccelerate) {
+            this.state.speed += acceleration * time.deltaTime;
+            if (this.state.speed > maxSpeed) {
+                this.state.speed = maxSpeed;
             }
         } else {
-            this._speed += deceleration * time.deltaTime;
-            if (this._speed < 0) {
-                this._speed = 0;
-                this._isMoving = false;
+            this.state.speed += deceleration * time.deltaTime;
+            if (this.state.speed < 0) {
+                this.state.speed = 0;
+                this.state.isMoving = false;
                 return;
             }
         }
 
-        const segment = this._motion[this._currentMotionSegment];
-        const stepDistance = this._speed * time.deltaTime;
+        const segment = this.state.motion[this.state.currentMotionSegment];
+        const stepDistance = this.state.speed * time.deltaTime;
         if (segment.curve) {
-            const startDist = this._currentMotionSegment > 0 ? this._motion[this._currentMotionSegment - 1].endDist : 0;
-            const localDist = (this._distanceTraveled + stepDistance) - startDist;
+            const startDist = this.state.currentMotionSegment > 0 ? this.state.motion[this.state.currentMotionSegment - 1].endDist : 0;
+            const localDist = (this.state.distanceTraveled + stepDistance) - startDist;
             fitPointOnCurve(segment, localDist, owner.position);
             alignToTrack(segment, localDist, owner);
         } else {
@@ -248,15 +257,15 @@ export class Wagon extends Component<WagonProps> {
             alignToTrack(segment, 0, owner);
         }
 
-        this._distanceTraveled += stepDistance;
-        this._distanceToTravel -= stepDistance;        
+        this.state.distanceTraveled += stepDistance;
+        this.state.distanceToTravel -= stepDistance;        
 
-        if (this._distanceTraveled > segment.endDist) {
-            if (this._currentMotionSegment + 1 < this._motion.length) {
-                this._currentMotionSegment++;
+        if (this.state.distanceTraveled > segment.endDist) {
+            if (this.state.currentMotionSegment + 1 < this.state.motion.length) {
+                this.state.currentMotionSegment++;
                 
-                const localDist = this._distanceTraveled - segment.endDist;
-                const newSegment = this._motion[this._currentMotionSegment];
+                const localDist = this.state.distanceTraveled - segment.endDist;
+                const newSegment = this.state.motion[this.state.currentMotionSegment];
                 if (newSegment.curve) {
                     fitPointOnCurve(newSegment, localDist, owner.position);
                 } else {

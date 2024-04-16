@@ -4,7 +4,7 @@ import { ICell } from "../GameTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";
-import { Object3D } from "three";
+import { Object3D, Vector2 } from "three";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engineState } from "../../engine/EngineState";
 import { config } from "../config";
@@ -18,7 +18,7 @@ export class TrainProps extends ComponentProps {
     numWagons = 1;
     gap = .1;
     wagonLength = 1;
-    cell: ICell = null!;
+    cell = new Vector2();
 }
 
 const { scale } = config.train;

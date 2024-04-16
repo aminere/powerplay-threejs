@@ -285,7 +285,7 @@ export function updateUnits(units: IUnit[]) {
                             unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
                             const miningState = unit.fsm.getState(MiningState);
                             if (miningState) {
-                                miningState.onReachedDepletedResource(unit);
+                                miningState.onReachedTarget(unit);
                             }
                         }
                     }

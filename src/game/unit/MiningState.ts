@@ -129,28 +129,7 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToResource: {
                 const arrived = unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (arrived) {
-                    this._potentialTarget.set(NaN, NaN);
-                    if (unit.motionId > 0) {
-                        unitMotion.onUnitArrived(unit);
-                    }
-
-                    const cell = getCellFromAddr(this._targetResource);
-                    if (cell.resource) {
-                        this._step = MiningStep.Mine;
-                        this._miningTimer = 1;
-                        unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
-                        unit.collidable = false;
-
-                    } else if (cell.pickableResource) {
-
-                        pickResource(unit, cell.pickableResource.type);
-                        this.goToFactory(unit, cell.pickableResource.type);
-                        cell.pickableResource.visual.removeFromParent();
-                        cell.pickableResource = undefined;
-
-                    } else {
-                        stopMining(unit);
-                    }                    
+                    this.onReachedTarget(unit);
                 }
             }
                 break;
@@ -207,10 +186,29 @@ export class MiningState extends State<IUnit> {
         }
     }
 
-    public onReachedDepletedResource(unit: IUnit) {
-        // TODO find closest similar resources
-        stopMining(unit);
-    }
-    
+    public onReachedTarget(unit: IUnit) {
+        this._potentialTarget.set(NaN, NaN);
+        if (unit.motionId > 0) {
+            unitMotion.onUnitArrived(unit);
+        }
+
+        const cell = getCellFromAddr(this._targetResource);
+        if (cell.resource) {
+            this._step = MiningStep.Mine;
+            this._miningTimer = 1;
+            unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+            unit.collidable = false;
+
+        } else if (cell.pickableResource) {
+
+            pickResource(unit, cell.pickableResource.type);
+            this.goToFactory(unit, cell.pickableResource.type);
+            cell.pickableResource.visual.removeFromParent();
+            cell.pickableResource = undefined;
+
+        } else {
+            stopMining(unit);
+        }
+    }    
 }
 

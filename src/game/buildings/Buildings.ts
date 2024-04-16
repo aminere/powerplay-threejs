@@ -15,7 +15,7 @@ import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 
 const { cellSize, mapRes } = config.game;
-const { itemSize } = config.conveyors;
+const { itemScale } = config.conveyors;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
@@ -77,7 +77,7 @@ function onProductionDone(outputCellAddr: IUnitAddr, resource: ResourceType | Ra
         resources.loadModel(resource).then(_mesh => {
             const mesh = _mesh.clone();
             visual.add(mesh);
-            mesh.scale.multiplyScalar(itemSize);
+            mesh.scale.multiplyScalar(itemScale);
             mesh.position.y = 0.1;
             mesh.castShadow = true;
         });

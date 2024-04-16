@@ -70,16 +70,16 @@ export const config: IConfig = {
         cellsPerRoadBlock: 2,
         mapRes: 32,
         elevationStep: .2,
-        unitScale: .65,
-        truckScale: 1
+        unitScale: .7,
+        truckScale: 1.5
     },
     conveyors: {
         itemSize: .5, // relative to the cell
-        itemScale: 1,
+        itemScale: .7,
         width: .8,
-        height: .34,
+        height: .51,
         maxCount: 500,
-        speed: 1
+        speed: 1,
     },
     train: {
         maxSpeed: 40,
