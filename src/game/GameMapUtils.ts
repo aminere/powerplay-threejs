@@ -149,56 +149,73 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
 
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
-    const gameMapState = GameMapState.instance;
-    const {resolution } = gameMapState.tileSelector;
-    switch (gameMapState.action) {
+    const state = GameMapState.instance;
+    const {resolution } = state.tileSelector;
+    switch (state.action) {
         case "road": {
-            gameMapState.previousRoad.forEach(road => roads.clear(road));
-            gameMapState.previousRoad.length = 0;
-            roads.onDrag(start, current, gameMapState.previousRoad, gameMapState.initialDragAxis!, resolution);
+            state.previousRoad.forEach(road => roads.clear(road));
+            state.previousRoad.length = 0;
+            roads.onDrag(start, current, state.previousRoad, state.initialDragAxis!, resolution);
         }
             break;
 
         case "rail": {
-            gameMapState.previousRail.forEach(Rails.clear);
-            gameMapState.previousRail.length = 0;
-            Rails.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousRail);
+            state.previousRail.forEach(Rails.clear);
+            state.previousRail.length = 0;
+            Rails.onDrag(start, current, state.initialDragAxis!, state.previousRail);
 
         } break;
 
         case "belt": {
-            gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
-            gameMapState.previousConveyors.length = 0;
-            conveyors.onDrag(start, current, gameMapState.initialDragAxis!, gameMapState.previousConveyors);
+            state.previousConveyors.forEach(cell => conveyors.clear(cell));
+            state.previousConveyors.length = 0;
+            conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
 
         } break;
+
+        case "elevation": {
+            GameUtils.getCell(current, sectorCoords, localCoords)!;
+            onElevation(current, sectorCoords, localCoords, state.tileSelector.size, 0);
+            state.tileSelector.fit(current.x, current.y, state.sectors);
+        }
+            break;
     }
 }
 
 export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
-    const gameMapState = GameMapState.instance;
+    const state = GameMapState.instance;
     if (start.x === current.x) {
-        gameMapState.initialDragAxis = "z";
+        state.initialDragAxis = "z";
     } else if (start.y === current.y) {
-        gameMapState.initialDragAxis = "x";
+        state.initialDragAxis = "x";
     } else {
         if (current.y < start.y) {
-            gameMapState.initialDragAxis = "x";
+            state.initialDragAxis = "x";
         } else {
-            gameMapState.initialDragAxis = "z";
+            state.initialDragAxis = "z";
         }
     }
 
-    if (gameMapState.action === "rail") {
-        for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-            neighborCoord.set(start.x + offset[0], start.y + offset[1]);
-            const neighbor = GameUtils.getCell(neighborCoord);
-            const rail = neighbor?.rail
-            if (rail) {
-                gameMapState.initialDragAxis = rail.axis;
-                break;
+    switch (state.action) {
+        case "rail": {
+            for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+                neighborCoord.set(start.x + offset[0], start.y + offset[1]);
+                const neighbor = GameUtils.getCell(neighborCoord);
+                const rail = neighbor?.rail
+                if (rail) {
+                    state.initialDragAxis = rail.axis;
+                    break;
+                }
             }
         }
+            break;
+
+        case "elevation": {
+            GameUtils.getCell(start, sectorCoords, localCoords)!;
+            onElevation(start, sectorCoords, localCoords, state.tileSelector.size, 0);
+            state.tileSelector.fit(start.x, start.y, state.sectors);
+        }
+            break;
     }
 
     onDrag(start, current);
@@ -231,10 +248,11 @@ export function onCancelDrag() {
 }
 
 function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
+    const props = GameMapProps.instance;
     if (button === 0) {
-        Elevation.elevate(mapCoords, sectorCoords, localCoords, 1, radius);
+        Elevation.elevate(mapCoords, sectorCoords, localCoords, radius, props.brushHeight, props.relativeBrush);
     } else if (button === 2) {
-        Elevation.elevate(mapCoords, sectorCoords, localCoords, -1, radius);
+        Elevation.elevate(mapCoords, sectorCoords, localCoords, radius, -props.brushHeight, props.relativeBrush);
     }
 }
 

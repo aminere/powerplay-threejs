@@ -36,6 +36,8 @@ export class GameMapProps extends ComponentProps {
     factoryOutput: ResourceType = "steel";
 
     brushSize = 1;
+    brushHeight = 1;
+    relativeBrush = false;
 
     saveToDisk = false;
     @Attributes.command("save")

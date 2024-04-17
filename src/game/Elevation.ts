@@ -17,46 +17,44 @@ const rightCoords = new Vector2();
 export class Elevation {
 
     private static _elevatedCells = new Map<ISector, Set<number>>();
-    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number, size: Vector2) {
+    public static elevate(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, size: Vector2, height: number, relative: boolean) {
         Elevation._elevatedCells.clear();
         for (let i = 0; i < size.y; ++i) {
             for (let j = 0; j < size.x; ++j) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
-                    Elevation.elevateCell(cellCoords, sectorCoords, localCoords, direction);
+                    Elevation.elevateCell(cellCoords, sectorCoords, localCoords, height, relative);
                 }
             }
         }
     }
 
-    private static elevateCell(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, direction: number) {
+    private static elevateCell(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, height: number, relative: boolean) {
         const { sectors } = GameMapState.instance;
         const { mapRes } = config.game;
         const verticesPerRow = mapRes + 1;
         const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
         const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
         const position = geometry.getAttribute("position") as BufferAttribute;
-        const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
-        const [minHeight, _, __, maxHeight] = [
-            position.getY(startVertexIndex),
-            position.getY(startVertexIndex + 1),
-            position.getY(startVertexIndex + verticesPerRow),
-            position.getY(startVertexIndex + verticesPerRow + 1)
-        ].sort((a, b) => a - b);
-        const height = (() => {
-            if (direction > 0) {
-                return minHeight + 1;
-            } else {
-                return maxHeight - 1;
-            }
-        })();
+        const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;       
+
+        let height1 = height;
+        let height2 = height;
+        let height3 = height;
+        let height4 = height;
+        if (relative) {
+            height1 = position.getY(startVertexIndex) + height;
+            height2 = position.getY(startVertexIndex + 1) + height;
+            height3 = position.getY(startVertexIndex + verticesPerRow) + height;
+            height4 = position.getY(startVertexIndex + verticesPerRow + 1) + height;
+        }
 
         this._vertexOperations.clear();
-        Elevation.setVertexHeight(sectors, startVertexIndex, sector, height, sectorCoords, true);
-        Elevation.setVertexHeight(sectors, startVertexIndex + 1, sector, height, sectorCoords, true);
-        Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, sector, height, sectorCoords, true);
-        Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, sector, height, sectorCoords, true);
+        Elevation.setVertexHeight(sectors, startVertexIndex, sector, height1, sectorCoords, true);
+        Elevation.setVertexHeight(sectors, startVertexIndex + 1, sector, height2, sectorCoords, true);
+        Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow, sector, height3, sectorCoords, true);
+        Elevation.setVertexHeight(sectors, startVertexIndex + verticesPerRow + 1, sector, height4, sectorCoords, true);
         for (const dy of [-1, 0, 1]) {
             for (const dx of [-1, 0, 1]) {
                 neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
