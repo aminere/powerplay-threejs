@@ -94,15 +94,18 @@ export class MiningState extends State<IUnit> {
         const factory = findClosestFactory(unit, resourceType);
         this._closestFactory = factory;
         if (this._closestFactory) {
+            const size = buildingSizes.factory;
+            const coords = this._closestFactory.mapCoords;
+            const center = cellCoords.set(Math.round(coords.x + (size.x - 1) / 2), Math.round(coords.y + (size.z - 1) / 2));
             const isMining = unit.animation.name === "pick";
             if (isMining) {
-                unitMotion.moveUnit(unit, this._closestFactory.mapCoords, false);
+                unitMotion.moveUnit(unit, center, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
                 });
             } else {
-                unitMotion.moveUnit(unit, this._closestFactory.mapCoords);
+                unitMotion.moveUnit(unit, center);
             }            
             this._step = MiningStep.GoToFactory;
         } else {
