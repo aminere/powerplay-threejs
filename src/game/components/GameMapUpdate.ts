@@ -9,7 +9,7 @@ import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
-import { IUnit, UnitType } from "../unit/IUnit";
+import { IUnit } from "../unit/IUnit";
 import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";
@@ -89,8 +89,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                 } else {
                     // debug
-                    // const cell = GameUtils.getCell(state.highlightedCellCoords);
-                    // console.log(cell);
+                    const cell = GameUtils.getCell(state.highlightedCellCoords);
+                    console.log(cell);
                 }                
             }
         } else if (input.touchPressed) {
@@ -187,7 +187,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
                                 const { obj, type } = unit;
-                                if (type === UnitType.NPC) {
+                                if (type !== "worker") { // TODO better differentiation between player and NPC units
                                     continue;
                                 }
                                 if (!unit.isAlive) {

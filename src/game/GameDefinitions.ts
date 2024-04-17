@@ -46,6 +46,12 @@ export const ProductTypes = [
     "truck"
 ] as const;
 
+export const UnitTypes = [
+    "worker",
+    "enemy-melee",
+    "enemy-ranged"
+] as const;
+
 export type UIType = "gamemap";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
@@ -53,4 +59,5 @@ export type RawResourceType = typeof RawResourceTypes[number];
 export type MineralType = typeof MineralTypes[number];
 export type ResourceType = typeof ResourceTypes[number];
 export type ProductType = typeof ProductTypes[number];
+export type UnitType = typeof UnitTypes[number];
 

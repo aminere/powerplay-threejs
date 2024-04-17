@@ -573,7 +573,7 @@ export function onAction(touchButton: number) {
             case "unit": {
                 if (touchButton === 0) {
                     if (cell.isEmpty) {
-                        unitsManager.spawn(mapCoords);
+                        unitsManager.spawn(mapCoords, props.unit);
                     }
                 } else if (touchButton === 2) {
                     if (cell.units) {

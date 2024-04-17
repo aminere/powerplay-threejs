@@ -122,7 +122,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
                 if (cell.unitCount !== undefined) {                    
                     for (let j = 0; j < cell.unitCount; j++) {
-                        unitsToSpawn.push(mapCoords.clone());                        
+                        unitsToSpawn.push(mapCoords.clone());
                     }
                 }
 
@@ -144,7 +144,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         // create units and structure after all sectors are created and fogOfWar is initialized
         for (const mapCoords of unitsToSpawn) {
-            unitsManager.spawn(mapCoords);
+            unitsManager.spawn(mapCoords, "worker");
         }
 
         for (const [buildingType, instances] of Object.entries(data.buildings)) {

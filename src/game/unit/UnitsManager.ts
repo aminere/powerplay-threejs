@@ -1,6 +1,6 @@
 import { Box3Helper, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
-import { IUnit, UnitType } from "./IUnit";
+import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
@@ -12,6 +12,9 @@ import { IUnitProps, Unit } from "./Unit";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 import { updateUnits } from "./UnitsUpdate";
 import { config } from "../config";
+import { UnitType } from "../GameDefinitions";
+import { NPCState } from "./NPCState";
+import { GameMapProps } from "../components/GameMapProps";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -34,8 +37,11 @@ class UnitsManager {
 
     async preload() {
         await skeletonManager.load({
-            skin: "/models/characters/Worker.json",
-
+            skins: {
+                "worker": "/models/characters/Worker.json",
+                "enemy-melee": "/models/characters/NPC.json",
+                "enemy-ranged": "/models/characters/Astronaut.json",
+            },
             // globally shared animations
             animations: [
                 { name: "idle" },
@@ -83,7 +89,7 @@ class UnitsManager {
                                 for (let i = 0; i < units.length; ++i) {
                                     const unit = units[i];
                                     const { obj, type } = unit;
-                                    if (type === UnitType.NPC) {
+                                    if (type !== "worker") {
                                         continue;
                                     }
                                     if (!unit.isAlive) {
@@ -139,40 +145,39 @@ class UnitsManager {
         const unit = new Unit(props, id);
         this._units.push(unit);
         this._owner.add(mesh);
-        cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
+
+        if (props.type === "worker") {
+            cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
+        }
+        
         const box3Helper = new Box3Helper(mesh.boundingBox);
         mesh.add(box3Helper);
         box3Helper.visible = false;
         return unit;
-        // const createNpc = (pos: Vector3) => {
-        //     const npcModel = SkeletonUtils.clone(npcObj);
-        //     const npcMesh = npcModel.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
-        //     npcMesh.position.copy(pos);
-        //     const npc = unitUtils.createUnit({
-        //         obj: npcMesh,
-        //         type: UnitType.NPC,
-        //         states: [new NPCState(), new ArcherNPCState()],
-        //         animation: skeletonManager.applyIdleAnim(npcMesh),
-        //         speed: .7
-        //     });
-        //     npc.fsm.switchState(NPCState);
-        // }
-
     }
 
-    public spawn(mapCoords: Vector2) {
-        const sharedMesh = skeletonManager.sharedSkinnedMesh;
+    public spawn(mapCoords: Vector2, type: UnitType) {
+        const sharedMesh = skeletonManager.getSharedSkinnedMesh(type)!;
         const boundingBox = skeletonManager.boundingBox;
         const mesh = sharedMesh.clone();
         mesh.scale.multiplyScalar(unitScale);
         mesh.boundingBox = boundingBox;
         GameUtils.mapToWorld(mapCoords, mesh.position);
-        this.createUnit({
+        const unit = this.createUnit({
             mesh,
-            type: UnitType.Worker,
-            states: [new MiningState()],
+            type,
+            states: (() => {
+                switch (type) {
+                    case "worker": return [new MiningState()];
+                    default: return [new NPCState()]; // ArcherNPCState
+                }
+            })(),
             animation: skeletonManager.applyIdleAnim(mesh)
         });
+
+        switch (type) {
+            case "enemy-melee": unit.fsm.switchState(NPCState); break;
+        }        
     }
 
     public kill(unit: IUnit) {
@@ -214,7 +219,9 @@ class UnitsManager {
         const size = buildingSizes[buildingType];
         spawnCoords.x += size.x / 2;
         spawnCoords.y += size.z;
-        this.spawn(spawnCoords);
+
+        const props = GameMapProps.instance;
+        this.spawn(spawnCoords, props.unit);
         this._spawnUnitRequest = null;
     }
 }

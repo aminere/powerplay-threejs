@@ -1,7 +1,7 @@
 import { Quaternion, SkinnedMesh, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, IUnitAnim, IUnitFlowfieldInfo, UnitType } from "./IUnit";
+import { IUnit, IUnitAnim, IUnitFlowfieldInfo } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
@@ -11,6 +11,7 @@ import { computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { unitAnimation } from "./UnitAnimation";
 import { cmdFogRemoveCircle } from "../../Events";
 import { IResource } from "../GameTypes";
+import { UnitType } from "../GameDefinitions";
 
 export interface IUnitProps {
     mesh: SkinnedMesh;
@@ -102,7 +103,7 @@ export class Unit implements IUnit {
     private _isAlive = true;
     private _isIdle = true;
     private _collidable = true;
-    private _type = UnitType.Worker;
+    private _type: UnitType = "worker";
     private _health = 1;
     private _attackers: IUnit[] = [];
     private _animation: IUnitAnim;

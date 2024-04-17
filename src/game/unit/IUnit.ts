@@ -3,11 +3,7 @@ import { StateMachine } from "../fsm/StateMachine";
 import { IUniqueSkeleton } from "../animation/SkeletonPool";
 import { IUnitAddr } from "./UnitAddr";
 import { IResource } from "../GameTypes";
-
-export enum UnitType {
-    Worker,
-    NPC
-}
+import { UnitType } from "../GameDefinitions";
 
 export interface IUnitAnim {
     name: string;

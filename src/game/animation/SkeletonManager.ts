@@ -6,11 +6,11 @@ import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
 import { GameUtils } from "../GameUtils";
+import { UnitType } from "../GameDefinitions";
 
 const identity = new Matrix4();
-class SkeletonManager {
+class SkeletonManager {    
     
-    public get sharedSkinnedMesh() { return this._sharedSkinnedMesh; }
     public get boundingBox() { return this._boundingBox; }
 
     private _skeletons = new Map<string, {
@@ -18,23 +18,29 @@ class SkeletonManager {
         armature: Object3D;
     }>();
 
-    private _sharedSkinnedMesh!: SkinnedMesh;
+    private _sharedSkinnedMeshes = new Map<UnitType, SkinnedMesh>();
     private _boundingBox!: Box3;
 
     public getSkeleton(animation: string) {
         return this._skeletons.get(animation);
     }
 
+    public getSharedSkinnedMesh(type: UnitType) {
+        return this._sharedSkinnedMeshes.get(type);
+    }
+
     public async load(props: {
-        skin: string;
+        skins: Record<UnitType, string>;
         animations: Array<{
             name: string;
             isLooping?: boolean;
         }>;
     }) {
-        const skin = await objects.load(props.skin);
+        const skins = await Promise.all(Object.values(props.skins).map(skin => objects.load(skin)));
+        const skin0 = skins[0];
+
         const skinnedMeshes = props.animations.map(animation => {
-            const skinCopy = SkeletonUtils.clone(skin);
+            const skinCopy = SkeletonUtils.clone(skin0);
             const skinnedMesh = skinCopy.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
             const skeleton = skinnedMesh.skeleton;
             const rootBone = skeleton.bones[0];
@@ -44,7 +50,7 @@ class SkeletonManager {
                 animations, 
                 currentAnim: 0,
                 loopMode: animation.isLooping === false ? "Once" : "Repeat",
-                speed: animation.name === "shoot" ? 0.5 : 1
+                speed: 1
             }));
             this._skeletons.set(animation.name, { skeleton, armature });
             return skinnedMesh;
@@ -56,20 +62,27 @@ class SkeletonManager {
             const rootBone = skinnedMesh.skeleton.bones[0];
             const armature = rootBone.parent!;
             armature.name = `${armature.name}-${props.animations[i].name}`;
-            skeletons.add(armature);
+            skeletons.add(armature);            
         });
 
-        const sharedSkinnedMesh = skinnedMeshes[0];
-        const rootBone0 = skinnedMeshes[0].skeleton.bones[0];
-        const armature0 = rootBone0.parent!;        
-        const baseRotation = armature0.quaternion.clone();
+        skins.forEach((skin, i) => {
+            const unitType = Object.keys(props.skins)[i] as UnitType;
+            const skinCopy = SkeletonUtils.clone(skin);
+            const sharedSkinnedMesh = skinCopy.getObjectByProperty("isSkinnedMesh", true) as SkinnedMesh;
+            this._sharedSkinnedMeshes.set(unitType, sharedSkinnedMesh);
+        });
 
-        this._sharedSkinnedMesh = sharedSkinnedMesh;
-        sharedSkinnedMesh.geometry.computeBoundingBox();
-
-        const boundingBox = sharedSkinnedMesh.geometry.boundingBox!.clone()
-        boundingBox.applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, GameUtils.vec3.one));
-        this._boundingBox = boundingBox;
+        // TODO support a bounding boxes per type
+        this._boundingBox = (() => {
+            const skinnedMesh0 = skinnedMeshes[0];
+            const rootBone0 = skinnedMesh0.skeleton.bones[0];
+            const armature0 = rootBone0.parent!;        
+            const baseRotation = armature0.quaternion.clone();        
+            skinnedMesh0.geometry.computeBoundingBox();
+            const boundingBox = skinnedMesh0.geometry.boundingBox!.clone()
+            boundingBox.applyMatrix4(new Matrix4().compose(GameUtils.vec3.zero, baseRotation, GameUtils.vec3.one));
+            return boundingBox;
+        })();
     }
 
     public dispose() {
