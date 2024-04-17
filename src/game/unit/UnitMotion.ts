@@ -145,12 +145,18 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
 function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
     if (destCell.resource) {
-        if (destCell.resource.type === currentCell.resource?.type) {
+        if (destCell.resource.type === currentCell.resource?.type) {            
             return 1;
         }
     } else if (destCell.building) {
         if (destCell.building.instanceId === currentCell.building?.instanceId) {
-            return 1;
+            if (destCell.pickableResource) {
+                if (currentCell === destCell) {
+                    return 1;
+                }
+            } else {
+                return 1;
+            }
         }
     }
     return currentCell.flowFieldCost;

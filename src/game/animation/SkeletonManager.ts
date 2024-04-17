@@ -45,7 +45,7 @@ class SkeletonManager {
             const skeleton = skinnedMesh.skeleton;
             const rootBone = skeleton.bones[0];
             const armature = rootBone.parent!;
-            const animations = utils.MakeStrArray([animation.name]);
+            const animations = utils.makeStrArray([animation.name]);
             engineState.setComponent(armature, new Animator({ 
                 animations, 
                 currentAnim: 0,

@@ -16,6 +16,7 @@ import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
+import { unitUtils } from "./UnitUtils";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -177,15 +178,14 @@ export function updateUnits(units: IUnit[]) {
                 const instanceId = avoidedCell.building.instanceId;
                 const targetCell = getCellFromAddr(unit.targetCell);
                 if (instanceId === targetCell.building?.instanceId) {
+
                     const carriedResource = unit.resource;
                     if (carriedResource) {
                         const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
                         if (buildingInstance.buildingType === "factory") {
                             const state = buildingInstance.state as IFactoryState;
                             if (state.input === carriedResource.type) {
-                                console.log(`unit ${unit.id} delivered resource ${carriedResource.type} to factory ${instanceId}`);
                                 state.inputReserve++;
-                                carriedResource.visual.removeFromParent();
                                 unit.resource = null;
                             }
                         }
@@ -195,6 +195,13 @@ export function updateUnits(units: IUnit[]) {
                     if (miningState) {
                         miningState.onReachedTarget(unit);
                     } else {
+
+                        if (targetCell.pickableResource) {
+                            unitUtils.pickResource(unit, targetCell.pickableResource.type);                            
+                            targetCell.pickableResource.visual.removeFromParent();
+                            targetCell.pickableResource = undefined;
+                        }
+
                         onUnitArrived(unit);
                     }                    
                 }

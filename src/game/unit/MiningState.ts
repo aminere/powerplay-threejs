@@ -8,9 +8,8 @@ import { unitMotion } from "./UnitMotion";
 import { IBuildingInstance, IFactoryState, buildingSizes } from "../buildings/BuildingTypes";
 import { GameMapState } from "../components/GameMapState";
 import { resources } from "../Resources";
-import { utils } from "../../engine/Utils";
-import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { unitUtils } from "./UnitUtils";
 
 enum MiningStep {
     GoToResource,
@@ -45,23 +44,6 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
         }
     }
     return closestFactory;
-}
-
-
-function pickResource(unit: IUnit, resourceType: RawResourceType | ResourceType) {
-    const { pickedItems: layer } = GameMapState.instance.layers;
-    const visual = utils.createObject(layer, resourceType);
-    visual.matrixAutoUpdate = false;
-    visual.matrixWorldAutoUpdate = false;
-    meshes.load(`/models/resources/${resourceType}.glb`).then(([_mesh]) => {
-        const mesh = _mesh.clone();
-        visual.add(mesh);
-        mesh.castShadow = true;
-    });
-    unit.resource = {
-        visual,
-        type: resourceType
-    };
 }
 
 function stopMining(unit: IUnit) {
@@ -147,7 +129,7 @@ export class MiningState extends State<IUnit> {
                         if (cell.resource.amount === 0) {
                             resources.clear(cell);
                         }
-                        pickResource(unit, resourceType);
+                        unitUtils.pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);
                     } else {
                         console.log("resource depleted");
@@ -168,17 +150,24 @@ export class MiningState extends State<IUnit> {
             case MiningStep.GoToResource:
                 const cell = getCellFromAddr(this._targetResource);
                 if (cell.resource) {
-                    this._step = MiningStep.Mine;
-                    this._miningTimer = 1;
-                    unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
-                    unit.collidable = false;
 
-                } else if (cell.pickableResource) {
+                    const startMining = () => {
+                        this._step = MiningStep.Mine;
+                        this._miningTimer = 1;
+                        unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+                        unit.collidable = false;
+                    };
 
-                    pickResource(unit, cell.pickableResource.type);
-                    this.goToFactory(unit, cell.pickableResource.type);
-                    cell.pickableResource.visual.removeFromParent();
-                    cell.pickableResource = undefined;
+                    if (unit.resource) {
+                        if (unit.resource.type === cell.resource.type) {
+                            this.goToFactory(unit, unit.resource.type);
+                        } else {
+                            unit.resource = null;
+                            startMining();
+                        } 
+                    } else {
+                        startMining();
+                    }                    
 
                 } else {
                     stopMining(unit);

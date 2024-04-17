@@ -58,7 +58,16 @@ export class Unit implements IUnit {
         }
         this._motionId = value;
     }
-    public set resource(value: IResource | null) { this._resource = value; }
+
+    public set resource(value: IResource | null) { 
+        if (value === this._resource) {
+            return;
+        }
+        if (this._resource) {
+            this._resource.visual.removeFromParent();
+        }
+        this._resource = value;
+    }
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }

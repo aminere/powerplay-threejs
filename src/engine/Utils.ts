@@ -75,7 +75,7 @@ class Utils {
         return Boolean(document.pointerLockElement);
     }
 
-    public MakeStrArray(values: string[]) {
+    public makeStrArray(values: string[]) {
         const array = new TArray(String);
         for (const value of values) {
             array.grow(new String(value));
