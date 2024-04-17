@@ -44,7 +44,6 @@ export interface IResource {
 
 export interface IBuilding {
     instanceId: string;
-    edge: boolean;
 }
 
 export interface IStraightRailConfig {

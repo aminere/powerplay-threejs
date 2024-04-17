@@ -1,6 +1,7 @@
 import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config";
+import { ICell } from "../GameTypes";
 
 export type TFlowField = {
     integration: number;
@@ -60,12 +61,9 @@ class FlowField {
     private _motionId = 1;
     private _motions = new Map<number, TFlowfieldMotion>();
 
-    public compute(targetCoords: Vector2, sectors: Vector2[]) {
+    public compute(targetCoords: Vector2, sectors: Vector2[], getCellCost: (cell: ICell) => number) {
 
-        const cell = GameUtils.getCell(targetCoords, sectorCoords, localCoords);
-        if (!cell) {
-            return null;
-        }       
+        GameUtils.getCell(targetCoords, sectorCoords, localCoords);            
 
         const flowfields: TFlowFieldMap = new Map<string, TFlowField[]>();
         for (const sectorCoords of sectors) {
@@ -113,7 +111,7 @@ class FlowField {
                 }
                 
                 const neighborCellIndex = neighborLocalCoords.y * mapRes + neighborLocalCoords.x;                
-                const endNodeCost = flowField[currentIndex].integration + neighborCell.flowFieldCost;
+                const endNodeCost = flowField[currentIndex].integration + getCellCost(neighborCell);
                 const neighborFlowfield = flowfields.get(`${neighborSectorCoords.x},${neighborSectorCoords.y}`)!;
                 const neighborFlowfieldInfo = neighborFlowfield[neighborCellIndex];
                 if (endNodeCost < neighborFlowfieldInfo.integration) {

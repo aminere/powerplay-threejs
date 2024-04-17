@@ -1,4 +1,4 @@
-import { type TileType, TileTypes, type MineralType, MineralTypes, RawResourceTypes, type RawResourceType, type ResourceType, ResourceTypes } from "../GameDefinitions";
+import { type TileType, TileTypes, type MineralType, MineralTypes, RawResourceTypes, type RawResourceType, type ResourceType, ResourceTypes, type UnitType, UnitTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
@@ -38,6 +38,9 @@ export class GameMapProps extends ComponentProps {
     brushSize = 1;
     brushHeight = 1;
     relativeBrush = false;
+
+    @Attributes.enumOptions(UnitTypes)
+    unit: UnitType = "worker";
 
     saveToDisk = false;
     @Attributes.command("save")

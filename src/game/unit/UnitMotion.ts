@@ -1,7 +1,6 @@
 import { Matrix4, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
-import { MiningState } from "./MiningState";
 import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr } from "./UnitAddr";
@@ -13,7 +12,6 @@ import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
-import { buildingSizes } from "../buildings/BuildingTypes";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 
 const cellDirection = new Vector2();
@@ -21,7 +19,6 @@ const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
 const destSectorCoords = new Vector2();
-const buildingCorners = [...Array(4)].map(() => new Vector2());
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -43,19 +40,22 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
     const destBuildingId = destCell.building?.instanceId;
     const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, { 
         diagonals: () => false,
-        isWalkable: destBuildingId ? (cell: ICell) => {
+        isWalkable: (destBuildingId || destCell.resource) ? (cell: ICell) => {
 
-            // allow to walk to any cell in the destination building, the unit will stop when hitting the building
             const cellBuildingId = cell.building?.instanceId;
             if (cellBuildingId) {
+                // allow to walk to any cell in the destination building, the unit will stop when hitting the building
                 if (destCell.pickableResource) {
-                    // unless the destination is an output cell, all building cells are not walkable except for the output cell
-                    return cell.pickableResource !== undefined;
-                } else {                    
-                    return cellBuildingId === destBuildingId;    
+                    // unless the destination is an output cell
+                    const isWalkable = cell.pickableResource !== undefined;
+                    return isWalkable;
+                } else {
+                    return cellBuildingId === destBuildingId;
                 }
+            } else if (cell.resource) {
+                return cell.resource.type === destCell.resource?.type;
             }
-
+            
             return cell.isWalkable;
         } : undefined
     });
@@ -143,6 +143,19 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
     unit.desiredPosValid = true;
 }
 
+function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
+    if (destCell.resource) {
+        if (destCell.resource.type === currentCell.resource?.type) {
+            return 1;
+        }
+    } else if (destCell.building) {
+        if (destCell.building.instanceId === currentCell.building?.instanceId) {
+            return 1;
+        }
+    }
+    return currentCell.flowFieldCost;
+}
+
 class UnitMotion {
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
@@ -153,7 +166,8 @@ class UnitMotion {
             console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
             return;
         }
-        const flowfields = flowField.compute(destMapCoords, sectors)!;
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell))!;
+
         console.assert(flowfields);
         const motionId = flowField.register(flowfields);
         moveTo(unit, motionId, destMapCoords, bindSkeleton);
@@ -167,39 +181,13 @@ class UnitMotion {
             return;
         }
 
-        const hasResource = destCell.resource || destCell.pickableResource;
-
         const validMove = (() => {
-            if (hasResource) {
+            if (destCell.resource) {
                 return true;
             }
-
-            if (destCell.building) {
-                if (!destCell.building.edge) {
-                    // find closest corner
-                    const instance = GameMapState.instance.buildings.get(destCell.building.instanceId)!;
-                    const srcCoords = units[0].coords.mapCoords;
-                    const size = buildingSizes[instance.buildingType];
-                    const corner0 = instance.mapCoords;
-                    buildingCorners[0].set(corner0.x, corner0.y);
-                    buildingCorners[1].set(corner0.x + size.x - 1, corner0.y);
-                    buildingCorners[2].set(corner0.x, corner0.y + size.z - 1);
-                    buildingCorners[3].set(corner0.x + size.x - 1, corner0.y + size.z - 1);                
-                    let closestDist = 999999;
-                    let closestCorner = -1;
-                    for (let i = 0; i < buildingCorners.length; ++i) {
-                        const dist = srcCoords.distanceTo(buildingCorners[i]);
-                        if (dist < closestDist) {
-                            closestDist = dist;
-                            closestCorner = i;
-                        }
-                    }
-                    destMapCoords.copy(buildingCorners[closestCorner]);
-                    destCell = GameUtils.getCell(destMapCoords)!;
-                }
+            if (destCell.building) {                
                 return true;
             }
-
             return destCell.isWalkable;
         })();
 
@@ -207,9 +195,8 @@ class UnitMotion {
             return;
         }
 
-        const flowfields = flowField.compute(destMapCoords, sectors)!;
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell))!;
         console.assert(flowfields);
-        const nextState = hasResource ? MiningState : null;
         let unitCount = 0;
         let motionId: number | null = null;
         for (const unit of units) {
@@ -230,7 +217,7 @@ class UnitMotion {
             }
 
             moveTo(unit, motionId, destMapCoords);
-            unit.fsm.switchState(nextState);
+            unit.fsm.switchState(null);
             ++unitCount;
         }
 

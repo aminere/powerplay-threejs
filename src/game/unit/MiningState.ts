@@ -11,7 +11,6 @@ import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { GameUtils } from "../GameUtils";
 
 enum MiningStep {
     GoToResource,
@@ -76,32 +75,20 @@ function stopMining(unit: IUnit) {
 
 export class MiningState extends State<IUnit> {
 
-    public set potentialTarget(value: Vector2) { this._potentialTarget.copy(value); }
-
     private _step!: MiningStep;
     private _miningTimer!: number;
     private _targetResource = makeUnitAddr();
-    private _potentialTarget = new Vector2(-1, -1);
     private _closestFactory: IBuildingInstance | null = null;
 
     override enter(unit: IUnit) {
         console.log(`MiningState enter`);
         this._step = MiningStep.GoToResource;
         copyUnitAddr(unit.targetCell, this._targetResource);
-        this._potentialTarget.set(-1, -1);
     }
 
     override exit(_owner: IUnit): void {
         console.log(`MiningState exit`);
     }
-
-    private goToResource(unit: IUnit) {
-        if (unit.motionId > 0) {
-            unitMotion.onUnitArrived(unit);
-        }
-        this._step = MiningStep.GoToResource;
-        unitMotion.moveUnit(unit, this._targetResource.mapCoords);
-    }     
 
     private goToFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
         const factory = findClosestFactory(unit, resourceType);
@@ -127,7 +114,7 @@ export class MiningState extends State<IUnit> {
         switch (this._step) {
 
             case MiningStep.GoToResource: {
-                const arrived = unit.targetCell.mapCoords.equals(this._potentialTarget);
+                const arrived = false; //unit.targetCell.mapCoords.equals(this._potentialTarget);
                 if (arrived) {
                     this.onReachedTarget(unit);
                 }
@@ -143,23 +130,6 @@ export class MiningState extends State<IUnit> {
                     this.goToFactory(unit, resourceType);
                     this._closestFactory = null;
 
-                } else {
-
-                    if (!Number.isNaN(this._potentialTarget.x)) {                        
-                        const potentialTarget = GameUtils.getCell(this._potentialTarget)!;
-                        this._potentialTarget.set(NaN, NaN);
-
-                        const targetCell = getCellFromAddr(unit.targetCell);
-                        if (potentialTarget.building?.instanceId === targetCell.building?.instanceId) {
-                            // arrived at factory
-                            const factoryState = this._closestFactory!.state as IFactoryState;
-                            console.assert(factoryState.input === unit.resource!.type, `factory input is ${factoryState.input} and unit resource is ${unit.resource!.type}`);
-                            factoryState.inputReserve++;
-                            unit.resource!.visual.removeFromParent();
-                            unit.resource = null;
-                            this.goToResource(unit);
-                        }
-                    }
                 }
             }
                 break;
@@ -187,28 +157,36 @@ export class MiningState extends State<IUnit> {
     }
 
     public onReachedTarget(unit: IUnit) {
-        this._potentialTarget.set(NaN, NaN);
         if (unit.motionId > 0) {
             unitMotion.onUnitArrived(unit);
         }
 
-        const cell = getCellFromAddr(this._targetResource);
-        if (cell.resource) {
-            this._step = MiningStep.Mine;
-            this._miningTimer = 1;
-            unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
-            unit.collidable = false;
+        switch (this._step) {
+            case MiningStep.GoToResource:
+                const cell = getCellFromAddr(this._targetResource);
+                if (cell.resource) {
+                    this._step = MiningStep.Mine;
+                    this._miningTimer = 1;
+                    unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+                    unit.collidable = false;
 
-        } else if (cell.pickableResource) {
+                } else if (cell.pickableResource) {
 
-            pickResource(unit, cell.pickableResource.type);
-            this.goToFactory(unit, cell.pickableResource.type);
-            cell.pickableResource.visual.removeFromParent();
-            cell.pickableResource = undefined;
+                    pickResource(unit, cell.pickableResource.type);
+                    this.goToFactory(unit, cell.pickableResource.type);
+                    cell.pickableResource.visual.removeFromParent();
+                    cell.pickableResource = undefined;
 
-        } else {
-            stopMining(unit);
+                } else {
+                    stopMining(unit);
+                }
+                break;
+
+            case MiningStep.GoToFactory:
+                this._step = MiningStep.GoToResource;
+                unitMotion.moveUnit(unit, this._targetResource.mapCoords);
+                break;
         }
-    }    
+    }
 }
 

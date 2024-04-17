@@ -248,11 +248,7 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords)!;
-                const onEdge = i === 0 || j === 0 || i === size.z - 1 || j === size.x - 1;
-                cell.building = {
-                    instanceId,
-                    edge: onEdge                
-                };
+                cell.building = { instanceId };
             }
         }
 

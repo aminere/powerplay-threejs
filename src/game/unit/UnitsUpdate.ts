@@ -173,29 +173,38 @@ export function updateUnits(units: IUnit[]) {
         }
 
         if (avoidedCell !== undefined && isMoving) {
-            const miningState = unit.fsm.getState(MiningState);
-            if (miningState) {
-                miningState.potentialTarget = avoidedCellCoords;
-            } else {
-                const instanceId = avoidedCell?.building?.instanceId;
-                if (instanceId) {
-                    const targetCell = getCellFromAddr(unit.targetCell);
-                    if (instanceId === targetCell.building?.instanceId) {
-                        const carriedResource = unit.resource;
-                        if (carriedResource) {
-                            const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
-                            if (buildingInstance.buildingType === "factory") {
-                                const state = buildingInstance.state as IFactoryState;
-                                if (state.input === carriedResource.type) {
-                                    state.inputReserve++;
-                                    carriedResource.visual.removeFromParent();
-                                    unit.resource = null;
-                                }
+            if (avoidedCell?.building) {
+                const instanceId = avoidedCell.building.instanceId;
+                const targetCell = getCellFromAddr(unit.targetCell);
+                if (instanceId === targetCell.building?.instanceId) {
+                    const carriedResource = unit.resource;
+                    if (carriedResource) {
+                        const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
+                        if (buildingInstance.buildingType === "factory") {
+                            const state = buildingInstance.state as IFactoryState;
+                            if (state.input === carriedResource.type) {
+                                console.log(`unit ${unit.id} delivered resource ${carriedResource.type} to factory ${instanceId}`);
+                                state.inputReserve++;
+                                carriedResource.visual.removeFromParent();
+                                unit.resource = null;
                             }
                         }
-
-                        onUnitArrived(unit);
                     }
+
+                    const miningState = unit.fsm.getState(MiningState)!;
+                    if (miningState) {
+                        miningState.onReachedTarget(unit);
+                    } else {
+                        onUnitArrived(unit);
+                    }                    
+                }
+            } else if (avoidedCell?.resource) {
+                const targetCell = getCellFromAddr(unit.targetCell);
+                if (avoidedCell.resource.type === targetCell.resource?.type) {
+                    unit.arriving = true;
+                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+                    const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
+                    miningState.onReachedTarget(unit);
                 }
             }
         }
@@ -282,11 +291,7 @@ export function updateUnits(units: IUnit[]) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                         if (reachedTarget) {                            
                             unit.arriving = true;
-                            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-                            const miningState = unit.fsm.getState(MiningState);
-                            if (miningState) {
-                                miningState.onReachedTarget(unit);
-                            }
+                            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });                            
                         }
                     }
                 }

@@ -30,12 +30,12 @@ export class StateMachine<T> {
         this._currentState?.update(this._owner, state => this.switchState(state));
     }
 
-    public switchState(state: Constructor<State<T>> | null) {
+    public switchState<U>(state: Constructor<U> | null) {
         const newState = state ? this._states[state.name] : null;
         this._currentState?.exit(this._owner);
         this._currentState = newState;
         newState?.enter(this._owner);
-        return newState;
+        return newState as U;
     }
 
     public getState<U>(state: Constructor<U>) {
