@@ -77,7 +77,7 @@ export const config: IConfig = {
         itemSize: .5, // relative to the cell
         itemScale: .7,
         width: .8,
-        height: .51,
+        height: .34,
         maxCount: 500,
         speed: 1,
     },

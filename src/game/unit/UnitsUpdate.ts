@@ -17,6 +17,7 @@ import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
 import { unitUtils } from "./UnitUtils";
+import { conveyorItems } from "../ConveyorItems";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -197,7 +198,7 @@ export function updateUnits(units: IUnit[]) {
                     } else {
 
                         if (targetCell.pickableResource) {
-                            unitUtils.pickResource(unit, targetCell.pickableResource.type);                            
+                            unitUtils.pickResource(unit, targetCell.pickableResource.type);
                             targetCell.pickableResource.visual.removeFromParent();
                             targetCell.pickableResource = undefined;
                         }
@@ -212,6 +213,18 @@ export function updateUnits(units: IUnit[]) {
                     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
                     const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
                     miningState.onReachedTarget(unit);
+                }
+            } else if (avoidedCell?.conveyor) {
+                const targetCell = getCellFromAddr(unit.targetCell);                
+                if (avoidedCell === targetCell) {
+                    const conveyor = avoidedCell.conveyor;
+                    if (conveyor.items.length > 0) {                    
+                        const item = conveyor.items[0];
+                        utils.fastDelete(conveyor.items, 0);
+                        conveyorItems.removeItem(item);
+                        unitUtils.pickResource(unit, item.type);
+                    }
+                    onUnitArrived(unit);
                 }
             }
         }

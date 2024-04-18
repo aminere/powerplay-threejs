@@ -194,6 +194,9 @@ class UnitMotion {
             if (destCell.building) {                
                 return true;
             }
+            if (destCell.conveyor) {
+                return destCell.conveyor.items.length > 0;
+            }
             return destCell.isWalkable;
         })();
 
