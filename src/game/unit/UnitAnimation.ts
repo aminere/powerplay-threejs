@@ -1,12 +1,12 @@
 import { LoopMode } from "../../engine/serialization/Types";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
-import { IUnit } from "./IUnit";
+import { ICharacterUnit } from "./ICharacterUnit";
 
 class UnitAnimation {
 
     public setAnimation(
-        unit: IUnit,
+        unit: ICharacterUnit,
         _animation: string,
         props?: {
             transitionDuration?: number;
@@ -78,7 +78,7 @@ class UnitAnimation {
         }
     }    
 
-    public getSkeleton(unit: IUnit) {
+    public getSkeleton(unit: ICharacterUnit) {
         if (unit.skeleton) {
             return unit.skeleton.armature;
         } else {
@@ -87,11 +87,11 @@ class UnitAnimation {
         }
     }
 
-    private setCommonAnimation(unit: IUnit, animation: string, animSpeed?: number) {
+    private setCommonAnimation(unit: ICharacterUnit, animation: string, animSpeed?: number) {
         if (unit.skeleton) {
             skeletonPool.releaseSkeleton(unit);
         }
-        const action = skeletonManager.applySkeleton(animation, unit.obj, animSpeed)!;
+        const action = skeletonManager.applySkeleton(animation, unit.skinnedMesh, animSpeed)!;
         unit.animation.name = animation;
         unit.animation.action = action;
     }

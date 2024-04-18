@@ -1,6 +1,5 @@
 
 import { Component } from "../../engine/ecs/Component";
-import { ICell } from "../GameTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { utils } from "../../engine/Utils";
 import { Wagon } from "./Wagon";

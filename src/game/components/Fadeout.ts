@@ -1,5 +1,5 @@
 
-import { Mesh, Object3D } from "three";
+import { DoubleSide, Mesh, Object3D } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import gsap from "gsap";
@@ -35,11 +35,18 @@ export class Fadeout extends Component<FadeoutProps> {
             } else {
                 const material = mesh.material.clone();
                 material.transparent = true;
-                mesh.material = material;                
-                mesh.castShadow = false;
+                material.side = DoubleSide;
+                mesh.material = material;
                 this._tween = gsap.to(material, {
                     duration: this.props.duration,
                     opacity: 0,
+                    onUpdate: () => {
+                        if (mesh.castShadow) {
+                            if (material.opacity < .5) {
+                                mesh.castShadow = false;
+                            }
+                        }
+                    },
                     onComplete: () => {
                         mesh.visible = false;
                         this._tween = null;

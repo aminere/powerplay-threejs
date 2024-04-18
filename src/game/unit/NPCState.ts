@@ -1,12 +1,13 @@
 import { FlockProps } from "../components/Flock";
 import { State } from "../fsm/StateMachine";
-import { IUnit } from "./IUnit";
 import { time } from "../../engine/core/Time";
 import { npcUtils } from "./NPCUtils";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
 import { unitMotion } from "./UnitMotion";
 import { mathUtils } from "../MathUtils";
+import { ICharacterUnit } from "./ICharacterUnit";
+import { IUnit } from "./IUnit";
 
 enum NpcStep {
     Idle,
@@ -16,13 +17,13 @@ enum NpcStep {
 
 const vision = 5;
 
-export class NPCState extends State<IUnit> {
+export class NPCState extends State<ICharacterUnit> {
 
     private _step = NpcStep.Idle;
     private _target: IUnit | null = null;
     private _hitTimer = 1;
 
-    override update(unit: IUnit): void {
+    override update(unit: ICharacterUnit): void {
 
         const flockProps = FlockProps.instance;
         switch (this._step) {
@@ -40,8 +41,8 @@ export class NPCState extends State<IUnit> {
                 if (target.isAlive) {
 
                     if (unit.arriving) {
-                        mathUtils.smoothDampVec3(unit.desiredPos, target.obj.position, .2, time.deltaTime);
-                        const dist = target.obj.position.distanceTo(unit.obj.position);
+                        mathUtils.smoothDampVec3(unit.desiredPos, target.mesh.position, .2, time.deltaTime);
+                        const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < flockProps.separation + .2) {
                             console.assert(unit.motionId > 0);
                             unitMotion.onUnitArrived(unit);
@@ -72,10 +73,10 @@ export class NPCState extends State<IUnit> {
             case NpcStep.Attack: {
                 const target = this._target!;
                 if (target.isAlive) {
-                    const dist = target.obj.position.distanceTo(unit.obj.position);
+                    const dist = target.mesh.position.distanceTo(unit.mesh.position);
                     const inRange = dist < flockProps.separation + .4;
                     if (inRange) {
-                        unitMotion.updateRotation(unit, unit.obj.position, target.obj.position);
+                        unitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
                         this._hitTimer -= time.deltaTime;
                         if (this._hitTimer < 0) {
                             // TODO hit feedback                     
@@ -97,7 +98,7 @@ export class NPCState extends State<IUnit> {
         }
     }
 
-    private follow(unit: IUnit, target: IUnit) {
+    private follow(unit: ICharacterUnit, target: IUnit) {
         switch (this._step) {
             case NpcStep.Attack: {
                 unitMotion.moveUnit(unit, target.coords.mapCoords, false);
@@ -116,7 +117,7 @@ export class NPCState extends State<IUnit> {
         this._target = target;
     }
 
-    private goToIdle(unit: IUnit) {
+    private goToIdle(unit: ICharacterUnit) {
         const target = this._target!;
         if (unit.motionId > 0) {
             unitMotion.onUnitArrived(unit);

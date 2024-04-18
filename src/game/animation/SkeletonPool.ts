@@ -1,12 +1,12 @@
 import { AnimationMixer, Matrix4, Object3D, Skeleton, SkinnedMesh } from "three";
 import { objects } from "../../engine/resources/Objects";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
-import { IUnit } from "../unit/IUnit";
 import { engineState } from "../../engine/EngineState";
 import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { LoopMode } from "../../engine/serialization/Types";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
 
 export interface IUniqueSkeleton {
     id: string;
@@ -42,7 +42,7 @@ class SkeletonPool {
     }
 
     public applyTransitionSkeleton(props: {
-        unit: IUnit;
+        unit: ICharacterUnit;
         destAnim: string;
         duration?: number;
         destAnimLoopMode?: LoopMode;
@@ -102,14 +102,14 @@ class SkeletonPool {
         skeleton.isFree = false;        
         skeleton.mixer.update(time.deltaTime);
 
-        unit.obj.bind(skeleton.skeleton, identity);
+        unit.skinnedMesh.bind(skeleton.skeleton, identity);
         unit.skeleton = skeleton;
         unit.animation.name = destAnim;
         unit.animation.action = destAction;
     }
 
     public transition(props: {
-        unit: IUnit;
+        unit: ICharacterUnit;
         destAnim: string;
         duration?: number;
         destAnimLoopMode?: LoopMode;
@@ -142,7 +142,7 @@ class SkeletonPool {
         });
     }
 
-    public releaseSkeleton(unit: IUnit) {
+    public releaseSkeleton(unit: ICharacterUnit) {
         unit.skeleton!.isFree = true;
         if (unit.skeleton!.timeout) {
             clearTimeout(unit.skeleton!.timeout);

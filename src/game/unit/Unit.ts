@@ -1,24 +1,21 @@
-import { Quaternion, SkinnedMesh, Vector3 } from "three"
+import { Mesh, Quaternion, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, IUnitAnim, IUnitFlowfieldInfo } from "./IUnit";
+import { IUnit, IUnitFlowfieldInfo } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
-import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
-import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { computeUnitAddr, makeUnitAddr } from "./UnitAddr";
-import { unitAnimation } from "./UnitAnimation";
 import { cmdFogRemoveCircle } from "../../Events";
-import { IResource } from "../GameTypes";
+import { ICell, IResource } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
+import { unitMotion } from "./UnitMotion";
 
 export interface IUnitProps {
-    mesh: SkinnedMesh;
+    mesh: Mesh;
     type: UnitType;
     speed?: number;
     states: State<IUnit>[];
-    animation: IUnitAnim;
 }
 
 export class Unit implements IUnit {
@@ -28,7 +25,7 @@ export class Unit implements IUnit {
     public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
-    public get obj() { return this._mesh; }    
+    public get mesh() { return this._mesh; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
@@ -40,16 +37,15 @@ export class Unit implements IUnit {
     public get id() { return this._id; }  
     public get health() { return this._health; }  
     public get attackers() { return this._attackers; }
-    public get animation() { return this._animation; }
-    public get skeleton() { return this._skeleton; }
+    
     public get unitsInRange() { return this._unitsInRange; }
     public get resource() { return this._resource; }
-    public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
 
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
     public get fsm() { return this._fsm; }   
     public get speedFactor() { return this._speedFactor; }
+    public get boundingBox() { return this._mesh.geometry.boundingBox!; }
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set arriving(value: boolean) { this._arriving = value; }
@@ -70,59 +66,47 @@ export class Unit implements IUnit {
         this._resource = value;
     }
 
-    public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
-
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }
-    public set health(value: number) { 
-        this._health = value; 
+    public set health(value: number) {
+        this._health = value;
         if (value <= 0 && this._isAlive) {
             this._fsm.switchState(null);
-            engineState.removeComponent(this._mesh, UnitCollisionAnim);
-            this._isAlive = false;            
+            this._isAlive = false;
             this._collidable = false;
             this._motionId = 0;
             this._isColliding = false;
-            unitAnimation.setAnimation(this, "death", { 
-                transitionDuration: 1,
-                destAnimLoopMode: "Once"
-            });
+            const fadeDuration = 1;
+            engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
             setTimeout(() => {
-                const fadeDuration = 1;
-                engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
-                setTimeout(() => {
-                    skeletonPool.releaseSkeleton(this);
+                if (!this._type.startsWith("enemy")) {
                     cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
-                }, fadeDuration * 1000);
-            }, 2000);
+                }
+            }, fadeDuration * 1000);
         }
     }
-    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
 
     private _desiredPosValid = false;
     private _desiredPos = new Vector3();
     private _velocity = new Vector3();
-    private _arriving = false;
+    protected _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell = makeUnitAddr();
-    private _mesh: SkinnedMesh;    
+    private _mesh: Mesh;    
     private _coords = makeUnitAddr();
-    private _motionId = 0;
+    protected _motionId = 0;
     private _lastCompletedMotionId = 0;
-    private _isColliding = false;
-    private _isAlive = true;
+    protected _isColliding = false;
+    protected _isAlive = true;
     private _isIdle = true;
-    private _collidable = true;
+    protected _collidable = true;
     private _type: UnitType = "worker";
-    private _health = 1;
+    protected _health = 1;
     private _attackers: IUnit[] = [];
-    private _animation: IUnitAnim;
-    private _skeleton: IUniqueSkeleton | null = null;
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _resource: IResource | null = null;
-    private _muzzleFlashTimer = 0;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
@@ -136,7 +120,6 @@ export class Unit implements IUnit {
         this._id = id;
         this._fsm = new UnitFSM({ states: props.states, owner: this });
         this._speedFactor = props.speed ?? 1;
-        this._animation = props.animation;
 
         GameUtils.worldToMap(this._mesh.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
@@ -149,6 +132,17 @@ export class Unit implements IUnit {
         } else {
             cell.units = [this];
         }        
+    }
+
+    public onMove(_bindSkeleton: boolean) {}
+    public onSteer() {}
+    public onArrive() {
+        unitMotion.onUnitArrived(this);
+    }
+    public onColliding() {}
+    public updateResource() {}
+    public onReachedTarget(_cell: ICell) {
+        this.onArrive();
     }
 }
 

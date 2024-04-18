@@ -8,6 +8,7 @@ import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
 import { unitMotion } from "./UnitMotion";
+import { ICharacterUnit } from "./ICharacterUnit";
 
 enum NpcStep {
     Idle,
@@ -38,7 +39,7 @@ export class ArcherNPCState extends State<IUnit> {
     private _idleTimer = -1;
     private _arrows = new Array<IArrow>();
 
-    override update(unit: IUnit): void {
+    override update(unit: ICharacterUnit): void {
 
         switch (this._step) {
             case NpcStep.Idle: {
@@ -62,7 +63,7 @@ export class ArcherNPCState extends State<IUnit> {
                     if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                         this.follow(unit, target);
                     } else {
-                        const dist = target.obj.position.distanceTo(unit.obj.position);
+                        const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < vision) {
                             if (unit.motionId > 0) {
                                 unitMotion.onUnitArrived(unit);    
@@ -79,10 +80,10 @@ export class ArcherNPCState extends State<IUnit> {
             case NpcStep.Attack: {
                 const target = this._target!;
                 if (target.isAlive) {
-                    const dist = target.obj.position.distanceTo(unit.obj.position);
+                    const dist = target.mesh.position.distanceTo(unit.mesh.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        unitMotion.updateRotation(unit, unit.obj.position, target.obj.position);
+                        unitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               
@@ -98,15 +99,15 @@ export class ArcherNPCState extends State<IUnit> {
                                     
                                     const hand = unit.skeleton?.skeleton.getBoneByName("HandL")!;
                                     hand?.getWorldPosition(arrow.obj.position);
-                                    arrow.obj.position.applyMatrix4(unit.obj.matrixWorld);                                    
+                                    arrow.obj.position.applyMatrix4(unit.mesh.matrixWorld);                                    
                                     engine.scene!.add(arrow.obj);
                                     arrow.progress = 0;
                                     arrow.startPos.copy(arrow.obj.position);
                                     arrow.tween = gsap.to(arrow, {
                                         progress: 1,
-                                        duration: arrow.startPos.distanceTo(target.obj.position) / 8,
+                                        duration: arrow.startPos.distanceTo(target.mesh.position) / 8,
                                         onUpdate: () => {
-                                            targetPos.copy(target.obj.position).setY(target.obj.position.y + 1.4);
+                                            targetPos.copy(target.mesh.position).setY(target.mesh.position.y + 1.4);
                                             arrow!.obj.position.lerpVectors(arrow!.startPos, targetPos, arrow!.progress);
                                         },
                                         onComplete: () => {
@@ -174,7 +175,7 @@ export class ArcherNPCState extends State<IUnit> {
         // this._step = NpcStep.Follow;
     }
 
-    private goToIdle(unit: IUnit) {
+    private goToIdle(unit: ICharacterUnit) {
         const target = this._target!;
         const transitionDuration = .3;
         if (unit.motionId > 0) {
@@ -194,7 +195,7 @@ export class ArcherNPCState extends State<IUnit> {
         this._idleTimer = transitionDuration; 
     }
 
-    private attack(unit: IUnit) {
+    private attack(unit: ICharacterUnit) {
         this._attackStep = AttackStep.Draw;
         this._step = NpcStep.Attack;
         unitAnimation.setAnimation(unit, "arrow-draw", { transitionDuration: 1, destAnimLoopMode: "Once" });        

@@ -5,16 +5,18 @@ import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
-import { MiningState } from "./MiningState";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { GameMapState } from "../components/GameMapState";
-import { IUnitProps, Unit } from "./Unit";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
 import { updateUnits } from "./UnitsUpdate";
 import { config } from "../config";
 import { UnitType } from "../GameDefinitions";
-import { NPCState } from "./NPCState";
 import { GameMapProps } from "../components/GameMapProps";
+import { meshes } from "../../engine/resources/Meshes";
+import { CharacterUnit } from "./CharacterUnit";
+import { Unit } from "./Unit";
+import { MiningState } from "./MiningState";
+import { NPCState } from "./NPCState";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -40,7 +42,7 @@ class UnitsManager {
             skins: {
                 "worker": "/models/characters/Worker.json",
                 "enemy-melee": "/models/characters/NPC.json",
-                "enemy-ranged": "/models/characters/Astronaut.json",
+                "enemy-ranged": "/models/characters/Astronaut.json"
             },
             // globally shared animations
             animations: [
@@ -88,14 +90,14 @@ class UnitsManager {
                                 const units = this._units;
                                 for (let i = 0; i < units.length; ++i) {
                                     const unit = units[i];
-                                    const { obj, type } = unit;
-                                    if (type !== "worker") {
+                                    const { mesh, type } = unit;
+                                    if (type.startsWith("enemy")) {
                                         continue;
                                     }
                                     if (!unit.isAlive) {
                                         continue;
                                     }
-                                    GameUtils.worldToScreen(obj.position, gameMapState.camera, screenPos);
+                                    GameUtils.worldToScreen(mesh.position, gameMapState.camera, screenPos);
                                     const rectX = Math.min(this._selectionStart.x, input.touchPos.x);
                                     const rectY = Math.min(this._selectionStart.y, input.touchPos.y);
                                     const rectWidth = Math.abs(input.touchPos.x - this._selectionStart.x);
@@ -137,47 +139,77 @@ class UnitsManager {
         updateUnits(this._units);
     }
 
-    private createUnit(props: IUnitProps) {
-        const { mesh } = props;
-        mesh.userData.unserializable = true;
-        mesh.bindMode = "detached";
+    public async spawn(mapCoords: Vector2, type: UnitType) {
+
         const id = this._units.length;
-        const unit = new Unit(props, id);
-        this._units.push(unit);
-        this._owner.add(mesh);
-
-        if (props.type === "worker") {
-            cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
-        }
-        
-        const box3Helper = new Box3Helper(mesh.boundingBox);
-        mesh.add(box3Helper);
-        box3Helper.visible = false;
-        return unit;
-    }
-
-    public spawn(mapCoords: Vector2, type: UnitType) {
-        const sharedMesh = skeletonManager.getSharedSkinnedMesh(type)!;
-        const boundingBox = skeletonManager.boundingBox;
-        const mesh = sharedMesh.clone();
-        mesh.scale.multiplyScalar(unitScale);
-        mesh.boundingBox = boundingBox;
-        GameUtils.mapToWorld(mapCoords, mesh.position);
-        const unit = this.createUnit({
-            mesh,
-            type,
-            states: (() => {
-                switch (type) {
-                    case "worker": return [new MiningState()];
-                    default: return [new NPCState()]; // ArcherNPCState
-                }
-            })(),
-            animation: skeletonManager.applyIdleAnim(mesh)
-        });
-
         switch (type) {
-            case "enemy-melee": unit.fsm.switchState(NPCState); break;
-        }        
+            case "truck": {
+                const mesh = (await meshes.load(`/models/${type}.glb`))[0].clone();
+                mesh.castShadow = true;
+
+                const { truckScale } = config.game;
+                mesh.scale.multiplyScalar(truckScale);
+
+                mesh.userData.unserializable = true;
+                GameUtils.mapToWorld(mapCoords, mesh.position);
+
+                const unit = new Unit({ mesh, type, states: []}, id);
+                this._units.push(unit);
+                this._owner.add(mesh);
+
+                cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
+
+                if (!mesh.geometry.boundingBox) {
+                    mesh.geometry.computeBoundingBox();
+                }
+                const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
+                mesh.add(box3Helper);
+                box3Helper.visible = false;
+            }
+            break;
+
+            default: {
+                // character mesh
+                const sharedMesh = skeletonManager.getSharedSkinnedMesh(type)!;
+                const boundingBox = skeletonManager.boundingBox;
+                const skinnedMesh = sharedMesh.clone();
+                skinnedMesh.scale.multiplyScalar(unitScale);
+                skinnedMesh.boundingBox = boundingBox;
+                skinnedMesh.bindMode = "detached";
+
+                skinnedMesh.userData.unserializable = true;
+                GameUtils.mapToWorld(mapCoords, skinnedMesh.position);
+
+                const unit = new CharacterUnit({ 
+                    mesh: skinnedMesh,
+                    type, 
+                    states: (() => {
+                        switch (type) {
+                            case "worker": return [new MiningState()];
+                            case "enemy-melee": return [new NPCState()]
+                            default: return [];
+                        }
+                    })(),
+                    animation: skeletonManager.applyIdleAnim(skinnedMesh)
+                }, id);
+                this._units.push(unit);
+                this._owner.add(skinnedMesh);
+                
+                if (type.startsWith("enemy")) {
+                    switch (type) {
+                        case "enemy-melee":
+                            unit.fsm.switchState(NPCState);
+                            break;
+                    }
+                } else {
+                    cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
+                }
+
+                const box3Helper = new Box3Helper(skinnedMesh.boundingBox!);
+                skinnedMesh.add(box3Helper);
+                box3Helper.visible = false;
+            }    
+        }
     }
 
     public kill(unit: IUnit) {

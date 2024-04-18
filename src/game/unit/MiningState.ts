@@ -10,6 +10,7 @@ import { GameMapState } from "../components/GameMapState";
 import { resources } from "../Resources";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { unitUtils } from "./UnitUtils";
+import { ICharacterUnit } from "./ICharacterUnit";
 
 enum MiningStep {
     GoToResource,
@@ -46,7 +47,7 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
     return closestFactory;
 }
 
-function stopMining(unit: IUnit) {
+function stopMining(unit: ICharacterUnit) {
     if (unit.motionId > 0) {
         unitMotion.onUnitArrived(unit);
     }
@@ -55,7 +56,7 @@ function stopMining(unit: IUnit) {
     unit.collidable = true;
 }
 
-export class MiningState extends State<IUnit> {
+export class MiningState extends State<ICharacterUnit> {
 
     private _step!: MiningStep;
     private _miningTimer!: number;
@@ -72,7 +73,7 @@ export class MiningState extends State<IUnit> {
         console.log(`MiningState exit`);
     }
 
-    private goToFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
+    private goToFactory(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
         const factory = findClosestFactory(unit, resourceType);
         this._closestFactory = factory;
         if (this._closestFactory) {
@@ -95,7 +96,7 @@ export class MiningState extends State<IUnit> {
         }
     }
 
-    override update(unit: IUnit): void {
+    override update(unit: ICharacterUnit): void {
         switch (this._step) {
 
             case MiningStep.GoToResource: {
@@ -141,7 +142,7 @@ export class MiningState extends State<IUnit> {
         }
     }
 
-    public onReachedTarget(unit: IUnit) {
+    public onReachedTarget(unit: ICharacterUnit) {
         if (unit.motionId > 0) {
             unitMotion.onUnitArrived(unit);
         }

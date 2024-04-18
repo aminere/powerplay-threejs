@@ -1,22 +1,21 @@
-import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
+import { MathUtils, Vector2, Vector3 } from "three";
 import { FlockProps } from "../components/Flock";
 import { IUnit } from "./IUnit";
 import { config } from "../config";
 import { unitMotion } from "./UnitMotion";
-import { unitAnimation } from "./UnitAnimation";
+
 import { GameUtils } from "../GameUtils";
 import { time } from "../../engine/core/Time";
 import { MiningState } from "./MiningState";
 import { mathUtils } from "../MathUtils";
 import { utils } from "../../engine/Utils";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
-import { engineState } from "../../engine/EngineState";
 import { cmdFogMoveCircle } from "../../Events";
 import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
-import { unitUtils } from "./UnitUtils";
+import { ICharacterUnit } from "./ICharacterUnit";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -26,22 +25,8 @@ const avoidedCellSector = new Vector2();
 const avoidedCellLocalCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
-
-const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
-const pickedAk47Offset = new Matrix4().compose(
-    new Vector3(),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
-    new Vector3(1, 1, 1).multiplyScalar(1.5)
-);
-
-const pickedItemlocalToSkeleton = new Matrix4();
             
 const { mapRes } = config.game;
-
-function onUnitArrived(unit: IUnit) {
-    unitMotion.onUnitArrived(unit);
-    unitAnimation.setAnimation(unit, "idle");
-}
 
 const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
 const neighbordMapCoords = new Vector2();
@@ -142,7 +127,7 @@ export function updateUnits(units: IUnit[]) {
                             if (isMining || unit.resource) {
                                  // keep going
                             } else {
-                                onUnitArrived(unit);
+                                unit.onArrive();
                             }
                         }
 
@@ -168,7 +153,7 @@ export function updateUnits(units: IUnit[]) {
 
                 // move away from blocked cell
                 awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                unit.desiredPos.copy(unit.obj.position);
+                unit.desiredPos.copy(unit.mesh.position);
                 unit.desiredPos.x += awayDirection.x * steerAmount * .5;
                 unit.desiredPos.z += awayDirection.y * steerAmount * .5;
                 GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
@@ -193,27 +178,19 @@ export function updateUnits(units: IUnit[]) {
                         }
                     }
 
-                    const miningState = unit.fsm.getState(MiningState)!;
-                    if (miningState) {
-                        miningState.onReachedTarget(unit);
-                    } else {
-
-                        if (targetCell.pickableResource) {
-                            unitUtils.pickResource(unit, targetCell.pickableResource.type);
-                            targetCell.pickableResource.visual.removeFromParent();
-                            targetCell.pickableResource = undefined;
-                        }
-
-                        onUnitArrived(unit);
-                    }                    
+                    unit.onReachedTarget(targetCell);                    
                 }
             } else if (avoidedCell?.resource) {
                 const targetCell = getCellFromAddr(unit.targetCell);
                 if (avoidedCell.resource.type === targetCell.resource?.type) {
                     unit.arriving = true;
-                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-                    const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                    miningState.onReachedTarget(unit);
+                    switch (unit.type) {
+                        case "worker": {
+                            const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
+                            miningState.onReachedTarget(unit as ICharacterUnit);
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -222,27 +199,22 @@ export function updateUnits(units: IUnit[]) {
         if (needsMotion) {
             if (isMoving) {
                 if (avoidedCell !== undefined) {
-                    nextPos.copy(unit.obj.position);
+                    nextPos.copy(unit.mesh.position);
                     mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
                 } else {
                     nextPos.copy(unit.desiredPos);
                 }
                 hasMoved = true;
             } else if (unit.isColliding) {
-                const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
-                if (collisionAnim) {
-                    collisionAnim.reset();
-                } else {
-                    engineState.setComponent(unit.obj, new UnitCollisionAnim({ unit }));
-                }
+                unit.onColliding();
             }
         }
 
         unit.isColliding = false;
-        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.obj);
+        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.mesh);
         if (collisionAnim) {
             console.assert(unit.motionId === 0);
-            nextPos.copy(unit.obj.position);
+            nextPos.copy(unit.mesh.position);
             mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
             hasMoved = true;
         }
@@ -250,12 +222,12 @@ export function updateUnits(units: IUnit[]) {
         if (hasMoved) {
             GameUtils.worldToMap(nextPos, nextMapCoords);
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
-                unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                unit.obj.position.copy(nextPos);
+                unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                unit.mesh.position.copy(nextPos);
                 if (!unit.fsm.currentState) {
                     if (unit.arriving) {
                         if (unit.velocity.length() < 0.01) {
-                            onUnitArrived(unit);
+                            unit.onArrive();
                         }
                     }
                 }
@@ -266,12 +238,15 @@ export function updateUnits(units: IUnit[]) {
                 const nextCell = GameUtils.getCell(nextMapCoords);
                 const validCell = nextCell?.isWalkable;
                 if (validCell) {
-                    unitMotion.updateRotation(unit, unit.obj.position, nextPos);
-                    unit.obj.position.copy(nextPos);
+                    unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                    unit.mesh.position.copy(nextPos);
 
                     const dx = nextMapCoords.x - unit.coords.mapCoords.x;
                     const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                    cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+
+                    if (!unit.type.startsWith("enemy")) {
+                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+                    }                    
 
                     const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
                     const unitIndex = currentCell.units!.indexOf(unit);
@@ -300,46 +275,13 @@ export function updateUnits(units: IUnit[]) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                         if (reachedTarget) {                            
                             unit.arriving = true;
-                            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });                            
                         }
                     }
                 }
             }
         }
 
-        if (unit.resource) {
-            // attach the resource to the unit
-            const visual = unit.resource.visual;
-            const skeleton = unitAnimation.getSkeleton(unit);
-
-            switch (unit.resource.type) {
-                case "ak47": {
-                    const parent = skeleton.getObjectByName("HandR")!;
-                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);
-
-                    const muzzleFlash = visual.getObjectByName("muzzle-flash");
-                    if (muzzleFlash) {
-                        if (unit.animation.name === "shoot") {                            
-                            if (unit.muzzleFlashTimer < 0) {
-                                unit.muzzleFlashTimer = MathUtils.randFloat(.05, .2);
-                                muzzleFlash.visible = !muzzleFlash.visible;
-                            } else {
-                                unit.muzzleFlashTimer -= time.deltaTime;
-                            }
-                        } else {
-                            muzzleFlash.visible = false;
-                        }
-                    }
-                }
-                break;
-                default: {
-                    const parent = skeleton.getObjectByName("Spine2")!;
-                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedItemOffset);
-                }
-            }
-            
-            visual.matrix.multiplyMatrices(unit.obj.matrixWorld, pickedItemlocalToSkeleton);
-        }
+        unit.updateResource();        
     }
 }
 

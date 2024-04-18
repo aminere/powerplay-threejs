@@ -6,9 +6,10 @@ import { Animator } from "../../engine/components/Animator";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
 import { GameUtils } from "../GameUtils";
-import { UnitType } from "../GameDefinitions";
+import { CharacterType, UnitType } from "../GameDefinitions";
 
 const identity = new Matrix4();
+
 class SkeletonManager {    
     
     public get boundingBox() { return this._boundingBox; }
@@ -25,12 +26,12 @@ class SkeletonManager {
         return this._skeletons.get(animation);
     }
 
-    public getSharedSkinnedMesh(type: UnitType) {
+    public getSharedSkinnedMesh(type: CharacterType) {
         return this._sharedSkinnedMeshes.get(type);
     }
 
     public async load(props: {
-        skins: Record<UnitType, string>;
+        skins: Record<CharacterType, string>;
         animations: Array<{
             name: string;
             isLooping?: boolean;

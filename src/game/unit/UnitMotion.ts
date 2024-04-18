@@ -4,9 +4,6 @@ import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr } from "./UnitAddr";
-import { engineState } from "../../engine/EngineState";
-import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
-import { unitAnimation } from "./UnitAnimation";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
@@ -28,10 +25,7 @@ function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton 
     unit.arriving = false; 
     unit.collidable = true;
     computeUnitAddr(mapCoords, unit.targetCell);
-    engineState.removeComponent(unit.obj, UnitCollisionAnim);
-    if (bindSkeleton) {
-        unitAnimation.setAnimation(unit, "run");
-    }
+    unit.onMove(bindSkeleton);
 }
 
 const nextSector = new Vector2();
@@ -130,7 +124,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
         } else {
             cellDirection.set(0, 0);
             onUnitArrived(unit);
-            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+            unit.onSteer();
         }
 
     } else {
@@ -139,7 +133,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
     cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
     mathUtils.smoothDampVec3(unit.velocity, cellDirection3, .1, time.deltaTime);
-    unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
+    unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
     unit.desiredPosValid = true;
 }
 
@@ -245,7 +239,7 @@ class UnitMotion {
     }
 
     public steer(unit: IUnit, steerAmount: number) {
-        const { motionId, desiredPosValid, desiredPos, coords, obj } = unit;
+        const { motionId, desiredPosValid, desiredPos, coords, mesh: obj } = unit;
         if (motionId > 0) {
             if (!desiredPosValid) { 
                 
@@ -253,7 +247,7 @@ class UnitMotion {
 
                     if (!unit.fsm.currentState) {
                         mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
-                        unit.desiredPos.addVectors(unit.obj.position, unit.velocity);
+                        unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
                         unit.desiredPosValid = true;
                     }
 
@@ -327,7 +321,7 @@ class UnitMotion {
             unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
             const rotationDamp = 0.1;
             mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, rotationDamp, time.deltaTime);
-            unit.obj.quaternion.copy(unit.rotation);
+            unit.mesh.quaternion.copy(unit.rotation);
         }
     }    
 

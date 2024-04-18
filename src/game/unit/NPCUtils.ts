@@ -16,7 +16,7 @@ export class NPCUtils {
             if (!target.isAlive) {
                 continue;
             }
-            const dist = target.obj.position.distanceTo(unit.obj.position);
+            const dist = target.mesh.position.distanceTo(unit.mesh.position);
             if (dist < vision) {
                 if (unitsInRangeCount < unitsInRange.length) {
                     const unitInRange = unitsInRange[unitsInRangeCount];

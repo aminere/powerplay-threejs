@@ -186,17 +186,17 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             const intersection = pools.vec3.getOne();
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
-                                const { obj, type } = unit;
-                                if (type !== "worker") { // TODO better differentiation between player and NPC units
+                                const { mesh, type } = unit;
+                                if (type.startsWith("enemy")) {
                                     continue;
                                 }
                                 if (!unit.isAlive) {
                                     continue;
                                 }
-                                inverseMatrix.copy(obj.matrixWorld).invert();
+                                inverseMatrix.copy(mesh.matrixWorld).invert();
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                const boundingBox = obj.boundingBox;
-                                if (localRay.intersectBox(boundingBox, intersection)) {
+                                
+                                if (localRay.intersectBox(unit.boundingBox, intersection)) {
                                     intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
                                 }
                             }

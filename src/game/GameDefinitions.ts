@@ -46,10 +46,15 @@ export const ProductTypes = [
     "truck"
 ] as const;
 
-export const UnitTypes = [
+export const CharacterTypes = [
     "worker",
     "enemy-melee",
-    "enemy-ranged"
+    "enemy-ranged",
+] as const;
+
+export const UnitTypes = [
+    ...CharacterTypes,
+    "truck"
 ] as const;
 
 export type UIType = "gamemap";
@@ -59,5 +64,6 @@ export type RawResourceType = typeof RawResourceTypes[number];
 export type MineralType = typeof MineralTypes[number];
 export type ResourceType = typeof ResourceTypes[number];
 export type ProductType = typeof ProductTypes[number];
+export type CharacterType = typeof CharacterTypes[number];
 export type UnitType = typeof UnitTypes[number];
 

@@ -89,11 +89,11 @@ export function HealthBars() {
             if (selectedUnits.length > 0) {
                 for (let i = 0; i < selectedUnits.length; i++) {  
                     const unit = selectedUnits[i];              
-                    const { obj, isAlive } = unit;
+                    const { mesh, isAlive } = unit;
                     if (!isAlive) {
                         continue;
                     }
-                    worldPos.copy(obj.position).addScaledVector(obj.up, headOffset);                    
+                    worldPos.copy(mesh.position).addScaledVector(mesh.up, headOffset);                    
                     drawBar(ctx, worldPos, selectedUnits[i].health);
                 }
             } else if (selectedBuilding) {

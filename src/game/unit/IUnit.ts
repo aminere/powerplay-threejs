@@ -1,8 +1,7 @@
-import { AnimationAction, Quaternion, SkinnedMesh, Vector2, Vector3 } from "three";
+import { AnimationAction, Box3, Mesh, Quaternion, Vector2, Vector3 } from "three";
 import { StateMachine } from "../fsm/StateMachine";
-import { IUniqueSkeleton } from "../animation/SkeletonPool";
 import { IUnitAddr } from "./UnitAddr";
-import { IResource } from "../GameTypes";
+import { ICell, IResource } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 
 export interface IUnitAnim {
@@ -24,7 +23,7 @@ export interface IUnit {
     speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
-    obj: SkinnedMesh;
+    mesh: Mesh;
     coords: IUnitAddr;
     motionId: number;
     lastCompletedMotionId: number;
@@ -38,10 +37,15 @@ export interface IUnit {
     rotation: Quaternion;
     health: number;
     attackers: IUnit[];
-    animation: IUnitAnim;
-    skeleton: IUniqueSkeleton | null;
     unitsInRange: Array<[IUnit, number]>;
     resource: IResource | null;
-    muzzleFlashTimer: number;
+    boundingBox: Box3;
+
+    onMove: (bindSkeleton: boolean) => void;
+    onSteer: () => void;
+    onArrive: () => void;
+    onColliding: () => void;
+    updateResource: () => void;
+    onReachedTarget: (cell: ICell) => void;
 }
 
