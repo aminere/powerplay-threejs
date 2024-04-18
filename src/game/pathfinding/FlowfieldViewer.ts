@@ -24,7 +24,7 @@ function getText(value: number, font: Font) {
     const text = new TextGeometry(`${value}`, {
         font,
         size: 0.2,
-        height: 0.02,
+        depth: 0.02,
         curveSegments: 2,
         bevelEnabled: false,
     });
