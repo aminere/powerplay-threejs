@@ -44,6 +44,7 @@ export class Unit implements IUnit {
     public get skeleton() { return this._skeleton; }
     public get unitsInRange() { return this._unitsInRange; }
     public get resource() { return this._resource; }
+    public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
 
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
@@ -68,6 +69,8 @@ export class Unit implements IUnit {
         }
         this._resource = value;
     }
+
+    public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
@@ -119,6 +122,7 @@ export class Unit implements IUnit {
     private _skeleton: IUniqueSkeleton | null = null;
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _resource: IResource | null = null;
+    private _muzzleFlashTimer = 0;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();

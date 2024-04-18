@@ -43,6 +43,8 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
 
     public get currentAction() { return this.state.actions[this.state.currentAnim]; }
 
+    private _speed = 1;
+
     constructor(props?: Partial<AnimatorProps>) {
         super(new AnimatorProps(props));
     }
@@ -70,10 +72,17 @@ export class Animator extends Component<AnimatorProps, IAnimatorState> {
 
         if (this.props.autoStart) {
             actions[currentAnimName]?.play();
-        }        
+        }
+        this._speed = this.props.speed;
     }
     
     override update(_owner: Object3D) {
+        if (this._speed !== this.props.speed) {
+            const currentAction = this.state.actions[this.state.currentAnim];
+            currentAction.timeScale = this.props.speed;
+            this._speed = this.props.speed;
+        }
+        
         this.state.mixer.update(time.deltaTime);
     }
 

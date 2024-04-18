@@ -14,14 +14,12 @@ class UnitAnimation {
             destAnimLoopMode?: LoopMode;
         }
     ) {
-
-        let destAnimSpeed: number | undefined = undefined;
+        
         const animation = (() => {
             if (unit.resource) {
                 if (_animation === "idle") {
 
-                    if (unit.resource.type === "ak47") {
-                        destAnimSpeed = .5;
+                    if (unit.resource.type === "ak47") {                        
                         return "shoot";
                     }
 
@@ -33,6 +31,12 @@ class UnitAnimation {
                 }
             } else {
                 return _animation;
+            }
+        })();
+
+        const destAnimSpeed = (() => {
+            if (animation === "shoot") {
+                return 0.5;
             }
         })();
 
@@ -60,7 +64,7 @@ class UnitAnimation {
                 }
                 unit.skeleton!.timeout = setTimeout(() => {
                     unit.skeleton!.timeout = null;
-                    this.setCommonAnimation(unit, animation);
+                    this.setCommonAnimation(unit, animation, destAnimSpeed);
                 }, transitionDuration * 1000 + 200);
             } else {
                 if (unit.skeleton!.timeout) {
@@ -70,7 +74,7 @@ class UnitAnimation {
             }
     
         } else {
-            this.setCommonAnimation(unit, animation);
+            this.setCommonAnimation(unit, animation, destAnimSpeed);
         }
     }    
 
@@ -83,11 +87,11 @@ class UnitAnimation {
         }
     }
 
-    private setCommonAnimation(unit: IUnit, animation: string) {
+    private setCommonAnimation(unit: IUnit, animation: string, animSpeed?: number) {
         if (unit.skeleton) {
             skeletonPool.releaseSkeleton(unit);
         }
-        const action = skeletonManager.applySkeleton(animation, unit.obj)!;
+        const action = skeletonManager.applySkeleton(animation, unit.obj, animSpeed)!;
         unit.animation.name = animation;
         unit.animation.action = action;
     }

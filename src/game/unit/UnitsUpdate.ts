@@ -17,7 +17,6 @@ import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
 import { unitUtils } from "./UnitUtils";
-import { conveyorItems } from "../ConveyorItems";
 
 const unitNeighbors = new Array<IUnit>();
 const toTarget = new Vector3();
@@ -31,7 +30,7 @@ const nextPos = new Vector3();
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(
     new Vector3(),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-55.74), MathUtils.degToRad(5.67), MathUtils.degToRad(32.13))),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
     new Vector3(1, 1, 1).multiplyScalar(1.5)
 );
 
@@ -140,7 +139,9 @@ export function updateUnits(units: IUnit[]) {
                         // if other unit was part of my motion, stop
                         if (neighbor.lastCompletedMotionId === unit.motionId) {
                             const isMining = unit.fsm.getState(MiningState) !== null;
-                            if (!isMining) {
+                            if (isMining || unit.resource) {
+                                 // keep going
+                            } else {
                                 onUnitArrived(unit);
                             }
                         }
@@ -213,18 +214,6 @@ export function updateUnits(units: IUnit[]) {
                     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
                     const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
                     miningState.onReachedTarget(unit);
-                }
-            } else if (avoidedCell?.conveyor) {
-                const targetCell = getCellFromAddr(unit.targetCell);                
-                if (avoidedCell === targetCell) {
-                    const conveyor = avoidedCell.conveyor;
-                    if (conveyor.items.length > 0) {                    
-                        const item = conveyor.items[0];
-                        utils.fastDelete(conveyor.items, 0);
-                        conveyorItems.removeItem(item);
-                        unitUtils.pickResource(unit, item.type);
-                    }
-                    onUnitArrived(unit);
                 }
             }
         }
@@ -327,6 +316,20 @@ export function updateUnits(units: IUnit[]) {
                 case "ak47": {
                     const parent = skeleton.getObjectByName("HandR")!;
                     pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);
+
+                    const muzzleFlash = visual.getObjectByName("muzzle-flash");
+                    if (muzzleFlash) {
+                        if (unit.animation.name === "shoot") {                            
+                            if (unit.muzzleFlashTimer < 0) {
+                                unit.muzzleFlashTimer = MathUtils.randFloat(.05, .2);
+                                muzzleFlash.visible = !muzzleFlash.visible;
+                            } else {
+                                unit.muzzleFlashTimer -= time.deltaTime;
+                            }
+                        } else {
+                            muzzleFlash.visible = false;
+                        }
+                    }
                 }
                 break;
                 default: {

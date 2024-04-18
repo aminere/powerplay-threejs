@@ -69,7 +69,7 @@ class Resources {
             mesh.scale.setScalar(cellSize);
             switch (type) {
                 case "ak47": {
-                    mesh.scale.multiplyScalar(1.8);
+                    mesh.scale.multiplyScalar(1.2);
                 }
                 break;
             }

@@ -79,7 +79,7 @@ export const config: IConfig = {
         width: .8,
         height: .34,
         maxCount: 500,
-        speed: 1,
+        speed: 3,
     },
     train: {
         maxSpeed: 40,

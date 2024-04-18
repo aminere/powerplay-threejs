@@ -89,7 +89,7 @@ class SkeletonManager {
         this._skeletons.clear();
     }
 
-    public applySkeleton(animation: string, target: SkinnedMesh) {
+    public applySkeleton(animation: string, target: SkinnedMesh, animSpeed?: number) {
         const skeleton = this._skeletons.get(animation);
         if (!skeleton) {
             return null;
@@ -97,7 +97,8 @@ class SkeletonManager {
         if (target.skeleton !== skeleton.skeleton) {            
             target.bind(skeleton.skeleton, identity);
         }
-        const animator = utils.getComponent(Animator, skeleton.armature)!;        
+        const animator = utils.getComponent(Animator, skeleton.armature)!;
+        animator.props.speed = animSpeed ?? 1;
         return animator.currentAction;
     }
 

@@ -65,7 +65,7 @@ class Conveyors {
 
         conveyorTop.geometry.scale(width, 1, 1);
         const topMaterial = conveyorTop.material as MeshStandardMaterial;
-        topMaterial.metalness = .2;
+        topMaterial.metalness = 0;
 
         const conveyorTopInstances = conveyorUtils.createInstancedMesh("conveyors-tops", conveyorTop.geometry, topMaterial);
         layers.conveyors.add(conveyorTopInstances);

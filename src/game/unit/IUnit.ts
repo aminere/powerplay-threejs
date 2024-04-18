@@ -42,5 +42,6 @@ export interface IUnit {
     skeleton: IUniqueSkeleton | null;
     unitsInRange: Array<[IUnit, number]>;
     resource: IResource | null;
+    muzzleFlashTimer: number;
 }
 
