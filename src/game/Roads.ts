@@ -41,7 +41,7 @@ function setRoadTile(sectorCoords: Vector2, localCoords: Vector2, roadTileIndex:
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
-const mapCoords = new Vector2();
+const cellCoords = new Vector2();
 const neighborCoord = new Vector2();
 const neighborSectorCoords = new Vector2();
 const neighborLocalCoords = new Vector2();
@@ -80,13 +80,13 @@ class Roads {
             for (let i = 0; i <= iterations; ++i) {
                 const dx = direction.x * i;
                 const dy = direction.y * i;
-                mapCoords.set(_start.x + dx * resolution, _start.y + dy * resolution);
-                const cell = GameUtils.getCell(mapCoords);
+                cellCoords.set(_start.x + dx * resolution, _start.y + dy * resolution);
+                const cell = GameUtils.getCell(cellCoords);
                 if (!cell || !cell.isEmpty) {
                     continue;
                 }
-                cellsOut.push(mapCoords.clone());
-                this.create(mapCoords);
+                cellsOut.push(cellCoords.clone());
+                this.create(cellCoords);
             }
         };
 
@@ -114,10 +114,18 @@ class Roads {
     }    
 
     public create(mapCoords: Vector2) {
-        const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
+        GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
         const { tileIndex, neighbors } = getRoadTile(mapCoords);
         const rawTileIndex = setRoadTile(sectorCoords, localCoords, tileIndex);
-        cell.roadTile = rawTileIndex;  
+
+        for (let i = 0; i < cellsPerRoadBlock; ++i) {
+            for (let j = 0; j < cellsPerRoadBlock; ++j) {                    
+                neighborCoord.set(mapCoords.x + j, mapCoords.y + i);
+                const roadPatchCell = GameUtils.getCell(neighborCoord)!;
+                roadPatchCell.roadTile = rawTileIndex;
+            }
+        }
+
         for (const neighbor of neighbors) {
             if (!neighbor.cell) {
                 continue;
@@ -129,10 +137,17 @@ class Roads {
     }
 
     public clear(mapCoords: Vector2) {
-        const { sectors } = GameMapState.instance;
-        const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
-        cell.roadTile = undefined;
-        const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+
+        for (let i = 0; i < cellsPerRoadBlock; ++i) {
+            for (let j = 0; j < cellsPerRoadBlock; ++j) {                    
+                cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                const roadPatchCell = GameUtils.getCell(cellCoords)!;
+                roadPatchCell.roadTile = undefined;
+            }
+        }
+        
+        GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
+        const sector = GameUtils.getSector(sectorCoords)!;
         Sector.updateCellTexture(sector, localCoords, 0);
         const { neighbors } = getRoadTile(mapCoords);
         for (const neighbor of neighbors) {

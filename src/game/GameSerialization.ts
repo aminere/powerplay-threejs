@@ -1,13 +1,13 @@
 import { Vector2 } from "three";
 import { Axis, IConveyorConfig, IRailConfig } from "./GameTypes";
 import { BuildingType } from "./buildings/BuildingTypes";
-import { RawResourceType, ResourceType } from "./GameDefinitions";
+import { RawResourceType, ResourceType, UnitType } from "./GameDefinitions";
 
 export interface ISerializedCell {
     index: number;
     roadTile?: number;
     resource?: RawResourceType;
-    unitCount?: number;
+    units?: UnitType[];
     conveyor?: IConveyorConfig;
 }
 

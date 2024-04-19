@@ -81,6 +81,7 @@ export class GameMapProps extends ComponentProps {
         new Vector2(1, 30)
     ]);
 
-    debugPathfinding = false;    
+    debugPathfinding = false;
+    debugCells = false;
 }
 

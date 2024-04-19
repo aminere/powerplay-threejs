@@ -61,7 +61,7 @@ class FlowField {
     private _motionId = 1;
     private _motions = new Map<number, TFlowfieldMotion>();
 
-    public compute(targetCoords: Vector2, sectors: Vector2[], getCellCost: (cell: ICell) => number) {
+    public compute(targetCoords: Vector2, sectors: Vector2[], getCellCost: (cell: ICell) => number, fastMode: boolean) {
 
         GameUtils.getCell(targetCoords, sectorCoords, localCoords);            
 
@@ -79,8 +79,11 @@ class FlowField {
         openList.clear();
         const targetCellId = `${targetCoords.x},${targetCoords.y}`;
         openList.add(targetCellId);
-        visitedCells.clear();
-        visitedCells.set(targetCellId, true);
+
+        if (fastMode) {
+            visitedCells.clear();
+            visitedCells.set(targetCellId, true);
+        }        
 
         let processedCells = 0;
         while (openList.size > 0) {
@@ -94,11 +97,14 @@ class FlowField {
 
             for (const [dx, dy] of gridNeighbors) {
                 neighborCoords.set(currentCoords.x + dx, currentCoords.y + dy);
-                const neighborId = `${neighborCoords.x},${neighborCoords.y}`;
-                if (visitedCells.has(neighborId)) {
-                    continue;
+
+                if (fastMode) {
+                    const neighborId = `${neighborCoords.x},${neighborCoords.y}`;
+                    if (visitedCells.has(neighborId)) {
+                        continue;
+                    }
+                    visitedCells.set(neighborId, true);    
                 }
-                visitedCells.set(neighborId, true);
 
                 const neighborCell = GameUtils.getCell(neighborCoords, neighborSectorCoords, neighborLocalCoords);
                 if (!neighborCell) {

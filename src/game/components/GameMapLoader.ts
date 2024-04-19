@@ -27,6 +27,7 @@ import gsap from "gsap";
 import { BuildingType } from "../buildings/BuildingTypes";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
+import { UnitType } from "../GameDefinitions";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -88,7 +89,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         await this.preload();
 
-        const unitsToSpawn = new Array<Vector2>();
+        const unitsToSpawn = new Map<Vector2, UnitType[]>();
         for (const sector of data.sectors) {
 
             const [x, y] = sector.key.split(",").map(i => parseInt(i));
@@ -120,10 +121,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                     }
                 }
 
-                if (cell.unitCount !== undefined) {                    
-                    for (let j = 0; j < cell.unitCount; j++) {
-                        unitsToSpawn.push(mapCoords.clone());
-                    }
+                if (cell.units !== undefined) {
+                    unitsToSpawn.set(mapCoords.clone(), cell.units);
                 }
 
                 if (cell.conveyor) {
@@ -143,8 +142,10 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         this.init(data.size, owner);
 
         // create units and structure after all sectors are created and fogOfWar is initialized
-        for (const mapCoords of unitsToSpawn) {
-            unitsManager.spawn(mapCoords, "worker");
+        for (const [coords, units] of unitsToSpawn) {
+            for (const unit of units) {
+                unitsManager.spawn(coords, unit);
+            }
         }
 
         for (const [buildingType, instances] of Object.entries(data.buildings)) {

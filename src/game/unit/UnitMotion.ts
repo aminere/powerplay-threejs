@@ -156,6 +156,14 @@ function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
     return currentCell.flowFieldCost;
 }
 
+function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
+    if (currentCell.roadTile) {
+        return 1;
+    } else {
+        return getFlowfieldCost(destCell, currentCell) + 10;
+    }
+}
+
 class UnitMotion {
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
@@ -166,7 +174,7 @@ class UnitMotion {
             console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
             return;
         }
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell))!;
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell), true)!;
 
         console.assert(flowfields);
         const motionId = flowField.register(flowfields);
@@ -195,7 +203,8 @@ class UnitMotion {
             return;
         }
 
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell))!;
+        // TODO don't use fastMode for vehicles
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell), true)!;
         console.assert(flowfields);
         let unitCount = 0;
         let motionId: number | null = null;
