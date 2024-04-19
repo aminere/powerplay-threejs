@@ -261,18 +261,23 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
                                 const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                                let units = prev[key];
+                                const units = prev[key];
+                                const isVehicle = cur.type === "truck";
                                 if (!units) {
-                                    units = [cur];
-                                    prev[key] = units;
+                                    prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
                                 } else {
-                                    units.push(cur);
+                                    units[isVehicle ? "vehicle" : "character"].push(cur);
                                 }
                                 return prev;
-                            }, {} as Record<string, IUnit[]>);
+                            }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
 
-                            for (const units of Object.values(groups)) {
-                                unitMotion.moveGroup(units, targetCellCoords, targetCell);
+                            for (const group of Object.values(groups)) {
+                                if (group.character.length > 0) {
+                                    unitMotion.moveGroup(group.character, targetCellCoords, targetCell, "character");
+                                }
+                                if (group.vehicle.length > 0) {
+                                    unitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, "vehicle");
+                                }
                             }
                         }
                     }

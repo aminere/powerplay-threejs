@@ -160,6 +160,7 @@ function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
     if (currentCell.roadTile) {
         return 1;
     } else {
+        // discourage vehicles from moving off-road
         return getFlowfieldCost(destCell, currentCell) + 10;
     }
 }
@@ -182,7 +183,7 @@ class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell) {
+    public moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, type: "character" | "vehicle") {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
@@ -203,8 +204,14 @@ class UnitMotion {
             return;
         }
 
-        // TODO don't use fastMode for vehicles
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => getFlowfieldCost(destCell, cell), true)!;
+        let fastMode = true;
+        let _getFlowfieldCost = getFlowfieldCost;
+        if (type === "vehicle") {
+            fastMode = false;
+            _getFlowfieldCost = getVehicleFlowfieldCost;
+        }
+
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), fastMode)!;
         console.assert(flowfields);
         let unitCount = 0;
         let motionId: number | null = null;
