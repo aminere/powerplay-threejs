@@ -1,7 +1,7 @@
 import { LoopMode } from "../../engine/serialization/Types";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
-import { ICharacterUnit } from "./ICharacterUnit";
+import { ICharacterUnit } from "./CharacterUnit";
 
 class UnitAnimation {
 

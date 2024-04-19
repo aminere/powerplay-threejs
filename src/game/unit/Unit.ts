@@ -1,11 +1,10 @@
-import { Mesh, Quaternion, Vector3 } from "three"
+import { Box3, Mesh, Quaternion, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
-import { IUnit, IUnitFlowfieldInfo } from "./IUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitFSM } from "./UnitFSM";
 import { Fadeout } from "../components/Fadeout";
-import { computeUnitAddr, makeUnitAddr } from "./UnitAddr";
+import { IUnitAddr, computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { cmdFogRemoveCircle } from "../../Events";
 import { ICell, IResource } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
@@ -16,6 +15,45 @@ export interface IUnitProps {
     type: UnitType;
     speed?: number;
     states: State<IUnit>[];
+}
+
+export interface IUnitFlowfieldInfo {
+    cellIndex: number;
+    sectorCoords: Vector2;
+}
+
+export interface IUnit {
+    id: number;
+    desiredPosValid: boolean;
+    desiredPos: Vector3;
+    velocity: Vector3;
+    arriving: boolean;
+    speedFactor: number;
+    lastKnownFlowfield: IUnitFlowfieldInfo | null;
+    targetCell: IUnitAddr;
+    mesh: Mesh;
+    coords: IUnitAddr;
+    motionId: number;
+    lastCompletedMotionId: number;
+    isColliding: boolean;
+    isAlive: boolean;
+    isIdle: boolean;
+    collidable: boolean;
+    type: UnitType;
+    fsm: StateMachine<IUnit>;
+    lookAt: Quaternion;
+    rotation: Quaternion;
+    health: number;
+    attackers: IUnit[];
+    unitsInRange: Array<[IUnit, number]>;
+    resource: IResource | null;
+    boundingBox: Box3;
+
+    onMove: (bindSkeleton: boolean) => void;
+    onSteer: () => void;
+    onArrive: () => void;
+    onColliding: () => void;
+    onReachedTarget: (cell: ICell) => void;
 }
 
 export class Unit implements IUnit {

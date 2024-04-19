@@ -1,11 +1,9 @@
 
-import { SkinnedMesh } from "three";
+import { AnimationAction, SkinnedMesh } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
-import { IUnitAnim } from "./IUnit";
-import { Unit } from "./Unit";
+import { IUnit, Unit } from "./Unit";
 import { CharacterType } from "../GameDefinitions";
 import { State } from "../fsm/StateMachine";
-import { ICharacterUnit } from "./ICharacterUnit";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { Fadeout } from "../components/Fadeout";
@@ -13,8 +11,20 @@ import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
 import { MiningState } from "./MiningState";
-import { unitUtils } from "./UnitUtils";
 import { ICell } from "../GameTypes";
+import { pickResource } from "./WorkerUpdate";
+
+interface IUnitAnim {
+    name: string;
+    action: AnimationAction;
+}
+
+export interface ICharacterUnit extends IUnit {
+    skinnedMesh: SkinnedMesh;
+    animation: IUnitAnim;
+    skeleton: IUniqueSkeleton | null;
+    muzzleFlashTimer: number;
+}
 
 export interface ICharacterUnitProps {
     mesh: SkinnedMesh;
@@ -111,7 +121,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             miningState.onReachedTarget(this);
         } else {
             if (cell.pickableResource) {
-                unitUtils.pickResource(this, cell.pickableResource.type);
+                pickResource(this, cell.pickableResource.type);
                 cell.pickableResource.visual.removeFromParent();
                 cell.pickableResource = undefined;
             }

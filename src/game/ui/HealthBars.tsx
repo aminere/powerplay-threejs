@@ -3,7 +3,7 @@ import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems } from "../../Events
 import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
-import { IUnit } from "../unit/IUnit";
+import { IUnit } from "../unit/Unit";
 import { config } from "../config";
 import { GameMapState } from "../components/GameMapState";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";

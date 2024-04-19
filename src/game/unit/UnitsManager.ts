@@ -1,6 +1,5 @@
 import { Box3Helper, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
-import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
@@ -14,9 +13,10 @@ import { UnitType } from "../GameDefinitions";
 import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit } from "./CharacterUnit";
-import { Unit } from "./Unit";
+import { IUnit, Unit } from "./Unit";
 import { MiningState } from "./MiningState";
 import { NPCState } from "./NPCState";
+import { TruckUnit } from "./TruckUnit";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -147,13 +147,10 @@ class UnitsManager {
                 const mesh = (await meshes.load(`/models/${type}.glb`))[0].clone();
                 mesh.castShadow = true;
 
-                const { truckScale } = config.game;
-                mesh.scale.multiplyScalar(truckScale);
-
                 mesh.userData.unserializable = true;
                 GameUtils.mapToWorld(mapCoords, mesh.position);
 
-                const unit = new Unit({ mesh, type, states: []}, id);
+                const unit = new TruckUnit({ mesh, type, states: []}, id);
                 this._units.push(unit);
                 this._owner.add(mesh);
 

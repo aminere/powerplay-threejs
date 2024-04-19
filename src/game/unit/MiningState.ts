@@ -1,5 +1,5 @@
 import { State } from "../fsm/StateMachine";
-import { IUnit } from "./IUnit";
+import { IUnit } from "./Unit";
 import { Vector2 } from "three";
 import { time } from "../../engine/core/Time";
 import { unitAnimation } from "./UnitAnimation";
@@ -9,8 +9,8 @@ import { IBuildingInstance, IFactoryState, buildingSizes } from "../buildings/Bu
 import { GameMapState } from "../components/GameMapState";
 import { resources } from "../Resources";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { unitUtils } from "./UnitUtils";
-import { ICharacterUnit } from "./ICharacterUnit";
+import { ICharacterUnit } from "./CharacterUnit";
+import { pickResource } from "./WorkerUpdate";
 
 enum MiningStep {
     GoToResource,
@@ -130,7 +130,7 @@ export class MiningState extends State<ICharacterUnit> {
                         if (cell.resource.amount === 0) {
                             resources.clear(cell);
                         }
-                        unitUtils.pickResource(unit, resourceType);
+                        pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);
                     } else {
                         console.log("resource depleted");

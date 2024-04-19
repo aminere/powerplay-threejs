@@ -1,4 +1,4 @@
-import { IUnit } from "./IUnit";
+import { IUnit } from "./Unit";
 import { unitsManager } from "./UnitsManager";
 
 export class NPCUtils {

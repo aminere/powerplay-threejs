@@ -1,7 +1,6 @@
 import { MathUtils, Matrix4, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
-import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { mathUtils } from "../MathUtils";
@@ -14,10 +13,11 @@ import { FlockProps } from "../components/Flock";
 import { config } from "../config";
 import { MiningState } from "./MiningState";
 import { IFactoryState } from "../buildings/BuildingTypes";
-import { ICharacterUnit } from "./ICharacterUnit";
 import { utils } from "../../engine/Utils";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { cmdFogMoveCircle } from "../../Events";
+import { IUnit } from "./Unit";
+import { ICharacterUnit } from "./CharacterUnit";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();

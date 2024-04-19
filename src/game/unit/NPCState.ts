@@ -6,8 +6,8 @@ import { utils } from "../../engine/Utils";
 import { unitAnimation } from "./UnitAnimation";
 import { unitMotion } from "./UnitMotion";
 import { mathUtils } from "../MathUtils";
-import { ICharacterUnit } from "./ICharacterUnit";
-import { IUnit } from "./IUnit";
+import { ICharacterUnit } from "./CharacterUnit";
+import { IUnit } from "./Unit";
 
 enum NpcStep {
     Idle,

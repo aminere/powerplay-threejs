@@ -1,5 +1,5 @@
 import { State } from "../fsm/StateMachine";
-import { IUnit } from "./IUnit";
+import { IUnit } from "./Unit";
 
 export class StateTemplate extends State<IUnit> {
 

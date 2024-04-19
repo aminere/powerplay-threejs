@@ -1,7 +1,7 @@
 import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
-import { IUnit } from "./unit/IUnit";
+import { IUnit } from "./unit/Unit";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 
 export type RailTip = "start" | "end";

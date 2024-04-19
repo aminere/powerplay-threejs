@@ -1,5 +1,5 @@
 
-import { Euler, MathUtils, Object3D, Vector2 } from "three";
+import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { ISerializedFactory, ISerializedGameMap } from "../GameSerialization";

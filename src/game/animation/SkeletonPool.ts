@@ -6,7 +6,7 @@ import { time } from "../../engine/core/Time";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { LoopMode } from "../../engine/serialization/Types";
-import { ICharacterUnit } from "../unit/ICharacterUnit";
+import { ICharacterUnit } from "../unit/CharacterUnit";
 
 export interface IUniqueSkeleton {
     id: string;

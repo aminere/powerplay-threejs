@@ -8,6 +8,11 @@ class Meshes {
     private _cache = new Map<string, Mesh[]>();
     private _loading = new Map<string, Promise<Mesh[]>>();
 
+    // fails if not in cache
+    public loadImmediate(path: string) {
+        return this._cache.get(path)!;
+    }
+
     public load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {

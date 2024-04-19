@@ -9,7 +9,7 @@ import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
-import { IUnit } from "../unit/IUnit";
+import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";

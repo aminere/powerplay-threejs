@@ -1,5 +1,5 @@
 import { IBuilding, ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
-import { IUnit } from "./unit/IUnit";
+import { IUnit } from "./unit/Unit";
 
 export class Cell implements ICell {
 
