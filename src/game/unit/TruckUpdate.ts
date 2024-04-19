@@ -76,6 +76,28 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
     truck.resources!.amount = newAmount;
 }
 
+export function removeResource(truck: ITruckUnit) {
+    const oldAmount = truck.resources!.amount;
+    const newAmount = oldAmount - 1;
+    const currentSlot = Math.floor(oldAmount / resourcesPerSlot);
+    const newSlot = Math.floor(newAmount / resourcesPerSlot);
+    const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
+    if (currentSlot === newSlot) {
+        const mesh = truck.resources!.root.children[currentSlot];
+        if (newAmount === 0) {
+            mesh.removeFromParent();
+        } else {
+            mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+        }
+    } else {
+        const currentSlotMesh = truck.resources!.root.children[currentSlot];
+        currentSlotMesh.removeFromParent();
+        const newSlotMesh = truck.resources!.root.children[newSlot];
+        newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+    }
+    truck.resources!.amount = newAmount;
+}
+
 export function truckUpdate(truck: ITruckUnit) {
     const { mapCoords } = truck.coords;
     for (const [dx, dy] of gridNeighbors) {
@@ -90,5 +112,4 @@ export function truckUpdate(truck: ITruckUnit) {
         }
     }
 }
-
 

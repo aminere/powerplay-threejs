@@ -13,6 +13,8 @@ import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../un
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
+import { ITruckUnit } from "../unit/TruckUnit";
+import { removeResource } from "../unit/TruckUpdate";
 
 const { cellSize, mapRes } = config.game;
 const { itemScale } = config.conveyors;
@@ -44,9 +46,13 @@ function tryFillAdjacentConveyors(cell: ICell, mapCoords: Vector2, resourceType:
     return tryFillConveyor(neighbor2);
 }
 
-function tryGetFromAdjacentConveyors(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
+function tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
     cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
     const cell = GameUtils.getCell(cellCoords);
+    if (!cell) {
+        return false;
+    }
+
     const conveyor = cell?.conveyor;
     if (conveyor) {
         let itemToGet = -1;
@@ -63,7 +69,17 @@ function tryGetFromAdjacentConveyors(type: ResourceType | RawResourceType, mapCo
             conveyorItems.removeItem(item);
             return true;
         }
+    } else if (cell.units) {
+        const truck = cell.units.find(unit => unit.type === "truck") as ITruckUnit;
+        if (truck) {
+            const amount = truck.resources?.amount ?? 0;
+            if (amount > 0) {
+                removeResource(truck);
+                return true;
+            }
+        }
     }
+
     return false;
 }
 
@@ -405,13 +421,13 @@ class Buildings {
                             const size = buildingSizes.factory;
                             let inputAccepted = false;
                             for (let x = 0; x < size.x; ++x) {
-                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, -1)) {
+                                if (tryGetFromAdjacentCell(state.input, instance.mapCoords, x, -1)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
                                     inputAccepted = true;
                                     break;
                                 }
-                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, size.z)) {
+                                if (tryGetFromAdjacentCell(state.input, instance.mapCoords, x, size.z)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
                                     inputAccepted = true;
@@ -420,12 +436,12 @@ class Buildings {
                             }
                             if (!inputAccepted) {
                                 for (let z = 0; z < size.z; ++z) {
-                                    if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, -1, z)) {
+                                    if (tryGetFromAdjacentCell(state.input, instance.mapCoords, -1, z)) {
                                         state.inputReserve++;
                                         state.inputTimer = state.inputAccepFrequency;
                                         break;
                                     }
-                                    if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, size.x, z)) {
+                                    if (tryGetFromAdjacentCell(state.input, instance.mapCoords, size.x, z)) {
                                         state.inputReserve++;
                                         state.inputTimer = state.inputAccepFrequency;
                                         break;
