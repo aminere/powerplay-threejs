@@ -3,6 +3,8 @@ import { config } from './config';
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Sphere, Texture, Vector2, Vector3, WebGLProgramParametersWithUniforms } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/resources/Textures';
+import { GameUtils } from './GameUtils';
+import { GameMapProps } from './components/GameMapProps';
 
 type Uniform<T> = { value: T; };
 export type TerrainUniforms = {
@@ -58,9 +60,14 @@ export interface ITerrainPatch {
 const { mapRes, cellSize, elevationStep, cellsPerRoadBlock } = config.game;
 const verticesPerRow = mapRes + 1;
 const vertexCount = verticesPerRow * verticesPerRow;
+const yellowSand = new Color(0xcdaf69);
+const sand = new Color(0xc4926f);
+// const stone = new Color(0xa0a0a0);
+const colorMix = new Color();
 
-export class Terrain {
-    public static createPatch(props: ITerrainPatch) {        
+class Terrain {
+    public createPatch(sectorCoords: Vector2) {   
+
         const vertices = new Float32Array(
             [...Array(vertexCount)].flatMap((_, i) => {
                 const x = i % verticesPerRow;
@@ -90,11 +97,11 @@ export class Terrain {
         });
         
         const colors = new Float32Array([...Array(vertexCount)].flatMap(_ => [1, 1, 1]));
-        // const normals = new Float32Array([...Array(vertexCount)].flatMap(_ => [0, 1, 0]));
+        const normals = new Float32Array([...Array(vertexCount)].flatMap(_ => [0, 1, 0]));
         const terrainGeometry = new BufferGeometry()
             .setAttribute('position', new BufferAttribute(vertices, 3))
             // .setAttribute('uv', new BufferAttribute(uvs, 2))
-            // .setAttribute('normal', new BufferAttribute(normals, 3))
+            .setAttribute('normal', new BufferAttribute(normals, 3))
             .setAttribute('color', new BufferAttribute(colors, 3))
             .setIndex(indices);
         // .translate(0, 0.01, 0);
@@ -112,31 +119,30 @@ export class Terrain {
 
         const position = terrainGeometry.getAttribute("position") as BufferAttribute;
         const color = terrainGeometry.getAttribute("color") as BufferAttribute;
-        continentNoise.SetFrequency(props.continentFreq);
-        erosionNoise.SetFrequency(props.erosionFreq);
-        sandNoise.SetFrequency(props.continentFreq * 4);
 
-        const yellowSand = new Color(0xcdaf69);
-        const sand = new Color(0xc4926f);
-        const stone = new Color(0xa0a0a0);
-        const colorMix = new Color();
-        const lastContinentHeight = props.continent[props.continent.length - 1].y;      
+        const props = GameMapProps.instance;
+        const continentFreq = 1 / props.continentFreqInv;
+        const erosionFreq = 1 / props.erosionFreqInv;        
 
+        continentNoise.SetFrequency(continentFreq);
+        erosionNoise.SetFrequency(erosionFreq);
+        sandNoise.SetFrequency(continentFreq * 4);
+
+        // const lastContinentHeight = props.continent[props.continent.length - 1].y;
         for (let i = 0; i < verticesPerRow; ++i) {
             for (let j = 0; j < verticesPerRow; ++j) {
-                const noiseX = (props.sectorX * mapRes) + j;
-                const noiseY = (props.sectorY * mapRes) + i;
-                const continentSample = continentNoise.GetNoise(noiseX, noiseY);
-                const continentHeight = sampleNoise(continentSample, props.continent);
-                const erosionSample = erosionNoise.GetNoise(noiseX, noiseY);
-                const erosionHeight = sampleNoise(erosionSample, props.erosion);
-                const _height = Math.round(
-                    continentHeight * props.continentGain * props.continentWeight
-                    + erosionHeight * props.erosionGain * props.erosionWeight
-                );
+                const noiseX = (sectorCoords.x * mapRes) + j;
+                const noiseY = (sectorCoords.y * mapRes) + i;
 
-                let heightFactor = 1;
-
+                // const continentSample = continentNoise.GetNoise(noiseX, noiseY);
+                // const continentHeight = sampleNoise(continentSample, props.continent);
+                // const erosionSample = erosionNoise.GetNoise(noiseX, noiseY);
+                // const erosionHeight = sampleNoise(erosionSample, props.erosion);
+                // const _height = Math.round(
+                //     continentHeight * props.continentGain * props.continentWeight
+                //     + erosionHeight * props.erosionGain * props.erosionWeight
+                // );
+                // let heightFactor = 1;
                 // lower distribution by skipping some sectors
                 // if (props.sectorY % 2 !== 0) {
                 //     if (props.sectorX % 2 !== 0) {
@@ -146,25 +152,20 @@ export class Terrain {
                 //     if (props.sectorX % 2 === 0) {
                 //         heightFactor = 0;
                 //     }
-                // }
-
-                const height = _height * heightFactor; // TODO remove
-                const vertexIndex = i * verticesPerRow + j;
-                position.setY(vertexIndex, height);
-
-                if (height >= 0 && height <= 1) {
+                // }               
+                
+                // if (height >= 0 && height <= 1) {
+                    const vertexIndex = i * verticesPerRow + j;
                     const sandSample = sandNoise.GetNoise(noiseX, noiseY);
                     const factor = (sandSample + 1) / 2;
-                    colorMix.lerpColors(yellowSand, sand, factor).toArray(color.array, vertexIndex * 3);
-                } else {
-                    const vertexY = position.getY(vertexIndex);
-                    const heightFactor = vertexY / lastContinentHeight;
-                    colorMix.lerpColors(sand, stone, heightFactor).toArray(color.array, vertexIndex * 3);
-                }
+                    colorMix.lerpColors(yellowSand, sand, factor).toArray(color.array, vertexIndex * 3);    
+                // } else {
+                //     const vertexY = position.getY(vertexIndex);
+                //     const heightFactor = vertexY / lastContinentHeight;
+                //     colorMix.lerpColors(sand, stone, heightFactor).toArray(color.array, vertexIndex * 3);
+                // }
             }
         }
-
-        terrainGeometry.computeVertexNormals();
 
         // custom bounding sphere
         let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;        
@@ -312,25 +313,68 @@ export class Terrain {
                             diffuseColor.rgb += gridColor.rgb;    
                         }
 
-                        // if (cellX == 0. || cellY == 0.) {
-                        //     diffuseColor.r += .5;
-                        // }
+                        if (cellX == 0. || cellY == 0.) {
+                            diffuseColor.r += .5;
+                        }
                     #endif
                     `
                 );
             }
         });        
 
-        const terrain = new Mesh(terrainGeometry, terrainMaterial);
-        terrain.name = "terrain";
-        terrain.matrixWorldAutoUpdate = false;
-        terrain.matrixAutoUpdate = false;
-        terrain.scale.set(1, elevationStep, 1);
-        terrain.updateMatrix();
-        terrain.userData.unserializable = true;
-        // terrain.castShadow = true;
-        terrain.receiveShadow = true;        
-        return { terrain, cellTextureData, highlightTextureData };
+        const mesh = new Mesh(terrainGeometry, terrainMaterial);
+        mesh.name = "terrain";
+        mesh.matrixWorldAutoUpdate = false;
+        mesh.matrixAutoUpdate = false;
+        mesh.scale.set(1, elevationStep, 1);
+        mesh.updateMatrix();
+        mesh.userData.unserializable = true;
+        mesh.receiveShadow = true;
+        return { mesh, cellTextureData, highlightTextureData };
+    }
+
+    public generateElevation(sectorCoords: Vector2) {
+        const props = GameMapProps.instance;
+        const sector = GameUtils.getSector(sectorCoords)!;
+        const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+        const position = geometry.getAttribute("position") as BufferAttribute;        
+        const continent = props.continent.data;
+        const erosion = props.erosion.data
+
+        for (let i = 0; i < verticesPerRow; ++i) {
+            for (let j = 0; j < verticesPerRow; ++j) {
+                const noiseX = (sectorCoords.x * mapRes) + j;
+                const noiseY = (sectorCoords.y * mapRes) + i;
+                const continentSample = continentNoise.GetNoise(noiseX, noiseY);
+                const continentHeight = sampleNoise(continentSample, continent);
+                const erosionSample = erosionNoise.GetNoise(noiseX, noiseY);
+                const erosionHeight = sampleNoise(erosionSample, erosion);
+                const _height = Math.round(
+                    continentHeight * props.continentGain * props.continentWeight
+                    + erosionHeight * props.erosionGain * props.erosionWeight
+                );
+
+                let heightFactor = 1;
+                // lower distribution by skipping some sectors
+                // if (props.sectorY % 2 !== 0) {
+                //     if (props.sectorX % 2 !== 0) {
+                //         heightFactor = 0;
+                //     }
+                // } else {
+                //     if (props.sectorX % 2 === 0) {
+                //         heightFactor = 0;
+                //     }
+                // }
+
+                const height = _height * heightFactor; // TODO remove
+                const vertexIndex = i * verticesPerRow + j;
+                position.setY(vertexIndex, height);                
+            }
+        }
+        position.needsUpdate = true;
+        geometry.computeVertexNormals();        
     }
 }
+
+export const terrain = new Terrain();
 

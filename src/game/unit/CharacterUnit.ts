@@ -1,5 +1,5 @@
 
-import { Euler, MathUtils, Matrix4, Quaternion, SkinnedMesh, Vector3 } from "three";
+import { SkinnedMesh } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { IUnitAnim } from "./IUnit";
 import { Unit } from "./Unit";
@@ -12,19 +12,9 @@ import { Fadeout } from "../components/Fadeout";
 import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
-import { time } from "../../engine/core/Time";
 import { MiningState } from "./MiningState";
 import { unitUtils } from "./UnitUtils";
 import { ICell } from "../GameTypes";
-
-const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
-const pickedAk47Offset = new Matrix4().compose(
-    new Vector3(),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
-    new Vector3(1, 1, 1).multiplyScalar(1.5)
-);
-
-const pickedItemlocalToSkeleton = new Matrix4();
 
 export interface ICharacterUnitProps {
     mesh: SkinnedMesh;
@@ -40,7 +30,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get skinnedMesh() { return this._skinnedMesh; }
     public get health() { return this._health; }
     public get arriving() { return this._arriving; }
+    public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
 
+    public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
     public set health(value: number) { 
         this._health = value; 
@@ -111,44 +103,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         } else {
             engineState.setComponent(this.mesh, new UnitCollisionAnim({ unit: this }));
         }
-    }
-
-    public override updateResource() {
-        if (!this.resource) {
-            return;
-        }
-
-        // attach the resource to the unit
-        const visual = this.resource.visual;
-        const skeleton = unitAnimation.getSkeleton(this);
-
-        switch (this.resource.type) {
-            case "ak47": {
-                const parent = skeleton.getObjectByName("HandR")!;
-                pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);
-
-                const muzzleFlash = visual.getObjectByName("muzzle-flash");
-                if (muzzleFlash) {
-                    if (this.animation.name === "shoot") {
-                        if (this._muzzleFlashTimer < 0) {
-                            this._muzzleFlashTimer = MathUtils.randFloat(.05, .2);
-                            muzzleFlash.visible = !muzzleFlash.visible;
-                        } else {
-                            this._muzzleFlashTimer -= time.deltaTime;
-                        }
-                    } else {
-                        muzzleFlash.visible = false;
-                    }
-                }
-            }
-                break;
-            default: {
-                const parent = skeleton.getObjectByName("Spine2")!;
-                pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedItemOffset);
-            }
-        }
-
-        visual.matrix.multiplyMatrices(this.mesh.matrixWorld, pickedItemlocalToSkeleton);
     }
 
     public override onReachedTarget(cell: ICell) {        

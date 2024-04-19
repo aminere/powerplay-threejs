@@ -393,21 +393,8 @@ function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
 
 export function createSector(coords: Vector2) {
     const state = GameMapState.instance;
-    const props = GameMapProps.instance;
 
-    const sector = Sector.create({
-        sectorX: coords.x,
-        sectorY: coords.y,
-        continentFreq: 1 / props.continentFreqInv,
-        erosionFreq: 1 / props.erosionFreqInv,
-        continentWeight: props.continentWeight,
-        erosionWeight: props.erosionWeight,
-        continentGain: props.continentGain,
-        erosionGain: props.erosionGain,
-        continent: props.continent.data,
-        erosion: props.erosion.data
-    });
-
+    const sector = Sector.create(coords);
     state.sectorsRoot.add(sector.root);
 
     // update bounds

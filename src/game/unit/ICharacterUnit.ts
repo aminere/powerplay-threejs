@@ -6,5 +6,6 @@ export interface ICharacterUnit extends IUnit {
     skinnedMesh: SkinnedMesh;
     animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
+    muzzleFlashTimer: number;
 }
 

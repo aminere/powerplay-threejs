@@ -140,7 +140,6 @@ export class Unit implements IUnit {
         unitMotion.onUnitArrived(this);
     }
     public onColliding() {}
-    public updateResource() {}
     public onReachedTarget(_cell: ICell) {
         this.onArrive();
     }

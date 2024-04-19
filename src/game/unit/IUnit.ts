@@ -45,7 +45,6 @@ export interface IUnit {
     onSteer: () => void;
     onArrive: () => void;
     onColliding: () => void;
-    updateResource: () => void;
     onReachedTarget: (cell: ICell) => void;
 }
 

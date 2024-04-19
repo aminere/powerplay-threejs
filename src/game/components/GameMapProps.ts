@@ -46,11 +46,11 @@ export class GameMapProps extends ComponentProps {
     @Attributes.command("save")
     saveCommand = true;
 
-    @Attributes.command("regen")
-    regenCommand = true;
-
     @Attributes.command("trees")
     treesCommand = true;
+
+    @Attributes.command("elevation")
+    elevationCommand = true;
 
     size = 1;
     continentFreqInv = 30;    

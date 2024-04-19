@@ -19,7 +19,6 @@ export { meshes } from "./engine/resources/Meshes";
 export { textures } from "./engine/resources/Textures";
 export { GameMap } from "./game/components/GameMap";
 export { GameMapState } from "./game/components/GameMapState";
-export { createSectors } from "./game/GameMapUtils";
 
 export { type IRail } from "./game/GameTypes";
 export type { ISerializedGameMap, ISerializedSector, ISerializedCell, ISerializedElevation, ISerializedFactory, TSerializedBuilding, ISerializedRail } from "./game/GameSerialization";
@@ -28,3 +27,5 @@ export type { IFactoryState, IBuildingInstance } from "./game/buildings/Building
 export { Animator } from "./engine/components/Animator";
 export { Particles } from "./engine/components/Particles";
 export { trees } from "./game/Trees";
+export { terrain } from "./game/Terrain";
+

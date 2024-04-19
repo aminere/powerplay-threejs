@@ -1,16 +1,16 @@
 import { Color, Material, Mesh, Object3D, Vector2 } from "three";
 import { config } from "./config";
 import { ISector } from "./GameTypes";
-import { ITerrainPatch, Terrain, TerrainUniforms } from "./Terrain";
+import { terrain, TerrainUniforms } from "./Terrain";
 import { utils } from "../engine/Utils";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { Cell } from "./Cell";
 import { GameMapState } from "./components/GameMapState";
 
 export class Sector {
-    public static create(props: ITerrainPatch) {
+    public static create(coords: Vector2) {
         // console.log(`creating sector ${props.sectorX},${props.sectorY}`);
-        const { sectorX: x, sectorY: y } = props;
+        const { x, y } = coords;
         const { mapRes, cellSize } = config.game;
 
         const sectorRoot = new Object3D();
@@ -26,7 +26,7 @@ export class Sector {
         const cells = grid.map((_, i) => new Cell(`${x}${y}${i}`));
 
         // terrain
-        const { terrain, cellTextureData, highlightTextureData } = Terrain.createPatch(props);
+        const { mesh, cellTextureData, highlightTextureData } = terrain.createPatch(coords);
         const resources = utils.createObject(sectorRoot, "resources");
         const envProps = utils.createObject(sectorRoot, "props");
 
@@ -36,7 +36,7 @@ export class Sector {
             cells,
             root: sectorRoot,
             layers: {
-                terrain,
+                terrain: mesh,
                 resources,
                 props: envProps
             },
@@ -47,7 +47,7 @@ export class Sector {
             flowfieldViewer: flowfield
         };
         sectors.set(`${x},${y}`, sector);
-        sectorRoot.add(terrain);
+        sectorRoot.add(mesh);
         sectorRoot.add(flowfield);
         return sector;
     }

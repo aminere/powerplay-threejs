@@ -401,36 +401,38 @@ class Buildings {
 
                     // check nearby conveyors for input
                     if (state.inputTimer < 0) {
-                        const size = buildingSizes.factory;
-                        let inputAccepted = false;
-                        for (let x = 0; x < size.x; ++x) {
-                            if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, -1)) {
-                                state.inputReserve++;
-                                state.inputTimer = state.inputAccepFrequency;
-                                inputAccepted = true;
-                                break;
-                            }
-                            if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, size.z)) {
-                                state.inputReserve++;
-                                state.inputTimer = state.inputAccepFrequency;
-                                inputAccepted = true;
-                                break;
-                            }
-                        }
-                        if (!inputAccepted) {
-                            for (let z = 0; z < size.z; ++z) {
-                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, -1, z)) {
+                        if (state.inputReserve < 5) {
+                            const size = buildingSizes.factory;
+                            let inputAccepted = false;
+                            for (let x = 0; x < size.x; ++x) {
+                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, -1)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
+                                    inputAccepted = true;
                                     break;
                                 }
-                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, size.x, z)) {
+                                if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, x, size.z)) {
                                     state.inputReserve++;
                                     state.inputTimer = state.inputAccepFrequency;
+                                    inputAccepted = true;
                                     break;
                                 }
                             }
-                        }
+                            if (!inputAccepted) {
+                                for (let z = 0; z < size.z; ++z) {
+                                    if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, -1, z)) {
+                                        state.inputReserve++;
+                                        state.inputTimer = state.inputAccepFrequency;
+                                        break;
+                                    }
+                                    if (tryGetFromAdjacentConveyors(state.input, instance.mapCoords, size.x, z)) {
+                                        state.inputReserve++;
+                                        state.inputTimer = state.inputAccepFrequency;
+                                        break;
+                                    }
+                                }
+                            }
+                        }                        
 
                     } else {
                         state.inputTimer -= time.deltaTime;

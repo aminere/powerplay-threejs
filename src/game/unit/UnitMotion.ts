@@ -1,21 +1,42 @@
-import { Matrix4, Vector2, Vector3 } from "three";
+import { MathUtils, Matrix4, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr } from "./UnitAddr";
+import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
+import { FlockProps } from "../components/Flock";
+import { config } from "../config";
+import { MiningState } from "./MiningState";
+import { IFactoryState } from "../buildings/BuildingTypes";
+import { ICharacterUnit } from "./ICharacterUnit";
+import { utils } from "../../engine/Utils";
+import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
+import { cmdFogMoveCircle } from "../../Events";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const lookAt = new Matrix4();
 const destSectorCoords = new Vector2();
+
+const unitNeighbors = new Array<IUnit>();
+const toTarget = new Vector3();
+const awayDirection = new Vector2();
+const avoidedCellCoords = new Vector2();
+const avoidedCellSector = new Vector2();
+const avoidedCellLocalCoords = new Vector2();
+const nextMapCoords = new Vector2();
+const nextPos = new Vector3();
+            
+const { mapRes } = config.game;
+const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+const neighbordMapCoords = new Vector2();
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -164,6 +185,54 @@ function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
         return getFlowfieldCost(destCell, currentCell) + 10;
     }
 }
+
+function getUnitNeighbors(unit: IUnit) {
+    const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+    unitNeighbors.length = 0;
+    if (cell.units) {
+        for (const neighbor of cell.units) {
+            if (!neighbor.isAlive) {
+                continue;
+            }
+            if (neighbor !== unit) {
+                unitNeighbors.push(neighbor);
+            }
+        }
+    }
+
+    for (const [dx, dy] of cellNeighbors) {
+        neighbordMapCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
+        const neighborCell = GameUtils.getCell(neighbordMapCoords);
+        if (!neighborCell || !neighborCell.units) {
+            continue;
+        }
+        for (const neighbor of neighborCell.units) {
+            if (!neighbor.isAlive) {
+                continue;
+            }
+            unitNeighbors.push(neighbor);
+        }
+    }
+
+    return unitNeighbors;
+}
+
+function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDesiredPos: Vector3) {
+    toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
+    const length = toTarget.length();
+    if (length > 0) {
+        toTarget
+            .divideScalar(length)
+            .multiplyScalar(moveAmount / 2)
+
+    } else {
+        toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
+            .normalize()
+            .multiplyScalar(moveAmount / 2);
+    }
+    desiredPos.add(toTarget);
+    otherDesiredPos.sub(toTarget);
+};
 
 class UnitMotion {
 
@@ -343,6 +412,198 @@ class UnitMotion {
 
     public onUnitArrived(unit: IUnit) {
         onUnitArrived(unit);
+    }
+
+    public update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
+        const props = FlockProps.instance;
+        const { repulsion, positionDamp, separation } = props;    
+
+        const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
+        const neighbors = getUnitNeighbors(unit);
+        for (const neighbor of neighbors) {
+
+            const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
+            if (!(unit.collidable && neighbor.collidable)) {
+                continue;
+            }
+
+            const dist = otherDesiredPos.distanceTo(desiredPos);
+            if (dist < separation) {
+                unit.isColliding = true;
+                neighbor.isColliding = true;
+                const moveAmount = Math.min((separation - dist), avoidanceSteerAmount);
+                if (neighbor.motionId > 0) {
+                    if (unit.motionId > 0) {
+                        moveAwayFromEachOther(moveAmount, desiredPos, otherDesiredPos);
+
+                    } else {
+                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        desiredPos.add(toTarget);
+                    }
+                } else {
+                    if (unit.motionId > 0) {
+                        toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
+                        otherDesiredPos.add(toTarget);
+
+                        // if other unit was part of my motion, stop
+                        if (neighbor.lastCompletedMotionId === unit.motionId) {
+                            const isMining = unit.fsm.getState(MiningState) !== null;
+                            if (isMining || unit.resource) {
+                                 // keep going
+                            } else {
+                                unit.onArrive();
+                            }
+                        }
+
+                    } else {
+                        moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
+                    }
+                }
+            }
+        }
+
+        unit.desiredPosValid = false;
+        const isMoving = unit.motionId > 0;
+        const needsMotion = isMoving || unit.isColliding;
+        let avoidedCell: ICell | null | undefined = undefined;        
+
+        if (needsMotion) {
+            GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+            const newCell = GameUtils.getCell(nextMapCoords, avoidedCellSector, avoidedCellLocalCoords);
+            const walkableCell = newCell?.isWalkable;
+            if (!walkableCell) {
+                avoidedCell = newCell;
+                avoidedCellCoords.copy(nextMapCoords);
+
+                // move away from blocked cell
+                awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
+                unit.desiredPos.copy(unit.mesh.position);
+                unit.desiredPos.x += awayDirection.x * steerAmount * .5;
+                unit.desiredPos.z += awayDirection.y * steerAmount * .5;
+                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+            }
+        }
+
+        if (avoidedCell !== undefined && isMoving) {
+            if (avoidedCell?.building) {
+                const instanceId = avoidedCell.building.instanceId;
+                const targetCell = getCellFromAddr(unit.targetCell);
+                if (instanceId === targetCell.building?.instanceId) {
+
+                    const carriedResource = unit.resource;
+                    if (carriedResource) {
+                        const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
+                        if (buildingInstance.buildingType === "factory") {
+                            const state = buildingInstance.state as IFactoryState;
+                            if (state.input === carriedResource.type) {
+                                state.inputReserve++;
+                                unit.resource = null;
+                            }
+                        }
+                    }
+
+                    unit.onReachedTarget(targetCell);                    
+                }
+            } else if (avoidedCell?.resource) {
+                const targetCell = getCellFromAddr(unit.targetCell);
+                if (avoidedCell.resource.type === targetCell.resource?.type) {
+                    unit.arriving = true;
+                    switch (unit.type) {
+                        case "worker": {
+                            const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
+                            miningState.onReachedTarget(unit as ICharacterUnit);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        let hasMoved = false;
+        if (needsMotion) {
+            if (isMoving) {
+                if (avoidedCell !== undefined) {
+                    nextPos.copy(unit.mesh.position);
+                    mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
+                } else {
+                    nextPos.copy(unit.desiredPos);
+                }
+                hasMoved = true;
+            } else if (unit.isColliding) {
+                unit.onColliding();
+            }
+        }
+
+        unit.isColliding = false;
+        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.mesh);
+        if (collisionAnim) {
+            console.assert(unit.motionId === 0);
+            nextPos.copy(unit.mesh.position);
+            mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
+            hasMoved = true;
+        }
+
+        if (hasMoved) {
+            GameUtils.worldToMap(nextPos, nextMapCoords);
+            if (nextMapCoords.equals(unit.coords.mapCoords)) {
+                unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                unit.mesh.position.copy(nextPos);
+                if (!unit.fsm.currentState) {
+                    if (unit.arriving) {
+                        if (unit.velocity.length() < 0.01) {
+                            unit.onArrive();
+                        }
+                    }
+                }
+
+            } else {
+
+                // moved to a new cell
+                const nextCell = GameUtils.getCell(nextMapCoords);
+                const validCell = nextCell?.isWalkable;
+                if (validCell) {
+                    unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                    unit.mesh.position.copy(nextPos);
+
+                    const dx = nextMapCoords.x - unit.coords.mapCoords.x;
+                    const dy = nextMapCoords.y - unit.coords.mapCoords.y;
+
+                    if (!unit.type.startsWith("enemy")) {
+                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+                    }                    
+
+                    const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
+                    const unitIndex = currentCell.units!.indexOf(unit);
+                    console.assert(unitIndex >= 0);
+                    utils.fastDelete(currentCell.units!, unitIndex);
+                    if (nextCell.units) {
+                        console.assert(!nextCell.units.includes(unit));
+                        nextCell.units.push(unit);
+                    } else {
+                        nextCell.units = [unit];
+                    }
+
+                    // update unit coords
+                    const { localCoords } = unit.coords;
+                    localCoords.x += dx;
+                    localCoords.y += dy;
+                    if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
+                        // entered a new sector
+                        computeUnitAddr(nextMapCoords, unit.coords);
+                    } else {
+                        unit.coords.mapCoords.copy(nextMapCoords);
+                        unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                    }
+
+                    if (isMoving) {
+                        const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                        if (reachedTarget) {                            
+                            unit.arriving = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
