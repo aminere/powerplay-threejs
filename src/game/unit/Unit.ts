@@ -50,6 +50,7 @@ export interface IUnit {
     setHealth(value: number): void;
     onDeath(): void;
     onMove: (bindSkeleton: boolean) => void;
+    onMoveCommand: () => void;
     onSteer: () => void;
     onArrive: () => void;
     onColliding: () => void;
@@ -167,6 +168,7 @@ export class Unit implements IUnit {
     }
 
     public onMove(_bindSkeleton: boolean) {}
+    public onMoveCommand() {}
     public onSteer() {}
     public onArrive() {
         UnitMotion.onUnitArrived(this);

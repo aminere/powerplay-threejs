@@ -376,7 +376,7 @@ export class UnitMotion {
             }
 
             moveTo(unit, motionId, destMapCoords);
-            unit.fsm.switchState(null);
+            unit.onMoveCommand();
             ++unitCount;
         }
 

@@ -19,9 +19,9 @@ class UnitAnimation {
             if (unit.resource) {
                 if (_animation === "idle") {
 
-                    if (unit.resource.type === "ak47") {                        
-                        return "shoot";
-                    }
+                    // if (unit.resource.type === "ak47") {
+                    //     return "shoot";
+                    // }
 
                     return "carry-idle";
                 } else if (_animation === "run") {

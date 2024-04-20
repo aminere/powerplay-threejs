@@ -1,21 +1,19 @@
 import { FlockProps } from "../../components/Flock";
 import { State } from "../../fsm/StateMachine";
 import { time } from "../../../engine/core/Time";
-import { npcUtils } from "../NPCUtils";
 import { utils } from "../../../engine/Utils";
 import { unitAnimation } from "../UnitAnimation";
 import { UnitMotion } from "../UnitMotion";
 import { mathUtils } from "../../MathUtils";
 import { ICharacterUnit } from "../CharacterUnit";
 import { IUnit } from "../Unit";
+// import { UnitUtils } from "../UnitUtils";
 
 enum NpcStep {
     Idle,
     Follow,
     Attack
 }
-
-const vision = 5;
 
 export class NPCState extends State<ICharacterUnit> {
 
@@ -36,11 +34,14 @@ export class NPCState extends State<ICharacterUnit> {
         const flockProps = FlockProps.instance;
         switch (this._step) {
             case NpcStep.Idle: {
-                const target = npcUtils.findTarget(unit, vision);
-                if (target) {
-                    target.attackers.push(unit);
-                    this.follow(unit, target);
-                }
+                // const target = UnitUtils.spiralSearch(unit, 4, other => {
+                //     const isEnemy = other.type.startsWith("enemy");
+                //     return !isEnemy;
+                // });
+                // if (target) {
+                //     target.attackers.push(unit);
+                //     this.follow(unit, target);
+                // }
             }
                 break;
 

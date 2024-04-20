@@ -70,13 +70,14 @@ function tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords:
             return true;
         }
     } else if (cell.units) {
-        const truck = cell.units.find(unit => unit.type === "truck") as ITruckUnit;
-        const isMoving = truck.motionId > 0;
-        if (truck && !isMoving) {
-            const amount = truck.resources?.amount ?? 0;
-            if (amount > 0) {
-                removeResource(truck);
-                return true;
+        const truck = cell.units.find(unit => unit.type === "truck") as ITruckUnit;        
+        if (truck) {
+            const isMoving = truck.motionId > 0;
+            if (!isMoving && truck.resources?.type === type) {
+                if (truck.resources!.amount > 0) {
+                    removeResource(truck);
+                    return true;
+                }
             }
         }
     }

@@ -112,6 +112,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
+    public override onMoveCommand() {
+        const isMining = this.fsm.getState(MiningState) !== null;
+        if (isMining) {
+            this.fsm.switchState(null);
+        }
+    }
+
     public override onSteer() {
         unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
     }
