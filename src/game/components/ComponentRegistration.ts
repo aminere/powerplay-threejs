@@ -1,7 +1,4 @@
 import { componentFactory } from "../../engine/ecs/ComponentFactory";
-import { Animator, AnimatorProps } from "../../engine/components/Animator";
-import { Particles } from "../../engine/components/Particles";
-import { ParticlesProps } from "../../engine/components/ParticlesProps";
 import { AnimateMorphTargets, AnimateMorphTargetsProps } from "./AnimateMorphTargets";
 import { EnvProps, EnvPropsProps } from "./EnvProps";
 import { Fadeout, FadeoutProps } from "./Fadeout";
@@ -13,13 +10,13 @@ import { GameMapProps } from "./GameMapProps";
 import { Grass, GrassProps } from "./Grass";
 import { Test, TestProps } from "./Test";
 import { Water, WaterProps } from "./Water";
+import { registerEngineComponents } from "../../engine/components/EngineComponentRegistration";
 
 export function registerComponents() {
+
+    registerEngineComponents();
+
     componentFactory.register<TestProps>(Test);
-
-    componentFactory.register<AnimatorProps>(Animator);
-    componentFactory.register<ParticlesProps>(Particles);
-
     componentFactory.register<GameMapProps>(GameMap);    
     componentFactory.register<GrassProps>(Grass);
     componentFactory.register<AnimateMorphTargetsProps>(AnimateMorphTargets);

@@ -28,6 +28,7 @@ import { BuildingType } from "../buildings/BuildingTypes";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
+import { objects } from "../../engine/resources/Objects";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -62,6 +63,12 @@ async function loadData(path: string, fromLocalStorage: boolean) {
         const data = await response.json() as ISerializedGameMap;
         return data;
     }
+}
+
+async function preloadAnimations() {
+    const anims = await objects.load("prefabs/animations.json");
+    anims.traverse(child => engineState.registerAnimations(child));
+    root().add(anims);
 }
 
 export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
@@ -183,7 +190,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         for (const cell of railCells) {
             Rails.tryLinkRails(cell);
         }
-
     }
 
     private async preload() {
@@ -192,6 +198,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await conveyorItems.preload();
         await trees.preload();
         await railFactory.preload();
+        await preloadAnimations();
         await unitsManager.preload();
     }   
 
