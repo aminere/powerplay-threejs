@@ -23,6 +23,14 @@ export class NPCState extends State<ICharacterUnit> {
     private _target: IUnit | null = null;
     private _hitTimer = 1;
 
+    override enter(unit: ICharacterUnit) {
+        unit.isIdle = false;
+    }
+
+    override exit(unit: ICharacterUnit) {
+        unit.isIdle = true;
+    }
+
     override update(unit: ICharacterUnit): void {
 
         const flockProps = FlockProps.instance;
@@ -81,7 +89,7 @@ export class NPCState extends State<ICharacterUnit> {
                         if (this._hitTimer < 0) {
                             // TODO hit feedback                     
                             this._hitTimer = .5;
-                            target.health -= 0.1;
+                            target.setHealth(target.health - .1);
                             if (!target.isAlive) {
                                 this.goToIdle(unit);
                             }

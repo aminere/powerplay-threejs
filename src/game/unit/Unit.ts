@@ -2,7 +2,6 @@ import { Box3, Mesh, Quaternion, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
-import { UnitFSM } from "./states/UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { IUnitAddr, computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { cmdFogRemoveCircle } from "../../Events";
@@ -48,6 +47,8 @@ export interface IUnit {
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
 
+    setHealth(value: number): void;
+    onDeath(): void;
     onMove: (bindSkeleton: boolean) => void;
     onSteer: () => void;
     onArrive: () => void;
@@ -95,24 +96,7 @@ export class Unit implements IUnit {
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
-    public set collidable(value: boolean) { this._collidable = value; }
-    public set health(value: number) {
-        this._health = value;
-        if (value <= 0 && this._isAlive) {
-            this._fsm.switchState(null);
-            this._isAlive = false;
-            this._collidable = false;
-            this._motionId = 0;
-            this._isColliding = false;
-            const fadeDuration = 1;
-            engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
-            setTimeout(() => {
-                if (!this._type.startsWith("enemy")) {
-                    cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
-                }
-            }, fadeDuration * 1000);
-        }
-    }
+    public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
 
     private _desiredPosValid = false;
@@ -144,7 +128,7 @@ export class Unit implements IUnit {
         this._mesh = props.mesh;
         this._type = props.type;
         this._id = id;
-        this._fsm = new UnitFSM({ states: props.states, owner: this });
+        this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
         this._speedFactor = props.speed ?? 1;
 
         GameUtils.worldToMap(this._mesh.position, this._coords.mapCoords);
@@ -158,6 +142,28 @@ export class Unit implements IUnit {
         } else {
             cell.units = [this];
         }        
+    }
+
+    public setHealth(value: number) {
+        this._health = value;
+        if (value <= 0 && this._isAlive) {
+            this._fsm.switchState(null);
+            this._isAlive = false;
+            this._collidable = false;
+            this._motionId = 0;
+            this._isColliding = false;
+            this.onDeath();
+        }
+    }
+
+    public onDeath() {
+        const fadeDuration = 1;
+        engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
+        setTimeout(() => {
+            if (!this._type.startsWith("enemy")) {
+                cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
+            }
+        }, fadeDuration * 1000);
     }
 
     public onMove(_bindSkeleton: boolean) {}

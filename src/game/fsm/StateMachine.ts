@@ -4,7 +4,7 @@ import { Constructor } from '../../engine/serialization/Types';
 export class State<T> {
     enter(_owner: T) {}
     exit(_owner: T) {}
-    update(_owner: T, _switchState: (state: Constructor<State<T>>) => void) {}
+    update(_owner: T) {}
 }
 
 interface IStateMachineProps<T> {
@@ -27,7 +27,7 @@ export class StateMachine<T> {
     }
 
     public update() {
-        this._currentState?.update(this._owner, state => this.switchState(state));
+        this._currentState?.update(this._owner);
     }
 
     public switchState<U>(state: Constructor<U> | null) {

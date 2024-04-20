@@ -47,32 +47,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get resource() { return this._resource; }
 
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
-    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
-    public set health(value: number) { 
-        this._health = value; 
-        if (value <= 0 && this._isAlive) {
-            this.fsm.switchState(null);
-            engineState.removeComponent(this.mesh, UnitCollisionAnim);
-            this._isAlive = false;            
-            this._collidable = false;
-            this._motionId = 0;
-            this._isColliding = false;
-            unitAnimation.setAnimation(this, "death", { 
-                transitionDuration: 1,
-                destAnimLoopMode: "Once"
-            });
-            setTimeout(() => {
-                const fadeDuration = 1;
-                engineState.setComponent(this.mesh, new Fadeout({ duration: fadeDuration }));
-                setTimeout(() => {
-                    skeletonPool.releaseSkeleton(this);
-                    if (!this.type.startsWith("enemy")) {
-                        cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
-                    }
-                }, fadeDuration * 1000);
-            }, 2000); // wait for the death anim to play a bit
-        }
-    }
+    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }   
 
     public set resource(value: IResource | null) { 
         if (value === this._resource) {
@@ -103,6 +78,31 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         super(props, id);
         this._animation = props.animation;
         this._skinnedMesh = props.mesh;
+    }
+
+    public override setHealth(value: number): void {
+        if (value <= 0) {            
+            engineState.removeComponent(this.mesh, UnitCollisionAnim);
+            this.resource = null;
+        }
+        super.setHealth(value);
+    }
+
+    public override onDeath() {
+        unitAnimation.setAnimation(this, "death", {
+            transitionDuration: 1,
+            destAnimLoopMode: "Once"
+        });
+        setTimeout(() => {
+            const fadeDuration = 1;
+            engineState.setComponent(this.mesh, new Fadeout({ duration: fadeDuration }));
+            setTimeout(() => {
+                skeletonPool.releaseSkeleton(this);
+                if (!this.type.startsWith("enemy")) {
+                    cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+                }
+            }, fadeDuration * 1000);
+        }, 2000); // wait for the death anim to play a bit
     }
 
     public override onMove(bindSkeleton: boolean) {

@@ -21,6 +21,7 @@ import { time } from "../../engine/core/Time";
 import { UnitMotion } from "./UnitMotion";
 import { truckUpdate } from "./update/TruckUpdate";
 import { workerUpdate } from "./update/WorkerUpdate";
+import { SoldierState } from "./states/SoldierState";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -137,7 +138,7 @@ class UnitsManager {
                     type, 
                     states: (() => {
                         switch (type) {
-                            case "worker": return [new MiningState()];
+                            case "worker": return [new MiningState(), new SoldierState()];
                             case "enemy-melee": return [new NPCState()]
                             default: return [];
                         }
@@ -165,7 +166,7 @@ class UnitsManager {
     }
 
     public kill(unit: IUnit) {
-        unit.health = 0;
+        unit.setHealth(0);
         const index = this._units.indexOf(unit as Unit);
         console.assert(index >= 0, `unit ${unit.id} not found`);
         utils.fastDelete(this._units, index);

@@ -71,7 +71,8 @@ function tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords:
         }
     } else if (cell.units) {
         const truck = cell.units.find(unit => unit.type === "truck") as ITruckUnit;
-        if (truck) {
+        const isMoving = truck.motionId > 0;
+        if (truck && !isMoving) {
             const amount = truck.resources?.amount ?? 0;
             if (amount > 0) {
                 removeResource(truck);

@@ -67,10 +67,12 @@ export class MiningState extends State<ICharacterUnit> {
         console.log(`MiningState enter`);
         this._step = MiningStep.GoToResource;
         copyUnitAddr(unit.targetCell, this._targetResource);
+        unit.isIdle = false;
     }
 
-    override exit(_owner: IUnit): void {
+    override exit(unit: IUnit): void {
         console.log(`MiningState exit`);
+        unit.isIdle = true;
     }
 
     private goToFactory(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {

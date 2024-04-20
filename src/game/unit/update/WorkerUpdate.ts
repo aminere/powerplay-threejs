@@ -7,6 +7,7 @@ import { GameMapState } from "../../components/GameMapState";
 import { utils } from "../../../engine/Utils";
 import { meshes } from "../../../engine/resources/Meshes";
 import { objects } from "../../../engine/resources/Objects";
+import { SoldierState } from "../states/SoldierState";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(
@@ -66,6 +67,8 @@ export function pickResource(unit: ICharacterUnit, resourceType: RawResourceType
                 visual.add(obj);
                 obj.visible = false;
             });
+
+        unit.fsm.switchState(SoldierState);
     }
 
     mesh.castShadow = true;

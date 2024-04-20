@@ -18,13 +18,28 @@ const { truckScale } = config.game;
 
 export class TruckUnit extends Unit implements ITruckUnit {    
     public get resources(): ITruckResources | null { return this._resources; }
-    public set resources(value: ITruckResources | null) { this._resources = value; }
+    public set resources(value: ITruckResources | null) { 
+        if (value === this._resources) {
+            return;
+        }
+        if (this._resources) {
+            this._resources.root.removeFromParent();
+        }
+        this._resources = value; 
+    }
 
     private _resources: ITruckResources | null = null;
     
     constructor(props: IUnitProps, id: number) {
         super(props, id);
         props.mesh.scale.multiplyScalar(truckScale);
+    }
+
+    public override setHealth(value: number): void {
+        if (value <= 0) {
+            this.resources = null;
+        }
+        super.setHealth(value);
     }
 }
 

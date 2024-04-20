@@ -114,7 +114,7 @@ export class ArcherNPCState extends State<IUnit> {
                                             arrow!.tween = null;
                                             arrow!.obj.removeFromParent();
                                             if (this._target?.isAlive) {
-                                                this._target.health -= 0.5;
+                                                this._target.setHealth(this._target.health - 0.5);
                                             }
                                         }
                                     });                                    
