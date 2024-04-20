@@ -1,6 +1,5 @@
 import { State } from "../../fsm/StateMachine";
 import { IUnit } from "../Unit";
-import { npcUtils } from "../NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../../engine/Engine";
 import gsap from "gsap";
@@ -47,12 +46,12 @@ export class ArcherNPCState extends State<IUnit> {
                 if (this._idleTimer > 0) {                    
                     break;
                 }
-                const target = npcUtils.findTarget(unit, vision);
-                if (target) {
-                    target.attackers.push(unit);
-                    this._target = target;                    
-                    this.attack(unit);
-                }
+                // const target = npcUtils.findTarget(unit, vision);
+                // if (target) {
+                //     target.attackers.push(unit);
+                //     this._target = target;                    
+                //     this.attack(unit);
+                // }
             }
                 break;
 
