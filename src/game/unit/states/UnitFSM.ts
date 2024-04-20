@@ -1,6 +1,6 @@
-import { Constructor } from "../../engine/serialization/Types";
-import { StateMachine } from "../fsm/StateMachine";
-import { IUnit } from "./Unit";
+import { Constructor } from "../../../engine/serialization/Types";
+import { StateMachine } from "../../fsm/StateMachine";
+import { IUnit } from "../Unit";
 
 export class UnitFSM extends StateMachine<IUnit> {
     public switchState<T>(state: Constructor<T> | null) {        

@@ -1,10 +1,10 @@
 import { MathUtils, Vector2 } from "three";
-import { GameUtils } from "../GameUtils";
-import { utils } from "../../engine/Utils";
-import { conveyorItems } from "../ConveyorItems";
-import { ITruckUnit } from "./TruckUnit";
-import { IConveyor } from "../GameTypes";
-import { meshes } from "../../engine/resources/Meshes";
+import { GameUtils } from "../../GameUtils";
+import { utils } from "../../../engine/Utils";
+import { conveyorItems } from "../../ConveyorItems";
+import { ITruckUnit } from "../TruckUnit";
+import { IConveyor } from "../../GameTypes";
+import { meshes } from "../../../engine/resources/Meshes";
 
 const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const neighborCoords = new Vector2();

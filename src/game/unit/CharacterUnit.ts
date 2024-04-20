@@ -10,9 +10,11 @@ import { Fadeout } from "../components/Fadeout";
 import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
-import { MiningState } from "./MiningState";
-import { ICell } from "../GameTypes";
-import { pickResource } from "./WorkerUpdate";
+import { MiningState } from "./states/MiningState";
+import { ICell, IResource } from "../GameTypes";
+import { pickResource } from "./update/WorkerUpdate";
+import { GameMapState } from "../components/GameMapState";
+import { IFactoryState } from "../buildings/BuildingTypes";
 
 interface IUnitAnim {
     name: string;
@@ -24,6 +26,7 @@ export interface ICharacterUnit extends IUnit {
     animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
     muzzleFlashTimer: number;
+    resource: IResource | null;
 }
 
 export interface ICharacterUnitProps {
@@ -41,6 +44,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get health() { return this._health; }
     public get arriving() { return this._arriving; }
     public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
+    public get resource() { return this._resource; }
 
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
@@ -70,6 +74,16 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
+    public set resource(value: IResource | null) { 
+        if (value === this._resource) {
+            return;
+        }
+        if (this._resource) {
+            this._resource.visual.removeFromParent();
+        }
+        this._resource = value;
+    }
+
     public set arriving(value: boolean) {
         this._arriving = value;
         if (value) {
@@ -83,6 +97,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _skeleton: IUniqueSkeleton | null = null;    
     private _skinnedMesh: SkinnedMesh;
     private _muzzleFlashTimer = 0;
+    private _resource: IResource | null = null;
 
     constructor(props: ICharacterUnitProps, id: number) {
         super(props, id);
@@ -115,7 +130,19 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
-    public override onReachedTarget(cell: ICell) {        
+    public override onReachedBuilding(cell: ICell) {  
+        
+        if (this.resource) {
+            const buildingInstance = GameMapState.instance.buildings.get(cell.building!.instanceId)!;
+            if (buildingInstance.buildingType === "factory") {
+                const state = buildingInstance.state as IFactoryState;
+                if (state.input === this.resource.type) {
+                    state.inputReserve++;
+                    this.resource = null;
+                }
+            }
+        }
+
         const miningState = this.fsm.getState(MiningState)!;
         if (miningState) {
             miningState.onReachedTarget(this);
@@ -127,6 +154,18 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             }
             this.onArrive();
         }        
+    }
+
+    public override onCollidedWithIdleNeighbor(neighbor: IUnit) {
+        // if other unit was part of my motion, stop
+        if (neighbor.lastCompletedMotionId === this.motionId) {
+            const isMining = this.fsm.getState(MiningState) !== null;
+            if (isMining || this.resource) {
+                 // keep going
+            } else {
+                this.onArrive();
+            }
+        }
     }
 }
 

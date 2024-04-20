@@ -1,13 +1,13 @@
-import { FlockProps } from "../components/Flock";
-import { State } from "../fsm/StateMachine";
-import { time } from "../../engine/core/Time";
-import { npcUtils } from "./NPCUtils";
-import { utils } from "../../engine/Utils";
-import { unitAnimation } from "./UnitAnimation";
-import { unitMotion } from "./UnitMotion";
-import { mathUtils } from "../MathUtils";
-import { ICharacterUnit } from "./CharacterUnit";
-import { IUnit } from "./Unit";
+import { FlockProps } from "../../components/Flock";
+import { State } from "../../fsm/StateMachine";
+import { time } from "../../../engine/core/Time";
+import { npcUtils } from "../NPCUtils";
+import { utils } from "../../../engine/Utils";
+import { unitAnimation } from "../UnitAnimation";
+import { UnitMotion } from "../UnitMotion";
+import { mathUtils } from "../../MathUtils";
+import { ICharacterUnit } from "../CharacterUnit";
+import { IUnit } from "../Unit";
 
 enum NpcStep {
     Idle,
@@ -45,7 +45,7 @@ export class NPCState extends State<ICharacterUnit> {
                         const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < flockProps.separation + .2) {
                             console.assert(unit.motionId > 0);
-                            unitMotion.onUnitArrived(unit);
+                            UnitMotion.onUnitArrived(unit);
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
                             unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
@@ -76,7 +76,7 @@ export class NPCState extends State<ICharacterUnit> {
                     const dist = target.mesh.position.distanceTo(unit.mesh.position);
                     const inRange = dist < flockProps.separation + .4;
                     if (inRange) {
-                        unitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
+                        UnitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
                         this._hitTimer -= time.deltaTime;
                         if (this._hitTimer < 0) {
                             // TODO hit feedback                     
@@ -101,7 +101,7 @@ export class NPCState extends State<ICharacterUnit> {
     private follow(unit: ICharacterUnit, target: IUnit) {
         switch (this._step) {
             case NpcStep.Attack: {
-                unitMotion.moveUnit(unit, target.coords.mapCoords, false);
+                UnitMotion.moveUnit(unit, target.coords.mapCoords, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
@@ -110,7 +110,7 @@ export class NPCState extends State<ICharacterUnit> {
                 break;
 
             default:
-                unitMotion.moveUnit(unit, target.coords.mapCoords);
+                UnitMotion.moveUnit(unit, target.coords.mapCoords);
                 break;
         }
         this._step = NpcStep.Follow;
@@ -120,7 +120,7 @@ export class NPCState extends State<ICharacterUnit> {
     private goToIdle(unit: ICharacterUnit) {
         const target = this._target!;
         if (unit.motionId > 0) {
-            unitMotion.onUnitArrived(unit);
+            UnitMotion.onUnitArrived(unit);
         }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration: 1,

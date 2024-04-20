@@ -12,7 +12,7 @@ import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
 import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
-import { unitMotion } from "../unit/UnitMotion";
+import { UnitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
 import { unitsManager } from "../unit/UnitsManager";
@@ -188,10 +188,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             const intersection = pools.vec3.getOne();
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
-                                const { mesh, type } = unit;
-                                if (type.startsWith("enemy")) {
-                                    continue;
-                                }
+                                const { mesh } = unit;
                                 if (!unit.isAlive) {
                                     continue;
                                 }
@@ -260,6 +257,12 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (targetCell) {
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
+                                
+                                const isNPC = cur.type.startsWith("enemy");
+                                if (isNPC) {
+                                    return prev;
+                                }
+
                                 const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
                                 const units = prev[key];
                                 const isVehicle = cur.type === "truck";
@@ -273,10 +276,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                             for (const group of Object.values(groups)) {
                                 if (group.character.length > 0) {
-                                    unitMotion.moveGroup(group.character, targetCellCoords, targetCell, "character");
+                                    UnitMotion.moveGroup(group.character, targetCellCoords, targetCell, "character");
                                 }
                                 if (group.vehicle.length > 0) {
-                                    unitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, "vehicle");
+                                    UnitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, "vehicle");
                                 }
                             }
                         }

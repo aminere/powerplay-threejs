@@ -7,16 +7,20 @@ import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { GameMapState } from "../components/GameMapState";
 import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
-import { updateUnits } from "./UnitsUpdate";
 import { config } from "../config";
 import { UnitType } from "../GameDefinitions";
 import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
-import { CharacterUnit } from "./CharacterUnit";
+import { CharacterUnit, ICharacterUnit } from "./CharacterUnit";
 import { IUnit, Unit } from "./Unit";
-import { MiningState } from "./MiningState";
-import { NPCState } from "./NPCState";
-import { TruckUnit } from "./TruckUnit";
+import { MiningState } from "./states/MiningState";
+import { NPCState } from "./states/NPCState";
+import { ITruckUnit, TruckUnit } from "./TruckUnit";
+import { FlockProps } from "../components/Flock";
+import { time } from "../../engine/core/Time";
+import { UnitMotion } from "./UnitMotion";
+import { truckUpdate } from "./update/TruckUpdate";
+import { workerUpdate } from "./update/WorkerUpdate";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -31,7 +35,7 @@ class UnitsManager {
     public set owner(value: Object3D) { this._owner = value; }
 
     private _owner!: Object3D;
-    private _units: Unit[] = [];
+    private _units: IUnit[] = [];
     private _selectedUnits: IUnit[] = [];
     private _selectionStart: Vector2 = new Vector2();
     private _dragStarted: boolean = false;
@@ -68,75 +72,26 @@ class UnitsManager {
     }
 
     public update() {
-        const gameMapState = GameMapState.instance;
-        if (input.touchJustPressed) {
-            if (!gameMapState.cursorOverUI) {
-                if (input.touchButton === 0) {
-                    this._dragStarted = true;
-                    this._selectionStart.copy(input.touchPos);
-                }
-            }
-
-        } else if (input.touchPressed) {
-
-            if (input.touchButton === 0) {
-                if (input.touchJustMoved) {
-                    if (this._dragStarted) {
-                        if (!input.touchInside) {
-                            this._dragStarted = false;
-                        } else {
-                            if (gameMapState.selectionInProgress) {
-                                this._selectedUnits.length = 0;
-                                const units = this._units;
-                                for (let i = 0; i < units.length; ++i) {
-                                    const unit = units[i];
-                                    const { mesh, type } = unit;
-                                    if (type.startsWith("enemy")) {
-                                        continue;
-                                    }
-                                    if (!unit.isAlive) {
-                                        continue;
-                                    }
-                                    GameUtils.worldToScreen(mesh.position, gameMapState.camera, screenPos);
-                                    const rectX = Math.min(this._selectionStart.x, input.touchPos.x);
-                                    const rectY = Math.min(this._selectionStart.y, input.touchPos.y);
-                                    const rectWidth = Math.abs(input.touchPos.x - this._selectionStart.x);
-                                    const rectHeight = Math.abs(input.touchPos.y - this._selectionStart.y);
-                                    if (screenPos.x >= rectX && screenPos.x <= rectX + rectWidth && screenPos.y >= rectY && screenPos.y <= rectY + rectHeight) {
-                                        this._selectedUnits.push(unit);
-                                    }
-                                }
-
-                                cmdSetSelectedElems.post({ units: this._selectedUnits });
-
-                            } else {
-
-                                if (!gameMapState.action) {
-                                    const dx = input.touchPos.x - this._selectionStart.x;
-                                    const dy = input.touchPos.y - this._selectionStart.y;
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    const threshold = 5;
-                                    if (dist > threshold) {
-                                        gameMapState.selectionInProgress = true;
-                                        cmdStartSelection.post(this._selectionStart);
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-
-        } else if (input.touchJustReleased) {
-            if (this._dragStarted) {
-                this._dragStarted = false;
-            }
-        }       
-
+        this.handleInput();
         skeletonPool.update();
         this.handleSpawnRequests();
-        updateUnits(this._units);
+
+        const props = FlockProps.instance;
+        const steerAmount = props.speed * time.deltaTime;
+        const avoidanceSteerAmount = props.avoidanceSpeed * time.deltaTime;
+        for (const unit of this._units) {
+            if (!unit.isAlive) {
+                continue;
+            }
+
+            unit.fsm.update();
+            UnitMotion.update(unit, steerAmount, avoidanceSteerAmount);
+
+            switch (unit.type) {
+                case "truck": truckUpdate(unit as ITruckUnit); break;
+                case "worker": workerUpdate(unit as ICharacterUnit); break;
+            }
+        }        
     }
 
     public async spawn(mapCoords: Vector2, type: UnitType) {
@@ -252,6 +207,71 @@ class UnitsManager {
         const props = GameMapProps.instance;
         this.spawn(spawnCoords, props.unit);
         this._spawnUnitRequest = null;
+    }
+
+    private handleInput() {
+        const gameMapState = GameMapState.instance;
+        if (input.touchJustPressed) {
+            if (!gameMapState.cursorOverUI) {
+                if (input.touchButton === 0) {
+                    this._dragStarted = true;
+                    this._selectionStart.copy(input.touchPos);
+                }
+            }
+
+        } else if (input.touchPressed) {
+
+            if (input.touchButton === 0) {
+                if (input.touchJustMoved) {
+                    if (this._dragStarted) {
+                        if (!input.touchInside) {
+                            this._dragStarted = false;
+                        } else {
+                            if (gameMapState.selectionInProgress) {
+                                this._selectedUnits.length = 0;
+                                const units = this._units;
+                                for (let i = 0; i < units.length; ++i) {
+                                    const unit = units[i];
+                                    const { mesh } = unit;                                    
+                                    if (!unit.isAlive) {
+                                        continue;
+                                    }
+                                    GameUtils.worldToScreen(mesh.position, gameMapState.camera, screenPos);
+                                    const rectX = Math.min(this._selectionStart.x, input.touchPos.x);
+                                    const rectY = Math.min(this._selectionStart.y, input.touchPos.y);
+                                    const rectWidth = Math.abs(input.touchPos.x - this._selectionStart.x);
+                                    const rectHeight = Math.abs(input.touchPos.y - this._selectionStart.y);
+                                    if (screenPos.x >= rectX && screenPos.x <= rectX + rectWidth && screenPos.y >= rectY && screenPos.y <= rectY + rectHeight) {
+                                        this._selectedUnits.push(unit);
+                                    }
+                                }
+
+                                cmdSetSelectedElems.post({ units: this._selectedUnits });
+
+                            } else {
+
+                                if (!gameMapState.action) {
+                                    const dx = input.touchPos.x - this._selectionStart.x;
+                                    const dy = input.touchPos.y - this._selectionStart.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    const threshold = 5;
+                                    if (dist > threshold) {
+                                        gameMapState.selectionInProgress = true;
+                                        cmdStartSelection.post(this._selectionStart);
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+        } else if (input.touchJustReleased) {
+            if (this._dragStarted) {
+                this._dragStarted = false;
+            }
+        }
     }
 }
 

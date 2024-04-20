@@ -1,14 +1,14 @@
-import { State } from "../fsm/StateMachine";
-import { IUnit } from "./Unit";
-import { npcUtils } from "./NPCUtils";
+import { State } from "../../fsm/StateMachine";
+import { IUnit } from "../Unit";
+import { npcUtils } from "../NPCUtils";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
-import { engine } from "../../engine/Engine";
+import { engine } from "../../../engine/Engine";
 import gsap from "gsap";
-import { time } from "../../engine/core/Time";
-import { utils } from "../../engine/Utils";
-import { unitAnimation } from "./UnitAnimation";
-import { unitMotion } from "./UnitMotion";
-import { ICharacterUnit } from "./CharacterUnit";
+import { time } from "../../../engine/core/Time";
+import { utils } from "../../../engine/Utils";
+import { unitAnimation } from "../UnitAnimation";
+import { UnitMotion } from "../UnitMotion";
+import { ICharacterUnit } from "../CharacterUnit";
 
 enum NpcStep {
     Idle,
@@ -66,7 +66,7 @@ export class ArcherNPCState extends State<IUnit> {
                         const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < vision) {
                             if (unit.motionId > 0) {
-                                unitMotion.onUnitArrived(unit);    
+                                UnitMotion.onUnitArrived(unit);    
                             }
                             this.attack(unit);
                         }
@@ -83,7 +83,7 @@ export class ArcherNPCState extends State<IUnit> {
                     const dist = target.mesh.position.distanceTo(unit.mesh.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        unitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
+                        UnitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               
@@ -179,7 +179,7 @@ export class ArcherNPCState extends State<IUnit> {
         const target = this._target!;
         const transitionDuration = .3;
         if (unit.motionId > 0) {
-            unitMotion.onUnitArrived(unit);    
+            UnitMotion.onUnitArrived(unit);    
         }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration,

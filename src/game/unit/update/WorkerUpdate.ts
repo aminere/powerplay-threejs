@@ -1,12 +1,12 @@
 import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from "three";
-import { time } from "../../engine/core/Time";
-import { unitAnimation } from "./UnitAnimation";
-import { ICharacterUnit } from "./CharacterUnit";
-import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { GameMapState } from "../components/GameMapState";
-import { utils } from "../../engine/Utils";
-import { meshes } from "../../engine/resources/Meshes";
-import { objects } from "../../engine/resources/Objects";
+import { time } from "../../../engine/core/Time";
+import { unitAnimation } from "../UnitAnimation";
+import { ICharacterUnit } from "../CharacterUnit";
+import { RawResourceType, ResourceType } from "../../GameDefinitions";
+import { GameMapState } from "../../components/GameMapState";
+import { utils } from "../../../engine/Utils";
+import { meshes } from "../../../engine/resources/Meshes";
+import { objects } from "../../../engine/resources/Objects";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(

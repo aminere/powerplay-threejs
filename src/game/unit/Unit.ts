@@ -2,13 +2,13 @@ import { Box3, Mesh, Quaternion, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
-import { UnitFSM } from "./UnitFSM";
+import { UnitFSM } from "./states/UnitFSM";
 import { Fadeout } from "../components/Fadeout";
 import { IUnitAddr, computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { cmdFogRemoveCircle } from "../../Events";
-import { ICell, IResource } from "../GameTypes";
+import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
-import { unitMotion } from "./UnitMotion";
+import { UnitMotion } from "./UnitMotion";
 
 export interface IUnitProps {
     mesh: Mesh;
@@ -46,14 +46,14 @@ export interface IUnit {
     health: number;
     attackers: IUnit[];
     unitsInRange: Array<[IUnit, number]>;
-    resource: IResource | null;
     boundingBox: Box3;
 
     onMove: (bindSkeleton: boolean) => void;
     onSteer: () => void;
     onArrive: () => void;
     onColliding: () => void;
-    onReachedTarget: (cell: ICell) => void;
+    onReachedBuilding: (cell: ICell) => void;
+    onCollidedWithIdleNeighbor: (unit: IUnit) => void;
 }
 
 export class Unit implements IUnit {
@@ -77,7 +77,6 @@ export class Unit implements IUnit {
     public get attackers() { return this._attackers; }
     
     public get unitsInRange() { return this._unitsInRange; }
-    public get resource() { return this._resource; }
 
     public get lookAt() { return this._lookAt; }
     public get rotation() { return this._rotation; }    
@@ -92,17 +91,7 @@ export class Unit implements IUnit {
             this._lastCompletedMotionId = this._motionId;
         }
         this._motionId = value;
-    }
-
-    public set resource(value: IResource | null) { 
-        if (value === this._resource) {
-            return;
-        }
-        if (this._resource) {
-            this._resource.visual.removeFromParent();
-        }
-        this._resource = value;
-    }
+    }    
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
@@ -144,7 +133,6 @@ export class Unit implements IUnit {
     protected _health = 1;
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
-    private _resource: IResource | null = null;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
@@ -175,11 +163,12 @@ export class Unit implements IUnit {
     public onMove(_bindSkeleton: boolean) {}
     public onSteer() {}
     public onArrive() {
-        unitMotion.onUnitArrived(this);
+        UnitMotion.onUnitArrived(this);
     }
     public onColliding() {}
-    public onReachedTarget(_cell: ICell) {
+    public onReachedBuilding(_cell: ICell) {
         this.onArrive();
     }
+    public onCollidedWithIdleNeighbor(_unit: IUnit) {}
 }
 

@@ -11,8 +11,7 @@ import { GameMapProps } from "../components/GameMapProps";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { FlockProps } from "../components/Flock";
 import { config } from "../config";
-import { MiningState } from "./MiningState";
-import { IFactoryState } from "../buildings/BuildingTypes";
+import { MiningState } from "./states/MiningState";
 import { utils } from "../../engine/Utils";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { cmdFogMoveCircle } from "../../Events";
@@ -158,6 +157,81 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
     unit.desiredPosValid = true;
 }
 
+function steer(unit: IUnit, steerAmount: number) {
+    const { motionId, desiredPosValid, desiredPos, coords, mesh: obj } = unit;
+    if (motionId > 0) {
+        if (!desiredPosValid) { 
+            
+            if (unit.arriving) {
+
+                if (!unit.fsm.currentState) {
+                    mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
+                    unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
+                    unit.desiredPosValid = true;
+                }
+
+            } else {
+                const flowfields = flowField.getMotion(motionId).flowfields;            
+                const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+                if (_flowField) {
+                    const currentCellIndex = coords.cellIndex;
+                    const flowfieldInfo = _flowField[currentCellIndex];
+                    steerFromFlowfield(unit, flowfieldInfo, steerAmount); 
+                    
+                    if (!unit.lastKnownFlowfield) {
+                        unit.lastKnownFlowfield = {
+                            cellIndex: currentCellIndex,
+                            sectorCoords: coords.sectorCoords.clone()
+                        };
+                    } else {
+                        unit.lastKnownFlowfield.cellIndex = currentCellIndex;
+                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+                    }
+                } else {
+
+                    console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+                    if (unit.lastKnownFlowfield) {
+                        const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
+                        const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
+                        console.assert(_flowField);
+                        console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
+                        const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
+                        const neighborDist = _flowField[neighborCellIndex].integration;
+                        const cell = coords.sector!.cells[coords.cellIndex];
+                        const cellDist = neighborDist + cell.flowFieldCost;
+                        const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
+                        flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
+                        const flowfieldInfo = newFlowfield[coords.cellIndex];
+                        steerFromFlowfield(unit,flowfieldInfo, steerAmount);
+
+                        unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
+                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+
+                        if (GameMapProps.instance.debugPathfinding) {
+                            coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
+                            coords.sector!.flowfieldViewer.visible = true;    
+                        }
+
+                    } else {
+                        console.assert(false);                            
+                        unit.velocity.set(0, 0, 0);
+                        desiredPos.copy(obj.position);
+                        unit.desiredPosValid = true;
+                    }                    
+                }
+            }                
+        }
+
+    } else {
+        if (!desiredPosValid) {
+            unit.velocity.set(0, 0, 0);
+            desiredPos.copy(obj.position);
+            unit.desiredPosValid = true;
+        }
+    }
+    return desiredPos;
+}
+
 function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
     if (destCell.resource) {
         if (destCell.resource.type === currentCell.resource?.type) {            
@@ -234,9 +308,9 @@ function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDes
     otherDesiredPos.sub(toTarget);
 };
 
-class UnitMotion {
+export class UnitMotion {
 
-    public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
+    public static moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
 
         const destCell = GameUtils.getCell(destMapCoords)!;
         const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords, destCell);
@@ -252,7 +326,7 @@ class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, type: "character" | "vehicle") {
+    public static moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, type: "character" | "vehicle") {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
@@ -323,82 +397,7 @@ class UnitMotion {
         }
     }
 
-    public steer(unit: IUnit, steerAmount: number) {
-        const { motionId, desiredPosValid, desiredPos, coords, mesh: obj } = unit;
-        if (motionId > 0) {
-            if (!desiredPosValid) { 
-                
-                if (unit.arriving) {
-
-                    if (!unit.fsm.currentState) {
-                        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
-                        unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
-                        unit.desiredPosValid = true;
-                    }
-
-                } else {
-                    const flowfields = flowField.getMotion(motionId).flowfields;            
-                    const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                    if (_flowField) {
-                        const currentCellIndex = coords.cellIndex;
-                        const flowfieldInfo = _flowField[currentCellIndex];
-                        steerFromFlowfield(unit, flowfieldInfo, steerAmount); 
-                        
-                        if (!unit.lastKnownFlowfield) {
-                            unit.lastKnownFlowfield = {
-                                cellIndex: currentCellIndex,
-                                sectorCoords: coords.sectorCoords.clone()
-                            };
-                        } else {
-                            unit.lastKnownFlowfield.cellIndex = currentCellIndex;
-                            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-                        }
-                    } else {
-    
-                        console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                        if (unit.lastKnownFlowfield) {
-                            const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
-                            const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
-                            console.assert(_flowField);
-                            console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
-                            const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
-                            const neighborDist = _flowField[neighborCellIndex].integration;
-                            const cell = coords.sector!.cells[coords.cellIndex];
-                            const cellDist = neighborDist + cell.flowFieldCost;
-                            const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
-                            flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
-                            const flowfieldInfo = newFlowfield[coords.cellIndex];
-                            steerFromFlowfield(unit,flowfieldInfo, steerAmount);
-
-                            unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
-                            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-
-                            if (GameMapProps.instance.debugPathfinding) {
-                                coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
-                                coords.sector!.flowfieldViewer.visible = true;    
-                            }
-
-                        } else {
-                            console.assert(false);                            
-                            unit.velocity.set(0, 0, 0);
-                            desiredPos.copy(obj.position);
-                            unit.desiredPosValid = true;
-                        }                    
-                    }
-                }                
-            }
-
-        } else {
-            if (!desiredPosValid) {
-                unit.velocity.set(0, 0, 0);
-                desiredPos.copy(obj.position);
-                unit.desiredPosValid = true;
-            }
-        }
-        return desiredPos;
-    }
-
-    public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
+    public static updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
         deltaPos.subVectors(toPos, fromPos);
         const deltaPosLen = deltaPos.length();
         if (deltaPosLen > 0.01) {
@@ -410,19 +409,19 @@ class UnitMotion {
         }
     }    
 
-    public onUnitArrived(unit: IUnit) {
+    public static onUnitArrived(unit: IUnit) {
         onUnitArrived(unit);
     }
 
-    public update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
+    public static update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
         const props = FlockProps.instance;
         const { repulsion, positionDamp, separation } = props;    
 
-        const desiredPos = unitMotion.steer(unit, steerAmount * unit.speedFactor);
+        const desiredPos = steer(unit, steerAmount * unit.speedFactor);
         const neighbors = getUnitNeighbors(unit);
         for (const neighbor of neighbors) {
 
-            const otherDesiredPos = unitMotion.steer(neighbor, steerAmount * neighbor.speedFactor);
+            const otherDesiredPos = steer(neighbor, steerAmount * neighbor.speedFactor);
             if (!(unit.collidable && neighbor.collidable)) {
                 continue;
             }
@@ -443,17 +442,8 @@ class UnitMotion {
                 } else {
                     if (unit.motionId > 0) {
                         toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                        otherDesiredPos.add(toTarget);
-
-                        // if other unit was part of my motion, stop
-                        if (neighbor.lastCompletedMotionId === unit.motionId) {
-                            const isMining = unit.fsm.getState(MiningState) !== null;
-                            if (isMining || unit.resource) {
-                                 // keep going
-                            } else {
-                                unit.onArrive();
-                            }
-                        }
+                        otherDesiredPos.add(toTarget);                        
+                        unit.onCollidedWithIdleNeighbor(neighbor);
 
                     } else {
                         moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
@@ -489,20 +479,7 @@ class UnitMotion {
                 const instanceId = avoidedCell.building.instanceId;
                 const targetCell = getCellFromAddr(unit.targetCell);
                 if (instanceId === targetCell.building?.instanceId) {
-
-                    const carriedResource = unit.resource;
-                    if (carriedResource) {
-                        const buildingInstance = GameMapState.instance.buildings.get(instanceId)!;
-                        if (buildingInstance.buildingType === "factory") {
-                            const state = buildingInstance.state as IFactoryState;
-                            if (state.input === carriedResource.type) {
-                                state.inputReserve++;
-                                unit.resource = null;
-                            }
-                        }
-                    }
-
-                    unit.onReachedTarget(targetCell);                    
+                    unit.onReachedBuilding(targetCell);                    
                 }
             } else if (avoidedCell?.resource) {
                 const targetCell = getCellFromAddr(unit.targetCell);
@@ -546,7 +523,7 @@ class UnitMotion {
         if (hasMoved) {
             GameUtils.worldToMap(nextPos, nextMapCoords);
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
-                unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
                 unit.mesh.position.copy(nextPos);
                 if (!unit.fsm.currentState) {
                     if (unit.arriving) {
@@ -562,7 +539,7 @@ class UnitMotion {
                 const nextCell = GameUtils.getCell(nextMapCoords);
                 const validCell = nextCell?.isWalkable;
                 if (validCell) {
-                    unitMotion.updateRotation(unit, unit.mesh.position, nextPos);
+                    UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
                     unit.mesh.position.copy(nextPos);
 
                     const dx = nextMapCoords.x - unit.coords.mapCoords.x;
@@ -606,6 +583,4 @@ class UnitMotion {
         }
     }
 }
-
-export const unitMotion = new UnitMotion();
 

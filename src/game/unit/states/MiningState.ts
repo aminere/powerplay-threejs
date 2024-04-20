@@ -1,16 +1,16 @@
-import { State } from "../fsm/StateMachine";
-import { IUnit } from "./Unit";
+import { State } from "../../fsm/StateMachine";
+import { IUnit } from "../Unit";
 import { Vector2 } from "three";
-import { time } from "../../engine/core/Time";
-import { unitAnimation } from "./UnitAnimation";
-import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
-import { unitMotion } from "./UnitMotion";
-import { IBuildingInstance, IFactoryState, buildingSizes } from "../buildings/BuildingTypes";
-import { GameMapState } from "../components/GameMapState";
-import { resources } from "../Resources";
-import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { ICharacterUnit } from "./CharacterUnit";
-import { pickResource } from "./WorkerUpdate";
+import { time } from "../../../engine/core/Time";
+import { unitAnimation } from "../UnitAnimation";
+import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
+import { UnitMotion } from "../UnitMotion";
+import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
+import { GameMapState } from "../../components/GameMapState";
+import { resources } from "../../Resources";
+import { RawResourceType, ResourceType } from "../../GameDefinitions";
+import { ICharacterUnit } from "../CharacterUnit";
+import { pickResource } from "../update/WorkerUpdate";
 
 enum MiningStep {
     GoToResource,
@@ -49,7 +49,7 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
 
 function stopMining(unit: ICharacterUnit) {
     if (unit.motionId > 0) {
-        unitMotion.onUnitArrived(unit);
+        UnitMotion.onUnitArrived(unit);
     }
     unit.fsm.switchState(null);
     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
@@ -82,13 +82,13 @@ export class MiningState extends State<ICharacterUnit> {
             const center = cellCoords.set(Math.round(coords.x + (size.x - 1) / 2), Math.round(coords.y + (size.z - 1) / 2));
             const isMining = unit.animation.name === "pick";
             if (isMining) {
-                unitMotion.moveUnit(unit, center, false);
+                UnitMotion.moveUnit(unit, center, false);
                 unitAnimation.setAnimation(unit, "run", {
                     transitionDuration: .3,
                     scheduleCommonAnim: true
                 });
             } else {
-                unitMotion.moveUnit(unit, center);
+                UnitMotion.moveUnit(unit, center);
             }            
             this._step = MiningStep.GoToFactory;
         } else {
@@ -144,7 +144,7 @@ export class MiningState extends State<ICharacterUnit> {
 
     public onReachedTarget(unit: ICharacterUnit) {
         if (unit.motionId > 0) {
-            unitMotion.onUnitArrived(unit);
+            UnitMotion.onUnitArrived(unit);
         }
 
         switch (this._step) {
@@ -177,7 +177,7 @@ export class MiningState extends State<ICharacterUnit> {
 
             case MiningStep.GoToFactory:
                 this._step = MiningStep.GoToResource;
-                unitMotion.moveUnit(unit, this._targetResource.mapCoords);
+                UnitMotion.moveUnit(unit, this._targetResource.mapCoords);
                 break;
         }
     }

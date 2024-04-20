@@ -14,7 +14,7 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 import { ITruckUnit } from "../unit/TruckUnit";
-import { removeResource } from "../unit/TruckUpdate";
+import { removeResource } from "../unit/update/TruckUpdate";
 
 const { cellSize, mapRes } = config.game;
 const { itemScale } = config.conveyors;
@@ -115,6 +115,10 @@ class Buildings {
     }>();
 
     public async preload() {
+        if (this._buildings.size > 0) {
+            return;
+        }
+        
         const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
         for (let i = 0; i < buildings.length; i++) {
             const [building] = buildings[i];
