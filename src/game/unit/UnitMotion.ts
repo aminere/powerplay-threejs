@@ -144,7 +144,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
         } else {
             cellDirection.set(0, 0);
             endMotion(unit);
-            unit.onSteer();
+            unit.onArrived();
         }
 
     } else {
@@ -479,7 +479,8 @@ export class UnitMotion {
                 const instanceId = avoidedCell.building.instanceId;
                 const targetCell = getCellFromAddr(unit.targetCell);
                 if (instanceId === targetCell.building?.instanceId) {
-                    unit.onReachedBuilding(targetCell);                    
+                    UnitMotion.endMotion(unit);
+                    unit.onReachedBuilding(targetCell);                
                 }
             } else if (avoidedCell?.resource) {
                 const targetCell = getCellFromAddr(unit.targetCell);
@@ -487,7 +488,7 @@ export class UnitMotion {
                     switch (unit.type) {
                         case "worker": {
                             const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                            miningState.onReachedTarget(unit as ICharacterUnit);
+                            miningState.onReachedResource(unit as ICharacterUnit);
                         }
                         break;
                         default:

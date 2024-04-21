@@ -118,13 +118,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
-    public override onSteer() {
-        unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-    }
-
     public override onArrived() {
         if (this.isIdle) {
-            unitAnimation.setAnimation(this, "idle");
+            unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
         }
     }
     
@@ -143,8 +139,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
-    public override onReachedBuilding(cell: ICell) {  
-        
+    public override onReachedBuilding(cell: ICell) {
+
         if (this.resource) {
             const buildingInstance = GameMapState.instance.buildings.get(cell.building!.instanceId)!;
             if (buildingInstance.buildingType === "factory") {
@@ -158,14 +154,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         
         const miningState = this.fsm.getState(MiningState)!;
         if (miningState) {
-            miningState.onReachedTarget(this);
+            miningState.onReachedFactory(this);
         } else {
             if (cell.pickableResource) {
                 pickResource(this, cell.pickableResource.type);
                 cell.pickableResource.visual.removeFromParent();
                 cell.pickableResource = undefined;
             }
-            UnitMotion.endMotion(this);
             this.onArrived();
         }        
     }

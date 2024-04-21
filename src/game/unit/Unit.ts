@@ -7,7 +7,6 @@ import { IUnitAddr, computeUnitAddr, makeUnitAddr } from "./UnitAddr";
 import { cmdFogRemoveCircle } from "../../Events";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
-import { UnitMotion } from "./UnitMotion";
 
 export interface IUnitProps {
     mesh: Mesh;
@@ -51,7 +50,6 @@ export interface IUnit {
     onDeath(): void;
     onMove: (bindSkeleton: boolean) => void;
     onMoveCommand: () => void;
-    onSteer: () => void;
     onArrived: () => void;
     onArriving: () => void;
     onColliding: () => void;
@@ -170,7 +168,6 @@ export class Unit implements IUnit {
 
     public onMove(_bindSkeleton: boolean) {}
     public onMoveCommand() {}
-    public onSteer() {}
     public onArrived() {}
     public onArriving() {}
     public onColliding() {}

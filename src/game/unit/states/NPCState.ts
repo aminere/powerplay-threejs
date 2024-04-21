@@ -131,10 +131,7 @@ export class NPCState extends State<ICharacterUnit> {
         if (unit.motionId > 0) {
             UnitMotion.endMotion(unit);
         }
-        unitAnimation.setAnimation(unit, "idle", {
-            transitionDuration: 1,
-            scheduleCommonAnim: true
-        });
+        unit.onArrived();
         const index = target.attackers.indexOf(unit);
         if (index !== -1) {
             utils.fastDelete(target.attackers, index);

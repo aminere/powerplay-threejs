@@ -48,12 +48,11 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
 }
 
 function stopMining(unit: ICharacterUnit) {
-    unit.fsm.switchState(null);
-    
+    unit.fsm.switchState(null);    
     if (unit.motionId > 0) {
         UnitMotion.endMotion(unit);
     }
-    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
+    unit.onArrived();
     unit.collidable = true;
 }
 
@@ -136,42 +135,40 @@ export class MiningState extends State<ICharacterUnit> {
         }
     }
 
-    public onReachedTarget(unit: ICharacterUnit) {
-        
-        UnitMotion.endMotion(unit);
-        switch (this._step) {
-            case MiningStep.GoToResource:
-                const cell = getCellFromAddr(this._targetResource);
-                if (cell.resource) {
-
-                    const startMining = () => {
-                        this._step = MiningStep.Mine;
-                        this._miningTimer = 1;
-                        unitAnimation.setAnimation(unit, "pick", { transitionDuration: .4 });
-                        unit.collidable = false;
-                    };
-
-                    if (unit.resource) {
-                        if (unit.resource.type === cell.resource.type) {
-                            this.goToFactory(unit, unit.resource.type);
-                        } else {
-                            unit.resource = null;
-                            startMining();
-                        } 
-                    } else {
-                        startMining();
-                    }                    
-
-                } else {
-                    stopMining(unit);
-                }
-                break;
-
-            case MiningStep.GoToFactory:
-                this._step = MiningStep.GoToResource;
-                UnitMotion.moveUnit(unit, this._targetResource.mapCoords);
-                break;
+    public onReachedResource(unit: ICharacterUnit) {
+        if (this._step === MiningStep.Mine) {
+            return;
         }
+
+        const cell = getCellFromAddr(this._targetResource);
+        if (cell.resource) {
+            const startMining = () => {
+                this._step = MiningStep.Mine;
+                this._miningTimer = 1;
+                unitAnimation.setAnimation(unit, "pick", { transitionDuration: .4 });
+                unit.collidable = false;
+            };
+
+            if (unit.resource) {
+                if (unit.resource.type === cell.resource.type) {
+                    this.goToFactory(unit, unit.resource.type);
+                } else {
+                    unit.resource = null;
+                    startMining();
+                }
+            } else {
+                startMining();
+            }
+
+        } else {
+            stopMining(unit);
+        }
+    }
+
+    public onReachedFactory(unit: ICharacterUnit) {
+        console.assert(this._step === MiningStep.GoToFactory);
+        this._step = MiningStep.GoToResource;
+        UnitMotion.moveUnit(unit, this._targetResource.mapCoords);
     }
 }
 
