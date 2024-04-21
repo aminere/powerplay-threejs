@@ -56,10 +56,11 @@ export class SoldierState extends State<ICharacterUnit> {
                 targetPos.applyQuaternion(targetRotation);
                 targetPos.add(unit.mesh.position);
                 UnitMotion.updateRotation(unit, unit.mesh.position, targetPos);
-                const dist = unit.coords.mapCoords.distanceTo(this._target!.coords.mapCoords);
-                console.log(dist);
-                if (dist - 1 > shootRadius || !this._target?.isAlive) {
-                    this.onIdle(unit);
+                const dx = Math.abs(this._target!.coords.mapCoords.x - unit.coords.mapCoords.x);
+                const dy = Math.abs(this._target!.coords.mapCoords.y - unit.coords.mapCoords.y);
+                const outOfRange = dx > shootRadius || dy > shootRadius;
+                if (outOfRange || !this._target?.isAlive) {
+                    this.stopAttack(unit);
                     const isMoving = unit.motionId > 0;
                     if (!isMoving) {
                         unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
@@ -70,7 +71,7 @@ export class SoldierState extends State<ICharacterUnit> {
         }
     }
 
-    public onIdle(unit: IUnit) {
+    public stopAttack(unit: IUnit) {
         this._step = SoldierStep.Idle;
         unit.isIdle = true;
     }

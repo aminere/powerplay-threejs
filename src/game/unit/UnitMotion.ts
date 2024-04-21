@@ -13,7 +13,6 @@ import { FlockProps } from "../components/Flock";
 import { config } from "../config";
 import { MiningState } from "./states/MiningState";
 import { utils } from "../../engine/Utils";
-import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./Unit";
 import { ICharacterUnit } from "./CharacterUnit";
@@ -512,15 +511,15 @@ export class UnitMotion {
             } else if (unit.isColliding) {
                 unit.onColliding();
             }
-        }
-
-        unit.isColliding = false;
-        const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.mesh);
-        if (collisionAnim) {
-            console.assert(unit.motionId === 0);
-            nextPos.copy(unit.mesh.position);
-            mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
-            hasMoved = true;
+        }        
+        
+        if (unit.isColliding) {
+            if (!isMoving) {
+                nextPos.copy(unit.mesh.position);
+                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
+                hasMoved = true;
+            }
+            unit.isColliding = false;
         }
 
         if (hasMoved) {
