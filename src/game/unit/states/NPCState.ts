@@ -7,7 +7,6 @@ import { UnitMotion } from "../UnitMotion";
 import { mathUtils } from "../../MathUtils";
 import { ICharacterUnit } from "../CharacterUnit";
 import { IUnit } from "../Unit";
-// import { UnitUtils } from "../UnitUtils";
 
 enum NpcStep {
     Idle,
@@ -34,7 +33,7 @@ export class NPCState extends State<ICharacterUnit> {
         const flockProps = FlockProps.instance;
         switch (this._step) {
             case NpcStep.Idle: {
-                // const target = UnitUtils.spiralSearch(unit, 4, other => {
+                // const target = UnitUtils.edgeSearch(unit, 4, other => {
                 //     const isEnemy = other.type.startsWith("enemy");
                 //     return !isEnemy;
                 // });
@@ -54,7 +53,7 @@ export class NPCState extends State<ICharacterUnit> {
                         const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < flockProps.separation + .2) {
                             console.assert(unit.motionId > 0);
-                            UnitMotion.onUnitArrived(unit);
+                            UnitMotion.endMotion(unit);
                             this._hitTimer = 1 - .2;
                             this._step = NpcStep.Attack;
                             unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
@@ -65,9 +64,10 @@ export class NPCState extends State<ICharacterUnit> {
                         if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                             this.follow(unit, target);
                         } else {
-                            const arrived = unit.targetCell.mapCoords.equals(unit.coords.mapCoords);
-                            if (arrived) {
+                            const reachedTarget = unit.targetCell.mapCoords.equals(unit.coords.mapCoords);
+                            if (reachedTarget) {
                                 unit.arriving = true;
+                                unit.onArriving();
                             }
                         }
 
@@ -129,7 +129,7 @@ export class NPCState extends State<ICharacterUnit> {
     private goToIdle(unit: ICharacterUnit) {
         const target = this._target!;
         if (unit.motionId > 0) {
-            UnitMotion.onUnitArrived(unit);
+            UnitMotion.endMotion(unit);
         }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration: 1,

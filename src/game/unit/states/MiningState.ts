@@ -48,10 +48,11 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
 }
 
 function stopMining(unit: ICharacterUnit) {
-    if (unit.motionId > 0) {
-        UnitMotion.onUnitArrived(unit);
-    }
     unit.fsm.switchState(null);
+    
+    if (unit.motionId > 0) {
+        UnitMotion.endMotion(unit);
+    }
     unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
     unit.collidable = true;
 }
@@ -99,15 +100,7 @@ export class MiningState extends State<ICharacterUnit> {
     }
 
     override update(unit: ICharacterUnit): void {
-        switch (this._step) {
-
-            case MiningStep.GoToResource: {
-                const arrived = false; //unit.targetCell.mapCoords.equals(this._potentialTarget);
-                if (arrived) {
-                    this.onReachedTarget(unit);
-                }
-            }
-                break;
+        switch (this._step) {            
 
             case MiningStep.GoToFactory: {
 
@@ -117,7 +110,6 @@ export class MiningState extends State<ICharacterUnit> {
                     const resourceType = factoryState.input as RawResourceType;
                     this.goToFactory(unit, resourceType);
                     this._closestFactory = null;
-
                 }
             }
                 break;
@@ -145,10 +137,8 @@ export class MiningState extends State<ICharacterUnit> {
     }
 
     public onReachedTarget(unit: ICharacterUnit) {
-        if (unit.motionId > 0) {
-            UnitMotion.onUnitArrived(unit);
-        }
-
+        
+        UnitMotion.endMotion(unit);
         switch (this._step) {
             case MiningStep.GoToResource:
                 const cell = getCellFromAddr(this._targetResource);
@@ -157,7 +147,7 @@ export class MiningState extends State<ICharacterUnit> {
                     const startMining = () => {
                         this._step = MiningStep.Mine;
                         this._miningTimer = 1;
-                        unitAnimation.setAnimation(unit, "pick", { transitionDuration: 1 });
+                        unitAnimation.setAnimation(unit, "pick", { transitionDuration: .4 });
                         unit.collidable = false;
                     };
 

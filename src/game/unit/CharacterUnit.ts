@@ -15,6 +15,8 @@ import { ICell, IResource } from "../GameTypes";
 import { pickResource } from "./update/WorkerUpdate";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
+import { SoldierState } from "./states/SoldierState";
+import { UnitMotion } from "./UnitMotion";
 
 interface IUnitAnim {
     name: string;
@@ -42,7 +44,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get skeleton() { return this._skeleton; }
     public get skinnedMesh() { return this._skinnedMesh; }
     public get health() { return this._health; }
-    public get arriving() { return this._arriving; }
     public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
     public get resource() { return this._resource; }
 
@@ -59,13 +60,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         this._resource = value;
     }
 
-    public set arriving(value: boolean) {
-        this._arriving = value;
-        if (value) {
-            unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
-        }
-    }
-    
     public get boundingBox() { return this._skinnedMesh.boundingBox; }
 
     private _animation: IUnitAnim;
@@ -116,6 +110,11 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         const isMining = this.fsm.getState(MiningState) !== null;
         if (isMining) {
             this.fsm.switchState(null);
+        } else {
+            const soldierState = this.fsm.getState(SoldierState);
+            if (soldierState) {
+                soldierState.onIdle(this);
+            }
         }
     }
 
@@ -123,11 +122,18 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
     }
 
-    public override onArrive() {
-        super.onArrive();
-        unitAnimation.setAnimation(this, "idle");
+    public override onArrived() {
+        if (this.isIdle) {
+            unitAnimation.setAnimation(this, "idle");
+        }
     }
     
+    public override onArriving() {
+        if (this.isIdle) {
+            unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true })
+        }
+    }
+
     public override onColliding() {
         const collisionAnim = utils.getComponent(UnitCollisionAnim, this.mesh);
         if (collisionAnim) {
@@ -149,7 +155,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 }
             }
         }
-
+        
         const miningState = this.fsm.getState(MiningState)!;
         if (miningState) {
             miningState.onReachedTarget(this);
@@ -159,7 +165,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 cell.pickableResource.visual.removeFromParent();
                 cell.pickableResource = undefined;
             }
-            this.onArrive();
+            UnitMotion.endMotion(this);
+            this.onArrived();
         }        
     }
 
@@ -170,7 +177,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             if (isMining || this.resource) {
                  // keep going
             } else {
-                this.onArrive();
+                UnitMotion.endMotion(this);
+                this.onArrived();
             }
         }
     }

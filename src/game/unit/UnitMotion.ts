@@ -106,7 +106,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
     }    
 }
 
-function onUnitArrived(unit: IUnit) {
+function endMotion(unit: IUnit) {
     flowField.removeMotion(unit.motionId);
     unit.motionId = 0;
     unit.arriving = false;
@@ -143,7 +143,7 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
             _flowfield.directionIndex = index;
         } else {
             cellDirection.set(0, 0);
-            onUnitArrived(unit);
+            endMotion(unit);
             unit.onSteer();
         }
 
@@ -164,11 +164,11 @@ function steer(unit: IUnit, steerAmount: number) {
             
             if (unit.arriving) {
 
-                if (!unit.fsm.currentState) {
+                if (unit.isIdle) {
                     mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
                     unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
                     unit.desiredPosValid = true;
-                }
+                }                
 
             } else {
                 const flowfields = flowField.getMotion(motionId).flowfields;            
@@ -409,8 +409,8 @@ export class UnitMotion {
         }
     }    
 
-    public static onUnitArrived(unit: IUnit) {
-        onUnitArrived(unit);
+    public static endMotion(unit: IUnit) {
+        endMotion(unit);
     }
 
     public static update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
@@ -484,13 +484,15 @@ export class UnitMotion {
             } else if (avoidedCell?.resource) {
                 const targetCell = getCellFromAddr(unit.targetCell);
                 if (avoidedCell.resource.type === targetCell.resource?.type) {
-                    unit.arriving = true;
                     switch (unit.type) {
                         case "worker": {
                             const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
                             miningState.onReachedTarget(unit as ICharacterUnit);
                         }
                         break;
+                        default:
+                            UnitMotion.endMotion(unit);
+                            unit.onArrived();
                     }
                 }
             }
@@ -525,11 +527,10 @@ export class UnitMotion {
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
                 UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
                 unit.mesh.position.copy(nextPos);
-                if (!unit.fsm.currentState) {
-                    if (unit.arriving) {
-                        if (unit.velocity.length() < 0.01) {
-                            unit.onArrive();
-                        }
+                if (unit.arriving) {
+                    if (unit.velocity.length() < 0.01) {
+                        UnitMotion.endMotion(unit);
+                        unit.onArrived();
                     }
                 }
 
@@ -574,8 +575,9 @@ export class UnitMotion {
 
                     if (isMoving) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                        if (reachedTarget) {                            
+                        if (reachedTarget) {          
                             unit.arriving = true;
+                            unit.onArriving();
                         }
                     }
                 }

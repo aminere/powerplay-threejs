@@ -52,7 +52,8 @@ export interface IUnit {
     onMove: (bindSkeleton: boolean) => void;
     onMoveCommand: () => void;
     onSteer: () => void;
-    onArrive: () => void;
+    onArrived: () => void;
+    onArriving: () => void;
     onColliding: () => void;
     onReachedBuilding: (cell: ICell) => void;
     onCollidedWithIdleNeighbor: (unit: IUnit) => void;
@@ -170,13 +171,10 @@ export class Unit implements IUnit {
     public onMove(_bindSkeleton: boolean) {}
     public onMoveCommand() {}
     public onSteer() {}
-    public onArrive() {
-        UnitMotion.onUnitArrived(this);
-    }
+    public onArrived() {}
+    public onArriving() {}
     public onColliding() {}
-    public onReachedBuilding(_cell: ICell) {
-        this.onArrive();
-    }
+    public onReachedBuilding(_cell: ICell) {}
     public onCollidedWithIdleNeighbor(_unit: IUnit) {}
 }
 
