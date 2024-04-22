@@ -99,17 +99,22 @@ export function removeResource(truck: ITruckUnit) {
 }
 
 export function truckUpdate(truck: ITruckUnit) {
-    const { mapCoords } = truck.coords;
-    for (const [dx, dy] of gridNeighbors) {
-        neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
-        const neighborCell = GameUtils.getCell(neighborCoords);
-        const conveyor = neighborCell?.conveyor;
-        if (conveyor) {
-            if (conveyor.items.length === 0) {
-                continue;
-            }            
-            tryPickResource(truck, conveyor);
+    const isMoving = truck.motionId > 0;
+    if (isMoving) {
+
+    } else {
+        const { mapCoords } = truck.coords;
+        for (const [dx, dy] of gridNeighbors) {
+            neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
+            const neighborCell = GameUtils.getCell(neighborCoords);
+            const conveyor = neighborCell?.conveyor;
+            if (conveyor) {
+                if (conveyor.items.length === 0) {
+                    continue;
+                }            
+                tryPickResource(truck, conveyor);
+            }
         }
-    }
+    }    
 }
 

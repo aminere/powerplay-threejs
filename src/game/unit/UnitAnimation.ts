@@ -78,7 +78,7 @@ class UnitAnimation {
             return unit.skeleton.armature;
         } else {
             const skeleton = skeletonManager.getSkeleton(unit.animation.name)!;
-            return skeleton?.armature;
+            return skeleton.armature;
         }
     }
 

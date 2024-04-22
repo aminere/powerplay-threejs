@@ -76,5 +76,8 @@ export function pickResource(unit: ICharacterUnit, resourceType: RawResourceType
         visual,
         type: resourceType
     };
+
+    visual.visible = false;
+    setTimeout(() => { visual.visible = true }, 100); 
 }
 
