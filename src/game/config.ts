@@ -20,6 +20,7 @@ interface IGameConfig {
     elevationStep: number;
     unitScale: number;
     truckScale: number;
+    tankScale: number;
 }
 
 interface IConveyorConfig {
@@ -71,7 +72,8 @@ export const config: IConfig = {
         mapRes: 32,
         elevationStep: .2,
         unitScale: .7,
-        truckScale: 1.5
+        truckScale: 1.5,
+        tankScale: 1.5,
     },
     conveyors: {
         itemSize: .5, // relative to the cell

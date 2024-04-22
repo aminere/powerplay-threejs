@@ -29,6 +29,10 @@ import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
+// import { pickResource } from "../unit/update/WorkerUpdate";
+// import { ICharacterUnit } from "../unit/CharacterUnit";
+// import { meshes } from "../../powerplay";
+// import { unitAnimation } from "../unit/UnitAnimation";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -211,7 +215,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         const water = utils.createObject(root(), "water");
         water.matrixAutoUpdate = false;
         water.matrixWorldAutoUpdate = false;
-        water.position.setY(-.75);
+        water.position.setY(-.2);
         water.updateMatrix();
         engineState.setComponent(water, new Water({ sectorRes: size }));
 
@@ -226,6 +230,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         cmdShowUI.post("gamemap");
 
         engineState.setComponent(owner, new GameMapUpdate());
+
+        // TODO remove
+        // meshes.load(`/models/resources/ak47.glb`).then(() => {
+        //     const solider = unitsManager.units.find(u => u.type === "worker")!;
+        //     pickResource(solider as ICharacterUnit, "ak47");
+        //     unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
+        // });
     }
 
     override dispose() {

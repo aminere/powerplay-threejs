@@ -20,6 +20,7 @@ import { GameMapState } from "./GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { trees } from "../Trees";
 import { GameMapProps } from "./GameMapProps";
+import { VehicleType, VehicleTypes } from "../GameDefinitions";
 
 const cellCoords = new Vector2();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -265,7 +266,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                                 const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
                                 const units = prev[key];
-                                const isVehicle = cur.type === "truck";
+                                const isVehicle = VehicleTypes.includes(cur.type as VehicleType);
                                 if (!units) {
                                     prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
                                 } else {
@@ -276,10 +277,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                             for (const group of Object.values(groups)) {
                                 if (group.character.length > 0) {
-                                    UnitMotion.moveGroup(group.character, targetCellCoords, targetCell, "character");
+                                    UnitMotion.moveGroup(group.character, targetCellCoords, targetCell);
                                 }
                                 if (group.vehicle.length > 0) {
-                                    UnitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, "vehicle");
+                                    UnitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, true);
                                 }
                             }
                         }

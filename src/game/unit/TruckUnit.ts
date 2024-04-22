@@ -1,8 +1,7 @@
 
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { config } from "../config";
-import { IUnit, IUnitProps, Unit } from "./Unit";
+import { IUnit, Unit } from "./Unit";
 
 interface ITruckResources {
     type: RawResourceType | ResourceType;
@@ -14,7 +13,6 @@ export interface ITruckUnit extends IUnit {
     resources: ITruckResources | null;    
 }
 
-const { truckScale } = config.game;
 
 export class TruckUnit extends Unit implements ITruckUnit {    
     public get resources(): ITruckResources | null { return this._resources; }
@@ -28,12 +26,7 @@ export class TruckUnit extends Unit implements ITruckUnit {
         this._resources = value; 
     }
 
-    private _resources: ITruckResources | null = null;
-    
-    constructor(props: IUnitProps, id: number) {
-        super(props, id);
-        props.mesh.scale.multiplyScalar(truckScale);
-    }
+    private _resources: ITruckResources | null = null;    
 
     public override setHealth(value: number): void {
         if (value <= 0) {

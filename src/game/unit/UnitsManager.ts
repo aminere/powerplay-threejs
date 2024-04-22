@@ -1,4 +1,4 @@
-import { Box3Helper, Object3D, Vector2, Vector3 } from "three";
+import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection } from "../../Events";
@@ -22,10 +22,20 @@ import { UnitMotion } from "./UnitMotion";
 import { truckUpdate } from "./update/TruckUpdate";
 import { workerUpdate } from "./update/WorkerUpdate";
 import { SoldierState } from "./states/SoldierState";
+import { UnitUtils } from "./UnitUtils";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
-const { unitScale } = config.game;
+const { unitScale, truckScale, tankScale } = config.game;
+
+function getBoundingBox(mesh: Mesh) {
+    if (mesh.geometry.boundingBox) {
+        return mesh.geometry.boundingBox;
+    } else {
+        mesh.geometry.computeBoundingBox();
+        return mesh.geometry.boundingBox!;
+    }
+}
 
 class UnitsManager {
 
@@ -100,24 +110,47 @@ class UnitsManager {
         const id = this._units.length;
         switch (type) {
             case "truck": {
-                const mesh = (await meshes.load(`/models/${type}.glb`))[0].clone();
-                mesh.castShadow = true;
+                const visual = (await meshes.load(`/models/${type}.glb`))[0].clone();
+                visual.castShadow = true;
 
-                mesh.userData.unserializable = true;
-                GameUtils.mapToWorld(mapCoords, mesh.position);
-
-                const unit = new TruckUnit({ mesh, type, states: []}, id);
-                this._units.push(unit);
-                this._owner.add(mesh);
-
-                cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
-
-                if (!mesh.geometry.boundingBox) {
-                    mesh.geometry.computeBoundingBox();
-                }
-                const box3Helper = new Box3Helper(mesh.geometry.boundingBox!);
-                mesh.add(box3Helper);
+                visual.userData.unserializable = true;
+                GameUtils.mapToWorld(mapCoords, visual.position);                
+                cmdFogAddCircle.post({ mapCoords, radius: 10 });
+                
+                const boundingBox = getBoundingBox(visual);
+                const box3Helper = new Box3Helper(boundingBox);
+                visual.add(box3Helper);
                 box3Helper.visible = false;
+
+                const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);
+                visual.scale.multiplyScalar(truckScale);
+                this._units.push(unit);
+                this._owner.add(visual);
+            }
+            break;
+
+            case "tank": {
+                const visual = utils.createObject(this._owner, "root");
+                const submeshes = (await meshes.load(`/models/${type}.glb`)).map(submesh => submesh.clone());
+                for (const submesh of submeshes) {
+                    submesh.castShadow = true;
+                    submesh.userData.unserializable = true;
+                    visual.add(submesh);
+                }                
+
+                visual.userData.unserializable = true;
+                GameUtils.mapToWorld(mapCoords, visual.position);      
+                cmdFogAddCircle.post({ mapCoords, radius: 10 });
+                
+                const boundingBox = getBoundingBox(submeshes[0]);
+                const box3Helper = new Box3Helper(boundingBox);
+                visual.add(box3Helper);
+                box3Helper.visible = false;
+
+                const unit = new Unit({ visual, boundingBox, type, states: []}, id);
+                visual.scale.multiplyScalar(tankScale);
+                this._units.push(unit);
+                this._owner.add(visual);
             }
             break;
 
@@ -134,7 +167,7 @@ class UnitsManager {
                 GameUtils.mapToWorld(mapCoords, skinnedMesh.position);
 
                 const unit = new CharacterUnit({ 
-                    mesh: skinnedMesh,
+                    visual: skinnedMesh,
                     type, 
                     states: (() => {
                         switch (type) {
@@ -148,14 +181,14 @@ class UnitsManager {
                 this._units.push(unit);
                 this._owner.add(skinnedMesh);
                 
-                if (type.startsWith("enemy")) {
+                if (UnitUtils.isEnemy(unit)) {
                     switch (type) {
                         case "enemy-melee":
                             unit.fsm.switchState(NPCState);
                             break;
                     }
                 } else {
-                    cmdFogAddCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10 });
+                    cmdFogAddCircle.post({ mapCoords, radius: 10 });
                 }
 
                 const box3Helper = new Box3Helper(skinnedMesh.boundingBox!);

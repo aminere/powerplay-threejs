@@ -45,7 +45,8 @@ const arrivalDamping: Record<UnitType, number> = {
     "enemy-melee": characterArrivalDamping,
     "enemy-ranged": characterArrivalDamping,
     "worker": characterArrivalDamping,
-    "truck": vehicleArrivalDamping
+    "truck": vehicleArrivalDamping,
+    "tank": vehicleArrivalDamping
 };
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
@@ -53,8 +54,7 @@ function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton 
         flowField.removeMotion(unit.motionId);
     }
     unit.motionId = motionId;
-    unit.arriving = false; 
-    unit.collidable = true;
+    unit.arriving = false;
     computeUnitAddr(mapCoords, unit.targetCell);
     unit.onMove(bindSkeleton);
 }
@@ -333,7 +333,7 @@ export class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public static moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, type: "character" | "vehicle") {
+    public static moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads = false) {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
@@ -354,14 +354,9 @@ export class UnitMotion {
             return;
         }
 
-        let fastMode = true;
-        let _getFlowfieldCost = getFlowfieldCost;
-        if (type === "vehicle") {
-            fastMode = false;
-            _getFlowfieldCost = getVehicleFlowfieldCost;
-        }
-
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), fastMode)!;
+        
+        const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
         console.assert(flowfields);
         let unitCount = 0;
         let motionId: number | null = null;
@@ -450,7 +445,7 @@ export class UnitMotion {
                     if (unit.motionId > 0) {
                         toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
                         otherDesiredPos.add(toTarget);                        
-                        unit.onCollidedWithIdleNeighbor(neighbor);
+                        unit.onCollidedWithMotionNeighbor(neighbor);
 
                     } else {
                         moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
@@ -548,8 +543,13 @@ export class UnitMotion {
                             if (npcState) {
                                 npcState.onReachedTarget(unit as ICharacterUnit);
                             } else {
-                                unit.arriving = true;
-                                unit.onArriving();
+                                const miningState = unit.fsm.getState(MiningState);
+                                if (miningState) {
+                                    miningState.stopMining(unit as ICharacterUnit);
+                                } else {
+                                    unit.arriving = true;
+                                    unit.onArriving();
+                                }
                             }
                         }
                     }
@@ -580,7 +580,7 @@ export class UnitMotion {
                         switch (unit.type) {
                             case "worker": {
                                 const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                                miningState.onReachedResource(unit as ICharacterUnit);
+                                miningState.onReachedResource(unit as ICharacterUnit, avoidedCell, avoidedCellCoords);
                             }                            
                         }
                     }

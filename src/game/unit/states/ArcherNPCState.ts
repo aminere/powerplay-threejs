@@ -4,7 +4,6 @@ import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } 
 import { engine } from "../../../engine/Engine";
 import gsap from "gsap";
 import { time } from "../../../engine/core/Time";
-import { utils } from "../../../engine/Utils";
 import { unitAnimation } from "../UnitAnimation";
 import { UnitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../CharacterUnit";
@@ -65,7 +64,7 @@ export class ArcherNPCState extends State<IUnit> {
                         const dist = target.mesh.position.distanceTo(unit.mesh.position);
                         if (dist < vision) {
                             if (unit.motionId > 0) {
-                                UnitMotion.onUnitArrived(unit);    
+                                UnitMotion.endMotion(unit);    
                             }
                             this.attack(unit);
                         }
@@ -175,20 +174,15 @@ export class ArcherNPCState extends State<IUnit> {
     }
 
     private goToIdle(unit: ICharacterUnit) {
-        const target = this._target!;
         const transitionDuration = .3;
         if (unit.motionId > 0) {
-            UnitMotion.onUnitArrived(unit);    
+            UnitMotion.endMotion(unit);    
         }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration,
             scheduleCommonAnim: true
         });
-
-        const index = target.attackers.indexOf(unit);
-        if (index !== -1) {
-            utils.fastDelete(target.attackers, index);
-        }
+        
         this._target = null;
         this._step = NpcStep.Idle;
         this._idleTimer = transitionDuration; 

@@ -1,4 +1,4 @@
-import { Box3, Mesh, Quaternion, Vector2, Vector3 } from "three"
+import { Box3, Object3D, Quaternion, Vector2, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
@@ -9,7 +9,8 @@ import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 
 export interface IUnitProps {
-    mesh: Mesh;
+    visual: Object3D;
+    boundingBox: Box3;
     type: UnitType;
     speed?: number;
     states: State<IUnit>[];
@@ -29,7 +30,7 @@ export interface IUnit {
     speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
-    mesh: Mesh;
+    mesh: Object3D;
     coords: IUnitAddr;
     motionId: number;
     lastCompletedMotionId: number;
@@ -53,7 +54,7 @@ export interface IUnit {
     onArriving: () => void;
     onColliding: () => void;
     onReachedBuilding: (cell: ICell) => void;
-    onCollidedWithIdleNeighbor: (unit: IUnit) => void;
+    onCollidedWithMotionNeighbor: (unit: IUnit) => void;
 }
 
 export class Unit implements IUnit {
@@ -63,7 +64,7 @@ export class Unit implements IUnit {
     public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
-    public get mesh() { return this._mesh; }    
+    public get mesh() { return this._visual; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
@@ -82,7 +83,7 @@ export class Unit implements IUnit {
     public get rotation() { return this._rotation; }    
     public get fsm() { return this._fsm; }   
     public get speedFactor() { return this._speedFactor; }
-    public get boundingBox() { return this._mesh.geometry.boundingBox!; }
+    public get boundingBox() { return this._boundingBox; }
 
     public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
     public set arriving(value: boolean) { this._arriving = value; }
@@ -104,7 +105,7 @@ export class Unit implements IUnit {
     protected _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell = makeUnitAddr();
-    private _mesh: Mesh;    
+    private _visual: Object3D;
     private _coords = makeUnitAddr();
     protected _motionId = 0;
     private _lastCompletedMotionId = 0;
@@ -116,6 +117,7 @@ export class Unit implements IUnit {
     protected _health = 1;
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
+    private _boundingBox: Box3;
 
     private _lookAt = new Quaternion();
     private _rotation = new Quaternion();
@@ -124,13 +126,14 @@ export class Unit implements IUnit {
     private _speedFactor: number;
 
     constructor(props: IUnitProps, id: number) {
-        this._mesh = props.mesh;
+        this._visual = props.visual;
         this._type = props.type;
         this._id = id;
         this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
         this._speedFactor = props.speed ?? 1;
+        this._boundingBox = props.boundingBox;
 
-        GameUtils.worldToMap(this._mesh.position, this._coords.mapCoords);
+        GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 
@@ -157,7 +160,7 @@ export class Unit implements IUnit {
 
     public onDeath() {
         const fadeDuration = 1;
-        engineState.setComponent(this._mesh, new Fadeout({ duration: fadeDuration }));
+        engineState.setComponent(this._visual, new Fadeout({ duration: fadeDuration }));
         setTimeout(() => {
             if (!this._type.startsWith("enemy")) {
                 cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
@@ -171,6 +174,6 @@ export class Unit implements IUnit {
     public onArriving() {}
     public onColliding() {}
     public onReachedBuilding(_cell: ICell) {}
-    public onCollidedWithIdleNeighbor(_unit: IUnit) {}
+    public onCollidedWithMotionNeighbor(_unit: IUnit) {}
 }
 

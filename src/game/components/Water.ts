@@ -8,7 +8,7 @@ import { textures } from "../../engine/resources/Textures";
 
 export class WaterProps extends ComponentProps {
 
-    strength = 1;
+    strength = .5;
     frequency = 3;
     speed = .1;
     sectorRes = 1;

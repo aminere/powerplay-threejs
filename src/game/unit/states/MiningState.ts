@@ -3,7 +3,7 @@ import { IUnit } from "../Unit";
 import { Vector2 } from "three";
 import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
-import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
+import { computeUnitAddr, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
 import { UnitMotion } from "../UnitMotion";
 import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
 import { GameMapState } from "../../components/GameMapState";
@@ -11,6 +11,7 @@ import { resources } from "../../Resources";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
 import { ICharacterUnit } from "../CharacterUnit";
 import { pickResource } from "../update/WorkerUpdate";
+import { ICell } from "../../GameTypes";
 
 enum MiningStep {
     GoToResource,
@@ -45,15 +46,6 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
         }
     }
     return closestFactory;
-}
-
-function stopMining(unit: ICharacterUnit) {
-    unit.fsm.switchState(null);    
-    if (unit.motionId > 0) {
-        UnitMotion.endMotion(unit);
-    }
-    unit.onArrived();
-    unit.collidable = true;
 }
 
 export class MiningState extends State<ICharacterUnit> {
@@ -91,7 +83,7 @@ export class MiningState extends State<ICharacterUnit> {
             }            
             this._step = MiningStep.GoToFactory;
         } else {
-            stopMining(unit);
+            this.stopMining(unit);
         }
     }
 
@@ -122,9 +114,10 @@ export class MiningState extends State<ICharacterUnit> {
                         }
                         pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);
+                        unit.collidable = true;
                     } else {
-                        console.log("resource depleted");
-                        stopMining(unit);
+                        // depleted resource
+                        this.stopMining(unit);
                     }
                 }
                 break;
@@ -132,30 +125,23 @@ export class MiningState extends State<ICharacterUnit> {
         }
     }
 
-    public onReachedResource(unit: ICharacterUnit) {
+    public onReachedResource(unit: ICharacterUnit, cell: ICell, mapCoords: Vector2) {
         console.assert(this._step === MiningStep.GoToResource);
-        const cell = getCellFromAddr(this._targetResource);
-        if (cell.resource) {
-            const startMining = () => {
-                this._step = MiningStep.Mine;
-                this._miningTimer = 1;
-                unitAnimation.setAnimation(unit, "pick", { transitionDuration: .4 });
-                unit.collidable = false;
-            };
+        console.assert(cell.resource);
 
-            if (unit.resource) {
-                if (unit.resource.type === cell.resource.type) {
-                    this.goToFactory(unit, unit.resource.type);
-                } else {
-                    unit.resource = null;
-                    startMining();
-                }
+        if (!this._targetResource.mapCoords.equals(mapCoords)) {
+            computeUnitAddr(mapCoords, this._targetResource);
+        }
+
+        if (unit.resource) {
+            if (unit.resource.type === cell.resource!.type) {
+                this.goToFactory(unit, unit.resource.type);
             } else {
-                startMining();
+                unit.resource = null;
+                this.startMining(unit);
             }
-
         } else {
-            stopMining(unit);
+            this.startMining(unit);
         }
     }
 
@@ -163,6 +149,26 @@ export class MiningState extends State<ICharacterUnit> {
         console.assert(this._step === MiningStep.GoToFactory);
         this._step = MiningStep.GoToResource;
         UnitMotion.moveUnit(unit, this._targetResource.mapCoords);
+
+        // avoid traffic jams at the factory
+        unit.collidable = false;
+        setTimeout(() => { unit.collidable = true }, 300);
+    }
+
+    public stopMining(unit: ICharacterUnit) {
+        unit.fsm.switchState(null);
+        if (unit.motionId > 0) {
+            UnitMotion.endMotion(unit);
+        }
+        unit.onArrived();
+        unit.collidable = true;
+    }
+
+    private startMining(unit: ICharacterUnit) {
+        this._step = MiningStep.Mine;
+        this._miningTimer = 1;
+        unitAnimation.setAnimation(unit, "pick", { transitionDuration: .4 });
+        unit.collidable = false;
     }
 }
 

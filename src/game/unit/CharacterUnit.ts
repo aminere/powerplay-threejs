@@ -17,6 +17,7 @@ import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { UnitMotion } from "./UnitMotion";
+import { getCellFromAddr } from "./UnitAddr";
 
 interface IUnitAnim {
     name: string;
@@ -32,7 +33,7 @@ export interface ICharacterUnit extends IUnit {
 }
 
 export interface ICharacterUnitProps {
-    mesh: SkinnedMesh;
+    visual: SkinnedMesh;    
     type: CharacterType;
     speed?: number;
     states: State<ICharacterUnit>[];
@@ -69,9 +70,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _resource: IResource | null = null;
 
     constructor(props: ICharacterUnitProps, id: number) {
-        super(props, id);
+        super({ ...props, boundingBox: props.visual.boundingBox }, id);
         this._animation = props.animation;
-        this._skinnedMesh = props.mesh;
+        this._skinnedMesh = props.visual;
     }
 
     public override setHealth(value: number): void {
@@ -169,10 +170,19 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }        
     }
 
-    public override onCollidedWithIdleNeighbor(neighbor: IUnit) {
+    public override onCollidedWithMotionNeighbor(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionId === this.motionId) {
-            const isMining = this.fsm.getState(MiningState) !== null;
+            const isMining = (() => {
+                if (this.fsm.getState(MiningState)) {
+                    return true;
+                }
+                const targetCell = getCellFromAddr(this.targetCell);
+                if (targetCell.resource) {
+                    return true;
+                }
+            })();
+            
             if (isMining || this.resource) {
                  // keep going
             } else {
