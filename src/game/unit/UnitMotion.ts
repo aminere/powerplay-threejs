@@ -16,6 +16,7 @@ import { utils } from "../../engine/Utils";
 import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./Unit";
 import { ICharacterUnit } from "./CharacterUnit";
+import { UnitUtils } from "./UnitUtils";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
@@ -159,16 +160,11 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 function steer(unit: IUnit, steerAmount: number) {
     const { motionId, desiredPosValid, desiredPos, coords, mesh: obj } = unit;
     if (motionId > 0) {
-        if (!desiredPosValid) { 
-            
+        if (!desiredPosValid) {
             if (unit.arriving) {
-
-                if (unit.isIdle) {
-                    mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
-                    unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
-                    unit.desiredPosValid = true;
-                }                
-
+                mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
+                unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
+                unit.desiredPosValid = true;
             } else {
                 const flowfields = flowField.getMotion(motionId).flowfields;            
                 const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
@@ -454,12 +450,14 @@ export class UnitMotion {
         unit.desiredPosValid = false;
         const isMoving = unit.motionId > 0;
         const needsMotion = isMoving || unit.isColliding;
-        let avoidedCell: ICell | null | undefined = undefined;        
+        let avoidedCell: ICell | null | undefined = undefined;
 
         if (needsMotion) {
             GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
             const newCell = GameUtils.getCell(nextMapCoords, avoidedCellSector, avoidedCellLocalCoords);
             const walkableCell = newCell?.isWalkable;
+            let useDamping = false;
+
             if (!walkableCell) {
                 avoidedCell = newCell;
                 avoidedCellCoords.copy(nextMapCoords);
@@ -469,70 +467,28 @@ export class UnitMotion {
                 unit.desiredPos.copy(unit.mesh.position);
                 unit.desiredPos.x += awayDirection.x * steerAmount * .5;
                 unit.desiredPos.z += awayDirection.y * steerAmount * .5;
-                GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
+                useDamping = true;
             }
-        }
 
-        if (avoidedCell !== undefined && isMoving) {
-            if (avoidedCell?.building) {
-                const instanceId = avoidedCell.building.instanceId;
-                const targetCell = getCellFromAddr(unit.targetCell);
-                if (instanceId === targetCell.building?.instanceId) {
-                    UnitMotion.endMotion(unit);
-                    unit.onReachedBuilding(targetCell);                
-                }
-            } else if (avoidedCell?.resource) {
-                const targetCell = getCellFromAddr(unit.targetCell);
-                if (avoidedCell.resource.type === targetCell.resource?.type) {
-                    switch (unit.type) {
-                        case "worker": {
-                            const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                            miningState.onReachedResource(unit as ICharacterUnit);
-                        }
-                        break;
-                        default:
-                            UnitMotion.endMotion(unit);
-                            unit.onArrived();
-                    }
-                }
-            }
-        }
+            if (unit.isColliding) {
+                if (!isMoving) {
+                    unit.onColliding();
+                    useDamping = true;
+                }                
+                unit.isColliding = false;
+            }            
 
-        let hasMoved = false;
-        if (needsMotion) {
-            if (isMoving) {
-                if (avoidedCell !== undefined) {
-                    nextPos.copy(unit.mesh.position);
-                    mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
-                } else {
-                    nextPos.copy(unit.desiredPos);
-                }
-                hasMoved = true;
-            } else if (unit.isColliding) {
-                unit.onColliding();
-            }
-        }        
-        
-        if (unit.isColliding) {
-            if (!isMoving) {
+            if (useDamping) {
                 nextPos.copy(unit.mesh.position);
-                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp, time.deltaTime);
-                hasMoved = true;
+                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
+            } else {
+                nextPos.copy(unit.desiredPos);
             }
-            unit.isColliding = false;
-        }
 
-        if (hasMoved) {
             GameUtils.worldToMap(nextPos, nextMapCoords);
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
                 UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
                 unit.mesh.position.copy(nextPos);
-                if (unit.arriving) {
-                    if (unit.velocity.length() < 0.01) {
-                        UnitMotion.endMotion(unit);
-                        unit.onArrived();
-                    }
-                }
 
             } else {
 
@@ -545,8 +501,7 @@ export class UnitMotion {
 
                     const dx = nextMapCoords.x - unit.coords.mapCoords.x;
                     const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-
-                    if (!unit.type.startsWith("enemy")) {
+                    if (!UnitUtils.isEnemy(unit)) {
                         cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
                     }                    
 
@@ -575,9 +530,40 @@ export class UnitMotion {
 
                     if (isMoving) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                        if (reachedTarget) {          
+                        if (reachedTarget) {
                             unit.arriving = true;
                             unit.onArriving();
+                        }
+                    }
+                }
+            }
+
+            if (unit.arriving) {
+                if (unit.velocity.length() < 0.01) {
+                    UnitMotion.endMotion(unit);
+                    unit.onArrived();
+                }
+            }
+
+            if (avoidedCell !== undefined && isMoving) {
+                if (avoidedCell?.building) {
+                    const instanceId = avoidedCell.building.instanceId;
+                    const targetCell = getCellFromAddr(unit.targetCell);
+                    if (instanceId === targetCell.building?.instanceId) {
+                        UnitMotion.endMotion(unit);
+                        unit.onReachedBuilding(targetCell);                
+                    }
+                } else if (avoidedCell?.resource) {
+                    const targetCell = getCellFromAddr(unit.targetCell);
+                    if (avoidedCell.resource.type === targetCell.resource?.type) {
+                        UnitMotion.endMotion(unit);
+                        unit.onArrived();
+    
+                        switch (unit.type) {
+                            case "worker": {
+                                const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
+                                miningState.onReachedResource(unit as ICharacterUnit);
+                            }                            
                         }
                     }
                 }

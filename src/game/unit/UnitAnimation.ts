@@ -18,11 +18,6 @@ class UnitAnimation {
         const animation = (() => {
             if (unit.resource) {
                 if (_animation === "idle") {
-
-                    // if (unit.resource.type === "ak47") {
-                    //     return "shoot";
-                    // }
-
                     return "carry-idle";
                 } else if (_animation === "run") {
                     return "carry-run";

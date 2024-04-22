@@ -136,10 +136,7 @@ export class MiningState extends State<ICharacterUnit> {
     }
 
     public onReachedResource(unit: ICharacterUnit) {
-        if (this._step === MiningStep.Mine) {
-            return;
-        }
-
+        console.assert(this._step === MiningStep.GoToResource);
         const cell = getCellFromAddr(this._targetResource);
         if (cell.resource) {
             const startMining = () => {
