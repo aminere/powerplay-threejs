@@ -1,12 +1,13 @@
-import { FlockProps } from "../../components/Flock";
 import { State } from "../../fsm/StateMachine";
 import { time } from "../../../engine/core/Time";
-import { utils } from "../../../engine/Utils";
-import { unitAnimation } from "../UnitAnimation";
 import { UnitMotion } from "../UnitMotion";
-import { mathUtils } from "../../MathUtils";
 import { ICharacterUnit } from "../CharacterUnit";
 import { IUnit } from "../Unit";
+import { spiralFind } from "../UnitSearch";
+import { UnitUtils } from "../UnitUtils";
+import { unitAnimation } from "../UnitAnimation";
+import { MathUtils, Quaternion, Vector3 } from "three";
+import { GameUtils } from "../../GameUtils";
 
 enum NpcStep {
     Idle,
@@ -14,130 +15,84 @@ enum NpcStep {
     Attack
 }
 
+const vision = 4;
+const hitFrequency = .5;
+const damage = .1;
+const targetPos = new Vector3();
+const targetRotation = new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(60));
+
 export class NPCState extends State<ICharacterUnit> {
 
-    private _step = NpcStep.Idle;
     private _target: IUnit | null = null;
     private _hitTimer = 1;
-
-    override enter(unit: ICharacterUnit) {
-        unit.isIdle = false;
-    }
-
-    override exit(unit: ICharacterUnit) {
-        unit.isIdle = true;
-    }
+    private _step = NpcStep.Idle;
 
     override update(unit: ICharacterUnit): void {
 
-        const flockProps = FlockProps.instance;
+        const target = this._target;
+        if (target) {
+            if (!target.isAlive) {
+                this._step = NpcStep.Idle;
+                this._target = null;
+                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .2, scheduleCommonAnim: true });
+            }
+        }
+
         switch (this._step) {
             case NpcStep.Idle: {
-                // const target = UnitUtils.edgeSearch(unit, 4, other => {
-                //     const isEnemy = other.type.startsWith("enemy");
-                //     return !isEnemy;
-                // });
-                // if (target) {
-                //     target.attackers.push(unit);
-                //     this.follow(unit, target);
-                // }
-            }
-                break;
-
-            case NpcStep.Follow: {
-                const target = this._target!;
-                if (target.isAlive) {
-
-                    if (unit.arriving) {
-                        mathUtils.smoothDampVec3(unit.desiredPos, target.mesh.position, .2, time.deltaTime);
-                        const dist = target.mesh.position.distanceTo(unit.mesh.position);
-                        if (dist < flockProps.separation + .2) {
-                            console.assert(unit.motionId > 0);
-                            UnitMotion.endMotion(unit);
-                            this._hitTimer = 1 - .2;
-                            this._step = NpcStep.Attack;
-                            unitAnimation.setAnimation(unit, "attack", { transitionDuration: .3 });
-                        }
-
-                    } else {
-
-                        if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
-                            this.follow(unit, target);
-                        } else {
-                            const reachedTarget = unit.targetCell.mapCoords.equals(unit.coords.mapCoords);
-                            if (reachedTarget) {
-                                unit.arriving = true;
-                                unit.onArriving();
-                            }
-                        }
-
-                    }
-
-                } else {
-                    this.goToIdle(unit);
+                const newTarget = spiralFind(unit, vision, other => !UnitUtils.isEnemy(other));
+                if (newTarget) {
+                    this._target = newTarget;
+                    this._step = NpcStep.Follow;
+                    UnitMotion.moveUnit(unit, newTarget.coords.mapCoords);
                 }
             }
-                break;
+            break;
 
             case NpcStep.Attack: {
-                const target = this._target!;
-                if (target.isAlive) {
-                    const dist = target.mesh.position.distanceTo(unit.mesh.position);
-                    const inRange = dist < flockProps.separation + .4;
-                    if (inRange) {
-                        UnitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
-                        this._hitTimer -= time.deltaTime;
-                        if (this._hitTimer < 0) {
-                            // TODO hit feedback                     
-                            this._hitTimer = .5;
-                            target.setHealth(target.health - .1);
-                            if (!target.isAlive) {
-                                this.goToIdle(unit);
-                            }
-                        }
 
-                    } else {
-                        this.follow(unit, target);
-                    }
+                if (UnitUtils.isOutOfRange(unit, target!, 1)) {
+                    
+                    this._step = NpcStep.Follow;
+                    UnitMotion.moveUnit(unit, target!.coords.mapCoords, false);
+                    unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
+
                 } else {
-                    this.goToIdle(unit);
-                }
 
+                    targetPos.subVectors(target!.mesh.position, unit.mesh.position);
+                    targetPos.applyQuaternion(targetRotation);
+                    targetPos.add(unit.mesh.position);
+                    UnitMotion.updateRotation(unit, unit.mesh.position, targetPos);
+                    if (this._hitTimer < 0) {
+                        target!.setHealth(target!.health - damage);
+                        this._hitTimer = hitFrequency;                    
+                    } else {
+                        this._hitTimer -= time.deltaTime;                
+                    }
+                }
             }
+            break;
         }
-    }
+    }    
 
-    private follow(unit: ICharacterUnit, target: IUnit) {
-        switch (this._step) {
-            case NpcStep.Attack: {
-                UnitMotion.moveUnit(unit, target.coords.mapCoords, false);
-                unitAnimation.setAnimation(unit, "run", {
-                    transitionDuration: .3,
-                    scheduleCommonAnim: true
-                });
-            }
-                break;
-
-            default:
+    public onReachedTarget(unit: ICharacterUnit) {
+        console.assert(this._step === NpcStep.Follow);
+        const target = this._target;
+        if (target?.isAlive) {
+            if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
+                // target didn't move since last detection, so start attacking
+                UnitMotion.endMotion(unit);
+                this._step = NpcStep.Attack;
+                unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
+            } else {
+                // keep following
                 UnitMotion.moveUnit(unit, target.coords.mapCoords);
-                break;
-        }
-        this._step = NpcStep.Follow;
-        this._target = target;
-    }
-
-    private goToIdle(unit: ICharacterUnit) {
-        const target = this._target!;
-        if (unit.motionId > 0) {
+            }
+        } else {
             UnitMotion.endMotion(unit);
+            this._target = null;
+            this._step = NpcStep.Idle;
         }
-        unit.onArrived();
-        const index = target.attackers.indexOf(unit);
-        if (index !== -1) {
-            utils.fastDelete(target.attackers, index);
-        }
-        this._target = null;
-        this._step = NpcStep.Idle;
     }
 }
 

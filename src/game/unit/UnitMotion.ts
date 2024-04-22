@@ -17,6 +17,8 @@ import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./Unit";
 import { ICharacterUnit } from "./CharacterUnit";
 import { UnitUtils } from "./UnitUtils";
+import { NPCState } from "./states/NPCState";
+import { UnitType } from "../GameDefinitions";
 
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
@@ -36,6 +38,15 @@ const nextPos = new Vector3();
 const { mapRes } = config.game;
 const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
 const neighbordMapCoords = new Vector2();
+
+const characterArrivalDamping = .05;
+const vehicleArrivalDamping = .15;
+const arrivalDamping: Record<UnitType, number> = {
+    "enemy-melee": characterArrivalDamping,
+    "enemy-ranged": characterArrivalDamping,
+    "worker": characterArrivalDamping,
+    "truck": vehicleArrivalDamping
+};
 
 function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -162,9 +173,10 @@ function steer(unit: IUnit, steerAmount: number) {
     if (motionId > 0) {
         if (!desiredPosValid) {
             if (unit.arriving) {
-                mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .15, time.deltaTime);
+                mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
                 unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
                 unit.desiredPosValid = true;
+
             } else {
                 const flowfields = flowField.getMotion(motionId).flowfields;            
                 const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
@@ -450,13 +462,13 @@ export class UnitMotion {
         unit.desiredPosValid = false;
         const isMoving = unit.motionId > 0;
         const needsMotion = isMoving || unit.isColliding;
-        let avoidedCell: ICell | null | undefined = undefined;
 
         if (needsMotion) {
             GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
             const newCell = GameUtils.getCell(nextMapCoords, avoidedCellSector, avoidedCellLocalCoords);
             const walkableCell = newCell?.isWalkable;
             let useDamping = false;
+            let avoidedCell: ICell | null | undefined = undefined;
 
             if (!walkableCell) {
                 avoidedCell = newCell;
@@ -531,8 +543,13 @@ export class UnitMotion {
                     if (isMoving) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                         if (reachedTarget) {
-                            unit.arriving = true;
-                            unit.onArriving();
+                            const npcState = unit.fsm.getState(NPCState);
+                            if (npcState) {
+                                npcState.onReachedTarget(unit as ICharacterUnit);
+                            } else {
+                                unit.arriving = true;
+                                unit.onArriving();
+                            }
                         }
                     }
                 }

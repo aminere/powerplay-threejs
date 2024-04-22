@@ -152,6 +152,7 @@ class UnitsManager {
                     switch (type) {
                         case "enemy-melee":
                             unit.fsm.switchState(NPCState);
+                            unit.isIdle = false;
                             break;
                     }
                 } else {

@@ -120,13 +120,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override onArrived() {
         if (this.isIdle) {
-            unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true });
+            unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
         }
     }
     
     public override onArriving() {
         if (this.isIdle) {
-            unitAnimation.setAnimation(this, "idle", { transitionDuration: .4, scheduleCommonAnim: true })
+            unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true })
         }
     }
 

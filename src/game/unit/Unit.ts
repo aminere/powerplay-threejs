@@ -42,7 +42,6 @@ export interface IUnit {
     lookAt: Quaternion;
     rotation: Quaternion;
     health: number;
-    attackers: IUnit[];
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
 

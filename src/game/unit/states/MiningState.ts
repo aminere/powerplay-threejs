@@ -85,10 +85,7 @@ export class MiningState extends State<ICharacterUnit> {
             const isMining = unit.animation.name === "pick";
             if (isMining) {
                 UnitMotion.moveUnit(unit, center, false);
-                unitAnimation.setAnimation(unit, "run", {
-                    transitionDuration: .3,
-                    scheduleCommonAnim: true
-                });
+                unitAnimation.setAnimation(unit, "run", { transitionDuration: .3, scheduleCommonAnim: true });
             } else {
                 UnitMotion.moveUnit(unit, center);
             }            
