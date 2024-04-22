@@ -157,9 +157,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             miningState.onReachedFactory(this);
         } else {
             if (cell.pickableResource) {
-                pickResource(this, cell.pickableResource.type);
-                cell.pickableResource.visual.removeFromParent();
-                cell.pickableResource = undefined;
+                if (cell.pickableResource.type === this.resource?.type) {
+                    // do nothing, this resource is already carried
+                } else {
+                    pickResource(this, cell.pickableResource.type);
+                    cell.pickableResource.visual.removeFromParent();
+                    cell.pickableResource = undefined;
+                }
             }
             this.onArrived();
         }        
