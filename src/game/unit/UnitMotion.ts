@@ -479,6 +479,7 @@ export class UnitMotion {
                 unit.desiredPos.copy(unit.mesh.position);
                 unit.desiredPos.x += awayDirection.x * steerAmount * .5;
                 unit.desiredPos.z += awayDirection.y * steerAmount * .5;
+                unit.velocity.multiplyScalar(.5); // slow down a bit
                 useDamping = true;
             }
 

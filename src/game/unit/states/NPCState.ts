@@ -32,9 +32,10 @@ export class NPCState extends State<ICharacterUnit> {
         const target = this._target;
         if (target) {
             if (!target.isAlive) {
-                this._step = NpcStep.Idle;
                 this._target = null;
-                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .2, scheduleCommonAnim: true });
+                unit.isIdle = true;
+                this._step = NpcStep.Idle;
+                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .2, scheduleCommonAnim: true })
             }
         }
 
@@ -44,6 +45,7 @@ export class NPCState extends State<ICharacterUnit> {
                 if (newTarget) {
                     this._target = newTarget;
                     this._step = NpcStep.Follow;
+                    unit.isIdle = false;
                     UnitMotion.moveUnit(unit, newTarget.coords.mapCoords);
                 }
             }
@@ -76,7 +78,6 @@ export class NPCState extends State<ICharacterUnit> {
     }    
 
     public onReachedTarget(unit: ICharacterUnit) {
-        console.assert(this._step === NpcStep.Follow);
         const target = this._target;
         if (target?.isAlive) {
             if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
@@ -91,6 +92,7 @@ export class NPCState extends State<ICharacterUnit> {
         } else {
             UnitMotion.endMotion(unit);
             this._target = null;
+            unit.isIdle = true;
             this._step = NpcStep.Idle;
         }
     }
