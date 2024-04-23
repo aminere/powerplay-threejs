@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
 import { Elevation } from "./Elevation";
-import { MineralType, TileType, TileTypes } from "./GameDefinitions";
+import { MineralType, RawResourceType, TileType, TileTypes } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -338,27 +338,13 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
     }
 }
 
-function onMineral(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: MineralType) {
+function onResource(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: RawResourceType) {
     const { sectors } = GameMapState.instance;
     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     if (button === 0) {
         const units = cell.units?.length ?? 0;
         if (cell.isEmpty && units === 0) {
-            resources.create(sector, localCoords, cell, type);
-        }
-    } else if (button === 2) {
-        if (cell.resource) {
-            resources.clear(cell);
-        }
-    }
-}
-
-function onTree(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number) {
-    const { sectors } = GameMapState.instance;
-    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-    if (button === 0) {
-        if (cell.isEmpty) {
-            resources.create(sector, localCoords, cell, "wood");
+            resources.create(sector, sectorCoords, localCoords, cell, type);
         }
     } else if (button === 2) {
         if (cell.resource) {
@@ -488,13 +474,8 @@ export function onAction(touchButton: number) {
             }
                 break;
 
-            case "mineral": {
-                onMineral(sectorCoords, localCoords, cell, touchButton, props.mineralType);
-            }
-                break;
-
-            case "tree": {
-                onTree(sectorCoords, localCoords, cell, touchButton);
+            case "resource": {
+                onResource(sectorCoords, localCoords, cell, touchButton, props.resourceType);
             }
                 break;           
 

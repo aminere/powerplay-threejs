@@ -9,8 +9,7 @@ export const Actions = [
     "unit",
     "car",
     "train",
-    "mineral",
-    "tree"
+    "resource",
 ] as const;
 
 export const TileTypes = [

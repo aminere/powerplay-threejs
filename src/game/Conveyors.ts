@@ -92,9 +92,12 @@ class Conveyors {
 
     public dispose() {
         this._disposed = true;
-        this._conveyors.count = 0;
-        this._conveyorTops.count = 0;
-        this._straightCells.length = 0;
+
+        if (this._loaded) {
+            this._conveyors.count = 0;
+            this._conveyorTops.count = 0;
+            this._straightCells.length = 0;    
+        }
     }  
 
     public create(cell: ICell, mapCoords: Vector2, direction: Vector2, startAxis: Axis, endAxis?: Axis) {

@@ -33,6 +33,7 @@ export interface IConveyorItem {
 
 export interface IRawResource {
     visual: Object3D;
+    instanceIndex?: number;
     type: RawResourceType;
     amount: number;
 }

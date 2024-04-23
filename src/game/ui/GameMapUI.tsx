@@ -158,7 +158,6 @@ export function GameMapUI(props: IGameUIProps) {
                     "terrain",
                     "car",
                     // "train",
-                    "tree",
                     // "rail"
                 ];
                 if (ignoredActions.includes(action)) {

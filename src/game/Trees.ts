@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
+import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
 import { meshes } from "../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
 import { config } from "./config";
@@ -27,44 +27,51 @@ const sectorOffset = -mapSize / 2;
 const dummyTree = new Object3D();
 dummyTree.name = "Tree";
 
+const matrix = new Matrix4();
+const worldPos = new Vector3();
+const quaternion = new Quaternion();
+const scale = new Vector3(1, 1, 1);
+
+const treeCellSize = cellSize * 1;
+const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
+const treeMapSize = treeMapRes * treeCellSize;
+const maxTreesPerSector = treeMapRes * treeMapRes;
+
+function getRandomTreeMatrix(worldPos: Vector3) {
+    const minScale = 0.3;
+    const maxScale = 0.5;
+    scale.setScalar(minScale + (maxScale - minScale) * Math.random());
+    quaternion.setFromAxisAngle(GameUtils.vec3.up, MathUtils.randFloat(0, Math.PI * 2));
+    return matrix.compose(worldPos, quaternion, scale);
+}
+
 class Trees {
 
     private _material!: Material;
-    private _geometries: BufferGeometry[] = [];
-    private _active = false;
+    private _meshes!: Array<Mesh[]>;
+    private _instancedMeshes!: Array<InstancedMesh>;
+    private _loaded = false;
+    private _disposed = false;    
 
     public async preload() {
-        if (this._geometries.length > 0) {
-            return;
-        }
-        const treeMeshes = await Promise.all(models.map(s => meshes.load(`/models/trees/${s}.fbx`)));
-        this._geometries = treeMeshes.map(m => m[0].geometry);
-    }
-
-    public dispose() {
-
-    }
-
-    public update() {
-        if (!this._active) {
-            return;
-        }
         
-        const uniforms = this._material.userData?.shader?.uniforms;
-        if (uniforms) {
-            uniforms.time.value = time.time * speed;
-            uniforms.strength.value = strength;
+        if (this._loaded) {
+            return;
         }
-    }
+    
+        this._disposed = false;
+        this._meshes = await Promise.all(models.map(s => meshes.load(`/models/trees/${s}.fbx`)));
 
-    public generate(sectorRes: number) {
+        if (this._disposed) {
+            return;
+        }
+
         const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
         const perlin = textures.load("/images/perlin.png");
         perlin.wrapS = RepeatWrapping;
         perlin.wrapT = RepeatWrapping;
-        const material = new MeshStandardMaterial({ map: atlas, flatShading: true });
+        const material = new MeshStandardMaterial({ map: atlas });
         this._material = material;
-
         Object.defineProperty(material, "onBeforeCompile", {
             enumerable: false,
             value: (shader: WebGLProgramParametersWithUniforms) => {
@@ -104,45 +111,72 @@ class Trees {
             }
         });
 
-        const baseFreq = .03;
-        treeNoise.SetFrequency(baseFreq);
-        treeNoise2.SetFrequency(baseFreq * 2);
+        this._loaded = true;
+    }
 
-        const treeCellSize = cellSize * 1;
-        const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
-        const treeMapSize = treeMapRes * treeCellSize;
-        const maxTreesPerSector = treeMapRes * treeMapRes;
+    public init(sectorRes: number) {
         const sectorCount = sectorRes * sectorRes;
         const maxTrees = maxTreesPerSector * sectorCount;
-        const matrix = new Matrix4();
-        const worldPos = new Vector3();
-        const quaternion = new Quaternion();
-        const scale = new Vector3(1, 1, 1);
-        const up = new Vector3(0, 1, 0);
-        const mapCoords = new Vector2();
-        const localCoords = new Vector2();
-        const verticesPerRow = mapRes + 1;
-        const { sectors } = GameMapState.instance;
-
-        const owner = GameMapState.instance.layers.trees;
-        if (owner.children.length > 0) {
-            owner.clear();
-            // TODO clear resources
-        }
-
-        const treeInstancedMeshes = this._geometries.map((geometry, index) => {
-            const instancedMesh = new InstancedMesh(geometry, material, maxTrees);
+        const { layers } = GameMapState.instance;
+        this._instancedMeshes = this._meshes.map(([mesh], index) => {
+            const geometry = mesh.geometry;
+            const instancedMesh = new InstancedMesh(geometry, this._material, maxTrees);
             instancedMesh.name = `${models[index]}`;
             instancedMesh.castShadow = true;
             instancedMesh.frustumCulled = false;
             instancedMesh.matrixAutoUpdate = false;
             instancedMesh.matrixWorldAutoUpdate = false;
-            owner.add(instancedMesh);
-            return {
-                instancedMesh,
-                count: 0
-            };
+            instancedMesh.count = 0;
+            layers.trees.add(instancedMesh);
+            return instancedMesh;
         });
+    }
+
+    public dispose() {
+        this._disposed = true;
+    }
+
+    public update() {
+        const uniforms = this._material.userData?.shader?.uniforms;
+        if (uniforms) {
+            uniforms.time.value = time.time * speed;
+            uniforms.strength.value = strength;
+        }
+    }
+
+    public createRandomTree(worldPos: Vector3, out: { instancedMesh: InstancedMesh, instanceIndex: number }) {
+        const treeIndex = MathUtils.randInt(0, this._instancedMeshes.length - 1);
+        const instancedMesh = this._instancedMeshes[treeIndex];
+        const count = instancedMesh.count;
+        const matrix = getRandomTreeMatrix(worldPos);
+        const treeMesh = this._instancedMeshes[treeIndex];
+        treeMesh.setMatrixAt(count, matrix);
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        instancedMesh.count = count + 1;
+        out.instancedMesh = instancedMesh;
+        out.instanceIndex = count;
+    }
+
+    public removeTree(instancedMesh: InstancedMesh, instanceIndex: number) {
+        const count = instancedMesh.count;
+        const newCount = count - 1;
+        for (let i = instanceIndex; i < newCount; i++) {
+            instancedMesh.getMatrixAt(i + 1, matrix);
+            instancedMesh.setMatrixAt(i, matrix);
+        }
+        instancedMesh.count = newCount;
+        instancedMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    public generate(sectorRes: number) {
+        const baseFreq = .03;
+        treeNoise.SetFrequency(baseFreq);
+        treeNoise2.SetFrequency(baseFreq * 2);
+
+        const mapCoords = new Vector2();
+        const localCoords = new Vector2();
+        const verticesPerRow = mapRes + 1;
+        const { sectors } = GameMapState.instance;
 
         for (let i = 0; i < sectorRes; ++i) {
             for (let j = 0; j < sectorRes; ++j) {
@@ -199,16 +233,12 @@ class Trees {
                             const treeSample = treeNoise.GetNoise(noiseX, noiseY);
                             const treeSample2 = treeNoise2.GetNoise(noiseX, noiseY);
                             if (treeSample > 0 && treeSample2 > .5) {
-                                const treeIndex = MathUtils.randInt(0, treeInstancedMeshes.length - 1);
+                                const treeIndex = MathUtils.randInt(0, this._instancedMeshes.length - 1);
                                 worldPos.setY(_minHeight * elevationStep);
-                                const minScale = 0.3;
-                                const maxScale = 0.5;
-                                scale.setScalar(minScale + (maxScale - minScale) * Math.random());
-                                quaternion.setFromAxisAngle(up, MathUtils.randFloat(0, Math.PI * 2));
-                                matrix.compose(worldPos, quaternion, scale);
-                                const treeMesh = treeInstancedMeshes[treeIndex];
+                                const matrix = getRandomTreeMatrix(worldPos);
+                                const treeMesh = this._instancedMeshes[treeIndex];
                                 const count = treeMesh.count;
-                                treeMesh.instancedMesh.setMatrixAt(count, matrix);
+                                treeMesh.setMatrixAt(count, matrix);
                                 treeMesh.count = count + 1;
 
                                 cell.resource = {
@@ -223,10 +253,13 @@ class Trees {
             }
         }
 
-        for (const treeMesh of treeInstancedMeshes) {
-            treeMesh.instancedMesh.count = treeMesh.count;
+        for (const mesh of this._instancedMeshes) {
+            mesh.instanceMatrix.needsUpdate = true;
         }
-        this._active = true;
+    }
+
+    public clear() {
+
     }
 }
 

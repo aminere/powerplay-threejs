@@ -1,62 +1,75 @@
-import { MathUtils, Vector2 } from "three";
+import { InstancedMesh, Vector2, Vector3 } from "three";
 import { config } from "./config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
 import { meshes } from "../engine/resources/Meshes";
-import { objects } from "../engine/resources/Objects";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
+import { trees } from "./Trees";
+import { GameUtils } from "./GameUtils";
 
-const trees = [
-    "palm.json",
-    "palm-big",
-    "palm-high"
-];
+const { cellSize, mapRes } = config.game;
+const mapCoords = new Vector2();
+const worldPos = new Vector3();
 
-const { cellSize } = config.game;
+const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
+    instancedMesh: null!,
+    instanceIndex: 0
+};
 
 class Resources {
-    public create(sector: ISector, localCoords: Vector2, cell: ICell, type: RawResourceType) {
-        const visual = utils.createObject(sector.layers.resources, type); 
-        
-        const fileName = (() => {
-            if (type === "wood") {                
-                return trees[MathUtils.randInt(0, trees.length - 1)];
-            } else {
-                return type;
+    public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
+
+        const resourceInstance = (() => {
+            switch (type) {
+                case "wood": {
+                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+                    GameUtils.mapToWorld(mapCoords, worldPos);
+                    trees.createRandomTree(worldPos, instanceInfo);
+                    const resourceInstance: IRawResource = {
+                        visual: instanceInfo.instancedMesh,
+                        instanceIndex: instanceInfo.instanceIndex,
+                        type,
+                        amount: 100,
+                    };
+                    return resourceInstance;
+                }
+                break;
+    
+                default: {
+                    const positionX = localCoords.x * cellSize + cellSize / 2;
+                    const positionZ = localCoords.y * cellSize + cellSize / 2;            
+                    const visual = utils.createObject(sector.layers.resources, type);
+                    meshes.load(`/models/resources/${type}.glb`)
+                            .then((_meshes) => {
+                                for (const _mesh of _meshes) {
+                                    const mesh = _mesh.clone();
+                                    mesh.scale.setScalar(cellSize);
+                                    mesh.castShadow = true;
+                                    visual.add(mesh);
+                                }
+                            });
+                    visual.position.set(positionX, 0, positionZ);
+                    const resourceInstance: IRawResource = {
+                        visual,
+                        type,
+                        amount: 100,
+                    };
+                    return resourceInstance;
+                }
             }
         })();
-
-        if (fileName.endsWith(".json")) {
-            objects.load(`/models/resources/${fileName}`)
-                .then((_obj) => {
-                    const obj = _obj.clone();
-                    obj.scale.setScalar(cellSize);
-                    visual.add(obj);
-                });
-        } else {
-            meshes.load(`/models/resources/${fileName}.glb`)
-                .then((_meshes) => {
-                    for (const _mesh of _meshes) {
-                        const mesh = _mesh.clone();
-                        mesh.scale.setScalar(cellSize);
-                        mesh.castShadow = true;
-                        visual.add(mesh);
-                    }
-                });
-        }
-        visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-
-        const resourceInstance: IRawResource = {
-            visual,
-            type,
-            amount: 100,
-        };
 
         cell.resource = resourceInstance;
     }
 
     public clear(cell: ICell) {
-        cell.resource!.visual.removeFromParent();
+        const { visual, instanceIndex } = cell.resource!;
+        if (instanceIndex !== undefined) {
+            console.assert(cell.resource?.type === "wood");
+            trees.removeTree(visual as InstancedMesh, instanceIndex);
+        } else {
+            cell.resource!.visual.removeFromParent();
+        }
         cell.resource = undefined;
     }
 

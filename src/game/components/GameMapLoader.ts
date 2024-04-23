@@ -29,10 +29,10 @@ import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
-// import { pickResource } from "../unit/update/WorkerUpdate";
-// import { ICharacterUnit } from "../unit/CharacterUnit";
-// import { meshes } from "../../powerplay";
-// import { unitAnimation } from "../unit/UnitAnimation";
+import { pickResource } from "../unit/update/WorkerUpdate";
+import { ICharacterUnit } from "../unit/CharacterUnit";
+import { meshes } from "../../powerplay";
+import { unitAnimation } from "../unit/UnitAnimation";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -88,9 +88,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         if (this.props.path.length > 0) {
             this.load(owner);
         } else {
-            createSectors(GameMapProps.instance.size);
+            const sectorRes = GameMapProps.instance.size;
+            createSectors(sectorRes);
             this.preload()
-                .then(() => this.init(GameMapProps.instance.size, owner));               
+                .then(() => {
+                    trees.init(sectorRes);
+                    this.init(sectorRes, owner)
+                });               
         }
     }
 
@@ -99,6 +103,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         const data = await loadData(this.props.path, this.props.fromLocalStorage);        
 
         await this.preload();
+
+        trees.init(data.size);
 
         const unitsToSpawn = new Map<Vector2, UnitType[]>();
         for (const sector of data.sectors) {
@@ -127,9 +133,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    if (cell.resource !== "wood") {
-                        resources.create(sectorInstance, localCoords, cellInstance, cell.resource);
-                    }
+                    resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, cell.resource);
                 }
 
                 if (cell.units !== undefined) {
@@ -148,7 +152,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             for (const elevation of sector.elevation) {
                 position.setY(elevation.vertexIndex, elevation.height);
             }
-        }        
+        }
 
         this.init(data.size, owner);
 
@@ -229,14 +233,15 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         document.addEventListener("keydown", this.onKeyDown);
         cmdShowUI.post("gamemap");
 
-        engineState.setComponent(owner, new GameMapUpdate());
+        const updator = utils.createObject(root(), "GameMapUpdate");
+        engineState.setComponent(updator, new GameMapUpdate());
 
         // TODO remove
-        // meshes.load(`/models/resources/ak47.glb`).then(() => {
-        //     const solider = unitsManager.units.find(u => u.type === "worker")!;
-        //     pickResource(solider as ICharacterUnit, "ak47");
-        //     unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
-        // });
+        meshes.load(`/models/resources/ak47.glb`).then(() => {
+            const solider = unitsManager.units.find(u => u.type === "worker")!;
+            pickResource(solider as ICharacterUnit, "ak47");
+            unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
+        });
     }
 
     override dispose() {

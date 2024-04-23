@@ -34,7 +34,100 @@ export class GameMapUpdate extends Component<ComponentProps> {
     }
 
     override update(_owner: Object3D) {
-        
+        this.updateInput();
+        conveyors.update();
+        unitsManager.update();
+        buildings.update();
+        trees.update();
+    }
+
+    private checkKeyboardCameraPan() {
+        const state = GameMapState.instance;
+        let xNorm = 0;
+        let yNorm = 0;
+        let keyboardPan = false;
+        if (state.pressedKeys.has("a")) {
+            xNorm = -1;
+            keyboardPan = true;
+        } else if (state.pressedKeys.has("d")) {
+            xNorm = 1;
+            keyboardPan = true;
+        }
+        if (state.pressedKeys.has("w")) {
+            yNorm = -1;
+            keyboardPan = true;
+        } else if (state.pressedKeys.has("s")) {
+            yNorm = 1;
+            keyboardPan = true;
+        }
+        if (keyboardPan) {
+            this.checkCameraPan(xNorm, yNorm);
+        }
+    }
+
+    private checkCameraPan(xNorm: number, yNorm: number) {
+        const state = GameMapState.instance;
+        if (state.selectionInProgress) {
+            return;
+        }
+
+        const { width, height } = engine.screenRect;
+        const dt = time.deltaTime;
+        const { panMargin, panSpeed } = config.camera;
+        const margin = 50;
+        const [delta, oldPos] = pools.vec3.get(2);
+        if (Math.abs(xNorm) > 1 - panMargin) {
+            const dx = xNorm * dt * panSpeed * state.cameraZoom;
+            delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
+            oldPos.copy(state.cameraRoot.position);
+            setCameraPos(state.cameraRoot.position.add(delta));
+            const [_, rightAccessor, __, leftAccessor] = state.cameraBoundsAccessors;
+            const rightBound = state.cameraBounds[rightAccessor];
+            const leftBound = state.cameraBounds[leftAccessor];
+            const { x: leftX } = leftBound;
+            const { x: rightX } = rightBound;
+            if (dx < 0) {
+                if (leftX > 0) {
+                    if (rightX > width - margin) {
+                        setCameraPos(oldPos);
+                    }
+                }
+            } else {
+                if (rightX < width) {
+                    if (leftX < margin) {
+                        setCameraPos(oldPos);
+                    }
+                }
+            }
+        }
+        if (Math.abs(yNorm) > 1 - panMargin) {
+            const aspect = width / height
+            const dy = yNorm * aspect * dt * panSpeed * state.cameraZoom;
+            delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
+            oldPos.copy(state.cameraRoot.position);
+            setCameraPos(state.cameraRoot.position.add(delta));
+            const [topAcecssor, _, bottomAccessor] = state.cameraBoundsAccessors;
+            const topBound = state.cameraBounds[topAcecssor];
+            const bottomBound = state.cameraBounds[bottomAccessor];
+            const { y: topY } = topBound;
+            const { y: bottomY } = bottomBound;
+            if (dy < 0) {
+                if (topY > 0) {
+                    if (bottomY > height - margin) {
+                        setCameraPos(oldPos);
+                    }
+                }
+            } else {
+                if (bottomY < height) {
+                    if (topY < margin) {
+                        setCameraPos(oldPos);
+                    }
+                }
+            }
+        }
+    }
+
+    private updateInput() {
         const state = GameMapState.instance;
         const { resolution: selectorResolution } = state.tileSelector;
         const resolution = state.action === "road" ? selectorResolution : 1;
@@ -50,7 +143,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
                 raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                if (state.action) {   
+                if (state.action) {
                     if (cellCoords?.equals(state.selectedCellCoords) === false) {
                         state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
                         state.selectedCellCoords.copy(cellCoords);
@@ -63,7 +156,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
             }
         }
 
-        this.checkKeyboardCameraPan();        
+        this.checkKeyboardCameraPan();
 
         if (input.wheelDelta !== 0) {
             const [min, max] = zoomRange;
@@ -94,7 +187,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         const cell = GameUtils.getCell(state.highlightedCellCoords);
                         console.log(cell);
                     }
-                }                
+                }
             }
         } else if (input.touchPressed) {
 
@@ -167,7 +260,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             onAction(0);
                         }
                     } else {
-                        
+
                         if (state.selectionInProgress) {
                             cmdEndSelection.post();
                             state.selectionInProgress = false;
@@ -195,7 +288,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 }
                                 inverseMatrix.copy(mesh.matrixWorld).invert();
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-                                
+
                                 if (localRay.intersectBox(unit.boundingBox, intersection)) {
                                     intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
                                 }
@@ -216,7 +309,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 const { unit, building } = intersections[0];
                                 if (unit) {
                                     state.selectedBuilding = null;
-                                    unitsManager.selectedUnits = [unit];                                    
+                                    unitsManager.selectedUnits = [unit];
                                     cmdSetSelectedElems.post({ units: unitsManager.selectedUnits });
 
                                 } else if (building) {
@@ -258,7 +351,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (targetCell) {
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
-                                
+
                                 const isNPC = cur.type.startsWith("enemy");
                                 if (isNPC) {
                                     return prev;
@@ -289,97 +382,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
             }
         }
-
-        conveyors.update();
-        unitsManager.update();
-        buildings.update();
-        trees.update();
     }
-
-    private checkKeyboardCameraPan() {
-        const state = GameMapState.instance;
-        let xNorm = 0;
-        let yNorm = 0;
-        let keyboardPan = false;
-        if (state.pressedKeys.has("a")) {
-            xNorm = -1;
-            keyboardPan = true;
-        } else if (state.pressedKeys.has("d")) {
-            xNorm = 1;
-            keyboardPan = true;
-        }
-        if (state.pressedKeys.has("w")) {
-            yNorm = -1;
-            keyboardPan = true;
-        } else if (state.pressedKeys.has("s")) {
-            yNorm = 1;
-            keyboardPan = true;
-        }
-        if (keyboardPan) {
-            this.checkCameraPan(xNorm, yNorm);
-        }
-    }
-
-    private checkCameraPan(xNorm: number, yNorm: number) {
-        const state = GameMapState.instance;
-        if (state.selectionInProgress) {
-            return;
-        }
-
-        const { width, height } = engine.screenRect;
-        const dt = time.deltaTime;
-        const { panMargin, panSpeed } = config.camera;
-        const margin = 50;
-        const [delta, oldPos] = pools.vec3.get(2);
-        if (Math.abs(xNorm) > 1 - panMargin) {
-            const dx = xNorm * dt * panSpeed * state.cameraZoom;
-            delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
-            oldPos.copy(state.cameraRoot.position);
-            setCameraPos(state.cameraRoot.position.add(delta));            
-            const [_, rightAccessor, __, leftAccessor] = state.cameraBoundsAccessors;
-            const rightBound = state.cameraBounds[rightAccessor];
-            const leftBound = state.cameraBounds[leftAccessor];
-            const { x: leftX } = leftBound;
-            const { x: rightX } = rightBound;
-            if (dx < 0) {
-                if (leftX > 0) {
-                    if (rightX > width - margin) {
-                        setCameraPos(oldPos);
-                    }
-                }
-            } else {
-                if (rightX < width) {
-                    if (leftX < margin) {
-                        setCameraPos(oldPos);
-                    }
-                }
-            }
-        }
-        if (Math.abs(yNorm) > 1 - panMargin) {
-            const aspect = width / height
-            const dy = yNorm * aspect * dt * panSpeed * state.cameraZoom;
-            delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
-            oldPos.copy(state.cameraRoot.position);
-            setCameraPos(state.cameraRoot.position.add(delta));
-            const [topAcecssor, _, bottomAccessor] = state.cameraBoundsAccessors;
-            const topBound = state.cameraBounds[topAcecssor];
-            const bottomBound = state.cameraBounds[bottomAccessor];
-            const { y: topY } = topBound;
-            const { y: bottomY } = bottomBound;
-            if (dy < 0) {
-                if (topY > 0) {
-                    if (bottomY > height - margin) {
-                        setCameraPos(oldPos);
-                    }
-                }
-            } else {
-                if (bottomY < height) {
-                    if (topY < margin) {
-                        setCameraPos(oldPos);
-                    }
-                }
-            }
-        }
-    }    
 }
 

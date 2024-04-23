@@ -1,4 +1,4 @@
-import { type TileType, TileTypes, type MineralType, MineralTypes, RawResourceTypes, type RawResourceType, type ResourceType, ResourceTypes, type UnitType, UnitTypes } from "../GameDefinitions";
+import { type TileType, TileTypes, RawResourceTypes, type RawResourceType, type ResourceType, ResourceTypes, type UnitType, UnitTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
@@ -23,8 +23,8 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(TileTypes)
     tileType: TileType = "sand";
 
-    @Attributes.enumOptions(MineralTypes)
-    mineralType: MineralType = "aluminium";
+    @Attributes.enumOptions(RawResourceTypes)
+    resourceType: RawResourceType = "aluminium";
 
     @Attributes.enumOptions(BuildingTypes)
     buildingType: BuildingType = "hq";
