@@ -39,6 +39,8 @@ const worldPos = new Vector3();
 
 const { elevationStep, cellSize, mapRes, cellsPerRoadBlock } = config.game;
 const { scale: trainScale } = config.train;
+const mapSize = mapRes * cellSize;
+const halfMapSize = mapSize / 2;
 
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
     const { sectors } = GameMapState.instance;
@@ -51,15 +53,13 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
     normalizedPos.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
     GameUtils.rayCaster.setFromCamera(normalizedPos, camera);
     const { ray } = GameUtils.rayCaster;
-    rayEnd.copy(ray.origin).addScaledVector(ray.direction, 100);
+    rayEnd.copy(ray.origin).addScaledVector(ray.direction, (camera as OrthographicCamera).far);
     line.set(ray.origin, rayEnd);
     const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
     const position = geometry.getAttribute("position") as BufferAttribute;
     const indices = geometry.getIndex()!.array;
-    const mapSize = mapRes * cellSize;
-    const offset = -mapSize / 2;
-    const sectorOffsetX = sectorX * mapSize + offset;
-    const sectorOffsetY = sectorY * mapSize + offset;
+    const sectorOffsetX = sectorX * mapSize - halfMapSize;
+    const sectorOffsetY = sectorY * mapSize - halfMapSize;
     let distToClosestIntersection = Infinity;
     for (let i = 0; i < indices.length; i += 3) {
         const i1 = indices[i];
