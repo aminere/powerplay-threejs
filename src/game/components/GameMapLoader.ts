@@ -209,6 +209,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await preloadAnimations();
         await unitsManager.preload();
         await meshes.load(`/models/resources/wood.glb`);
+        await meshes.load(`/models/resources/water.glb`);
     }   
 
     private init(size: number, owner: Object3D) {

@@ -74,8 +74,8 @@ export const config: IConfig = {
         mapRes: 32,
         elevationStep: .2,
         unitScale: .7,
-        truckScale: 1.5,
-        tankScale: 1.5,
+        truckScale: 1.7,
+        tankScale: 2,
     },
     conveyors: {
         itemSize: .5, // relative to the cell
@@ -89,7 +89,7 @@ export const config: IConfig = {
         maxSpeed: 40,
         acceleration: 1,
         deceleration: -3,
-        scale: 2
+        scale: 2.3
     },
     pathfinding: {
         cellWaitTime: .3
