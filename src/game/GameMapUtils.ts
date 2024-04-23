@@ -382,7 +382,7 @@ function onResource(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
         }
     } else if (button === 2) {
         if (cell.resource) {
-            resources.clear(cell);
+            cell.resource = undefined;
         }
     }
 }

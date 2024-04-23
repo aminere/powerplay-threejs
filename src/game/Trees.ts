@@ -1,4 +1,4 @@
-import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
+import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
 import { meshes } from "../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
 import { config } from "./config";
@@ -25,8 +25,6 @@ treeNoise2.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 const { cellSize, mapRes, elevationStep } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
-const dummyTree = new Object3D();
-dummyTree.name = "Tree";
 
 const matrix = new Matrix4();
 const worldPos = new Vector3();
@@ -255,12 +253,7 @@ class Trees {
                                 const count = treeMesh.count;
                                 treeMesh.setMatrixAt(count, matrix);
                                 treeMesh.count = count + 1;
-
-                                cell.resource = {
-                                    type: "wood",
-                                    amount: 100,
-                                    visual: dummyTree
-                                };
+                                cell.resource = { type: "wood", amount: 100 };
                             }
                         }
                     }

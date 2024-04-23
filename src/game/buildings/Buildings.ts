@@ -363,7 +363,7 @@ class Buildings {
 
                             resource.amount -= 1;
                             if (resource.amount === 0) {
-                                resources.clear(cell);
+                                cell.resource = undefined;
                                 utils.fastDelete(state.resourceCells, state.currentResourceCell);
                                 if (state.currentResourceCell < state.resourceCells.length - 1) {
                                     state.currentResourceCell++;

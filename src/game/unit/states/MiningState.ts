@@ -7,7 +7,6 @@ import { computeUnitAddr, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "..
 import { UnitMotion } from "../UnitMotion";
 import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
 import { GameMapState } from "../../components/GameMapState";
-import { resources } from "../../Resources";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
 import { ICharacterUnit } from "../CharacterUnit";
 import { pickResource } from "../update/WorkerUpdate";
@@ -107,10 +106,10 @@ export class MiningState extends State<ICharacterUnit> {
                 if (this._miningTimer < 0) {
                     const cell = getCellFromAddr(this._targetResource);
                     if (cell.resource && cell.resource.amount > 0) {
-                        const resourceType = cell.resource.type;
+                        const resourceType = cell.resource.type as RawResourceType;
                         cell.resource.amount -= 1;
                         if (cell.resource.amount === 0) {
-                            resources.clear(cell);
+                            cell.resource = undefined;
                         }
                         pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);

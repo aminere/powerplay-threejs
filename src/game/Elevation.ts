@@ -91,7 +91,7 @@ class Elevation {
                 cellCoords.set(x, y);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
-                    resources.clear(cell);
+                    cell.resource = undefined;
                 }
             }
         }

@@ -52,7 +52,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }   
 
     public set resource(value: IResource | null) { 
-        if (value === this._resource) {
+        if (value?.type === this._resource?.type) {
             return;
         }
         if (this._resource) {

@@ -1,4 +1,6 @@
+import { InstancedMesh } from "three";
 import { IBuilding, ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
+import { trees } from "./Trees";
 import { IUnit } from "./unit/Unit";
 
 export class Cell implements ICell {
@@ -37,6 +39,20 @@ export class Cell implements ICell {
 
     public get resource() { return this._resource; }
     public set resource(value: IRawResource | undefined) {
+        if (value?.type === this._resource?.type) {
+            return;
+        }
+
+        if (this._resource) {
+            const { visual, instanceIndex, type } = this._resource;
+            if (instanceIndex !== undefined) {
+                console.assert(type === "wood");
+                trees.removeTree(visual as InstancedMesh, instanceIndex);
+            } else if (visual) {
+                visual?.removeFromParent();
+            }
+        }
+
         this._resource = value;
         const empty = value === undefined;
         this._isEmpty = empty;

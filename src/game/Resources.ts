@@ -62,16 +62,6 @@ class Resources {
         cell.resource = resourceInstance;
     }
 
-    public clear(cell: ICell) {
-        const { visual, instanceIndex } = cell.resource!;
-        if (instanceIndex !== undefined) {
-            console.assert(cell.resource?.type === "wood");
-            trees.removeTree(visual as InstancedMesh, instanceIndex);
-        }   
-        visual?.removeFromParent();     
-        cell.resource = undefined;
-    }
-
     public loadModel(type: RawResourceType | ResourceType) {
         return meshes.load(`/models/resources/${type}.glb`).then(([_mesh]) => {
             if (!_mesh.geometry.boundingBox) {
