@@ -239,11 +239,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         engineState.setComponent(updator, new GameMapUpdate());
 
         // TODO remove
-        meshes.load(`/models/resources/ak47.glb`).then(() => {
-            const solider = unitsManager.units.find(u => u.type === "worker")!;
-            pickResource(solider as ICharacterUnit, "ak47");
-            unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
-        });
+        if (false) {
+            meshes.load(`/models/resources/ak47.glb`).then(() => {
+                const solider = unitsManager.units.find(u => u.type === "worker")!;
+                pickResource(solider as ICharacterUnit, "ak47");
+                unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
+            });
+        }
     }
 
     override dispose() {

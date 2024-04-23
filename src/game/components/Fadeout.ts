@@ -1,5 +1,5 @@
 
-import { DoubleSide, Mesh, Object3D } from "three";
+import { DoubleSide, Material, Mesh, Object3D } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import gsap from "gsap";
@@ -15,46 +15,44 @@ export class FadeoutProps extends ComponentProps {
 
 export class Fadeout extends Component<FadeoutProps> {
 
-    private _tween: gsap.core.Tween | null = null;
-
     constructor(props?: Partial<FadeoutProps>) {
         super(new FadeoutProps(props));
-    }
-    
-    override dispose(_owner: Object3D) {        
-        if (this._tween) {
-            this._tween.kill();
-        }
-    }
+    }    
 
     override start(owner: Object3D) {
-        const mesh = (owner as Mesh);
-        if (mesh.isMesh) {
-            if (Array.isArray(mesh.material)) {
+
+        const meshFadeout = (mesh: Mesh) => {
+            if (Array.isArray(mesh.material)) {                
                 console.warn("Fadeout component can only be applied to Mesh objects with a single material");
+                return Promise.resolve();
             } else {
-                const material = mesh.material.clone();
-                material.transparent = true;
-                material.side = DoubleSide;
-                mesh.material = material;
-                this._tween = gsap.to(material, {
-                    duration: this.props.duration,
-                    opacity: 0,
-                    onUpdate: () => {
-                        if (mesh.castShadow) {
-                            if (material.opacity < .5) {
-                                mesh.castShadow = false;
+                return new Promise(resolve => {
+                    const material = (mesh.material as Material).clone();
+                    material.transparent = true;
+                    material.side = DoubleSide;
+                    mesh.material = material;
+                    gsap.to(material, {
+                        duration: this.props.duration,
+                        opacity: 0,
+                        onUpdate: () => {
+                            if (mesh.castShadow) {
+                                if (material.opacity < .5) {
+                                    mesh.castShadow = false;
+                                }
                             }
-                        }
-                    },
-                    onComplete: () => {
-                        mesh.visible = false;
-                        this._tween = null;
-                    }
-                });
+                        },
+                        onComplete: resolve
+                    });
+                });                
             }
+        };
+
+        const mesh = owner as Mesh;
+        if (mesh.isMesh) {
+            meshFadeout(mesh).then(() => owner.removeFromParent());
         } else {
-            console.warn("Fadeout component can only be applied to Mesh objects");
+            const subMeshes = mesh.getObjectsByProperty("isMesh", true) as Mesh[];
+            Promise.all(subMeshes.map(meshFadeout)).then(() => owner.removeFromParent());
         }
     }
 }

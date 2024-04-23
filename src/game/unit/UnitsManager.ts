@@ -1,7 +1,7 @@
 import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
-import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection } from "../../Events";
+import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection, evtUnitKilled } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
@@ -71,9 +71,13 @@ class UnitsManager {
         });
 
         await skeletonPool.load("/models/characters/Worker.json");
+
+        this.onUnitKilled = this.onUnitKilled.bind(this);
+        evtUnitKilled.attach(this.onUnitKilled);
     }
 
     public dispose() {
+        evtUnitKilled.detach(this.onUnitKilled);
         skeletonManager.dispose();
         skeletonPool.dispose();
         this._units.length = 0;
@@ -122,7 +126,7 @@ class UnitsManager {
                 visual.add(box3Helper);
                 box3Helper.visible = false;
 
-                const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);
+                const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);                
                 visual.scale.multiplyScalar(truckScale);
                 this._units.push(unit);
                 this._owner.add(visual);
@@ -198,24 +202,12 @@ class UnitsManager {
         }
     }
 
-    public kill(unit: IUnit) {
-        unit.setHealth(0);
-        const index = this._units.indexOf(unit as Unit);
-        console.assert(index >= 0, `unit ${unit.id} not found`);
-        utils.fastDelete(this._units, index);
-
-        const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
-        const unitIndex = cell.units!.indexOf(unit);
-        console.assert(unitIndex >= 0, `unit ${unit.id} not found in cell`);
-        utils.fastDelete(cell.units!, unitIndex);
-    }
-
     public killSelection() {
         if (this._selectedUnits.length === 0) {
             return;
         }
         for (const unit of this._selectedUnits) {
-            this.kill(unit);
+            unit.setHealth(0);
         }
         this._selectedUnits.length = 0;
         cmdSetSelectedElems.post({ units: this._selectedUnits });
@@ -306,6 +298,12 @@ class UnitsManager {
                 this._dragStarted = false;
             }
         }
+    }
+
+    private onUnitKilled(unit: IUnit) {
+        const index = this._units.indexOf(unit as Unit);
+        console.assert(index >= 0, `unit ${unit.id} not found`);
+        utils.fastDelete(this._units, index);
     }
 }
 

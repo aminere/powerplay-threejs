@@ -45,7 +45,29 @@ class Elevation {
                 }
             }
         }
+
         applyVertexOperations(this._vertexOperations);
+
+        // for (let y = mapCoords.y - 1; y < mapCoords.y + size + 1; ++y) {
+        //     for (let x = mapCoords.x - 1; x < mapCoords.x + size + 1; ++x) {
+        //         cellCoords.set(x, y);
+        //         const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
+        //         if (cell) {
+        //             const sector = GameUtils.getSector(sectorCoords)!;
+        //             const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+        //             const position = geometry.getAttribute("position") as BufferAttribute;
+        //             const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
+        //             const height1 = position.getY(startVertexIndex);
+        //             const height2 = position.getY(startVertexIndex + 1);
+        //             const height3 = position.getY(startVertexIndex + verticesPerRow);
+        //             const height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+        //             const minHeight = Math.min(height1, height2, height3, height4);
+        //             const maxHeight = Math.max(height1, height2, height3, height4);
+        //             const dh = maxHeight - minHeight;
+        //             cell.isWalkable = dh <= 1;
+        //         }
+        //     }
+        // }
     }
 
     public createWaterPatch(mapCoords: Vector2, size: number) {
@@ -110,10 +132,24 @@ class Elevation {
         let height3 = height;
         let height4 = height;
         if (relative) {
-            height1 = (sectorOperations?.get(startVertexIndex) ?? position.getY(startVertexIndex)) + height;
-            height2 = (sectorOperations?.get(startVertexIndex + 1) ?? position.getY(startVertexIndex + 1)) + height;
-            height3 = (sectorOperations?.get(startVertexIndex + verticesPerRow) ?? position.getY(startVertexIndex + verticesPerRow)) + height;
-            height4 = (sectorOperations?.get(startVertexIndex + verticesPerRow + 1) ?? position.getY(startVertexIndex + verticesPerRow + 1)) + height;
+            height1 = (sectorOperations?.get(startVertexIndex) ?? position.getY(startVertexIndex));
+            height2 = (sectorOperations?.get(startVertexIndex + 1) ?? position.getY(startVertexIndex + 1));
+            height3 = (sectorOperations?.get(startVertexIndex + verticesPerRow) ?? position.getY(startVertexIndex + verticesPerRow));
+            height4 = (sectorOperations?.get(startVertexIndex + verticesPerRow + 1) ?? position.getY(startVertexIndex + verticesPerRow + 1));
+
+            const minHeight = Math.min(height1, height2, height3, height4);
+            const maxHeight = Math.max(height1, height2, height3, height4)
+            if (height > 0) {
+                height1 = Math.max(minHeight + height, height1);
+                height2 = Math.max(minHeight + height, height2);
+                height3 = Math.max(minHeight + height, height3);
+                height4 = Math.max(minHeight + height, height4);
+            } else {
+                height1 = Math.min(height1, maxHeight + height);
+                height2 = Math.min(height2, maxHeight + height);
+                height3 = Math.min(height3, maxHeight + height);
+                height4 = Math.min(height4, maxHeight + height);
+            }
         }
 
         this.setVertexHeight(sectors, startVertexIndex, sector, height1, sectorCoords, true);

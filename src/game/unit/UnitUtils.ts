@@ -1,4 +1,8 @@
+import { Vector3 } from "three";
 import { IUnit } from "./Unit";
+import { IUnitAddr } from "./UnitAddr";
+import { GameUtils } from "../GameUtils";
+
 
 export class UnitUtils {
     public static isOutOfRange(unit: IUnit, target: IUnit, radius: number) {
@@ -13,6 +17,10 @@ export class UnitUtils {
 
     public static isWorker(unit: IUnit) {
         return unit.type === "worker";
-    }
-}   
+    }    
+
+    public static applyElevation(coords: IUnitAddr, worldPos: Vector3) {
+        worldPos.y = GameUtils.getMapHeight(coords.mapCoords, coords.localCoords, coords.sector, worldPos.x, worldPos.z);
+    };
+}
 

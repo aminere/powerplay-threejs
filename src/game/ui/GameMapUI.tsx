@@ -31,6 +31,7 @@ export function GameMapUI(props: IGameUIProps) {
             gameMapState.action = newAction;
             setSelectedAction(newAction);
 
+            let resolution = 1;
             switch (newAction) {
                 case "building": {
                     const buildingType = GameMapProps.instance.buildingType;
@@ -40,7 +41,8 @@ export function GameMapUI(props: IGameUIProps) {
                 break;
 
                 case "elevation": 
-                case "water": {
+                case "water": 
+                case "flatten": {
                     const { brushSize } = GameMapProps.instance;
                     gameMapState.tileSelector.setSize(brushSize, brushSize);
                 }
@@ -49,14 +51,14 @@ export function GameMapUI(props: IGameUIProps) {
                 case "road": {
                     const { cellsPerRoadBlock } = config.game;
                     gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-                    gameMapState.tileSelector.resolution = cellsPerRoadBlock;
+                    resolution = cellsPerRoadBlock;
                 }
                 break;
 
                 default:
                     gameMapState.tileSelector.setSize(1, 1);
-                    gameMapState.tileSelector.resolution = 1;
             }
+            gameMapState.tileSelector.resolution = resolution;
         }
 
     }, [selectedAction]);

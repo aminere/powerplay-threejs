@@ -3,10 +3,12 @@ import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
 import { Fadeout } from "../components/Fadeout";
-import { IUnitAddr, computeUnitAddr, makeUnitAddr } from "./UnitAddr";
-import { cmdFogRemoveCircle } from "../../Events";
+import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
+import { cmdFogRemoveCircle, evtUnitKilled } from "../../Events";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
+import { utils } from "../../engine/Utils";
+import { UnitUtils } from "./UnitUtils";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -135,6 +137,7 @@ export class Unit implements IUnit {
 
         GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
+        UnitUtils.applyElevation(this._coords, this._visual.position);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 
         const cell = GameUtils.getCell(this._coords.mapCoords)!;
@@ -155,6 +158,12 @@ export class Unit implements IUnit {
             this._motionId = 0;
             this._isColliding = false;
             this.onDeath();
+
+            const cell = getCellFromAddr(this._coords);
+            const unitIndex = cell.units!.indexOf(this);
+            console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
+            utils.fastDelete(cell.units!, unitIndex);
+            evtUnitKilled.post(this);
         }
     }
 

@@ -20,10 +20,12 @@ class Resources {
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType | "water") {
 
         const resourceInstance = (() => {
+            mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+            GameUtils.mapToWorld(mapCoords, worldPos);
+            worldPos.y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z);
+
             switch (type) {
-                case "wood": {
-                    mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
-                    GameUtils.mapToWorld(mapCoords, worldPos);
+                case "wood": {                    
                     trees.createRandomTree(cell, worldPos, instanceInfo);
                     const resourceInstance: IRawResource = {
                         visual: instanceInfo.instancedMesh,
@@ -40,8 +42,8 @@ class Resources {
                 }
     
                 default: {
-                    const positionX = localCoords.x * cellSize + cellSize / 2;
-                    const positionZ = localCoords.y * cellSize + cellSize / 2;            
+                    const localX = localCoords.x * cellSize + cellSize / 2;
+                    const localZ = localCoords.y * cellSize + cellSize / 2;            
                     const visual = utils.createObject(sector.layers.resources, type);
                     meshes.load(`/models/resources/${type}.glb`)
                             .then((_meshes) => {
@@ -52,7 +54,8 @@ class Resources {
                                     visual.add(mesh);
                                 }
                             });
-                    visual.position.set(positionX, 0, positionZ);
+
+                    visual.position.set(localX, worldPos.y, localZ);
                     const resourceInstance: IRawResource = { visual, type, amount: 100 };
                     return resourceInstance;
                 }

@@ -32,3 +32,5 @@ export const cmdFogAddCircle = new SyncEvent<{ mapCoords: Vector2; radius: numbe
 export const cmdFogMoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
 export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number;}>();
 
+export const evtUnitKilled = new SyncEvent<IUnit>();
+

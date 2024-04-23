@@ -1,15 +1,16 @@
 
-import { Camera, Vector2, Vector3, Raycaster, Plane, Line3 } from "three";
+import { Camera, Vector2, Vector3, Raycaster, Plane, Line3, Mesh, BufferGeometry, BufferAttribute, MathUtils } from "three";
 import { config } from "./config";
-import { engine } from "../powerplay";
 import { GameMapState } from "./components/GameMapState";
-import { ICell } from "./GameTypes";
+import { ICell, ISector } from "./GameTypes";
+import { engine } from "../engine/Engine";
 
-const { mapRes, cellSize } = config.game;
+const { mapRes, cellSize, elevationStep } = config.game;
+const verticesPerRow = mapRes + 1;
 const mapSize = mapRes * cellSize;
 const halfMapSize = mapSize / 2;
 const halfCellSize = cellSize / 2;
-const cellOffset =  -halfMapSize + halfCellSize;
+const cellOffset = -halfMapSize + halfCellSize;
 const normalizedPos = new Vector3();
 const normalizedPos2d = new Vector2();
 const ground = new Plane();
@@ -158,6 +159,25 @@ export class GameUtils {
         rayEnd.copy(ray.origin).addScaledVector(ray.direction, 999);
         line.set(ray.origin, rayEnd);
         return ground.intersectLine(line, intersectionOut) !== null;
+    }
+
+    public static getMapHeight(mapCoords: Vector2, localCoords: Vector2, sector: ISector, worldX: number, worldZ: number) {
+        const cellWorldX = mapCoords.x * cellSize - halfMapSize;
+        const cellWorldZ = mapCoords.y * cellSize - halfMapSize;
+        const localX = worldX - cellWorldX;
+        const localZ = worldZ - cellWorldZ;
+        const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+        const position = geometry.getAttribute("position") as BufferAttribute;
+        const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
+        const height1 = position.getY(startVertexIndex);
+        const height2 = position.getY(startVertexIndex + 1);
+        const height3 = position.getY(startVertexIndex + verticesPerRow);
+        const height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+        const xFactor = localX / cellSize;
+        const heightA = MathUtils.lerp(height1, height2, xFactor);
+        const heightB = MathUtils.lerp(height3, height4, xFactor);
+        const height = MathUtils.lerp(heightA, heightB, localZ / cellSize) * elevationStep;
+        return height;
     }
 }
 

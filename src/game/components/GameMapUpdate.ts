@@ -129,8 +129,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
     private updateInput() {
         const state = GameMapState.instance;
-        const { resolution: selectorResolution } = state.tileSelector;
-        const resolution = state.action === "road" ? selectorResolution : 1;
+        const resolution = state.tileSelector.resolution;
 
         if (input.touchInside && !state.cursorOverUI) {
             const { width, height } = engine.screenRect;

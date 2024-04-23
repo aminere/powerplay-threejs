@@ -150,7 +150,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
     const state = GameMapState.instance;
-    const {resolution } = state.tileSelector;
+    const { resolution } = state.tileSelector;
     switch (state.action) {
         case "road": {
             state.previousRoad.forEach(road => roads.clear(road));
@@ -163,15 +163,15 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             state.previousRail.forEach(Rails.clear);
             state.previousRail.length = 0;
             Rails.onDrag(start, current, state.initialDragAxis!, state.previousRail);
-
-        } break;
+        }
+            break;
 
         case "belt": {
             state.previousConveyors.forEach(cell => conveyors.clear(cell));
             state.previousConveyors.length = 0;
             conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
-
-        } break;
+        }
+            break;
 
         case "elevation": {
             onElevation(current, 0);
@@ -493,6 +493,13 @@ export function onAction(touchButton: number) {
             }
                 break;
 
+            case "flatten": {
+                const { brushSize } = GameMapProps.instance;
+                elevation.elevate(mapCoords, brushSize, 0, false);
+                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
+            }
+            break;
+
             case "water": {
                 onWater(mapCoords, touchButton);
                 state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
@@ -587,7 +594,7 @@ export function onAction(touchButton: number) {
                     if (cell.units) {
                         const cellUnits = [...cell.units];
                         for (const unit of cellUnits) {
-                            unitsManager.kill(unit);
+                            unit.setHealth(0);
                         }
                     }
                 }

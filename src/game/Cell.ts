@@ -34,7 +34,7 @@ export class Cell implements ICell {
         })();
 
         this._isEmpty = empty;
-        this.setWalkable(empty);
+        this.isWalkable = empty;
     }
 
     public get resource() { return this._resource; }
@@ -56,7 +56,7 @@ export class Cell implements ICell {
         this._resource = value;
         const empty = value === undefined;
         this._isEmpty = empty;
-        this.setWalkable(empty);
+        this.isWalkable = empty;
     }    
 
     public get conveyor() { return this._conveyor; }
@@ -64,7 +64,7 @@ export class Cell implements ICell {
         this._conveyor = value;
         const empty = value === undefined;
         this._isEmpty = empty;
-        this.setWalkable(empty);
+        this.isWalkable = empty;
     }
 
     public get roadTile() { return this._roadTile; }
@@ -80,8 +80,13 @@ export class Cell implements ICell {
         this._units = value; 
     }
 
-    public get isEmpty() { return this._isEmpty; }
     public get isWalkable() { return this._isWalkable; }
+    public set isWalkable(value: boolean) { 
+        this._isWalkable = value;
+        this._flowFieldCost = value ? 1 : 0xffff;
+    }
+
+    public get isEmpty() { return this._isEmpty; }    
     public get hasUnits() { return this._units !== undefined && this._units.length > 0; }
     public get flowFieldCost() { return this._flowFieldCost; }
 
@@ -93,11 +98,6 @@ export class Cell implements ICell {
     private _resource: IRawResource | undefined = undefined;
     private _conveyor: IConveyor | undefined = undefined;
     private _roadTile: number | undefined = undefined;
-    private _units: IUnit[] | undefined = undefined;    
-
-    private setWalkable(value: boolean) {
-        this._isWalkable = value;
-        this._flowFieldCost = value ? 1 : 0xffff;
-    }
+    private _units: IUnit[] | undefined = undefined;
 }
 

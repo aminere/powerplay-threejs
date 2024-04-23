@@ -491,12 +491,13 @@ export class UnitMotion {
                 mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
             } else {
                 nextPos.copy(unit.desiredPos);
-            }
+            }            
 
             GameUtils.worldToMap(nextPos, nextMapCoords);
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
                 UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
                 unit.mesh.position.copy(nextPos);
+                UnitUtils.applyElevation(unit.coords, unit.mesh.position);
 
             } else {
 
@@ -511,7 +512,7 @@ export class UnitMotion {
                     const dy = nextMapCoords.y - unit.coords.mapCoords.y;
                     if (!UnitUtils.isEnemy(unit)) {
                         cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
-                    }                    
+                    }
 
                     const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
                     const unitIndex = currentCell.units!.indexOf(unit);
@@ -535,6 +536,8 @@ export class UnitMotion {
                         unit.coords.mapCoords.copy(nextMapCoords);
                         unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                     }
+
+                    UnitUtils.applyElevation(unit.coords, unit.mesh.position);
 
                     if (isMoving) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);

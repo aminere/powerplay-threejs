@@ -1,8 +1,9 @@
 
 export const Actions = [
-    "elevation", 
+    "elevation",     
     "terrain",
     "water",
+    "flatten",
     "road", 
     "building", 
     "rail", 
