@@ -1,4 +1,4 @@
-import { Matrix4, Object3D, Quaternion, Vector3 } from "three";
+import { Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { time } from "../../../engine/core/Time";
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../CharacterUnit";
@@ -10,7 +10,8 @@ import { mathUtils } from "../../MathUtils";
 import { utils } from "../../../engine/Utils";
 
 const shootRange = 10;
-const shootMinRange = 2;
+const damage = .3;
+const splashRadius = 1;
 const attackDelay = .5;
 const attackFrequency = 1;
 
@@ -22,6 +23,7 @@ enum TankStep {
 const localPos = new Vector3();
 const localRotation = new Quaternion();
 const matrix = new Matrix4();
+const cellCoords = new Vector2();
 
 function aimCannon(cannon: Object3D, target: Vector3) {
     const damping = 0.25;
@@ -45,14 +47,13 @@ export class TankState extends State<ICharacterUnit> {
     private _step = TankStep.Idle;
     private _attackTimer = 0;    
     private _cannon!: Object3D;
-    private _unrotatedCannon!: Object3D;
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
         this._cannon = unit.visual.getObjectByName("cannon")!;
-        this._unrotatedCannon = utils.createObject(unit.visual, "cannon-root");
-        this._unrotatedCannon.position.copy(this._cannon.position);
-        this._unrotatedCannon.attach(this._cannon);
+        const cannonRoot = utils.createObject(unit.visual, "cannon-root");
+        cannonRoot.position.copy(this._cannon.position);
+        cannonRoot.attach(this._cannon);
     }    
     override exit(_unit: IUnit) {
         console.log(`TankState exit`);
@@ -81,6 +82,20 @@ export class TankState extends State<ICharacterUnit> {
                     case TankStep.Attack: {
                         aimCannon(this._cannon, target.visual.position);
                         if (this._attackTimer < 0) {
+                            const { mapCoords } = target.coords;
+                            for (let y = mapCoords.y - splashRadius; y <= mapCoords.y + splashRadius; y++) {
+                                for (let x = mapCoords.x - splashRadius; x <= mapCoords.x + splashRadius; x++) {
+                                    cellCoords.set(x, y);
+                                    const units = GameUtils.getCell(cellCoords)?.units;
+                                    if (units) {
+                                        for (const unit of units) {
+                                            if (UnitUtils.isEnemy(unit)) {
+                                                unit.setHealth(unit!.health - damage);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             this._attackTimer = attackFrequency;
                         } else {
@@ -91,6 +106,7 @@ export class TankState extends State<ICharacterUnit> {
                 }
             }
         } else {
+            resetCannon(this._cannon);
             const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
@@ -99,7 +115,6 @@ export class TankState extends State<ICharacterUnit> {
     }
 
     public stopAttack() {
-        console.log("TankState stopAttack");
         this._step = TankStep.Idle;
     }
 }

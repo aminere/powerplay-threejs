@@ -142,6 +142,7 @@ class UnitsManager {
 
             case "tank": {
                 const visual = await loadVisual(type);
+                visual.receiveShadow = true;
                 GameUtils.mapToWorld(mapCoords, visual.position);
                 const boundingBox = getBoundingBox(visual);                
                 const unit = new Unit({ visual, boundingBox, type, states: [new TankState()]}, id);
