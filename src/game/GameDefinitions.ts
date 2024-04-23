@@ -2,6 +2,7 @@
 export const Actions = [
     "elevation", 
     "terrain",
+    "water",
     "road", 
     "building", 
     "rail", 
@@ -27,7 +28,7 @@ export const MineralTypes = [
 
 export const RawResourceTypes = [
     ...MineralTypes,
-    "wood"
+    "wood",
 ] as const;
 
 export const ResourceTypes = [

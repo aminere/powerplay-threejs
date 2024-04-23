@@ -10,7 +10,7 @@ import { time } from "../../engine/core/Time";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
-import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { MineralType, RawResourceType, ResourceType } from "../GameDefinitions";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 import { ITruckUnit } from "../unit/TruckUnit";
@@ -85,7 +85,7 @@ function tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords:
     return false;
 }
 
-function onProductionDone(outputCellAddr: IUnitAddr, resource: ResourceType | RawResourceType) {
+function onProductionDone(outputCellAddr: IUnitAddr, resource: ResourceType | MineralType) {
     const outputCell = getCellFromAddr(outputCellAddr);
     if (!tryFillAdjacentConveyors(outputCell, outputCellAddr.mapCoords, resource)) {
         const { sector, localCoords } = outputCellAddr;
@@ -226,8 +226,8 @@ class Buildings {
                             cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                             const cell = GameUtils.getCell(cellCoords)!;
                             if (cell.resource) {
-                                resourceCells.push(cellCoords.clone());
-                                cell.resource.visual.visible = false;
+                                resourceCells.push(cellCoords.clone());                                
+                                cell.resource.visual!.visible = false;
                             }
                         }
                     }
@@ -374,7 +374,7 @@ class Buildings {
                             }
 
                             state.active = false;
-                            onProductionDone(state.outputCell, resource.type);
+                            onProductionDone(state.outputCell, resource.type as MineralType);
 
                         } else {
                             state.timer += time.deltaTime;

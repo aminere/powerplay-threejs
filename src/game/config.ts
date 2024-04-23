@@ -11,6 +11,7 @@ interface ICameraConfig {
 
 interface ITerrainConfig {
     atlasTileCount: number;
+    waterDepth: number;
 }
 
 interface IGameConfig {
@@ -64,7 +65,8 @@ export const config: IConfig = {
         shadowRange: 1.5
     },
     terrain: {
-        atlasTileCount: 35
+        atlasTileCount: 35,
+        waterDepth: 10
     },
     game: {
         cellSize: 1,

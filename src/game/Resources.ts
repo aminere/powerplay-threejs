@@ -17,7 +17,7 @@ const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
 };
 
 class Resources {
-    public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
+    public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType | "water") {
 
         const resourceInstance = (() => {
             switch (type) {
@@ -31,6 +31,11 @@ class Resources {
                         type,
                         amount: 100,
                     };
+                    return resourceInstance;
+                }
+
+                case "water": {
+                    const resourceInstance: IRawResource = { type, amount: 999999 };
                     return resourceInstance;
                 }
     
@@ -48,11 +53,7 @@ class Resources {
                                 }
                             });
                     visual.position.set(positionX, 0, positionZ);
-                    const resourceInstance: IRawResource = {
-                        visual,
-                        type,
-                        amount: 100,
-                    };
+                    const resourceInstance: IRawResource = { visual, type, amount: 100 };
                     return resourceInstance;
                 }
             }
@@ -66,9 +67,8 @@ class Resources {
         if (instanceIndex !== undefined) {
             console.assert(cell.resource?.type === "wood");
             trees.removeTree(visual as InstancedMesh, instanceIndex);
-        } else {
-            cell.resource!.visual.removeFromParent();
-        }
+        }   
+        visual?.removeFromParent();     
         cell.resource = undefined;
     }
 

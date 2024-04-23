@@ -32,9 +32,9 @@ export interface IConveyorItem {
 }
 
 export interface IRawResource {
-    visual: Object3D;
+    visual?: Object3D;
     instanceIndex?: number;
-    type: RawResourceType;
+    type: RawResourceType | "water";
     amount: number;
 }
 

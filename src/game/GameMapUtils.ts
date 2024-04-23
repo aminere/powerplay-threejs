@@ -2,8 +2,8 @@ import { Box2, BufferAttribute, BufferGeometry, Camera, Line3, Mesh, Orthographi
 import { GameUtils } from "./GameUtils";
 import { config } from "./config";
 import { engine } from "../engine/Engine";
-import { Elevation } from "./Elevation";
-import { MineralType, RawResourceType, TileType, TileTypes } from "./GameDefinitions";
+import { elevation } from "./Elevation";
+import { MineralType, MineralTypes, RawResourceType, TileType, TileTypes } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -37,7 +37,7 @@ const min = new Vector2();
 const max = new Vector2();
 const worldPos = new Vector3();
 
-const { elevationStep, cellSize, mapRes } = config.game;
+const { elevationStep, cellSize, mapRes, cellsPerRoadBlock } = config.game;
 const { scale: trainScale } = config.train;
 
 function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2, camera: Camera) {
@@ -174,8 +174,13 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
         } break;
 
         case "elevation": {
-            GameUtils.getCell(current, sectorCoords, localCoords)!;
-            onElevation(current, sectorCoords, localCoords, state.tileSelector.size, 0);
+            onElevation(current, 0);
+            state.tileSelector.fit(current.x, current.y, state.sectors);
+        }
+            break;
+
+        case "water": {
+            onWater(current, 0);
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
             break;
@@ -211,8 +216,13 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "elevation": {
-            GameUtils.getCell(start, sectorCoords, localCoords)!;
-            onElevation(start, sectorCoords, localCoords, state.tileSelector.size, 0);
+            onElevation(start, 0);
+            state.tileSelector.fit(start.x, start.y, state.sectors);
+        }
+            break;
+
+        case "water": {
+            onWater(start, 0);
             state.tileSelector.fit(start.x, start.y, state.sectors);
         }
             break;
@@ -247,20 +257,43 @@ export function onCancelDrag() {
     gameMapState.previousConveyors.length = 0;
 }
 
-function onElevation(mapCoords: Vector2, sectorCoords: Vector2, localCoords: Vector2, radius: Vector2, button: number) {
-    const props = GameMapProps.instance;
+function onElevation(mapCoords: Vector2, button: number) {
+    const { brushSize, brushHeight, relativeBrush } = GameMapProps.instance;
     if (button === 0) {
-        Elevation.elevate(mapCoords, sectorCoords, localCoords, radius, props.brushHeight, props.relativeBrush);
+        elevation.elevate(mapCoords, brushSize, brushHeight, relativeBrush);
     } else if (button === 2) {
-        Elevation.elevate(mapCoords, sectorCoords, localCoords, radius, -props.brushHeight, props.relativeBrush);
+        elevation.elevate(mapCoords, brushSize, -brushHeight, relativeBrush);
     }
 }
 
-function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
+function onWater(mapCoords: Vector2, button: number) {
+    const { brushSize } = GameMapProps.instance;
     if (button === 0) {
-        if (cell.isEmpty) {
+        elevation.createWaterPatch(mapCoords, brushSize);
+    } else if (button === 2) {
+        elevation.clearWaterPatch(mapCoords, brushSize);
+    }    
+}
+
+function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
+    if (button === 0) {        
+        const empty = (() => {
+            for (let i = 0; i < cellsPerRoadBlock; ++i) {
+                for (let j = 0; j < cellsPerRoadBlock; ++j) {
+                    cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                    const roadPatchCell = GameUtils.getCell(cellCoords)!;
+                    if (!roadPatchCell.isEmpty) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        })();
+
+        if (empty) {
             roads.create(mapCoords);
         }
+
     } else if (button === 2) {
         if (cell.roadTile !== undefined) {
             roads.clear(mapCoords);
@@ -302,7 +335,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                             return false;
                         }
                         
-                        if (cell.resource && !cell.building) {
+                        const hasMineral = MineralTypes.includes(cell.resource?.type as MineralType);
+                        if (hasMineral && !cell.building) {
                             resourceCount++;
                             return true;
                         } else {
@@ -454,10 +488,16 @@ export function onAction(touchButton: number) {
         const mapCoords = state.selectedCellCoords;
         switch (state.action) {
             case "elevation": {
-                onElevation(mapCoords, sectorCoords, localCoords, state.tileSelector.size, touchButton);
+                onElevation(mapCoords, touchButton);
                 state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
             }
                 break;
+
+            case "water": {
+                onWater(mapCoords, touchButton);
+                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
+            }
+            break;
 
             case "terrain": {
                 onTerrain(mapCoords, props.tileType);

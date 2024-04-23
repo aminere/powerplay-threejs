@@ -39,11 +39,12 @@ export function GameMapUI(props: IGameUIProps) {
                 }
                 break;
 
-                case "elevation": {
+                case "elevation": 
+                case "water": {
                     const { brushSize } = GameMapProps.instance;
                     gameMapState.tileSelector.setSize(brushSize, brushSize);
                 }
-                break;
+                break;                
 
                 case "road": {
                     const { cellsPerRoadBlock } = config.game;
@@ -153,13 +154,11 @@ export function GameMapUI(props: IGameUIProps) {
         >
             {Actions.map(action => {
 
-                const ignoredActions: Action[] = [
-                    // "elevation",
+                const ignoredActions: Action[] = [                    
                     "terrain",
-                    "car",
-                    // "train",
-                    // "rail"
+                    "car"                    
                 ];
+                
                 if (ignoredActions.includes(action)) {
                     return null;
                 }
