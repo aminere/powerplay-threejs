@@ -61,10 +61,10 @@ export class NPCState extends State<ICharacterUnit> {
 
                 } else {
 
-                    targetPos.subVectors(target!.mesh.position, unit.mesh.position);
+                    targetPos.subVectors(target!.visual.position, unit.visual.position);
                     targetPos.applyQuaternion(targetRotation);
-                    targetPos.add(unit.mesh.position);
-                    UnitMotion.updateRotation(unit, unit.mesh.position, targetPos);
+                    targetPos.add(unit.visual.position);
+                    UnitMotion.updateRotation(unit, unit.visual.position, targetPos);
                     if (this._hitTimer < 0) {
                         target!.setHealth(target!.health - damage);
                         this._hitTimer = hitFrequency;                    

@@ -9,7 +9,7 @@ import { GameUtils } from "../../GameUtils";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 
-const shootRadius = 4;
+const shootRange = 4;
 const hitFrequency = .5;
 const damage = .1;
 const targetPos = new Vector3();
@@ -33,7 +33,7 @@ export class SoldierState extends State<ICharacterUnit> {
 
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, shootRadius)) {
+            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, shootRange)) {
                 this.stopAttack(unit);
                 this._search.reset();
                 this._target = null;
@@ -45,10 +45,10 @@ export class SoldierState extends State<ICharacterUnit> {
                         unitAnimation.setAnimation(unit, "shoot", { transitionDuration: .3, scheduleCommonAnim: true });
                     } else {
                         // rotate to target
-                        targetPos.subVectors(target!.mesh.position, unit.mesh.position);
+                        targetPos.subVectors(target!.visual.position, unit.visual.position);
                         targetPos.applyQuaternion(targetRotation);
-                        targetPos.add(unit.mesh.position);
-                        UnitMotion.updateRotation(unit, unit.mesh.position, targetPos);
+                        targetPos.add(unit.visual.position);
+                        UnitMotion.updateRotation(unit, unit.visual.position, targetPos);
 
                         // attack
                         if (this._hitTimer < 0) {
@@ -61,7 +61,7 @@ export class SoldierState extends State<ICharacterUnit> {
                 }
             }
         } else {
-            const newTarget = this._search.find(unit, shootRadius, UnitUtils.isEnemy);
+            const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
             }

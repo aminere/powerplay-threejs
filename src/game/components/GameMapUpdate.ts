@@ -283,11 +283,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             const intersection = pools.vec3.getOne();
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
-                                const { mesh } = unit;
                                 if (!unit.isAlive) {
                                     continue;
                                 }
-                                inverseMatrix.copy(mesh.matrixWorld).invert();
+                                inverseMatrix.copy(unit.visual.matrixWorld).invert();
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
 
                                 if (localRay.intersectBox(unit.boundingBox, intersection)) {

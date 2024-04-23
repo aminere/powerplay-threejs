@@ -44,7 +44,7 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
         truck.resources = {
             type: conveyorResource, 
             amount: 0,
-            root: utils.createObject(truck.mesh, "resources")
+            root: utils.createObject(truck.visual, "resources")
         };
     } else {
         if (truck.resources.type !== conveyorResource) {

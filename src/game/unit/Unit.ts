@@ -9,6 +9,7 @@ import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { UnitUtils } from "./UnitUtils";
+import { TankState } from "./states/TankState";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -32,7 +33,7 @@ export interface IUnit {
     speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
-    mesh: Object3D;
+    visual: Object3D;
     coords: IUnitAddr;
     motionId: number;
     lastCompletedMotionId: number;
@@ -66,7 +67,7 @@ export class Unit implements IUnit {
     public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
-    public get mesh() { return this._visual; }    
+    public get visual() { return this._visual; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
@@ -178,7 +179,12 @@ export class Unit implements IUnit {
     }
 
     public onMove(_bindSkeleton: boolean) {}
-    public onMoveCommand() {}
+    public onMoveCommand() {
+        const tankState = this.fsm.getState(TankState);
+        if (tankState) {
+            tankState.stopAttack();
+        }
+    }
     public onArrived() {}
     public onArriving() {}
     public onColliding() {}

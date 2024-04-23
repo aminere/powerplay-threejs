@@ -77,7 +77,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override setHealth(value: number): void {
         if (value <= 0) {            
-            engineState.removeComponent(this.mesh, UnitCollisionAnim);
+            engineState.removeComponent(this.visual, UnitCollisionAnim);
             this.resource = null;
         }
         super.setHealth(value);
@@ -90,7 +90,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         });
         setTimeout(() => {
             const fadeDuration = 1;
-            engineState.setComponent(this.mesh, new Fadeout({ duration: fadeDuration }));
+            engineState.setComponent(this.visual, new Fadeout({ duration: fadeDuration }));
             setTimeout(() => {
                 skeletonPool.releaseSkeleton(this);
                 if (!this.type.startsWith("enemy")) {
@@ -101,7 +101,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onMove(bindSkeleton: boolean) {
-        engineState.removeComponent(this.mesh, UnitCollisionAnim);
+        engineState.removeComponent(this.visual, UnitCollisionAnim);
         if (bindSkeleton) {
             unitAnimation.setAnimation(this, "run");
         }
@@ -132,11 +132,11 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onColliding() {
-        const collisionAnim = utils.getComponent(UnitCollisionAnim, this.mesh);
+        const collisionAnim = utils.getComponent(UnitCollisionAnim, this.visual);
         if (collisionAnim) {
             collisionAnim.reset();
         } else {
-            engineState.setComponent(this.mesh, new UnitCollisionAnim({ unit: this }));
+            engineState.setComponent(this.visual, new UnitCollisionAnim({ unit: this }));
         }
     }
 

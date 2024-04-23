@@ -61,7 +61,7 @@ export class ArcherNPCState extends State<IUnit> {
                     if (!target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                         this.follow(unit, target);
                     } else {
-                        const dist = target.mesh.position.distanceTo(unit.mesh.position);
+                        const dist = target.visual.position.distanceTo(unit.visual.position);
                         if (dist < vision) {
                             if (unit.motionId > 0) {
                                 UnitMotion.endMotion(unit);    
@@ -78,10 +78,10 @@ export class ArcherNPCState extends State<IUnit> {
             case NpcStep.Attack: {
                 const target = this._target!;
                 if (target.isAlive) {
-                    const dist = target.mesh.position.distanceTo(unit.mesh.position);
+                    const dist = target.visual.position.distanceTo(unit.visual.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        UnitMotion.updateRotation(unit, unit.mesh.position, target.mesh.position);
+                        UnitMotion.updateRotation(unit, unit.visual.position, target.visual.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               
@@ -97,15 +97,15 @@ export class ArcherNPCState extends State<IUnit> {
                                     
                                     const hand = unit.skeleton?.skeleton.getBoneByName("HandL")!;
                                     hand?.getWorldPosition(arrow.obj.position);
-                                    arrow.obj.position.applyMatrix4(unit.mesh.matrixWorld);                                    
+                                    arrow.obj.position.applyMatrix4(unit.visual.matrixWorld);                                    
                                     engine.scene!.add(arrow.obj);
                                     arrow.progress = 0;
                                     arrow.startPos.copy(arrow.obj.position);
                                     arrow.tween = gsap.to(arrow, {
                                         progress: 1,
-                                        duration: arrow.startPos.distanceTo(target.mesh.position) / 8,
+                                        duration: arrow.startPos.distanceTo(target.visual.position) / 8,
                                         onUpdate: () => {
-                                            targetPos.copy(target.mesh.position).setY(target.mesh.position.y + 1.4);
+                                            targetPos.copy(target.visual.position).setY(target.visual.position.y + 1.4);
                                             arrow!.obj.position.lerpVectors(arrow!.startPos, targetPos, arrow!.progress);
                                         },
                                         onComplete: () => {

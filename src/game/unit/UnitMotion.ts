@@ -23,7 +23,7 @@ import { UnitType } from "../GameDefinitions";
 const cellDirection = new Vector2();
 const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
-const lookAt = new Matrix4();
+const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
 
 const unitNeighbors = new Array<IUnit>();
@@ -164,17 +164,17 @@ function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: nu
 
     cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
     mathUtils.smoothDampVec3(unit.velocity, cellDirection3, .1, time.deltaTime);
-    unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
+    unit.desiredPos.addVectors(unit.visual.position, unit.velocity);
     unit.desiredPosValid = true;
 }
 
 function steer(unit: IUnit, steerAmount: number) {
-    const { motionId, desiredPosValid, desiredPos, coords, mesh: obj } = unit;
+    const { motionId, desiredPosValid, desiredPos, coords } = unit;
     if (motionId > 0) {
         if (!desiredPosValid) {
             if (unit.arriving) {
                 mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
-                unit.desiredPos.addVectors(unit.mesh.position, unit.velocity);
+                unit.desiredPos.addVectors(unit.visual.position, unit.velocity);
                 unit.desiredPosValid = true;
 
             } else {
@@ -222,7 +222,7 @@ function steer(unit: IUnit, steerAmount: number) {
                     } else {
                         console.assert(false);                            
                         unit.velocity.set(0, 0, 0);
-                        desiredPos.copy(obj.position);
+                        desiredPos.copy(unit.visual.position);
                         unit.desiredPosValid = true;
                     }                    
                 }
@@ -232,7 +232,7 @@ function steer(unit: IUnit, steerAmount: number) {
     } else {
         if (!desiredPosValid) {
             unit.velocity.set(0, 0, 0);
-            desiredPos.copy(obj.position);
+            desiredPos.copy(unit.visual.position);
             unit.desiredPosValid = true;
         }
     }
@@ -404,10 +404,10 @@ export class UnitMotion {
         const deltaPosLen = deltaPos.length();
         if (deltaPosLen > 0.01) {
             deltaPos.divideScalar(deltaPosLen);
-            unit.lookAt.setFromRotationMatrix(lookAt.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
+            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
             const rotationDamp = 0.1;
-            mathUtils.smoothDampQuat(unit.rotation, unit.lookAt, rotationDamp, time.deltaTime);
-            unit.mesh.quaternion.copy(unit.rotation);
+            mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
+            // unit.mesh.quaternion.copy(unit.rotation);
         }
     }    
 
@@ -471,7 +471,7 @@ export class UnitMotion {
 
                 // move away from blocked cell
                 awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                unit.desiredPos.copy(unit.mesh.position);
+                unit.desiredPos.copy(unit.visual.position);
                 unit.desiredPos.x += awayDirection.x * steerAmount * .5;
                 unit.desiredPos.z += awayDirection.y * steerAmount * .5;
                 unit.velocity.multiplyScalar(.5); // slow down a bit
@@ -487,7 +487,7 @@ export class UnitMotion {
             }            
 
             if (useDamping) {
-                nextPos.copy(unit.mesh.position);
+                nextPos.copy(unit.visual.position);
                 mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
             } else {
                 nextPos.copy(unit.desiredPos);
@@ -495,9 +495,9 @@ export class UnitMotion {
 
             GameUtils.worldToMap(nextPos, nextMapCoords);
             if (nextMapCoords.equals(unit.coords.mapCoords)) {
-                UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
-                unit.mesh.position.copy(nextPos);
-                UnitUtils.applyElevation(unit.coords, unit.mesh.position);
+                UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+                unit.visual.position.copy(nextPos);
+                UnitUtils.applyElevation(unit.coords, unit.visual.position);
 
             } else {
 
@@ -505,8 +505,8 @@ export class UnitMotion {
                 const nextCell = GameUtils.getCell(nextMapCoords);
                 const validCell = nextCell?.isWalkable;
                 if (validCell) {
-                    UnitMotion.updateRotation(unit, unit.mesh.position, nextPos);
-                    unit.mesh.position.copy(nextPos);
+                    UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+                    unit.visual.position.copy(nextPos);
 
                     const dx = nextMapCoords.x - unit.coords.mapCoords.x;
                     const dy = nextMapCoords.y - unit.coords.mapCoords.y;
@@ -537,7 +537,7 @@ export class UnitMotion {
                         unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
                     }
 
-                    UnitUtils.applyElevation(unit.coords, unit.mesh.position);
+                    UnitUtils.applyElevation(unit.coords, unit.visual.position);
 
                     if (isMoving) {
                         const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);

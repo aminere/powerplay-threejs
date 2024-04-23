@@ -23,6 +23,7 @@ import { truckUpdate } from "./update/TruckUpdate";
 import { workerUpdate } from "./update/WorkerUpdate";
 import { SoldierState } from "./states/SoldierState";
 import { UnitUtils } from "./UnitUtils";
+import { TankState } from "./states/TankState";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -35,6 +36,15 @@ function getBoundingBox(mesh: Mesh) {
         mesh.geometry.computeBoundingBox();
         return mesh.geometry.boundingBox!;
     }
+}
+
+async function loadVisual(type: UnitType) {
+    const visual = (await meshes.load(`/models/${type}.glb`))[0].clone();
+    visual.traverse(child => {
+        child.castShadow = true;
+        child.userData.unserializable = true;
+    });
+    return visual;
 }
 
 class UnitsManager {
@@ -114,47 +124,36 @@ class UnitsManager {
         const id = this._units.length;
         switch (type) {
             case "truck": {
-                const visual = (await meshes.load(`/models/${type}.glb`))[0].clone();
-                visual.castShadow = true;
-
-                visual.userData.unserializable = true;
-                GameUtils.mapToWorld(mapCoords, visual.position);                
-                cmdFogAddCircle.post({ mapCoords, radius: 10 });
-                
-                const boundingBox = getBoundingBox(visual);
-                const box3Helper = new Box3Helper(boundingBox);
-                visual.add(box3Helper);
-                box3Helper.visible = false;
-
+                const visual = await loadVisual(type);
+                GameUtils.mapToWorld(mapCoords, visual.position);
+                const boundingBox = getBoundingBox(visual);                
                 const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);                
                 visual.scale.multiplyScalar(truckScale);
                 this._units.push(unit);
                 this._owner.add(visual);
-            }
-            break;
 
-            case "tank": {
-                const visual = utils.createObject(this._owner, "root");
-                const submeshes = (await meshes.load(`/models/${type}.glb`)).map(submesh => submesh.clone());
-                for (const submesh of submeshes) {
-                    submesh.castShadow = true;
-                    submesh.userData.unserializable = true;
-                    visual.add(submesh);
-                }                
-
-                visual.userData.unserializable = true;
-                GameUtils.mapToWorld(mapCoords, visual.position);      
-                cmdFogAddCircle.post({ mapCoords, radius: 10 });
-                
-                const boundingBox = getBoundingBox(submeshes[0]);
+                cmdFogAddCircle.post({ mapCoords, radius: 10 });    
                 const box3Helper = new Box3Helper(boundingBox);
                 visual.add(box3Helper);
                 box3Helper.visible = false;
 
-                const unit = new Unit({ visual, boundingBox, type, states: []}, id);
+            }
+            break;
+
+            case "tank": {
+                const visual = await loadVisual(type);
+                GameUtils.mapToWorld(mapCoords, visual.position);
+                const boundingBox = getBoundingBox(visual);                
+                const unit = new Unit({ visual, boundingBox, type, states: [new TankState()]}, id);
                 visual.scale.multiplyScalar(tankScale);
                 this._units.push(unit);
                 this._owner.add(visual);
+                unit.fsm.switchState(TankState);
+
+                cmdFogAddCircle.post({ mapCoords, radius: 10 });
+                const box3Helper = new Box3Helper(boundingBox);
+                visual.add(box3Helper);
+                box3Helper.visible = false;
             }
             break;
 
@@ -258,11 +257,10 @@ class UnitsManager {
                                 const units = this._units;
                                 for (let i = 0; i < units.length; ++i) {
                                     const unit = units[i];
-                                    const { mesh } = unit;                                    
                                     if (!unit.isAlive) {
                                         continue;
                                     }
-                                    GameUtils.worldToScreen(mesh.position, gameMapState.camera, screenPos);
+                                    GameUtils.worldToScreen(unit.visual.position, gameMapState.camera, screenPos);
                                     const rectX = Math.min(this._selectionStart.x, input.touchPos.x);
                                     const rectY = Math.min(this._selectionStart.y, input.touchPos.y);
                                     const rectWidth = Math.abs(input.touchPos.x - this._selectionStart.x);

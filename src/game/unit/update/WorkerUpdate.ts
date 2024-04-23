@@ -47,7 +47,7 @@ export function workerUpdate(unit: ICharacterUnit) {
                 pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedItemOffset);
             }
         }
-        visual.matrix.multiplyMatrices(unit.mesh.matrixWorld, pickedItemlocalToSkeleton);
+        visual.matrix.multiplyMatrices(unit.visual.matrixWorld, pickedItemlocalToSkeleton);
     }
 }
 
