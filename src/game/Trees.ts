@@ -6,6 +6,7 @@ import { time } from "../engine/core/Time";
 import { textures } from "../engine/resources/Textures";
 import { GameMapState } from "./components/GameMapState";
 import { GameUtils } from "./GameUtils";
+import { ICell } from "./GameTypes";
 
 const models = [
     // "palm-high",
@@ -49,7 +50,8 @@ class Trees {
 
     private _material!: Material;
     private _meshes!: Array<Mesh[]>;
-    private _instancedMeshes!: Array<InstancedMesh>;
+    private _instancedMeshes!: InstancedMesh[];
+    private _treeCells: Array<ICell[]> = [];
     private _loaded = false;
     private _disposed = false;    
 
@@ -118,6 +120,7 @@ class Trees {
         const sectorCount = sectorRes * sectorRes;
         const maxTrees = maxTreesPerSector * sectorCount;
         const { layers } = GameMapState.instance;
+        this._treeCells.length = 0;
         this._instancedMeshes = this._meshes.map(([mesh], index) => {
             const geometry = mesh.geometry;
             const instancedMesh = new InstancedMesh(geometry, this._material, maxTrees);
@@ -128,12 +131,14 @@ class Trees {
             instancedMesh.matrixWorldAutoUpdate = false;
             instancedMesh.count = 0;
             layers.trees.add(instancedMesh);
+            this._treeCells.push([]);
             return instancedMesh;
         });
     }
 
     public dispose() {
         this._disposed = true;
+        this._treeCells.length = 0;
     }
 
     public update() {
@@ -144,17 +149,17 @@ class Trees {
         }
     }
 
-    public createRandomTree(worldPos: Vector3, out: { instancedMesh: InstancedMesh, instanceIndex: number }) {
+    public createRandomTree(cell: ICell, worldPos: Vector3, out: { instancedMesh: InstancedMesh, instanceIndex: number }) {
         const treeIndex = MathUtils.randInt(0, this._instancedMeshes.length - 1);
         const instancedMesh = this._instancedMeshes[treeIndex];
         const count = instancedMesh.count;
         const matrix = getRandomTreeMatrix(worldPos);
-        const treeMesh = this._instancedMeshes[treeIndex];
-        treeMesh.setMatrixAt(count, matrix);
+        instancedMesh.setMatrixAt(count, matrix);
         instancedMesh.instanceMatrix.needsUpdate = true;
         instancedMesh.count = count + 1;
         out.instancedMesh = instancedMesh;
         out.instanceIndex = count;
+        this._treeCells[treeIndex].push(cell);
     }
 
     public removeTree(instancedMesh: InstancedMesh, instanceIndex: number) {
@@ -164,6 +169,16 @@ class Trees {
             instancedMesh.getMatrixAt(i + 1, matrix);
             instancedMesh.setMatrixAt(i, matrix);
         }
+
+        const listIndex = this._instancedMeshes.indexOf(instancedMesh);
+        const cells = this._treeCells[listIndex];
+        cells.splice(instanceIndex, 1);
+        for (let i = instanceIndex; i < newCount; i++) {
+            const cell = cells[i];
+            const oldInstanceIndex = cell.resource!.instanceIndex!;
+            cell.resource!.instanceIndex = oldInstanceIndex - 1;
+        }
+
         instancedMesh.count = newCount;
         instancedMesh.instanceMatrix.needsUpdate = true;
     }

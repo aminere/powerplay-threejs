@@ -24,7 +24,7 @@ class Resources {
                 case "wood": {
                     mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
                     GameUtils.mapToWorld(mapCoords, worldPos);
-                    trees.createRandomTree(worldPos, instanceInfo);
+                    trees.createRandomTree(cell, worldPos, instanceInfo);
                     const resourceInstance: IRawResource = {
                         visual: instanceInfo.instancedMesh,
                         instanceIndex: instanceInfo.instanceIndex,
@@ -33,7 +33,6 @@ class Resources {
                     };
                     return resourceInstance;
                 }
-                break;
     
                 default: {
                     const positionX = localCoords.x * cellSize + cellSize / 2;
