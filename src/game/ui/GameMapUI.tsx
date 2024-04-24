@@ -156,9 +156,8 @@ export function GameMapUI(props: IGameUIProps) {
         >
             {Actions.map(action => {
 
-                const ignoredActions: Action[] = [                    
-                    "terrain",
-                    "car"                    
+                const ignoredActions: Action[] = [
+                    "terrain"
                 ];
                 
                 if (ignoredActions.includes(action)) {

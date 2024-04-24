@@ -12,7 +12,6 @@ import { Sector } from "./Sector";
 import { buildings } from "./buildings/Buildings";
 import { conveyors } from "./Conveyors";
 import { engineState } from "../engine/EngineState";
-import { Car } from "./components/Car";
 import { utils } from "../engine/Utils";
 import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
@@ -523,41 +522,6 @@ export function onAction(touchButton: number) {
 
             case "resource": {
                 onResource(sectorCoords, localCoords, cell, touchButton, props.resourceType);
-            }
-                break;           
-
-            case "car": {
-                if (touchButton === 0) {
-
-                    // TODO
-                    // if (!cell.unit) {
-                    //     const { sectors, layers } = this.state;
-                    //     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-
-                    //     const car = utils.createObject(layers.cars, "car");
-                    //     engineState.setComponent(car, new Car({
-                    //         coords: this.state.selectedCellCoords.clone()
-                    //     }));
-
-                    //     Sector.updateHighlightTexture(sector, localCoords, new Color(0xff0000));
-                    //     cell.unit = car;
-                    // }
-
-                } else if (touchButton === 2) {
-                    const cars = engineState.getComponents(Car);
-                    if (cars) {
-                        for (const car of cars) {
-                            // car.entity.setComponent(GroupMotion, {
-                            //     motion: groupMotion
-                            // });                             
-                            car.component.goTo(state.selectedCellCoords);
-                        }
-                    }
-
-                } else if (touchButton === 1) {
-                    console.log(cell);
-                    // console.log(Components.ofType(Car)?.filter(c => c.coords.equals(this._selectedCellCoords)));                                        
-                }
             }
                 break;
 

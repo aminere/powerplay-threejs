@@ -9,7 +9,6 @@ export const Actions = [
     "rail", 
     "belt",
     "unit",
-    "car",
     "train",
     "resource",
 ] as const;
