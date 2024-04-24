@@ -10,6 +10,7 @@ import { UnitType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
+import { UnitMotion } from "./UnitMotion";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -189,6 +190,11 @@ export class Unit implements IUnit {
     public onArriving() {}
     public onColliding() {}
     public onReachedBuilding(_cell: ICell) {}
-    public onCollidedWithMotionNeighbor(_unit: IUnit) {}
+    public onCollidedWithMotionNeighbor(neighbor: IUnit) {
+        // if other unit was part of my motion, stop
+        if (neighbor.lastCompletedMotionId === this.motionId) {
+            UnitMotion.endMotion(this);
+        }
+    }
 }
 

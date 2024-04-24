@@ -1,3 +1,4 @@
+import { UnitType } from "./GameDefinitions";
 
 interface ICameraConfig {
     rotation: number[];
@@ -40,10 +41,13 @@ interface ITrainConfig {
     scale: number;
 }
 
-interface IPathfindingConfig {
-    cellWaitTime: number;
+interface IFlockingConfig {
+    speed: number;
+    avoidanceSpeed: number;
+    repulsion: number;
+    positionDamp: number;
+    separations: Record<UnitType, number>;
 }
-
 
 interface IConfig {
     camera: ICameraConfig;
@@ -51,7 +55,7 @@ interface IConfig {
     game: IGameConfig;
     conveyors: IConveyorConfig;
     train: ITrainConfig;
-    pathfinding: IPathfindingConfig;
+    flocking: IFlockingConfig;
 }
 
 export const config: IConfig = {
@@ -75,7 +79,7 @@ export const config: IConfig = {
         elevationStep: .2,
         unitScale: .7,
         truckScale: 1.7,
-        tankScale: 2,
+        tankScale: 2        
     },
     conveyors: {
         itemSize: .5, // relative to the cell
@@ -91,8 +95,18 @@ export const config: IConfig = {
         deceleration: -3,
         scale: 2.3
     },
-    pathfinding: {
-        cellWaitTime: .3
-    }    
+    flocking: {
+        speed: 5,
+        avoidanceSpeed: 6,
+        repulsion: .2,
+        positionDamp: .05,
+        separations: {
+            "worker": .7,
+            "enemy-melee": .7,
+            "enemy-ranged": .7,
+            "tank": 4,
+            "truck": 4,
+        }
+    }
 };
 

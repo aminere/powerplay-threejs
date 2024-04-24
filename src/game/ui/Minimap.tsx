@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
 import { config } from "../config";
 import { BufferAttribute, MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
-import { FlockProps } from "../components/Flock";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { input } from "../../engine/Input";
@@ -170,11 +169,7 @@ export function Minimap() {
         envCtx.putImageData(envPixels, 0, 0);
         resourcesCtx.putImageData(resourcesPixels, 0, 0);
         fogCtx.putImageData(fogPixels, 0, 0);
-
-        const flockProps = FlockProps.instance;
-        if (flockProps.active) {
-            setInitialized(true);
-        }
+        setInitialized(true);
 
         makeScreenToCanvasTransform(45, minimapSize / 2);
         

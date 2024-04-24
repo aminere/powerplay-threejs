@@ -16,7 +16,6 @@ import { IUnit, Unit } from "./Unit";
 import { MiningState } from "./states/MiningState";
 import { NPCState } from "./states/NPCState";
 import { ITruckUnit, TruckUnit } from "./TruckUnit";
-import { FlockProps } from "../components/Flock";
 import { time } from "../../engine/core/Time";
 import { UnitMotion } from "./UnitMotion";
 import { truckUpdate } from "./update/TruckUpdate";
@@ -28,6 +27,7 @@ import { TankState } from "./states/TankState";
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
 const { unitScale, truckScale, tankScale } = config.game;
+const { speed, avoidanceSpeed } = config.flocking;
 
 function getBoundingBox(mesh: Mesh) {
     if (mesh.geometry.boundingBox) {
@@ -101,9 +101,8 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
-        const props = FlockProps.instance;
-        const steerAmount = props.speed * time.deltaTime;
-        const avoidanceSteerAmount = props.avoidanceSpeed * time.deltaTime;
+        const steerAmount = speed * time.deltaTime;
+        const avoidanceSteerAmount = avoidanceSpeed * time.deltaTime;
         for (const unit of this._units) {
             if (!unit.isAlive) {
                 continue;

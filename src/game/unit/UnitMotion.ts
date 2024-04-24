@@ -9,7 +9,6 @@ import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
-import { FlockProps } from "../components/Flock";
 import { config } from "../config";
 import { MiningState } from "./states/MiningState";
 import { utils } from "../../engine/Utils";
@@ -26,7 +25,7 @@ const deltaPos = new Vector3();
 const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
 
-const unitNeighbors = new Array<IUnit>();
+const cellCoords = new Vector2();
 const toTarget = new Vector3();
 const awayDirection = new Vector2();
 const avoidedCellCoords = new Vector2();
@@ -36,8 +35,7 @@ const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
             
 const { mapRes } = config.game;
-const cellNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
-const neighbordMapCoords = new Vector2();
+const { separations, repulsion, positionDamp } = config.flocking;
 
 const characterArrivalDamping = .05;
 const vehicleArrivalDamping = .15;
@@ -267,35 +265,24 @@ function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
     }
 }
 
-function getUnitNeighbors(unit: IUnit) {
-    const cell = unit.coords.sector!.cells[unit.coords.cellIndex];
+const unitNeighbors = new Array<IUnit>();
+function getUnitNeighbors(unit: IUnit, radius: number) {
     unitNeighbors.length = 0;
-    if (cell.units) {
-        for (const neighbor of cell.units) {
-            if (!neighbor.isAlive) {
-                continue;
-            }
-            if (neighbor !== unit) {
-                unitNeighbors.push(neighbor);
+    const { mapCoords } = unit.coords;
+    for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
+        for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
+            cellCoords.set(x, y);
+            const units = GameUtils.getCell(cellCoords)?.units;
+            if (units) {
+                for (const neighbor of units) {
+                    if (neighbor.isAlive && neighbor !== unit) {
+                        unitNeighbors.push(neighbor);
+                    }
+                }
             }
         }
     }
-
-    for (const [dx, dy] of cellNeighbors) {
-        neighbordMapCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
-        const neighborCell = GameUtils.getCell(neighbordMapCoords);
-        if (!neighborCell || !neighborCell.units) {
-            continue;
-        }
-        for (const neighbor of neighborCell.units) {
-            if (!neighbor.isAlive) {
-                continue;
-            }
-            unitNeighbors.push(neighbor);
-        }
-    }
-
-    return unitNeighbors;
+    return unitNeighbors;   
 }
 
 function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDesiredPos: Vector3) {
@@ -416,11 +403,8 @@ export class UnitMotion {
     }
 
     public static update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
-        const props = FlockProps.instance;
-        const { repulsion, positionDamp, separation } = props;    
-
         const desiredPos = steer(unit, steerAmount * unit.speedFactor);
-        const neighbors = getUnitNeighbors(unit);
+        const neighbors = getUnitNeighbors(unit, 1);
         for (const neighbor of neighbors) {
 
             const otherDesiredPos = steer(neighbor, steerAmount * neighbor.speedFactor);
@@ -429,9 +413,10 @@ export class UnitMotion {
             }
 
             const dist = otherDesiredPos.distanceTo(desiredPos);
+            const separation = Math.max(separations[unit.type], separations[neighbor.type]);
             if (dist < separation) {
                 unit.isColliding = true;
-                neighbor.isColliding = true;
+                neighbor.isColliding = true;                
                 const moveAmount = Math.min((separation - dist), avoidanceSteerAmount);
                 if (neighbor.motionId > 0) {
                     if (unit.motionId > 0) {
