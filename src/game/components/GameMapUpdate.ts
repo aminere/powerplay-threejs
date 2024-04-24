@@ -21,6 +21,7 @@ import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { trees } from "../Trees";
 import { GameMapProps } from "./GameMapProps";
 import { VehicleType, VehicleTypes } from "../GameDefinitions";
+import { UnitUtils } from "../unit/UnitUtils";
 
 const cellCoords = new Vector2();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
@@ -350,10 +351,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, resolution);
                         if (targetCell) {
                             // group units per sector
-                            const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
-
-                                const isNPC = cur.type.startsWith("enemy");
-                                if (isNPC) {
+                            const groups = unitsManager.selectedUnits.reduce((prev, cur) => {                                
+                                if (UnitUtils.isEnemy(cur)) {
                                     return prev;
                                 }
 

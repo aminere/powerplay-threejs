@@ -173,7 +173,7 @@ export class Unit implements IUnit {
         const fadeDuration = 1;
         engineState.setComponent(this._visual, new Fadeout({ duration: fadeDuration }));
         setTimeout(() => {
-            if (!this._type.startsWith("enemy")) {
+            if (!UnitUtils.isEnemy(this)) {
                 cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
             }
         }, fadeDuration * 1000);

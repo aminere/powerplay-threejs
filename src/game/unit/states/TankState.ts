@@ -1,4 +1,4 @@
-import { Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { MathUtils, Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { time } from "../../../engine/core/Time";
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../CharacterUnit";
@@ -8,6 +8,11 @@ import { UnitUtils } from "../UnitUtils";
 import { GameUtils } from "../../GameUtils";
 import { mathUtils } from "../../MathUtils";
 import { utils } from "../../../engine/Utils";
+import { objects } from "../../../engine/resources/Objects";
+import { serialization } from "../../../engine/serialization/Serialization";
+import { Component } from "../../../engine/ecs/Component";
+import { ComponentProps } from "../../../engine/ecs/ComponentProps";
+import { engineState } from "../../../engine/EngineState";
 
 const shootRange = 10;
 const damage = .3;
@@ -24,6 +29,7 @@ const localPos = new Vector3();
 const localRotation = new Quaternion();
 const matrix = new Matrix4();
 const cellCoords = new Vector2();
+const cannonOffset = new Vector3(0, 0.09, 1.8);
 
 function aimCannon(cannon: Object3D, target: Vector3) {
     const damping = 0.25;
@@ -54,6 +60,14 @@ export class TankState extends State<ICharacterUnit> {
         const cannonRoot = utils.createObject(unit.visual, "cannon-root");
         cannonRoot.position.copy(this._cannon.position);
         cannonRoot.attach(this._cannon);
+
+        objects.load("/prefabs/muzzle-flash.json").then(_flash => {
+            const flash = _flash.clone();
+            flash.quaternion.identity();
+            flash.position.copy(cannonOffset);
+            this._cannon.add(flash);
+            flash.visible = false;
+        });
     }    
     override exit(_unit: IUnit) {
         console.log(`TankState exit`);
@@ -96,6 +110,28 @@ export class TankState extends State<ICharacterUnit> {
                                     }
                                 }
                             }
+
+                            const muzzleFlash = this._cannon.getObjectByName("muzzle-flash")!;
+                            muzzleFlash.visible = true;
+                            setTimeout(() => muzzleFlash.visible = false, MathUtils.randInt(50, 100));
+
+                            objects.load("/prefabs/tank-shot.json").then(_explosion => {
+                                const explosion = _explosion.clone();
+                                explosion.traverse(o => {
+                                    serialization.postDeserializeObject(o);
+                                    serialization.postDeserializeComponents(o);
+                                    const components = o.userData.components;
+                                    if (components) {
+                                        for (const component of Object.values(components)) {
+                                            const instance = component as Component<ComponentProps>;
+                                            instance.start(o);
+                                            engineState.registerComponent(instance, o);
+                                        }
+                                    }
+                                });
+                                this._cannon.add(explosion);
+                                setTimeout(() => engineState.removeObject(explosion), 2000);
+                            });
 
                             this._attackTimer = attackFrequency;
                         } else {

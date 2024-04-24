@@ -35,13 +35,13 @@ export class ParticleState implements IComponentState {
     }
 
     getData(name: DataOffset, particleIndex: number, localOffset?: number) {
-        const index = getDataOffset(name, particleIndex, localOffset || 0);
+        const index = getDataOffset(name, particleIndex, localOffset ?? 0);
         console.assert(index < this._data.length);
         return this._data[index];
     }
 
     setData(name: DataOffset, particleIndex: number, value: number, localOffset?: number) {
-        const index = getDataOffset(name, particleIndex, localOffset || 0);
+        const index = getDataOffset(name, particleIndex, localOffset ?? 0);
         console.assert(index < this._data.length);
         this._data[index] = value;
     }

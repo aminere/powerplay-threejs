@@ -1,8 +1,7 @@
-import { BufferAttribute, Color, DynamicDrawUsage, MathUtils, Object3D, Points, ShaderMaterial, Vector2 } from "three";
+import { BufferAttribute, Color, DynamicDrawUsage, MathUtils, Object3D, Points, ShaderMaterial, Vector2, Vector3 } from "three";
 import { Component } from "../ecs/Component";
 import { TArray } from "../serialization/TArray";
 import { time } from "../core/Time";
-import { pools } from "../core/Pools";
 import { ParticleState } from "./ParticlesState";
 import { ParticlesProps } from "./ParticlesProps";
 import * as Attributes from "../serialization/Attributes";
@@ -37,6 +36,10 @@ function evaluateColorOverLife(data: TArray<Color>, lifeNormalized: number) {
     const value2 = data.at(index + 1);
     return dummyColor.lerpColors(value1, value2, localOffset);
 }
+
+const particlePos = new Vector3();
+const particleDirection = new Vector3();
+const particleVelocity = new Vector3();
 
 @Attributes.componentRequires(obj => {
     return obj instanceof Points && (obj as Points).material instanceof ShaderMaterial;
@@ -79,14 +82,15 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
         }
 
         particlesToEmit = Math.floor(this.state.newParticlesCounter);
-        if (this.state.particleCount + particlesToEmit > this.props.maxParticles) {
-            particlesToEmit = this.props.maxParticles - this.state.particleCount;
+
+        const { maxParticles } = this.props;
+        if (this.state.particleCount + particlesToEmit > maxParticles) {
+            particlesToEmit = maxParticles - this.state.particleCount;
         }
 
         let emittedParticles = 0;
         let particlesToProcess = particlesToEmit + this.state.particleCount;
-        const [particlePos, particleDirection, particleVelocity] = pools.vec3.get(3);
-        for (let i = 0; i < this.props.maxParticles; ++i) {
+        for (let i = 0; i < maxParticles; ++i) {
             if (particlesToProcess === 0) {
                 // early break if no more particles to process
                 break;
@@ -171,7 +175,7 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
 
                     // apply gravity
                     if (this.props.gravity !== 0) {
-                        particleVelocity.y += this.props.gravity * deltaTime;
+                        particleVelocity.y += this.props.gravity;
                         particleDirection.copy(particleVelocity).normalize();
                         this.state.setVector3("direction", i, particleDirection);
                         const newSpeed = particleVelocity.length();
@@ -180,7 +184,7 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
 
                     // update velocity
                     this.state.getVector3("position", i, particlePos);
-                    particlePos.add(particleVelocity.multiplyScalar(deltaTime));
+                    particlePos.addScaledVector(particleVelocity, deltaTime);
                     this.state.setVector3("position", i, particlePos);
 
                     // update color
@@ -220,7 +224,6 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
         const sizes = geometry.getAttribute("size") as BufferAttribute;
         let index = 0;
         let particlesToProcess = this.state.particleCount;
-        const particlePos = pools.vec3.getOne();
         let radiusSq = 0;
         for (let i = 0; i < this.props.maxParticles; ++i) {
             if (particlesToProcess === 0) {

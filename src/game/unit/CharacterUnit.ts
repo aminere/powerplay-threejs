@@ -18,6 +18,7 @@ import { IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { UnitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
+import { UnitUtils } from "./UnitUtils";
 
 interface IUnitAnim {
     name: string;
@@ -93,7 +94,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             engineState.setComponent(this.visual, new Fadeout({ duration: fadeDuration }));
             setTimeout(() => {
                 skeletonPool.releaseSkeleton(this);
-                if (!this.type.startsWith("enemy")) {
+                if (!UnitUtils.isEnemy(this)) {
                     cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
                 }
             }, fadeDuration * 1000);
