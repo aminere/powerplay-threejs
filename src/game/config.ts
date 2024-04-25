@@ -42,6 +42,8 @@ interface ITrainConfig {
 }
 
 interface ISteeringConfig {
+    maxForce: number;
+    maxSpeed: number;
     separations: Record<UnitType, number>;
 }
 
@@ -92,6 +94,8 @@ export const config: IConfig = {
         scale: 2.3
     },
     steering: {
+        maxForce: 1,
+        maxSpeed: 5,
         separations: {
             "worker": .7,
             "enemy-melee": .7,

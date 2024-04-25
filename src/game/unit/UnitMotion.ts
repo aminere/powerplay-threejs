@@ -20,17 +20,20 @@ import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
 
 const cellDirection = new Vector2();
+const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
 
 const cellCoords = new Vector2();
 const awayDirection = new Vector2();
+const awayDirection3 = new Vector3();
+const lookDirection = new Vector3();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 
 const { mapRes } = config.game;
-const { separations } = config.steering;
+const { separations, maxForce, maxSpeed } = config.steering;
 
 const characterArrivalDamping = .05;
 const vehicleArrivalDamping = .15;
@@ -159,16 +162,15 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
             flowField.getDirection(directionIndex, cellDirection);
         }
 
-        unit.acceleration.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(maxForce);
+        cellDirection3.set(cellDirection.x, 0, cellDirection.y);
+        unit.acceleration.copy(cellDirection3).multiplyScalar(maxForce);
+        return cellDirection3;
     }
 
     const flowfields = flowField.getMotion(motionId).flowfields;
     const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
     if (_flowField) {
         const currentCellIndex = coords.cellIndex;
-        const flowfieldInfo = _flowField[currentCellIndex];
-        setAcceleration(unit, flowfieldInfo, maxForce);
-
         if (!unit.lastKnownFlowfield) {
             unit.lastKnownFlowfield = {
                 cellIndex: currentCellIndex,
@@ -178,6 +180,10 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
             unit.lastKnownFlowfield.cellIndex = currentCellIndex;
             unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
         }
+
+        const flowfieldInfo = _flowField[currentCellIndex];
+        return setAcceleration(unit, flowfieldInfo, maxForce);
+
     } else {
 
         console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
@@ -192,9 +198,6 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
             const cellDist = neighborDist + cell.flowFieldCost;
             const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
             flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
-            const flowfieldInfo = newFlowfield[coords.cellIndex];
-            setAcceleration(unit, flowfieldInfo, maxForce);
-
             unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
             unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
 
@@ -203,10 +206,15 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
                 coords.sector!.flowfieldViewer.visible = true;
             }
 
+            const flowfieldInfo = newFlowfield[coords.cellIndex];
+            return setAcceleration(unit, flowfieldInfo, maxForce);
+
         } else {
             console.assert(false);
             unit.velocity.set(0, 0, 0);
             unit.acceleration.set(0, 0, 0);
+            cellDirection3.set(0, 0, 0);
+            return cellDirection3;
         }
     }
 }
@@ -358,7 +366,78 @@ export class UnitMotion {
         endMotion(unit);
     }
 
-    public static steer(unit: IUnit, maxSpeed: number) {
+    public static accelerate(unit: IUnit) {
+
+        if (unit.motionId > 0) {
+            if (unit.arriving) {
+                unit.acceleration.set(0, 0, 0);
+                cellDirection3.copy(unit.velocity).normalize();
+            } else {
+                setFlowfieldAcceleration(unit, maxForce);
+            }
+        }
+
+        if (unit.collidable) {
+            const neighbors = getUnitNeighbors(unit, 2);
+            for (const neighbor of neighbors) {
+                if (!neighbor.collidable) {
+                    continue;
+                }
+
+                const dist = neighbor.visual.position.distanceTo(unit.visual.position);
+                const separation = Math.max(separations[unit.type], separations[neighbor.type]);
+                if (dist < separation) {
+                    unit.isColliding = true;
+                    neighbor.isColliding = true;
+
+                    // const interpenetration = separation - dist;
+                    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
+                    const length = awayDirection3.length();
+                    if (length > 0) {
+                        awayDirection3
+                            .divideScalar(length)
+
+                    } else {
+                        awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
+                            .normalize();
+                    }
+
+                    if (UnitUtils.isVehicle(unit)) {
+                        if (unit.motionId > 0) {
+
+                            if (UnitUtils.isVehicle(neighbor)) {
+                                // keep moving, but slow down a bit
+                                unit.acceleration.multiplyScalar(.2);
+                            } else {
+                                // slow down a lot
+                                unit.acceleration.set(0, 0, 0);
+                            }
+
+                        } else {
+
+                            const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .1;
+                            lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
+                            unit.acceleration
+                                .set(0, 0, 0)
+                                .addScaledVector(awayDirection3, maxForce * forceFactor)
+                                .projectOnVector(lookDirection);
+                        }
+                    } else {
+                        unit.acceleration
+                            .multiplyScalar(.2)
+                            .addScaledVector(awayDirection3, maxForce * .8);
+                    }
+
+                    unit.acceleration.clampLength(0, maxForce);
+                    if (unit.motionId > 0) {
+                        unit.onCollidedWhileMoving(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
+    public static steer(unit: IUnit) {
 
         const isMoving = unit.motionId > 0;
         const needsMotion = isMoving || unit.isColliding;
@@ -368,13 +447,21 @@ export class UnitMotion {
 
         unit.velocity.add(unit.acceleration).clampLength(0, maxSpeed);
         nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
+        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .5, time.deltaTime);
 
         GameUtils.worldToMap(nextPos, nextMapCoords);
         const nextCell = GameUtils.getCell(nextMapCoords);
 
         if (nextCell?.isWalkable) {
 
-            UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+            if (UnitUtils.isVehicle(unit)) {
+                if (unit.motionId > 0 || !unit.isColliding) {
+                    UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+                }
+            } else {
+                UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+            }
+            
             unit.visual.position.copy(nextPos);
 
             if (!nextMapCoords.equals(unit.coords.mapCoords)) {
@@ -481,54 +568,6 @@ export class UnitMotion {
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();
-            }
-        }
-    }
-
-    public static accelerate(unit: IUnit, maxForce: number) {
-
-        if (unit.motionId > 0) {
-            if (unit.arriving) {
-                unit.acceleration.set(0, 0, 0);
-            } else {
-                setFlowfieldAcceleration(unit, maxForce);
-            }
-        }
-
-        if (unit.collidable) {
-            const neighbors = getUnitNeighbors(unit, 1);
-            for (const neighbor of neighbors) {
-                if (!neighbor.collidable) {
-                    continue;
-                }
-
-                const dist = neighbor.visual.position.distanceTo(unit.visual.position);
-                const separation = Math.max(separations[unit.type], separations[neighbor.type]);
-                if (dist < separation) {
-                    unit.isColliding = true;
-                    neighbor.isColliding = true;
-
-                    // const interpenetration = separation - dist;
-                    const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).setY(0);
-                    const length = toNeighbor.length();
-                    if (length > 0) {
-                        toNeighbor
-                            .divideScalar(length)
-
-                    } else {
-                        toNeighbor.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
-                            .normalize();
-                    }
-
-                    unit.acceleration
-                        .multiplyScalar(.2)
-                        .addScaledVector(toNeighbor, -maxForce * .8)
-                        .clampLength(0, maxForce);
-
-                    if (unit.motionId > 0) {
-                        unit.onCollidedWhileMoving(neighbor);
-                    }
-                }
             }
         }
     }

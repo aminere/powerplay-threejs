@@ -20,7 +20,6 @@ import { GameMapState } from "./GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { trees } from "../Trees";
 import { GameMapProps } from "./GameMapProps";
-import { VehicleType, VehicleTypes } from "../GameDefinitions";
 import { UnitUtils } from "../unit/UnitUtils";
 
 const cellCoords = new Vector2();
@@ -358,7 +357,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                                 const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
                                 const units = prev[key];
-                                const isVehicle = VehicleTypes.includes(cur.type as VehicleType);
+                                const isVehicle = UnitUtils.isVehicle(cur);
                                 if (!units) {
                                     prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
                                 } else {

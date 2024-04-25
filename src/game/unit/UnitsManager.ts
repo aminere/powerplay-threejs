@@ -99,28 +99,23 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
-        const maxForce = 1;
-        const maxSpeed = 5;
         for (const unit of this._units) {
-            if (!unit.isAlive) {
-                continue;
-            }
+            if (unit.isAlive) {
+                unit.fsm.update();
+                UnitMotion.accelerate(unit);
 
-            unit.fsm.update();
-            UnitMotion.accelerate(unit, maxForce);
-
-            switch (unit.type) {
-                case "truck": truckUpdate(unit as ITruckUnit); break;
-                case "worker": workerUpdate(unit as ICharacterUnit); break;
+                switch (unit.type) {
+                    case "truck": truckUpdate(unit as ITruckUnit); break;
+                    case "worker": workerUpdate(unit as ICharacterUnit); break;
+                }
             }
         }  
         
         for (const unit of this._units) {
-            if (!unit.isAlive) {
-                continue;
+            if (unit.isAlive) {
+                UnitMotion.steer(unit);
             }
-            UnitMotion.steer(unit, maxSpeed);
-        }  
+        }
     }
 
     public async spawn(mapCoords: Vector2, type: UnitType) {
