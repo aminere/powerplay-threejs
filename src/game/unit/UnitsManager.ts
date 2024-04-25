@@ -16,7 +16,6 @@ import { IUnit, Unit } from "./Unit";
 import { MiningState } from "./states/MiningState";
 import { NPCState } from "./states/NPCState";
 import { ITruckUnit, TruckUnit } from "./TruckUnit";
-import { time } from "../../engine/core/Time";
 import { UnitMotion } from "./UnitMotion";
 import { truckUpdate } from "./update/TruckUpdate";
 import { workerUpdate } from "./update/WorkerUpdate";
@@ -27,7 +26,6 @@ import { TankState } from "./states/TankState";
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
 const { unitScale, truckScale, tankScale } = config.game;
-const { speed, avoidanceSpeed } = config.flocking;
 
 function getBoundingBox(mesh: Mesh) {
     if (mesh.geometry.boundingBox) {
@@ -101,21 +99,28 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
-        const steerAmount = speed * time.deltaTime;
-        const avoidanceSteerAmount = avoidanceSpeed * time.deltaTime;
+        const maxForce = 1;
+        const maxSpeed = 5;
         for (const unit of this._units) {
             if (!unit.isAlive) {
                 continue;
             }
 
             unit.fsm.update();
-            UnitMotion.update(unit, steerAmount, avoidanceSteerAmount);
+            UnitMotion.accelerate(unit, maxForce);
 
             switch (unit.type) {
                 case "truck": truckUpdate(unit as ITruckUnit); break;
                 case "worker": workerUpdate(unit as ICharacterUnit); break;
             }
-        }        
+        }  
+        
+        for (const unit of this._units) {
+            if (!unit.isAlive) {
+                continue;
+            }
+            UnitMotion.steer(unit, maxSpeed);
+        }  
     }
 
     public async spawn(mapCoords: Vector2, type: UnitType) {

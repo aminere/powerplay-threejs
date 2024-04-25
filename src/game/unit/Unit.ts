@@ -27,11 +27,9 @@ export interface IUnitFlowfieldInfo {
 
 export interface IUnit {
     id: number;
-    desiredPosValid: boolean;
-    desiredPos: Vector3;
     velocity: Vector3;
+    acceleration: Vector3;
     arriving: boolean;
-    speedFactor: number;
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
     visual: Object3D;
@@ -45,7 +43,6 @@ export interface IUnit {
     type: UnitType;
     fsm: StateMachine<IUnit>;
     lookAt: Quaternion;
-    rotation: Quaternion;
     health: number;
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
@@ -58,12 +55,11 @@ export interface IUnit {
     onArriving: () => void;
     onColliding: () => void;
     onReachedBuilding: (cell: ICell) => void;
-    onCollidedWithMotionNeighbor: (unit: IUnit) => void;
+    onCollidedWhileMoving: (unit: IUnit) => void;
 }
 
 export class Unit implements IUnit {
-    public get desiredPosValid() { return this._desiredPosValid; }
-    public get desiredPos() { return this._desiredPos; }
+    public get acceleration() { return this._acceleration; }
     public get velocity() { return this._velocity; }    
     public get arriving() { return this._arriving; }
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
@@ -84,13 +80,17 @@ export class Unit implements IUnit {
     public get unitsInRange() { return this._unitsInRange; }
 
     public get lookAt() { return this._lookAt; }
-    public get rotation() { return this._rotation; }    
     public get fsm() { return this._fsm; }   
-    public get speedFactor() { return this._speedFactor; }
     public get boundingBox() { return this._boundingBox; }
 
-    public set desiredPosValid(value: boolean) { this._desiredPosValid = value; }
-    public set arriving(value: boolean) { this._arriving = value; }
+    public set arriving(value: boolean) { 
+        this._arriving = value; 
+        if (value) {
+            console.assert(this._motionId > 0, "unit is arriving without motion");
+            this._lastCompletedMotionId = this._motionId;
+        }
+    }
+
     public set motionId(value: number) { 
         if (value === 0 && this._motionId > 0) {
             this._lastCompletedMotionId = this._motionId;
@@ -103,8 +103,7 @@ export class Unit implements IUnit {
     public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
 
-    private _desiredPosValid = false;
-    private _desiredPos = new Vector3();
+    private _acceleration = new Vector3();
     private _velocity = new Vector3();
     protected _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
@@ -124,17 +123,14 @@ export class Unit implements IUnit {
     private _boundingBox: Box3;
 
     private _lookAt = new Quaternion();
-    private _rotation = new Quaternion();
     private _fsm: StateMachine<IUnit>;
     private _id: number;    
-    private _speedFactor: number;
 
     constructor(props: IUnitProps, id: number) {
         this._visual = props.visual;
         this._type = props.type;
         this._id = id;
         this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
-        this._speedFactor = props.speed ?? 1;
         this._boundingBox = props.boundingBox;
 
         GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
@@ -190,7 +186,7 @@ export class Unit implements IUnit {
     public onArriving() {}
     public onColliding() {}
     public onReachedBuilding(_cell: ICell) {}
-    public onCollidedWithMotionNeighbor(neighbor: IUnit) {
+    public onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionId === this.motionId) {
             UnitMotion.endMotion(this);

@@ -171,7 +171,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }        
     }
 
-    public override onCollidedWithMotionNeighbor(neighbor: IUnit) {
+    public override onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionId === this.motionId) {
             const isMining = (() => {

@@ -41,11 +41,7 @@ interface ITrainConfig {
     scale: number;
 }
 
-interface IFlockingConfig {
-    speed: number;
-    avoidanceSpeed: number;
-    repulsion: number;
-    positionDamp: number;
+interface ISteeringConfig {
     separations: Record<UnitType, number>;
 }
 
@@ -55,7 +51,7 @@ interface IConfig {
     game: IGameConfig;
     conveyors: IConveyorConfig;
     train: ITrainConfig;
-    flocking: IFlockingConfig;
+    steering: ISteeringConfig;
 }
 
 export const config: IConfig = {
@@ -95,11 +91,7 @@ export const config: IConfig = {
         deceleration: -3,
         scale: 2.3
     },
-    flocking: {
-        speed: 5,
-        avoidanceSpeed: 6,
-        repulsion: .2,
-        positionDamp: .05,
+    steering: {
         separations: {
             "worker": .7,
             "enemy-melee": .7,

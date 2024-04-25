@@ -20,22 +20,17 @@ import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
 
 const cellDirection = new Vector2();
-const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
 
 const cellCoords = new Vector2();
-const toTarget = new Vector3();
 const awayDirection = new Vector2();
-const avoidedCellCoords = new Vector2();
-const avoidedCellSector = new Vector2();
-const avoidedCellLocalCoords = new Vector2();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
-            
+
 const { mapRes } = config.game;
-const { separations, repulsion, positionDamp } = config.flocking;
+const { separations } = config.steering;
 
 const characterArrivalDamping = .05;
 const vehicleArrivalDamping = .15;
@@ -61,7 +56,7 @@ const nextSector = new Vector2();
 function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
 
     const destBuildingId = destCell.building?.instanceId;
-    const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, { 
+    const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, {
         diagonals: () => false,
         isWalkable: (destBuildingId || destCell.resource) ? (cell: ICell) => {
 
@@ -78,7 +73,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
             } else if (cell.resource) {
                 return cell.resource.type === destCell.resource?.type;
             }
-            
+
             return cell.isWalkable;
         } : undefined
     });
@@ -94,17 +89,17 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
                 currentSector.copy(nextSector);
             }
         }
-        const out = Array.from(sectors).map(s => { 
+        const out = Array.from(sectors).map(s => {
             const [x, y] = s.split(",");
             return new Vector2(parseInt(x), parseInt(y));
         });
-    
+
         if (GameMapProps.instance.debugPathfinding) {
             GameMapState.instance.debug.path.update(cellPath);
         } else {
             GameMapState.instance.debug.path.visible = false;
         }
-    
+
         return out;
 
     } else {
@@ -112,7 +107,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
         // cell pathfinder failed, use coarse sector pathfinder
         GameUtils.getCell(destMapCoords, destSectorCoords)
         return sectorPathfinder.findPath(srcSectorCoords, destSectorCoords);
-    }    
+    }
 }
 
 function endMotion(unit: IUnit) {
@@ -120,6 +115,7 @@ function endMotion(unit: IUnit) {
     unit.motionId = 0;
     unit.arriving = false;
     unit.velocity.set(0, 0, 0);
+    unit.acceleration.set(0, 0, 0);
 }
 
 function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
@@ -140,106 +136,84 @@ function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
     }
 }
 
-function steerFromFlowfield(unit: IUnit, _flowfield: TFlowField, steerAmount: number) {
-    const { directionIndex } = _flowfield;    
-    if (directionIndex < 0) {
-        const mapCoords = unit.coords.mapCoords;
-        const motion = flowField.getMotion(unit.motionId);
-        const computed = flowField.computeDirection(motion.flowfields, mapCoords, cellDirection);
-        if (computed) {
-            const index = flowField.computeDirectionIndex(cellDirection);
-            flowField.getDirection(index, cellDirection);
-            _flowfield.directionIndex = index;
-        } else {
-            cellDirection.set(0, 0);
-            endMotion(unit);
-            unit.onArrived();
-        }
+function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
+    const { motionId, coords } = unit;
 
-    } else {
-        flowField.getDirection(directionIndex, cellDirection);
-    }
-
-    cellDirection3.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(steerAmount);
-    mathUtils.smoothDampVec3(unit.velocity, cellDirection3, .1, time.deltaTime);
-    unit.desiredPos.addVectors(unit.visual.position, unit.velocity);
-    unit.desiredPosValid = true;
-}
-
-function steer(unit: IUnit, steerAmount: number) {
-    const { motionId, desiredPosValid, desiredPos, coords } = unit;
-    if (motionId > 0) {
-        if (!desiredPosValid) {
-            if (unit.arriving) {
-                mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
-                unit.desiredPos.addVectors(unit.visual.position, unit.velocity);
-                unit.desiredPosValid = true;
-
+    function setAcceleration(unit: IUnit, _flowfield: TFlowField, maxForce: number) {
+        const { directionIndex } = _flowfield;
+        if (directionIndex < 0) {
+            const mapCoords = unit.coords.mapCoords;
+            const flowfields = flowField.getMotion(motionId).flowfields;
+            const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
+            if (computed) {
+                const index = flowField.computeDirectionIndex(cellDirection);
+                flowField.getDirection(index, cellDirection);
+                _flowfield.directionIndex = index;
             } else {
-                const flowfields = flowField.getMotion(motionId).flowfields;            
-                const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                if (_flowField) {
-                    const currentCellIndex = coords.cellIndex;
-                    const flowfieldInfo = _flowField[currentCellIndex];
-                    steerFromFlowfield(unit, flowfieldInfo, steerAmount); 
-                    
-                    if (!unit.lastKnownFlowfield) {
-                        unit.lastKnownFlowfield = {
-                            cellIndex: currentCellIndex,
-                            sectorCoords: coords.sectorCoords.clone()
-                        };
-                    } else {
-                        unit.lastKnownFlowfield.cellIndex = currentCellIndex;
-                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-                    }
-                } else {
+                cellDirection.set(0, 0);
+                endMotion(unit);
+                unit.onArrived();
+            }
 
-                    console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
-                    if (unit.lastKnownFlowfield) {
-                        const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
-                        const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
-                        console.assert(_flowField);
-                        console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
-                        const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
-                        const neighborDist = _flowField[neighborCellIndex].integration;
-                        const cell = coords.sector!.cells[coords.cellIndex];
-                        const cellDist = neighborDist + cell.flowFieldCost;
-                        const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
-                        flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
-                        const flowfieldInfo = newFlowfield[coords.cellIndex];
-                        steerFromFlowfield(unit,flowfieldInfo, steerAmount);
-
-                        unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
-                        unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
-
-                        if (GameMapProps.instance.debugPathfinding) {
-                            coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
-                            coords.sector!.flowfieldViewer.visible = true;    
-                        }
-
-                    } else {
-                        console.assert(false);                            
-                        unit.velocity.set(0, 0, 0);
-                        desiredPos.copy(unit.visual.position);
-                        unit.desiredPosValid = true;
-                    }                    
-                }
-            }                
+        } else {
+            flowField.getDirection(directionIndex, cellDirection);
         }
 
+        unit.acceleration.set(cellDirection.x, 0, cellDirection.y).multiplyScalar(maxForce);
+    }
+
+    const flowfields = flowField.getMotion(motionId).flowfields;
+    const _flowField = flowfields.get(`${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+    if (_flowField) {
+        const currentCellIndex = coords.cellIndex;
+        const flowfieldInfo = _flowField[currentCellIndex];
+        setAcceleration(unit, flowfieldInfo, maxForce);
+
+        if (!unit.lastKnownFlowfield) {
+            unit.lastKnownFlowfield = {
+                cellIndex: currentCellIndex,
+                sectorCoords: coords.sectorCoords.clone()
+            };
+        } else {
+            unit.lastKnownFlowfield.cellIndex = currentCellIndex;
+            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+        }
     } else {
-        if (!desiredPosValid) {
+
+        console.log(`flowfield not found for ${coords.sectorCoords.x},${coords.sectorCoords.y}`);
+        if (unit.lastKnownFlowfield) {
+            const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
+            const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
+            console.assert(_flowField);
+            console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
+            const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
+            const neighborDist = _flowField[neighborCellIndex].integration;
+            const cell = coords.sector!.cells[coords.cellIndex];
+            const cellDist = neighborDist + cell.flowFieldCost;
+            const newFlowfield = flowField.computeSector(cellDist, coords.localCoords, coords.sectorCoords);
+            flowfields.set(`${coords.sectorCoords.x},${coords.sectorCoords.y}`, newFlowfield);
+            const flowfieldInfo = newFlowfield[coords.cellIndex];
+            setAcceleration(unit, flowfieldInfo, maxForce);
+
+            unit.lastKnownFlowfield.cellIndex = coords.cellIndex;
+            unit.lastKnownFlowfield.sectorCoords.copy(coords.sectorCoords);
+
+            if (GameMapProps.instance.debugPathfinding) {
+                coords.sector!.flowfieldViewer.update(flowfields, coords.sector!, coords.sectorCoords);
+                coords.sector!.flowfieldViewer.visible = true;
+            }
+
+        } else {
+            console.assert(false);
             unit.velocity.set(0, 0, 0);
-            desiredPos.copy(unit.visual.position);
-            unit.desiredPosValid = true;
+            unit.acceleration.set(0, 0, 0);
         }
     }
-    return desiredPos;
 }
 
 function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
     if (destCell.resource) {
-        if (destCell.resource.type === currentCell.resource?.type) {            
+        if (destCell.resource.type === currentCell.resource?.type) {
             return 1;
         }
     } else if (destCell.building) {
@@ -282,25 +256,8 @@ function getUnitNeighbors(unit: IUnit, radius: number) {
             }
         }
     }
-    return unitNeighbors;   
+    return unitNeighbors;
 }
-
-function moveAwayFromEachOther(moveAmount: number, desiredPos: Vector3, otherDesiredPos: Vector3) {
-    toTarget.subVectors(desiredPos, otherDesiredPos).setY(0);
-    const length = toTarget.length();
-    if (length > 0) {
-        toTarget
-            .divideScalar(length)
-            .multiplyScalar(moveAmount / 2)
-
-    } else {
-        toTarget.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
-            .normalize()
-            .multiplyScalar(moveAmount / 2);
-    }
-    desiredPos.add(toTarget);
-    otherDesiredPos.sub(toTarget);
-};
 
 export class UnitMotion {
 
@@ -331,9 +288,9 @@ export class UnitMotion {
             if (destCell.resource) {
                 return true;
             }
-            if (destCell.building) {                
+            if (destCell.building) {
                 return true;
-            }            
+            }
             return destCell.isWalkable;
         })();
 
@@ -341,7 +298,7 @@ export class UnitMotion {
             return;
         }
 
-        
+
         const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
         const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
         console.assert(flowfields);
@@ -351,7 +308,7 @@ export class UnitMotion {
             if (!unit.isAlive) {
                 continue;
             }
-            
+
             if (unit.coords.mapCoords.equals(destMapCoords)) {
                 continue;
             }
@@ -377,12 +334,12 @@ export class UnitMotion {
         for (const sector of GameMapState.instance.sectors.values()) {
             sector.flowfieldViewer.visible = false;
         }
-        if (GameMapProps.instance.debugPathfinding) {            
+        if (GameMapProps.instance.debugPathfinding) {
             for (const sectorCoords of sectors) {
                 const sector = GameUtils.getSector(sectorCoords)!;
                 sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
                 sector.flowfieldViewer.visible = true;
-            }    
+            }
         }
     }
 
@@ -394,183 +351,182 @@ export class UnitMotion {
             unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
             const rotationDamp = 0.1;
             mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
-            // unit.mesh.quaternion.copy(unit.rotation);
         }
-    }    
+    }
 
     public static endMotion(unit: IUnit) {
         endMotion(unit);
     }
 
-    public static update(unit: IUnit, steerAmount: number, avoidanceSteerAmount: number) {
-        const desiredPos = steer(unit, steerAmount * unit.speedFactor);
-        const neighbors = getUnitNeighbors(unit, 1);
-        for (const neighbor of neighbors) {
+    public static steer(unit: IUnit, maxSpeed: number) {
 
-            const otherDesiredPos = steer(neighbor, steerAmount * neighbor.speedFactor);
-            if (!(unit.collidable && neighbor.collidable)) {
-                continue;
-            }
-
-            const dist = otherDesiredPos.distanceTo(desiredPos);
-            const separation = Math.max(separations[unit.type], separations[neighbor.type]);
-            if (dist < separation) {
-                unit.isColliding = true;
-                neighbor.isColliding = true;                
-                const moveAmount = Math.min((separation - dist), avoidanceSteerAmount);
-                if (neighbor.motionId > 0) {
-                    if (unit.motionId > 0) {
-                        moveAwayFromEachOther(moveAmount, desiredPos, otherDesiredPos);
-
-                    } else {
-                        toTarget.subVectors(desiredPos, otherDesiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                        desiredPos.add(toTarget);
-                    }
-                } else {
-                    if (unit.motionId > 0) {
-                        toTarget.subVectors(otherDesiredPos, desiredPos).setY(0).normalize().multiplyScalar(moveAmount);
-                        otherDesiredPos.add(toTarget);                        
-                        unit.onCollidedWithMotionNeighbor(neighbor);
-
-                    } else {
-                        moveAwayFromEachOther(moveAmount + repulsion, desiredPos, otherDesiredPos);
-                    }
-                }
-            }
-        }
-
-        unit.desiredPosValid = false;
         const isMoving = unit.motionId > 0;
         const needsMotion = isMoving || unit.isColliding;
+        if (!needsMotion) {
+            return;
+        }
 
-        if (needsMotion) {
-            GameUtils.worldToMap(unit.desiredPos, nextMapCoords);
-            const newCell = GameUtils.getCell(nextMapCoords, avoidedCellSector, avoidedCellLocalCoords);
-            const walkableCell = newCell?.isWalkable;
-            let useDamping = false;
-            let avoidedCell: ICell | null | undefined = undefined;
+        unit.velocity.add(unit.acceleration).clampLength(0, maxSpeed);
+        nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
 
-            if (!walkableCell) {
-                avoidedCell = newCell;
-                avoidedCellCoords.copy(nextMapCoords);
+        GameUtils.worldToMap(nextPos, nextMapCoords);
+        const nextCell = GameUtils.getCell(nextMapCoords);
 
-                // move away from blocked cell
-                awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                unit.desiredPos.copy(unit.visual.position);
-                unit.desiredPos.x += awayDirection.x * steerAmount * .5;
-                unit.desiredPos.z += awayDirection.y * steerAmount * .5;
-                unit.velocity.multiplyScalar(.5); // slow down a bit
-                useDamping = true;
-            }
+        if (nextCell?.isWalkable) {
 
-            if (unit.isColliding) {
-                if (!isMoving) {
-                    unit.onColliding();
-                    useDamping = true;
-                }                
-                unit.isColliding = false;
-            }            
+            UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+            unit.visual.position.copy(nextPos);
 
-            if (useDamping) {
-                nextPos.copy(unit.visual.position);
-                mathUtils.smoothDampVec3(nextPos, unit.desiredPos, positionDamp * 2, time.deltaTime);
-            } else {
-                nextPos.copy(unit.desiredPos);
-            }            
+            if (!nextMapCoords.equals(unit.coords.mapCoords)) {
 
-            GameUtils.worldToMap(nextPos, nextMapCoords);
-            if (nextMapCoords.equals(unit.coords.mapCoords)) {
-                UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
-                unit.visual.position.copy(nextPos);
-                UnitUtils.applyElevation(unit.coords, unit.visual.position);
+                const dx = nextMapCoords.x - unit.coords.mapCoords.x;
+                const dy = nextMapCoords.y - unit.coords.mapCoords.y;
+                if (!UnitUtils.isEnemy(unit)) {
+                    cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+                }
 
-            } else {
+                const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
+                const unitIndex = currentCell.units!.indexOf(unit);
+                console.assert(unitIndex >= 0);
+                utils.fastDelete(currentCell.units!, unitIndex);
 
-                // moved to a new cell
-                const nextCell = GameUtils.getCell(nextMapCoords);
-                const validCell = nextCell?.isWalkable;
-                if (validCell) {
-                    UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
-                    unit.visual.position.copy(nextPos);
+                if (nextCell.units) {
+                    console.assert(!nextCell.units.includes(unit));
+                    nextCell.units.push(unit);
+                } else {
+                    nextCell.units = [unit];
+                }
 
-                    const dx = nextMapCoords.x - unit.coords.mapCoords.x;
-                    const dy = nextMapCoords.y - unit.coords.mapCoords.y;
-                    if (!UnitUtils.isEnemy(unit)) {
-                        cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
-                    }
+                // update unit coords
+                const { localCoords } = unit.coords;
+                localCoords.x += dx;
+                localCoords.y += dy;
+                if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
+                    // entered a new sector
+                    computeUnitAddr(nextMapCoords, unit.coords);
+                } else {
+                    unit.coords.mapCoords.copy(nextMapCoords);
+                    unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                }
 
-                    const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];
-                    const unitIndex = currentCell.units!.indexOf(unit);
-                    console.assert(unitIndex >= 0);
-                    utils.fastDelete(currentCell.units!, unitIndex);
-                    if (nextCell.units) {
-                        console.assert(!nextCell.units.includes(unit));
-                        nextCell.units.push(unit);
-                    } else {
-                        nextCell.units = [unit];
-                    }
-
-                    // update unit coords
-                    const { localCoords } = unit.coords;
-                    localCoords.x += dx;
-                    localCoords.y += dy;
-                    if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
-                        // entered a new sector
-                        computeUnitAddr(nextMapCoords, unit.coords);
-                    } else {
-                        unit.coords.mapCoords.copy(nextMapCoords);
-                        unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                    }
-
-                    UnitUtils.applyElevation(unit.coords, unit.visual.position);
-
-                    if (isMoving) {
-                        const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
-                        if (reachedTarget) {
-                            const npcState = unit.fsm.getState(NPCState);
-                            if (npcState) {
-                                npcState.onReachedTarget(unit as ICharacterUnit);
+                if (isMoving) {
+                    const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                    if (reachedTarget) {
+                        const npcState = unit.fsm.getState(NPCState);
+                        if (npcState) {
+                            npcState.onReachedTarget(unit as ICharacterUnit);
+                        } else {
+                            const miningState = unit.fsm.getState(MiningState);
+                            if (miningState) {
+                                miningState.stopMining(unit as ICharacterUnit);
                             } else {
-                                const miningState = unit.fsm.getState(MiningState);
-                                if (miningState) {
-                                    miningState.stopMining(unit as ICharacterUnit);
-                                } else {
-                                    unit.arriving = true;
-                                    unit.onArriving();
-                                }
+                                unit.arriving = true;
+                                unit.onArriving();
                             }
                         }
                     }
                 }
             }
 
-            if (unit.arriving) {
-                if (unit.velocity.length() < 0.01) {
-                    UnitMotion.endMotion(unit);
-                    unit.onArrived();
-                }
-            }
+            UnitUtils.applyElevation(unit.coords, unit.visual.position);
 
-            if (avoidedCell !== undefined && isMoving) {
-                if (avoidedCell?.building) {
-                    const instanceId = avoidedCell.building.instanceId;
+        } else {
+
+            // nextCell is not walkable
+            if (isMoving && nextCell !== null) {
+
+                let isObstacle = true;
+                if (nextCell.building) {
+                    const instanceId = nextCell.building.instanceId;
                     const targetCell = getCellFromAddr(unit.targetCell);
                     if (instanceId === targetCell.building?.instanceId) {
                         UnitMotion.endMotion(unit);
-                        unit.onReachedBuilding(targetCell);                
+                        unit.onReachedBuilding(targetCell);
+                        isObstacle = false;
                     }
-                } else if (avoidedCell?.resource) {
+                } else if (nextCell.resource) {
                     const targetCell = getCellFromAddr(unit.targetCell);
-                    if (avoidedCell.resource.type === targetCell.resource?.type) {
+                    if (nextCell.resource.type === targetCell.resource?.type) {
                         UnitMotion.endMotion(unit);
                         unit.onArrived();
-    
+
                         switch (unit.type) {
                             case "worker": {
                                 const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                                miningState.onReachedResource(unit as ICharacterUnit, avoidedCell, avoidedCellCoords);
-                            }                            
+                                miningState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
+                            }
                         }
+
+                        isObstacle = false;
+                    }
+                }
+
+                if (isObstacle) {
+                    awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
+                    unit.velocity.x += awayDirection.x * maxSpeed * .2;
+                    unit.velocity.z += awayDirection.y * maxSpeed * .2;
+                }
+            }
+        }
+
+        if (unit.isColliding) {
+            if (!isMoving) {
+                unit.onColliding();
+            }
+            unit.isColliding = false;
+        }
+
+        if (unit.arriving) {
+            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
+            if (unit.velocity.length() < 0.01) {
+                endMotion(unit);
+                unit.onArrived();
+            }
+        }
+    }
+
+    public static accelerate(unit: IUnit, maxForce: number) {
+
+        if (unit.motionId > 0) {
+            if (unit.arriving) {
+                unit.acceleration.set(0, 0, 0);
+            } else {
+                setFlowfieldAcceleration(unit, maxForce);
+            }
+        }
+
+        if (unit.collidable) {
+            const neighbors = getUnitNeighbors(unit, 1);
+            for (const neighbor of neighbors) {
+                if (!neighbor.collidable) {
+                    continue;
+                }
+
+                const dist = neighbor.visual.position.distanceTo(unit.visual.position);
+                const separation = Math.max(separations[unit.type], separations[neighbor.type]);
+                if (dist < separation) {
+                    unit.isColliding = true;
+                    neighbor.isColliding = true;
+
+                    // const interpenetration = separation - dist;
+                    const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).setY(0);
+                    const length = toNeighbor.length();
+                    if (length > 0) {
+                        toNeighbor
+                            .divideScalar(length)
+
+                    } else {
+                        toNeighbor.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
+                            .normalize();
+                    }
+
+                    unit.acceleration
+                        .multiplyScalar(.2)
+                        .addScaledVector(toNeighbor, -maxForce * .8)
+                        .clampLength(0, maxForce);
+
+                    if (unit.motionId > 0) {
+                        unit.onCollidedWhileMoving(neighbor);
                     }
                 }
             }
