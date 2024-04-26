@@ -20,7 +20,6 @@ import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
 
 const cellDirection = new Vector2();
-const cellDirection3 = new Vector3();
 const deltaPos = new Vector3();
 const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
@@ -45,11 +44,12 @@ const arrivalDamping: Record<UnitType, number> = {
     "tank": vehicleArrivalDamping
 };
 
-function moveTo(unit: IUnit, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
+function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
         flowField.removeMotion(unit.motionId);
     }
     unit.motionId = motionId;
+    unit.motionCommandId = motionCommandId;
     unit.arriving = false;
     computeUnitAddr(mapCoords, unit.targetCell);
     unit.onMove(bindSkeleton);
@@ -116,6 +116,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
 function endMotion(unit: IUnit) {
     flowField.removeMotion(unit.motionId);
     unit.motionId = 0;
+    unit.motionCommandId = 0;
     unit.arriving = false;
     unit.velocity.set(0, 0, 0);
     unit.acceleration.set(0, 0, 0);
@@ -139,10 +140,10 @@ function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
     }
 }
 
-function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
+function applyFlowfieldForce(unit: IUnit, maxForce: number) {
     const { motionId, coords } = unit;
 
-    function setAcceleration(unit: IUnit, _flowfield: TFlowField, maxForce: number) {
+    function applyForce(unit: IUnit, _flowfield: TFlowField, maxForce: number) {
         const { directionIndex } = _flowfield;
         if (directionIndex < 0) {
             const mapCoords = unit.coords.mapCoords;
@@ -161,10 +162,10 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
         } else {
             flowField.getDirection(directionIndex, cellDirection);
         }
-
-        cellDirection3.set(cellDirection.x, 0, cellDirection.y);
-        unit.acceleration.copy(cellDirection3).multiplyScalar(maxForce);
-        return cellDirection3;
+        
+        unit.acceleration.x += cellDirection.x * maxForce;
+        unit.acceleration.z += cellDirection.y * maxForce;
+        unit.acceleration.clampLength(0, maxForce);
     }
 
     const flowfields = flowField.getMotion(motionId).flowfields;
@@ -182,7 +183,7 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
         }
 
         const flowfieldInfo = _flowField[currentCellIndex];
-        return setAcceleration(unit, flowfieldInfo, maxForce);
+        return applyForce(unit, flowfieldInfo, maxForce);
 
     } else {
 
@@ -207,14 +208,12 @@ function setFlowfieldAcceleration(unit: IUnit, maxForce: number) {
             }
 
             const flowfieldInfo = newFlowfield[coords.cellIndex];
-            return setAcceleration(unit, flowfieldInfo, maxForce);
+            return applyForce(unit, flowfieldInfo, maxForce);
 
         } else {
             console.assert(false);
             unit.velocity.set(0, 0, 0);
             unit.acceleration.set(0, 0, 0);
-            cellDirection3.set(0, 0, 0);
-            return cellDirection3;
         }
     }
 }
@@ -269,8 +268,15 @@ function getUnitNeighbors(unit: IUnit, radius: number) {
 
 export class UnitMotion {
 
-    public static moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
+    public createMotionCommandId() {
+        const commandId = this._motionCommandId;
+        this._motionCommandId++;
+        return commandId;
+    }
 
+    private _motionCommandId = 1;
+
+    public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
         const destCell = GameUtils.getCell(destMapCoords)!;
         const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
@@ -281,11 +287,13 @@ export class UnitMotion {
 
         console.assert(flowfields);
         const motionId = flowField.register(flowfields);
-        moveTo(unit, motionId, destMapCoords, bindSkeleton);
+
+        const commandId = this.createMotionCommandId();
+        moveTo(unit, commandId, motionId, destMapCoords, bindSkeleton);
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public static moveGroup(units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads = false) {
+    public moveGroup(motionCommandId: number, units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads = false) {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
@@ -329,7 +337,7 @@ export class UnitMotion {
                 motionId = flowField.register(flowfields);
             }
 
-            moveTo(unit, motionId, destMapCoords);
+            moveTo(unit, motionCommandId, motionId, destMapCoords);
             unit.onMoveCommand();
             ++unitCount;
         }
@@ -351,7 +359,7 @@ export class UnitMotion {
         }
     }
 
-    public static updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
+    public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
         deltaPos.subVectors(toPos, fromPos);
         const deltaPosLen = deltaPos.length();
         if (deltaPosLen > 0.01) {
@@ -362,18 +370,16 @@ export class UnitMotion {
         }
     }
 
-    public static endMotion(unit: IUnit) {
+    public endMotion(unit: IUnit) {
         endMotion(unit);
     }
 
-    public static accelerate(unit: IUnit) {
+    public applyForces(unit: IUnit) {
 
-        if (unit.motionId > 0) {
-            if (unit.arriving) {
-                unit.acceleration.set(0, 0, 0);
-                cellDirection3.copy(unit.velocity).normalize();
-            } else {
-                setFlowfieldAcceleration(unit, maxForce);
+        unit.acceleration.set(0, 0, 0);
+        if (unit.motionId > 0) {            
+            if (!unit.arriving) {
+                applyFlowfieldForce(unit, maxForce);
             }
         }
 
@@ -408,14 +414,11 @@ export class UnitMotion {
                             if (UnitUtils.isVehicle(neighbor)) {
                                 // keep moving, but slow down a bit
                                 unit.acceleration.multiplyScalar(.2);
-                            } else {
-                                // slow down a lot
-                                unit.acceleration.set(0, 0, 0);
                             }
 
                         } else {
 
-                            const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .1;
+                            const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .05;
                             lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
                             unit.acceleration
                                 .set(0, 0, 0)
@@ -424,20 +427,20 @@ export class UnitMotion {
                         }
                     } else {
                         unit.acceleration
-                            .multiplyScalar(.2)
-                            .addScaledVector(awayDirection3, maxForce * .8);
+                            .multiplyScalar(.3)
+                            .addScaledVector(awayDirection3, maxForce * .7)
+                            .clampLength(0, maxForce);
                     }
 
-                    unit.acceleration.clampLength(0, maxForce);
                     if (unit.motionId > 0) {
-                        unit.onCollidedWhileMoving(neighbor);
+                        unit.onCollidedWhileMoving(neighbor);                        
                     }
                 }
-            }
+            }            
         }
     }
 
-    public static steer(unit: IUnit) {
+    public steer(unit: IUnit) {
 
         const isMoving = unit.motionId > 0;
         const needsMotion = isMoving || unit.isColliding;
@@ -445,9 +448,9 @@ export class UnitMotion {
             return;
         }
 
-        unit.velocity.add(unit.acceleration).clampLength(0, maxSpeed);
+        unit.velocity.addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed);
         nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
-        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, .5, time.deltaTime);
+        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, 1, time.deltaTime);
 
         GameUtils.worldToMap(nextPos, nextMapCoords);
         const nextCell = GameUtils.getCell(nextMapCoords);
@@ -455,11 +458,11 @@ export class UnitMotion {
         if (nextCell?.isWalkable) {
 
             if (UnitUtils.isVehicle(unit)) {
-                if (unit.motionId > 0 || !unit.isColliding) {
-                    UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+                if (unit.motionId > 0) {
+                    this.updateRotation(unit, unit.visual.position, nextPos);
                 }
             } else {
-                UnitMotion.updateRotation(unit, unit.visual.position, nextPos);
+                this.updateRotation(unit, unit.visual.position, nextPos);
             }
             
             unit.visual.position.copy(nextPos);
@@ -527,14 +530,14 @@ export class UnitMotion {
                     const instanceId = nextCell.building.instanceId;
                     const targetCell = getCellFromAddr(unit.targetCell);
                     if (instanceId === targetCell.building?.instanceId) {
-                        UnitMotion.endMotion(unit);
+                        this.endMotion(unit);
                         unit.onReachedBuilding(targetCell);
                         isObstacle = false;
                     }
                 } else if (nextCell.resource) {
                     const targetCell = getCellFromAddr(unit.targetCell);
                     if (nextCell.resource.type === targetCell.resource?.type) {
-                        UnitMotion.endMotion(unit);
+                        this.endMotion(unit);
                         unit.onArrived();
 
                         switch (unit.type) {
@@ -572,4 +575,6 @@ export class UnitMotion {
         }
     }
 }
+
+export const unitMotion = new UnitMotion();
 

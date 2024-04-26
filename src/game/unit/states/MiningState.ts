@@ -4,7 +4,7 @@ import { Vector2 } from "three";
 import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
 import { computeUnitAddr, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
-import { UnitMotion } from "../UnitMotion";
+import { unitMotion } from "../UnitMotion";
 import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
 import { GameMapState } from "../../components/GameMapState";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
@@ -75,10 +75,10 @@ export class MiningState extends State<ICharacterUnit> {
             const center = cellCoords.set(Math.round(coords.x + (size.x - 1) / 2), Math.round(coords.y + (size.z - 1) / 2));
             const isMining = unit.animation.name === "pick";
             if (isMining) {
-                UnitMotion.moveUnit(unit, center, false);
+                unitMotion.moveUnit(unit, center, false);
                 unitAnimation.setAnimation(unit, "run", { transitionDuration: .3, scheduleCommonAnim: true });
             } else {
-                UnitMotion.moveUnit(unit, center);
+                unitMotion.moveUnit(unit, center);
             }            
             this._step = MiningStep.GoToFactory;
         } else {
@@ -147,7 +147,7 @@ export class MiningState extends State<ICharacterUnit> {
     public onReachedFactory(unit: ICharacterUnit) {
         console.assert(this._step === MiningStep.GoToFactory);
         this._step = MiningStep.GoToResource;
-        UnitMotion.moveUnit(unit, this._targetResource.mapCoords);
+        unitMotion.moveUnit(unit, this._targetResource.mapCoords);
 
         // avoid traffic jams at the factory
         unit.collidable = false;
@@ -157,7 +157,7 @@ export class MiningState extends State<ICharacterUnit> {
     public stopMining(unit: ICharacterUnit) {
         unit.fsm.switchState(null);
         if (unit.motionId > 0) {
-            UnitMotion.endMotion(unit);
+            unitMotion.endMotion(unit);
         }
         unit.onArrived();
         unit.collidable = true;

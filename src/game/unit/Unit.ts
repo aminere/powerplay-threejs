@@ -10,7 +10,7 @@ import { UnitType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
-import { UnitMotion } from "./UnitMotion";
+import { unitMotion } from "./UnitMotion";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -35,7 +35,8 @@ export interface IUnit {
     visual: Object3D;
     coords: IUnitAddr;
     motionId: number;
-    lastCompletedMotionId: number;
+    motionCommandId: number;
+    lastCompletedMotionCommandId: number;
     isColliding: boolean;
     isAlive: boolean;
     isIdle: boolean;
@@ -67,7 +68,8 @@ export class Unit implements IUnit {
     public get visual() { return this._visual; }    
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
-    public get lastCompletedMotionId() { return this._lastCompletedMotionId; }
+    public get motionCommandId() { return this._motionCommandId; }
+    public get lastCompletedMotionCommandId() { return this._lastCompletedMotionCommandId; }
     public get isColliding() { return this._isColliding; }
     public get isAlive() { return this._isAlive; }
     public get isIdle() { return this._isIdle; }
@@ -86,17 +88,19 @@ export class Unit implements IUnit {
     public set arriving(value: boolean) { 
         this._arriving = value; 
         if (value) {
-            console.assert(this._motionId > 0, "unit is arriving without motion");
-            this._lastCompletedMotionId = this._motionId;
+            console.assert(this._motionCommandId > 0, "unit is arriving without a motion command");
+            this._lastCompletedMotionCommandId = this._motionCommandId;
         }
     }
 
-    public set motionId(value: number) { 
-        if (value === 0 && this._motionId > 0) {
-            this._lastCompletedMotionId = this._motionId;
+    public set motionId(value: number) { this._motionId = value; }
+
+    public set motionCommandId(value: number) { 
+        if (value === 0 && this._motionCommandId > 0) {
+            this._lastCompletedMotionCommandId = this._motionCommandId;
         }
-        this._motionId = value;
-    }    
+        this._motionCommandId = value; 
+    }
 
     public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
@@ -105,19 +109,20 @@ export class Unit implements IUnit {
 
     private _acceleration = new Vector3();
     private _velocity = new Vector3();
-    protected _arriving = false;
+    private _arriving = false;
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell = makeUnitAddr();
     private _visual: Object3D;
     private _coords = makeUnitAddr();
-    protected _motionId = 0;
-    private _lastCompletedMotionId = 0;
-    protected _isColliding = false;
-    protected _isAlive = true;
+    private _motionId = 0;
+    private _lastCompletedMotionCommandId = 0;
+    private _motionCommandId = 0;
+    private _isColliding = false;
+    private _isAlive = true;
     private _isIdle = true;
-    protected _collidable = true;
+    private _collidable = true;
     private _type: UnitType = "worker";
-    protected _health = 1;
+    private _health = 1;
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _boundingBox: Box3;
@@ -188,8 +193,8 @@ export class Unit implements IUnit {
     public onReachedBuilding(_cell: ICell) {}
     public onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
-        if (neighbor.lastCompletedMotionId === this.motionId) {
-            UnitMotion.endMotion(this);
+        if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
+            unitMotion.endMotion(this);
         }
     }
 }

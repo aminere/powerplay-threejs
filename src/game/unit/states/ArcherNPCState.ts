@@ -5,7 +5,7 @@ import { engine } from "../../../engine/Engine";
 import gsap from "gsap";
 import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
-import { UnitMotion } from "../UnitMotion";
+import { unitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../CharacterUnit";
 
 enum NpcStep {
@@ -64,7 +64,7 @@ export class ArcherNPCState extends State<IUnit> {
                         const dist = target.visual.position.distanceTo(unit.visual.position);
                         if (dist < vision) {
                             if (unit.motionId > 0) {
-                                UnitMotion.endMotion(unit);    
+                                unitMotion.endMotion(unit);    
                             }
                             this.attack(unit);
                         }
@@ -81,7 +81,7 @@ export class ArcherNPCState extends State<IUnit> {
                     const dist = target.visual.position.distanceTo(unit.visual.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        UnitMotion.updateRotation(unit, unit.visual.position, target.visual.position);
+                        unitMotion.updateRotation(unit, unit.visual.position, target.visual.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               
@@ -176,7 +176,7 @@ export class ArcherNPCState extends State<IUnit> {
     private goToIdle(unit: ICharacterUnit) {
         const transitionDuration = .3;
         if (unit.motionId > 0) {
-            UnitMotion.endMotion(unit);    
+            unitMotion.endMotion(unit);    
         }
         unitAnimation.setAnimation(unit, "idle", {
             transitionDuration,

@@ -16,7 +16,7 @@ import { pickResource } from "./update/WorkerUpdate";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
-import { UnitMotion } from "./UnitMotion";
+import { unitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
 import { UnitUtils } from "./UnitUtils";
 
@@ -45,7 +45,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
     public get skeleton() { return this._skeleton; }
     public get skinnedMesh() { return this._skinnedMesh; }
-    public get health() { return this._health; }
     public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
     public get resource() { return this._resource; }
 
@@ -173,7 +172,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
-        if (neighbor.lastCompletedMotionId === this.motionId) {
+        if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
             const isMining = (() => {
                 if (this.fsm.getState(MiningState)) {
                     return true;
@@ -187,7 +186,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             if (isMining || this.resource) {
                  // keep going
             } else {
-                UnitMotion.endMotion(this);
+                unitMotion.endMotion(this);
                 this.onArrived();
             }
         }

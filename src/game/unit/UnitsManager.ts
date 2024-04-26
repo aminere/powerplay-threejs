@@ -16,7 +16,7 @@ import { IUnit, Unit } from "./Unit";
 import { MiningState } from "./states/MiningState";
 import { NPCState } from "./states/NPCState";
 import { ITruckUnit, TruckUnit } from "./TruckUnit";
-import { UnitMotion } from "./UnitMotion";
+import { unitMotion } from "./UnitMotion";
 import { truckUpdate } from "./update/TruckUpdate";
 import { workerUpdate } from "./update/WorkerUpdate";
 import { SoldierState } from "./states/SoldierState";
@@ -102,7 +102,7 @@ class UnitsManager {
         for (const unit of this._units) {
             if (unit.isAlive) {
                 unit.fsm.update();
-                UnitMotion.accelerate(unit);
+                unitMotion.applyForces(unit);
 
                 switch (unit.type) {
                     case "truck": truckUpdate(unit as ITruckUnit); break;
@@ -113,7 +113,7 @@ class UnitsManager {
         
         for (const unit of this._units) {
             if (unit.isAlive) {
-                UnitMotion.steer(unit);
+                unitMotion.steer(unit);
             }
         }
     }

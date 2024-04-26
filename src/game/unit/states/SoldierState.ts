@@ -3,7 +3,7 @@ import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../CharacterUnit";
 import { IUnit } from "../Unit";
 import { unitAnimation } from "../UnitAnimation";
-import { UnitMotion } from "../UnitMotion";
+import { unitMotion } from "../UnitMotion";
 import { UnitSearch } from "../UnitSearch";
 import { GameUtils } from "../../GameUtils";
 import { time } from "../../../engine/core/Time";
@@ -48,7 +48,7 @@ export class SoldierState extends State<ICharacterUnit> {
                         targetPos.subVectors(target!.visual.position, unit.visual.position);
                         targetPos.applyQuaternion(targetRotation);
                         targetPos.add(unit.visual.position);
-                        UnitMotion.updateRotation(unit, unit.visual.position, targetPos);
+                        unitMotion.updateRotation(unit, unit.visual.position, targetPos);
 
                         // attack
                         if (this._hitTimer < 0) {

@@ -12,7 +12,7 @@ import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
 import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
-import { UnitMotion } from "../unit/UnitMotion";
+import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
 import { unitsManager } from "../unit/UnitsManager";
@@ -29,6 +29,7 @@ const inverseMatrix = new Matrix4();
 const { rayCaster } = GameUtils;
 
 export class GameMapUpdate extends Component<ComponentProps> {
+
     constructor() {
         super(new ComponentProps());
     }
@@ -349,6 +350,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         const targetCellCoords = pools.vec2.getOne();
                         const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, resolution);
                         if (targetCell) {
+
                             // group units per sector
                             const groups = unitsManager.selectedUnits.reduce((prev, cur) => {                                
                                 if (UnitUtils.isEnemy(cur)) {
@@ -366,12 +368,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 return prev;
                             }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
 
+                            const commandId = unitMotion.createMotionCommandId();
                             for (const group of Object.values(groups)) {
                                 if (group.character.length > 0) {
-                                    UnitMotion.moveGroup(group.character, targetCellCoords, targetCell);
+                                    unitMotion.moveGroup(commandId, group.character, targetCellCoords, targetCell);
                                 }
                                 if (group.vehicle.length > 0) {
-                                    UnitMotion.moveGroup(group.vehicle, targetCellCoords, targetCell, true);
+                                    unitMotion.moveGroup(commandId, group.vehicle, targetCellCoords, targetCell, true);
                                 }
                             }
                         }

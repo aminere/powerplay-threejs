@@ -94,7 +94,7 @@ export const config: IConfig = {
         scale: 2.3
     },
     steering: {
-        maxForce: 1,
+        maxForce: 40,
         maxSpeed: 5,
         separations: {
             "worker": .7,

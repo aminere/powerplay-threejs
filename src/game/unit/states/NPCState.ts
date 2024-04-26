@@ -1,6 +1,6 @@
 import { State } from "../../fsm/StateMachine";
 import { time } from "../../../engine/core/Time";
-import { UnitMotion } from "../UnitMotion";
+import { unitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../CharacterUnit";
 import { IUnit } from "../Unit";
 import { spiralFind } from "../UnitSearch";
@@ -46,7 +46,7 @@ export class NPCState extends State<ICharacterUnit> {
                     this._target = newTarget;
                     this._step = NpcStep.Follow;
                     unit.isIdle = false;
-                    UnitMotion.moveUnit(unit, newTarget.coords.mapCoords);
+                    unitMotion.moveUnit(unit, newTarget.coords.mapCoords);
                 }
             }
             break;
@@ -56,7 +56,7 @@ export class NPCState extends State<ICharacterUnit> {
                 if (UnitUtils.isOutOfRange(unit, target!, 1)) {
                     
                     this._step = NpcStep.Follow;
-                    UnitMotion.moveUnit(unit, target!.coords.mapCoords, false);
+                    unitMotion.moveUnit(unit, target!.coords.mapCoords, false);
                     unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
 
                 } else {
@@ -64,7 +64,7 @@ export class NPCState extends State<ICharacterUnit> {
                     targetPos.subVectors(target!.visual.position, unit.visual.position);
                     targetPos.applyQuaternion(targetRotation);
                     targetPos.add(unit.visual.position);
-                    UnitMotion.updateRotation(unit, unit.visual.position, targetPos);
+                    unitMotion.updateRotation(unit, unit.visual.position, targetPos);
                     if (this._hitTimer < 0) {
                         target!.setHealth(target!.health - damage);
                         this._hitTimer = hitFrequency;                    
@@ -82,15 +82,15 @@ export class NPCState extends State<ICharacterUnit> {
         if (target?.isAlive) {
             if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                 // target didn't move since last detection, so start attacking
-                UnitMotion.endMotion(unit);
+                unitMotion.endMotion(unit);
                 this._step = NpcStep.Attack;
                 unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
             } else {
                 // keep following
-                UnitMotion.moveUnit(unit, target.coords.mapCoords);
+                unitMotion.moveUnit(unit, target.coords.mapCoords);
             }
         } else {
-            UnitMotion.endMotion(unit);
+            unitMotion.endMotion(unit);
             this._target = null;
             unit.isIdle = true;
             this._step = NpcStep.Idle;
