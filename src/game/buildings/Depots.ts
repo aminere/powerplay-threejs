@@ -61,5 +61,29 @@ export class Depots {
         state.amount = newAmount;
         return true;
     }
+
+    public static removeResource(instance: IBuildingInstance) {
+        const state = instance.state as IDepotState;
+        const oldAmount = state.amount;
+        const newAmount = oldAmount - 1;
+        const { resourcesPerSlot, slotScaleRange } = depotsConfig;
+        const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
+        const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
+        const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
+        if (currentSlot === newSlot || newSlot < 0) {
+            const mesh = instance.visual.children[currentSlot];
+            if (newAmount === 0) {
+                mesh.removeFromParent();
+            } else {
+                mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+            }
+        } else {
+            const currentSlotMesh = instance.visual.children[currentSlot];
+            currentSlotMesh.removeFromParent();
+            const newSlotMesh = instance.visual.children[newSlot];
+            newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+        }
+        state.amount = newAmount;
+    }
 }
 

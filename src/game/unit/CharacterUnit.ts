@@ -13,7 +13,7 @@ import { utils } from "../../engine/Utils";
 import { MiningState } from "./states/MiningState";
 import { ICell, IResource } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
-import { IFactoryState } from "../buildings/BuildingTypes";
+import { IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { unitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
@@ -158,24 +158,37 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 case "depot": {
                     if (Depots.tryDepositResource(buildingInstance, this.resource.type)) {
                         this.resource = null;
+                    } else {
+                        const state = buildingInstance.state as IDepotState;
+                        if (state.type !== this.resource.type) {
+                            if (state.amount > 0) {
+                                Workers.pickResource(this, state.type);
+                                Depots.removeResource(buildingInstance);
+                            }
+                        }
                     }
                 }
                     break;
             }
-        }
 
-        const miningState = this.fsm.getState(MiningState)!;
-        if (miningState) {
-            miningState.onReachedBuilding(this);
+            const miningState = this.fsm.getState(MiningState)!;
+            if (miningState) {
+                miningState.onReachedBuilding(this);
+            } else {
+                this.onArrived();
+            }
+
         } else {
-            if (cell.pickableResource) {
-                if (cell.pickableResource.type === this.resource?.type) {
-                    // do nothing, this resource is already carried
-                } else {
-                    Workers.pickResource(this, cell.pickableResource.type);
-                    cell.pickableResource.visual.removeFromParent();
-                    cell.pickableResource = undefined;
+            const buildingInstance = GameMapState.instance.buildings.get(cell.building!)!;
+            switch (buildingInstance.buildingType) {
+                case "depot": {
+                    const state = buildingInstance.state as IDepotState;
+                    if (state.amount > 0) {
+                        Workers.pickResource(this, state.type);
+                        Depots.removeResource(buildingInstance);
+                    }
                 }
+                break;
             }
             this.onArrived();
         }

@@ -104,10 +104,10 @@ export class Trucks {
         const oldAmount = truck.resources!.amount;
         const newAmount = oldAmount - 1;
         const { resourcesPerSlot, slotScaleRange } = trucksConfig;
-        const currentSlot = Math.floor(oldAmount / resourcesPerSlot);
-        const newSlot = Math.floor(newAmount / resourcesPerSlot);
+        const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
+        const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
-        if (currentSlot === newSlot) {
+        if (currentSlot === newSlot || newSlot < 0) {
             const mesh = truck.resources!.root.children[currentSlot];
             if (newAmount === 0) {
                 mesh.removeFromParent();
