@@ -1,27 +1,14 @@
 import { Vector2 } from "three";
 import { FactoryState, IBuildingInstance, IFactoryState, buildingSizes } from "./BuildingTypes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { makeUnitAddr, computeUnitAddr, getCellFromAddr } from "../unit/UnitAddr";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
-
-const cellCoords = new Vector2();
 
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, input: RawResourceType | ResourceType, output: ResourceType) {
 
         const instance = buildings.create("factory", sectorCoords, localCoords);
-
-        const size = buildingSizes.factory;
-        const outputX = size.x - 1;
-        const outputY = size.z - 1;
-
-        const { mapCoords } = instance;
-        cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
-        const outputCell = makeUnitAddr();
-        computeUnitAddr(cellCoords, outputCell);
-
         const factoryState: IFactoryState = {
             input,
             output,
@@ -29,7 +16,6 @@ export class Factories {
             inputReserve: 0,
             inputAccepFrequency: 1,
             inputTimer: -1,
-            outputCell,
             timer: 0
         };
 
@@ -38,11 +24,11 @@ export class Factories {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IFactoryState;
-        const outputCell = getCellFromAddr(state.outputCell);
 
         switch (state.state) {
             case FactoryState.idle: {
-                if (outputCell.pickableResource) {
+                const outputFull = false; // TODO
+                if (outputFull) {
                     // output full, can't process
                 } else {
                     if (state.inputReserve > 0) {
@@ -57,9 +43,8 @@ export class Factories {
             case FactoryState.processing: {
                 const productionTime = 2;
                 if (state.timer >= productionTime) {
-
                     state.state = FactoryState.idle;
-                    // onProductionDone(state.outputCell, state.output);
+                    BuildingUtils.produceResource(instance, state.output);
 
                 } else {
                     state.timer += time.deltaTime;
@@ -107,9 +92,10 @@ export class Factories {
             state.inputTimer -= time.deltaTime;
         }
 
-        if (outputCell.pickableResource) {
-            BuildingUtils.tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
-        }
+        // TODO
+        // if (outputCell.pickableResource) {
+        //     BuildingUtils.tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
+        // }
     }
 }
 

@@ -5,7 +5,6 @@ import { getCellFromAddr } from "./UnitAddr";
 
 const cellCoords = new Vector2();
 
-let counter = 0;
 function scan(startX: number, startY: number, sx: number, sy: number, iterations: number, filter: (unit: IUnit) => boolean) {
     for (let i = 0; i < iterations; ++i) {
         cellCoords.set(startX + i * sx, startY + i * sy);
@@ -20,7 +19,6 @@ function scan(startX: number, startY: number, sx: number, sy: number, iterations
                 }
             }
         }
-        counter++;
     }
     return null;
 }
@@ -28,7 +26,6 @@ function scan(startX: number, startY: number, sx: number, sy: number, iterations
 export function edgeFind(unit: IUnit, radius: number, filter: (unit: IUnit) => boolean) {
     const { mapCoords } = unit.coords;
 
-    counter = 0;
     const startX = mapCoords.x - radius;
     const startY = mapCoords.y - radius;
     const xIterations = radius * 2 + 1;
@@ -74,7 +71,6 @@ export function spiralFind(unit: IUnit, radius: number, filter: (unit: IUnit) =>
         }
     }
     
-    counter = 1;
     let currentRadius = 1;
     while (currentRadius <= radius) {
         const startX = mapCoords.x - currentRadius;

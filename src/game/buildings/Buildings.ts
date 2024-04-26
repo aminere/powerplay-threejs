@@ -1,14 +1,13 @@
-import { Box3, Box3Helper, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
-import { BuildingType, BuildingTypes, IBuildingInstance, IFactoryState, IMineState, buildingSizes } from "./BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
-import { getCellFromAddr } from "../unit/UnitAddr";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -174,23 +173,7 @@ class Buildings {
                     const visual = resourceCell.resource!.visual!;
                     console.assert(visual.visible === false);
                     visual.visible = true;
-                }
-
-                const outputCell = getCellFromAddr(state.outputCell);
-                if (outputCell.pickableResource) {
-                    outputCell.pickableResource.visual.removeFromParent();
-                    outputCell.pickableResource = undefined;
-                }
-            }
-                break;
-
-            case "factory": {
-                const state = instance.state as IFactoryState;
-                const outputCell = getCellFromAddr(state.outputCell);
-                if (outputCell.pickableResource) {
-                    outputCell.pickableResource.visual.removeFromParent();
-                    outputCell.pickableResource = undefined;
-                }
+                }                
             }
                 break;
         }

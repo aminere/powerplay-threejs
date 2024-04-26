@@ -2,10 +2,10 @@ import { Vector2 } from "three";
 import { utils } from "../../engine/Utils";
 import { time } from "../../engine/core/Time";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "../unit/UnitAddr";
 import { IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
 import { BuildingUtils } from "./BuildingUtils";
 import { buildings } from "./Buildings";
+import { MineralType } from "../GameDefinitions";
 
 const cellCoords = new Vector2();
 
@@ -27,21 +27,15 @@ export class Mines {
             }
         }
 
-        const outputX = size.x - 1;
-        const outputY = size.z - 1;
         const depleted = resourceCells.length === 0;
-
-        cellCoords.set(mapCoords.x + outputX, mapCoords.y + outputY);
-        const outputCell = makeUnitAddr();
-        computeUnitAddr(cellCoords, outputCell);
-
         const mineState: IMineState = {
             resourceCells,
             currentResourceCell: 0,
             active: !depleted,
             depleted,
-            outputCell,
-            timer: 0
+            timer: 0,
+            outputConveyorIndex: -1,
+            outputFull: false
         };
 
         instance.state = mineState;
@@ -55,12 +49,14 @@ export class Mines {
         }
 
         if (!state.active) {
-
-            const outputCell = getCellFromAddr(state.outputCell);
-            if (!outputCell.pickableResource) {
+            
+            if (!state.outputFull) {
                 // start mining a new resource
                 state.active = true;
                 state.timer = 0;
+            } else {
+
+                // TODO periodically (1s) check if there is space in the output
             }
 
         } else {
@@ -82,16 +78,14 @@ export class Mines {
                 }
 
                 state.active = false;
-                // onProductionDone(state.outputCell, resource.type as MineralType);
+                if (!BuildingUtils.produceResource(instance, resource.type as MineralType)) {
+                    state.outputFull = true;
+                    console.log("mine output full");
+                }
 
             } else {
                 state.timer += time.deltaTime;
             }
-        }
-
-        const outputCell = getCellFromAddr(state.outputCell);
-        if (outputCell.pickableResource) {
-            BuildingUtils.tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
         }
     }
 }

@@ -1,7 +1,6 @@
 
 import { Object3D, Vector2, Vector3 } from "three";
 import { ResourceType, RawResourceType, ProductType } from "../GameDefinitions";
-import { IUnitAddr } from "../unit/UnitAddr";
 
 export const BuildingTypes = [
     "hq",
@@ -27,7 +26,6 @@ export interface IFactoryState {
     inputAccepFrequency: number;
     inputTimer: number;
     state: FactoryState;
-    outputCell: IUnitAddr;
     timer: number;
 }
 
@@ -40,9 +38,10 @@ export interface IMineState {
     resourceCells: Vector2[];
     currentResourceCell: number;
     active: boolean;
-    depleted: boolean;
-    outputCell: IUnitAddr;    
+    depleted: boolean;    
     timer: number;
+    outputConveyorIndex: number;
+    outputFull: boolean;
 }
 
 export interface IDepotState {

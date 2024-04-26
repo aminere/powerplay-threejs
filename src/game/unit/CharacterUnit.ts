@@ -197,6 +197,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public override onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
+
             const isMining = (() => {
                 if (this.fsm.getState(MiningState)) {
                     return true;
@@ -207,12 +208,17 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 }
             })();
             
-            if (isMining || this.resource) {
-                 // keep going
-            } else {
-                unitMotion.endMotion(this);
-                this.onArrived();
+            if (isMining) {
+                return; // keep going
             }
+
+            const targetCell = getCellFromAddr(this.targetCell);
+            if (targetCell.building) {
+                return; // keep going
+            }
+
+            unitMotion.endMotion(this);
+            this.onArrived();
         }
     }
 }

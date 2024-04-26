@@ -88,7 +88,6 @@ export interface ICell {
     rail?: IRail;
     resource?: IRawResource;
     pickableResource?: IResource;
-    nonPickableResource?: IResource;
     
     units?: IUnit[];
 }

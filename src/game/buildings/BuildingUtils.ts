@@ -6,6 +6,7 @@ import { conveyorItems } from "../ConveyorItems";
 import { ITruckUnit } from "../unit/TruckUnit";
 import { ICell } from "../GameTypes";
 import { Trucks } from "../unit/Trucks";
+import { IBuildingInstance, buildingSizes } from "./BuildingTypes";
 
 const cellCoords = new Vector2();
 
@@ -72,6 +73,73 @@ export class BuildingUtils {
         cellCoords.set(mapCoords.x, mapCoords.y + 1);
         const neighbor2 = GameUtils.getCell(cellCoords);
         return tryFillConveyor(neighbor2);
+    }
+
+    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+
+        const { mapCoords } = instance;
+
+        // find conveyors
+        const scan = (startX: number, startY: number, sx: number, sy: number, iterations: number) => {
+            for (let i = 0; i < iterations; ++i) {                
+                cellCoords.set(startX + i * sx, startY + i * sy);
+                const cell = GameUtils.getCell(cellCoords);
+                if (cell?.conveyor) {
+                    const { startAxis, direction } = cell.conveyor.config;
+                    const validOutput = (() => {
+                        if (sx === 0) {
+                            if (startAxis === "x") {
+                                if (startX < mapCoords.x) {
+                                    return direction.x === -1;
+                                } else {
+                                    return direction.x === 1;
+                                }
+                            }
+                        } else {
+                            if (startAxis === "z") {
+                                if (startY < mapCoords.y) {
+                                    return direction.y === -1;
+                                } else {
+                                    return direction.y === 1;
+                                }
+                            }
+                        }
+                        return false;
+                    })();
+                    if (validOutput) {                       
+                        const added = conveyorItems.addItem(cell, cellCoords, type);
+                        if (added) {
+                            return true;
+                        }
+                    }                    
+                }
+            }
+            return false;
+        };
+
+        const size = buildingSizes[instance.buildingType];        
+        if (scan(mapCoords.x, mapCoords.y - 1, 1, 0, size.x)) {
+            return true;
+        }
+        if (scan(mapCoords.x, mapCoords.y + size.z, 1, 0, size.x)) {
+            return true;
+        }
+        if (scan(mapCoords.x - 1, mapCoords.y, 0, 1, size.z)) {
+            return true;
+        }
+        if (scan(mapCoords.x + size.x, mapCoords.y, 0, 1, size.z)) {
+            return true;
+        }
+
+        // find an empty output cell
+        const startX = Math.round(mapCoords.x + size.x / 2);
+        const startY = mapCoords.y + size.z;
+        cellCoords.set(startX, startY);
+        const cell = GameUtils.getCell(cellCoords);
+        if (cell?.isWalkable && !cell.pickableResource) {
+            
+        }
+        return false;
     }
 }
 
