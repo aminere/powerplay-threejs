@@ -20,6 +20,7 @@ export const TileTypes = [
 ] as const;
 
 export const MineralTypes = [
+    "stone",
     "carbon",
     "iron-ore",
     "aluminium",

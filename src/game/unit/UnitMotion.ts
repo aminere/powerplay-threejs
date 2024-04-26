@@ -58,20 +58,18 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
 const nextSector = new Vector2();
 function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords: Vector2, destCell: ICell) {
 
-    const destBuildingId = destCell.building?.instanceId;
+    const destBuildingId = destCell.building;
     const cellPath = cellPathfinder.findPath(mapCoords, destMapCoords, {
         diagonals: () => false,
         isWalkable: (destBuildingId || destCell.resource) ? (cell: ICell) => {
-
-            const cellBuildingId = cell.building?.instanceId;
-            if (cellBuildingId) {
+            if (cell.building) {
                 // allow to walk to any cell in the destination building, the unit will stop when hitting the building
                 if (destCell.pickableResource) {
                     // unless the destination is an output cell
                     const isWalkable = cell.pickableResource !== undefined;
                     return isWalkable;
                 } else {
-                    return cellBuildingId === destBuildingId;
+                    return cell.building === destBuildingId;
                 }
             } else if (cell.resource) {
                 return cell.resource.type === destCell.resource?.type;
@@ -224,7 +222,7 @@ function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
             return 1;
         }
     } else if (destCell.building) {
-        if (destCell.building.instanceId === currentCell.building?.instanceId) {
+        if (destCell.building === currentCell.building) {
             if (destCell.pickableResource) {
                 if (currentCell === destCell) {
                     return 1;
@@ -400,12 +398,9 @@ export class UnitMotion {
                     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
                     const length = awayDirection3.length();
                     if (length > 0) {
-                        awayDirection3
-                            .divideScalar(length)
-
+                        awayDirection3.divideScalar(length)
                     } else {
-                        awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1))
-                            .normalize();
+                        awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
                     }
 
                     if (UnitUtils.isVehicle(unit)) {
@@ -427,8 +422,8 @@ export class UnitMotion {
                         }
                     } else {
                         unit.acceleration
-                            .multiplyScalar(.3)
-                            .addScaledVector(awayDirection3, maxForce * .7)
+                            .multiplyScalar(.4)
+                            .addScaledVector(awayDirection3, maxForce * .6)
                             .clampLength(0, maxForce);
                     }
 
@@ -527,9 +522,8 @@ export class UnitMotion {
 
                 let isObstacle = true;
                 if (nextCell.building) {
-                    const instanceId = nextCell.building.instanceId;
                     const targetCell = getCellFromAddr(unit.targetCell);
-                    if (instanceId === targetCell.building?.instanceId) {
+                    if (nextCell.building === targetCell.building) {
                         this.endMotion(unit);
                         unit.onReachedBuilding(targetCell);
                         isObstacle = false;

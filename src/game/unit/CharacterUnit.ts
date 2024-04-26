@@ -12,13 +12,14 @@ import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
 import { MiningState } from "./states/MiningState";
 import { ICell, IResource } from "../GameTypes";
-import { pickResource } from "./update/WorkerUpdate";
 import { GameMapState } from "../components/GameMapState";
 import { IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { unitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
 import { UnitUtils } from "./UnitUtils";
+import { Workers } from "./Workers";
+import { Depots } from "../buildings/Depots";
 
 interface IUnitAnim {
     name: string;
@@ -143,16 +144,26 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public override onReachedBuilding(cell: ICell) {
 
         if (this.resource) {
-            const buildingInstance = GameMapState.instance.buildings.get(cell.building!.instanceId)!;
-            if (buildingInstance.buildingType === "factory") {
-                const state = buildingInstance.state as IFactoryState;
-                if (state.input === this.resource.type) {
-                    state.inputReserve++;
-                    this.resource = null;
+            const buildingInstance = GameMapState.instance.buildings.get(cell.building!)!;
+            switch (buildingInstance.buildingType) {
+                case "factory": {
+                    const state = buildingInstance.state as IFactoryState;
+                    if (state.input === this.resource.type) {
+                        state.inputReserve++;
+                        this.resource = null;
+                    }
                 }
+                    break;
+
+                case "depot": {
+                    if (Depots.tryDepositResource(buildingInstance, this.resource.type)) {
+                        this.resource = null;
+                    }
+                }
+                    break;
             }
         }
-        
+
         const miningState = this.fsm.getState(MiningState)!;
         if (miningState) {
             miningState.onReachedFactory(this);
@@ -161,13 +172,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 if (cell.pickableResource.type === this.resource?.type) {
                     // do nothing, this resource is already carried
                 } else {
-                    pickResource(this, cell.pickableResource.type);
+                    Workers.pickResource(this, cell.pickableResource.type);
                     cell.pickableResource.visual.removeFromParent();
                     cell.pickableResource = undefined;
                 }
             }
             this.onArrived();
-        }        
+        }
     }
 
     public override onCollidedWhileMoving(neighbor: IUnit) {

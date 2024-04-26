@@ -17,11 +17,11 @@ import { MiningState } from "./states/MiningState";
 import { NPCState } from "./states/NPCState";
 import { ITruckUnit, TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
-import { truckUpdate } from "./update/TruckUpdate";
-import { workerUpdate } from "./update/WorkerUpdate";
 import { SoldierState } from "./states/SoldierState";
 import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
+import { Trucks } from "./Trucks";
+import { Workers } from "./Workers";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -105,8 +105,8 @@ class UnitsManager {
                 unitMotion.applyForces(unit);
 
                 switch (unit.type) {
-                    case "truck": truckUpdate(unit as ITruckUnit); break;
-                    case "worker": workerUpdate(unit as ICharacterUnit); break;
+                    case "truck": Trucks.update(unit as ITruckUnit); break;
+                    case "worker": Workers.update(unit as ICharacterUnit); break;
                 }
             }
         }  

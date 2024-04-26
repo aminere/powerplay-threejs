@@ -18,6 +18,9 @@ import { GameMapProps } from "./components/GameMapProps";
 import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
 import { buildingSizes } from "./buildings/BuildingTypes";
+import { Factories } from "./buildings/Factories";
+import { Mines } from "./buildings/Mines";
+import { Depots } from "./buildings/Depots";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -354,19 +357,15 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
         })();
         if (allowed) {
             switch (buildingType) {
-                case "factory": {
-                    buildings.createFactory(sectorCoords, localCoords, props.factoryInput, props.factoryOutput);
-                }
-                    break;
-                default: {
-                    buildings.create(buildingType, sectorCoords, localCoords);
-                }
+                case "factory": Factories.create(sectorCoords, localCoords, props.factoryInput, props.factoryOutput); break;
+                case "mine": Mines.create(sectorCoords, localCoords); break;
+                case "depot": Depots.create(sectorCoords, localCoords, props.depotType); break;                
             }
         }
 
     } else if (button === 2) {
         if (cell.building) {
-            buildings.clear(cell.building.instanceId);
+            buildings.clear(cell.building);
         }
     }
 }

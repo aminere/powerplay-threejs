@@ -9,8 +9,8 @@ import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings
 import { GameMapState } from "../../components/GameMapState";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
 import { ICharacterUnit } from "../CharacterUnit";
-import { pickResource } from "../update/WorkerUpdate";
 import { ICell } from "../../GameTypes";
+import { Workers } from "../Workers";
 
 enum MiningStep {
     GoToResource,
@@ -111,7 +111,7 @@ export class MiningState extends State<ICharacterUnit> {
                         if (cell.resource.amount === 0) {
                             cell.resource = undefined;
                         }
-                        pickResource(unit, resourceType);
+                        Workers.pickResource(unit, resourceType);
                         this.goToFactory(unit, resourceType);
                         unit.collidable = true;
                     } else {

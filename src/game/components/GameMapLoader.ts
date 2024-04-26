@@ -2,7 +2,7 @@
 import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { ISerializedFactory, ISerializedGameMap } from "../GameSerialization";
+import { ISerializedDepot, ISerializedFactory, ISerializedGameMap } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
@@ -24,15 +24,17 @@ import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
-import { BuildingType } from "../buildings/BuildingTypes";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
-import { pickResource } from "../unit/update/WorkerUpdate";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { meshes } from "../../powerplay";
 import { unitAnimation } from "../unit/UnitAnimation";
+import { Mines } from "../buildings/Mines";
+import { Factories } from "../buildings/Factories";
+import { Depots } from "../buildings/Depots";
+import { Workers } from "../unit/Workers";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -167,14 +169,21 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             for (const instance of instances) {
                 GameUtils.getCell(instance.mapCoords, sectorCoords, localCoords);
                 switch (buildingType) {
-                    case "factory": {
-                        const factory = instance as ISerializedFactory;
-                        buildings.createFactory(sectorCoords, localCoords, factory.input, factory.output);
+                    case "mine": {
+                        Mines.create(sectorCoords, localCoords);
                     }
                         break;
 
-                    default:
-                        buildings.create(buildingType as BuildingType, sectorCoords, localCoords);
+                    case "factory": {
+                        const factory = instance as ISerializedFactory;
+                        Factories.create(sectorCoords, localCoords, factory.input, factory.output);
+                    }
+                        break;
+
+                    case "depot": {
+                        const depot = instance as ISerializedDepot; 
+                        Depots.create(sectorCoords, localCoords, depot.type);
+                    }                        
                 }
             }
         }
@@ -242,7 +251,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         if (false) {
             meshes.load(`/models/resources/ak47.glb`).then(() => {
                 const solider = unitsManager.units.find(u => u.type === "worker")!;
-                pickResource(solider as ICharacterUnit, "ak47");
+                Workers.pickResource(solider as ICharacterUnit, "ak47");
                 unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
             });
         }

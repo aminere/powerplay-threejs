@@ -43,10 +43,6 @@ export interface IResource {
     visual: Object3D;
 }
 
-export interface IBuilding {
-    instanceId: string;
-}
-
 export interface IStraightRailConfig {
     length: number;
     rotation: number;
@@ -88,7 +84,7 @@ export interface ICell {
 
     roadTile?: number;
     conveyor?: IConveyor;
-    building?: IBuilding;    
+    building?: string;    
     rail?: IRail;
     resource?: IRawResource;
     pickableResource?: IResource;

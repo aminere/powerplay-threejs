@@ -1,10 +1,10 @@
 import { MathUtils, Vector2 } from "three";
-import { GameUtils } from "../../GameUtils";
-import { utils } from "../../../engine/Utils";
-import { conveyorItems } from "../../ConveyorItems";
-import { ITruckUnit } from "../TruckUnit";
-import { IConveyor } from "../../GameTypes";
-import { meshes } from "../../../engine/resources/Meshes";
+import { ITruckUnit } from "./TruckUnit";
+import { GameUtils } from "../GameUtils";
+import { meshes } from "../../engine/resources/Meshes";
+import { utils } from "../../engine/Utils";
+import { IConveyor } from "../GameTypes";
+import { conveyorItems } from "../ConveyorItems";
 
 const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const neighborCoords = new Vector2();
@@ -76,45 +76,49 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
     truck.resources!.amount = newAmount;
 }
 
-export function removeResource(truck: ITruckUnit) {
-    const oldAmount = truck.resources!.amount;
-    const newAmount = oldAmount - 1;
-    const currentSlot = Math.floor(oldAmount / resourcesPerSlot);
-    const newSlot = Math.floor(newAmount / resourcesPerSlot);
-    const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
-    if (currentSlot === newSlot) {
-        const mesh = truck.resources!.root.children[currentSlot];
-        if (newAmount === 0) {
-            mesh.removeFromParent();
+
+export class Trucks {
+    
+    public static update(truck: ITruckUnit) {
+        const isMoving = truck.motionId > 0;
+        if (isMoving) {
+
         } else {
-            mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
-        }
-    } else {
-        const currentSlotMesh = truck.resources!.root.children[currentSlot];
-        currentSlotMesh.removeFromParent();
-        const newSlotMesh = truck.resources!.root.children[newSlot];
-        newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
-    }
-    truck.resources!.amount = newAmount;
-}
-
-export function truckUpdate(truck: ITruckUnit) {
-    const isMoving = truck.motionId > 0;
-    if (isMoving) {
-
-    } else {
-        const { mapCoords } = truck.coords;
-        for (const [dx, dy] of gridNeighbors) {
-            neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
-            const neighborCell = GameUtils.getCell(neighborCoords);
-            const conveyor = neighborCell?.conveyor;
-            if (conveyor) {
-                if (conveyor.items.length === 0) {
-                    continue;
-                }            
-                tryPickResource(truck, conveyor);
+            const { mapCoords } = truck.coords;
+            for (const [dx, dy] of gridNeighbors) {
+                neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
+                const neighborCell = GameUtils.getCell(neighborCoords);
+                const conveyor = neighborCell?.conveyor;
+                if (conveyor) {
+                    if (conveyor.items.length === 0) {
+                        continue;
+                    }
+                    tryPickResource(truck, conveyor);
+                }
             }
         }
-    }    
+    }
+
+    public static removeResource(truck: ITruckUnit) {
+        const oldAmount = truck.resources!.amount;
+        const newAmount = oldAmount - 1;
+        const currentSlot = Math.floor(oldAmount / resourcesPerSlot);
+        const newSlot = Math.floor(newAmount / resourcesPerSlot);
+        const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
+        if (currentSlot === newSlot) {
+            const mesh = truck.resources!.root.children[currentSlot];
+            if (newAmount === 0) {
+                mesh.removeFromParent();
+            } else {
+                mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+            }
+        } else {
+            const currentSlotMesh = truck.resources!.root.children[currentSlot];
+            currentSlotMesh.removeFromParent();
+            const newSlotMesh = truck.resources!.root.children[newSlot];
+            newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+        }
+        truck.resources!.amount = newAmount;
+    }
 }
 

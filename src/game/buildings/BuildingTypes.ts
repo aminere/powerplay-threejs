@@ -8,7 +8,8 @@ export const BuildingTypes = [
     "mine",
     "factory",
     "assembly",
-    "incubator"
+    "incubator",
+    "depot"
 ] as const;
 
 export type BuildingType = typeof BuildingTypes[number];
@@ -44,7 +45,12 @@ export interface IMineState {
     timer: number;
 }
 
-export type TBuildingState = IFactoryState | IAssemblyState | IMineState;
+export interface IDepotState {
+    type: RawResourceType | ResourceType;
+    amount: number;
+}
+
+export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState;
 
 export interface IBuildingInstance {
     id: string;
@@ -60,6 +66,7 @@ export const buildingSizes: Record<BuildingType, Vector3> = {
     "factory": new Vector3(4, 3, 4),
     "hq": new Vector3(10, 4, 5),    
     "assembly": new Vector3(6, 4, 5),
-    "incubator": new Vector3(1, 3, 1)
+    "incubator": new Vector3(1, 3, 1),
+    "depot": new Vector3(4, 1, 4)
 };
 

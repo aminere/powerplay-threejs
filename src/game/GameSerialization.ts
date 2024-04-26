@@ -6,7 +6,7 @@ import { RawResourceType, ResourceType, UnitType } from "./GameDefinitions";
 export interface ISerializedCell {
     index: number;
     roadTile?: number;
-    resource?: RawResourceType;
+    resource?: RawResourceType | "water";
     units?: UnitType[];
     conveyor?: IConveyorConfig;
 }
@@ -31,7 +31,11 @@ export interface ISerializedFactory extends ISerializedBuilding {
     output: ResourceType;
 }
 
-export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory;
+export interface ISerializedDepot extends ISerializedBuilding {
+    type: RawResourceType | ResourceType;
+}
+
+export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory | ISerializedDepot;
 
 export interface ISerializedRail {
     config: IRailConfig;
