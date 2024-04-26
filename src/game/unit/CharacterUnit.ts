@@ -166,7 +166,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
         const miningState = this.fsm.getState(MiningState)!;
         if (miningState) {
-            miningState.onReachedFactory(this);
+            miningState.onReachedBuilding(this);
         } else {
             if (cell.pickableResource) {
                 if (cell.pickableResource.type === this.resource?.type) {

@@ -5,7 +5,7 @@ import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
 import { computeUnitAddr, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
 import { unitMotion } from "../UnitMotion";
-import { IBuildingInstance, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState, buildingSizes } from "../../buildings/BuildingTypes";
 import { GameMapState } from "../../components/GameMapState";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
 import { ICharacterUnit } from "../CharacterUnit";
@@ -15,25 +15,38 @@ import { Workers } from "../Workers";
 enum MiningStep {
     GoToResource,
     Mine,
-    GoToFactory,
+    GoToFactoryOrDepot,
 }
 
 const cellCoords = new Vector2();
 
-function findClosestFactory(unit: IUnit, resourceType: RawResourceType | ResourceType) {
+function findClosestFactoryOrDepot(unit: IUnit, resourceType: RawResourceType | ResourceType) {
     // TODO search in a spiral pattern across sectors
     // requires that buildings are stored in sectors instead of a global map
     const { buildings } = GameMapState.instance;
     let distToClosest = 999999;
-    let closestFactory: IBuildingInstance | null = null;
-    const size = buildingSizes.factory;
-    for (const [, instance] of buildings) {
-        if (instance.buildingType !== "factory") {
-            continue;
-        }
+    let closest: IBuildingInstance | null = null;
+    const size = buildingSizes.factory;    
 
-        const otherState = instance.state as IFactoryState;
-        if (otherState.input !== resourceType) {
+    for (const [, instance] of buildings) {
+
+        const canAcceptResource = (() => {
+            switch (instance.buildingType) {
+                case "depot": {
+                    const otherState = instance.state as IDepotState;
+                    return otherState.type === resourceType;
+                }
+
+                case "factory": {
+                    const otherState = instance.state as IFactoryState;
+                    return otherState.input === resourceType;
+                }
+
+                default: return false;
+            }
+        })();
+
+        if (!canAcceptResource) {
             continue;
         }
 
@@ -41,10 +54,10 @@ function findClosestFactory(unit: IUnit, resourceType: RawResourceType | Resourc
         const dist = cellCoords.distanceTo(unit.coords.mapCoords);
         if (dist < distToClosest) {
             distToClosest = dist;
-            closestFactory = instance;
+            closest = instance;
         }
     }
-    return closestFactory;
+    return closest;
 }
 
 export class MiningState extends State<ICharacterUnit> {
@@ -52,7 +65,7 @@ export class MiningState extends State<ICharacterUnit> {
     private _step!: MiningStep;
     private _miningTimer!: number;
     private _targetResource = makeUnitAddr();
-    private _closestFactory: IBuildingInstance | null = null;
+    private _closestTarget: IBuildingInstance | null = null;
 
     override enter(unit: IUnit) {
         console.log(`MiningState enter`);
@@ -66,12 +79,12 @@ export class MiningState extends State<ICharacterUnit> {
         unit.isIdle = true;
     }
 
-    private goToFactory(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
-        const factory = findClosestFactory(unit, resourceType);
-        this._closestFactory = factory;
-        if (this._closestFactory) {
+    private goToFactoryOrDepot(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
+        const target = findClosestFactoryOrDepot(unit, resourceType);
+        this._closestTarget = target;
+        if (this._closestTarget) {
             const size = buildingSizes.factory;
-            const coords = this._closestFactory.mapCoords;
+            const coords = this._closestTarget.mapCoords;
             const center = cellCoords.set(Math.round(coords.x + (size.x - 1) / 2), Math.round(coords.y + (size.z - 1) / 2));
             const isMining = unit.animation.name === "pick";
             if (isMining) {
@@ -80,7 +93,7 @@ export class MiningState extends State<ICharacterUnit> {
             } else {
                 unitMotion.moveUnit(unit, center);
             }            
-            this._step = MiningStep.GoToFactory;
+            this._step = MiningStep.GoToFactoryOrDepot;
         } else {
             this.stopMining(unit);
         }
@@ -89,14 +102,21 @@ export class MiningState extends State<ICharacterUnit> {
     override update(unit: ICharacterUnit): void {
         switch (this._step) {            
 
-            case MiningStep.GoToFactory: {
-
-                if (this._closestFactory!.deleted) {
-
-                    const factoryState = this._closestFactory!.state as IFactoryState;
-                    const resourceType = factoryState.input as RawResourceType;
-                    this.goToFactory(unit, resourceType);
-                    this._closestFactory = null;
+            case MiningStep.GoToFactoryOrDepot: {
+                if (this._closestTarget!.deleted) {
+                    switch (this._closestTarget!.buildingType) {
+                        case "factory": {
+                            const factoryState = this._closestTarget!.state as IFactoryState;
+                            this.goToFactoryOrDepot(unit, factoryState.input);
+                        }
+                        break;
+                        case "depot": {
+                            const depotState = this._closestTarget!.state as IDepotState;
+                            this.goToFactoryOrDepot(unit, depotState.type);
+                        }
+                        break;
+                    }                    
+                    this._closestTarget = null;
                 }
             }
                 break;
@@ -112,7 +132,7 @@ export class MiningState extends State<ICharacterUnit> {
                             cell.resource = undefined;
                         }
                         Workers.pickResource(unit, resourceType);
-                        this.goToFactory(unit, resourceType);
+                        this.goToFactoryOrDepot(unit, resourceType);
                         unit.collidable = true;
                     } else {
                         // depleted resource
@@ -134,7 +154,7 @@ export class MiningState extends State<ICharacterUnit> {
 
         if (unit.resource) {
             if (unit.resource.type === cell.resource!.type) {
-                this.goToFactory(unit, unit.resource.type);
+                this.goToFactoryOrDepot(unit, unit.resource.type);
             } else {
                 unit.resource = null;
                 this.startMining(unit);
@@ -144,12 +164,12 @@ export class MiningState extends State<ICharacterUnit> {
         }
     }
 
-    public onReachedFactory(unit: ICharacterUnit) {
-        console.assert(this._step === MiningStep.GoToFactory);
+    public onReachedBuilding(unit: ICharacterUnit) {
+        console.assert(this._step === MiningStep.GoToFactoryOrDepot);
         this._step = MiningStep.GoToResource;
         unitMotion.moveUnit(unit, this._targetResource.mapCoords);
 
-        // avoid traffic jams at the factory
+        // avoid traffic jams at the target building
         unit.collidable = false;
         setTimeout(() => { unit.collidable = true }, 300);
     }

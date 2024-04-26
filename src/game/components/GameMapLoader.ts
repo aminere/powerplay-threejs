@@ -2,7 +2,7 @@
 import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { ISerializedDepot, ISerializedFactory, ISerializedGameMap } from "../GameSerialization";
+import { ISerializedDepot, ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
@@ -35,6 +35,7 @@ import { Mines } from "../buildings/Mines";
 import { Factories } from "../buildings/Factories";
 import { Depots } from "../buildings/Depots";
 import { Workers } from "../unit/Workers";
+import { BuildingType } from "../buildings/BuildingTypes";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -77,6 +78,13 @@ async function preloadAnimations() {
     root().add(anims);
 }
 
+function createBuildings(instances: TSerializedBuilding[], creator: (sectorCoords: Vector2, localCoords: Vector2, instance?: TSerializedBuilding) => void) {
+    for (const instance of instances) {
+        GameUtils.getCell(instance.mapCoords, sectorCoords, localCoords);
+        creator(sectorCoords, localCoords, instance);
+    }
+}
+
 export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
     constructor(props?: Partial<GameMapLoaderProps>) {
         super(new GameMapLoaderProps(props));
@@ -96,13 +104,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 .then(() => {
                     trees.init(sectorRes);
                     this.init(sectorRes, owner)
-                });               
+                });
         }
     }
 
     private async load(owner: Object3D) {
 
-        const data = await loadData(this.props.path, this.props.fromLocalStorage);        
+        const data = await loadData(this.props.path, this.props.fromLocalStorage);
 
         await this.preload();
 
@@ -115,7 +123,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             if (x < 0 || y < 0) {
                 continue;
             }
-            
+
             sectorCoords.set(x, y);
 
             const sectorInstance = (() => {
@@ -166,36 +174,42 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         }
 
         for (const [buildingType, instances] of Object.entries(data.buildings)) {
-            for (const instance of instances) {
-                GameUtils.getCell(instance.mapCoords, sectorCoords, localCoords);
-                switch (buildingType) {
-                    case "mine": {
-                        Mines.create(sectorCoords, localCoords);
-                    }
-                        break;
+            switch (buildingType) {
+                case "mine": {
+                    createBuildings(instances, (sectorCoords, localCoords) => Mines.create(sectorCoords, localCoords));
+                } break;
 
-                    case "factory": {
+                case "factory": {
+                    createBuildings(instances, (sectorCoords, localCoords, instance) => {
                         const factory = instance as ISerializedFactory;
                         Factories.create(sectorCoords, localCoords, factory.input, factory.output);
-                    }
-                        break;
-
-                    case "depot": {
-                        const depot = instance as ISerializedDepot; 
-                        Depots.create(sectorCoords, localCoords, depot.type);
-                    }                        
+                    });
                 }
+                    break;
+
+                case "depot":
+                    createBuildings(instances, (sectorCoords, localCoords, instance) => {
+                        const depot = instance as ISerializedDepot;
+                        Depots.create(sectorCoords, localCoords, depot.type);
+                    });
+                    break;
+
+                default: {
+                    createBuildings(instances, (sectorCoords, localCoords) => {
+                        buildings.create(buildingType as BuildingType, sectorCoords, localCoords)
+                    });
+                }                    
             }
         }
 
         // load rails
         const railCells: ICell[] = [];
-        for (const rail of data.rails) {               
+        for (const rail of data.rails) {
             const startCoords = new Vector2(rail.startCoords.x, rail.startCoords.y);
             const endCoords = rail.endCoords ? new Vector2(rail.endCoords.x, rail.endCoords.y) : undefined;
             const startCell = Rails.create(
-                rail.config, 
-                startCoords, 
+                rail.config,
+                startCoords,
                 rail.startAxis,
                 endCoords,
                 rail.endAxis
@@ -219,7 +233,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await unitsManager.preload();
         await meshes.load(`/models/resources/wood.glb`);
         await meshes.load(`/models/resources/water.glb`);
-    }   
+    }
 
     private init(size: number, owner: Object3D) {
         this.state.sectorRes = size;
@@ -275,7 +289,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         this.state.dispose();
         GameUtils.clearCellCache();
-    }    
+    }
 
     private onKeyDown(e: KeyboardEvent) {
         const key = e.key.toLowerCase();

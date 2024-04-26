@@ -105,14 +105,14 @@ class Buildings {
         const instanceId = `${this._instanceId}`;
         this._instanceId++;
 
-        const { prefab, boundingBox } = this._buildings.get(buildingType)!;
-        const visual = prefab.clone();
+        const instance = this._buildings.get(buildingType)!;
+        const visual = instance.prefab.clone();
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
-
-        const box3Helper = new Box3Helper(boundingBox);
-        visual.add(box3Helper);
-        box3Helper.visible = false;
+        
+        // const box3Helper = new Box3Helper(instance.boundingBox);
+        // visual.add(box3Helper);
+        // box3Helper.visible = false;
 
         const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
         const buildingInstance: IBuildingInstance = {

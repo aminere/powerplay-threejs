@@ -1,4 +1,4 @@
-import { MathUtils, Vector2 } from "three";
+import { MathUtils, Vector2, Vector3 } from "three";
 import { ITruckUnit } from "./TruckUnit";
 import { GameUtils } from "../GameUtils";
 import { meshes } from "../../engine/resources/Meshes";
@@ -9,14 +9,13 @@ import { conveyorItems } from "../ConveyorItems";
 const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const neighborCoords = new Vector2();
 
-const slotCount = 3;
-const resourcesPerSlot = 5;
-const maxResources = slotCount * resourcesPerSlot;
-
-const slotStartZ = -.7;
-const slotSpacing = .35;
-const slotY = .36;
-const slotScaleRange = [.3, .6];
+const trucksConfig = {
+    slotCount: 3,
+    resourcesPerSlot: 5,
+    slotStart: new Vector3(0, .36, -.7),    
+    slotSpacing: .35,    
+    slotScaleRange: [.3, .6]
+};
 
 function removeConveyorItem(conveyor: IConveyor, index: number) {
     const item = conveyor.items[index];
@@ -30,7 +29,8 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
 
     const canPick = (() => {
         if (truck.resources?.type === conveyorResource) {
-            return truck.resources!.amount < maxResources;
+            const capacity = trucksConfig.slotCount * trucksConfig.resourcesPerSlot;
+            return truck.resources!.amount < capacity;
         } else {
             return true;
         }
@@ -55,10 +55,11 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
         }
     }
 
+    const { resourcesPerSlot, slotScaleRange, slotSpacing, slotStart: slotsStart } = trucksConfig;
     const oldAmount = truck.resources.amount;
     const newAmount = oldAmount + 1;
-    const currentSlot = oldAmount > 0 ? Math.floor(oldAmount / resourcesPerSlot) : -1;
-    const newSlot = Math.floor(newAmount / resourcesPerSlot);
+    const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
+    const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
     const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
     if (currentSlot === newSlot) {
         const mesh = truck.resources.root.children[currentSlot];
@@ -67,7 +68,7 @@ function tryPickResource(truck: ITruckUnit, conveyor: IConveyor) {
         console.assert(truck.resources.root.children.length === currentSlot + 1);
         const [_mesh] = meshes.loadImmediate(`/models/resources/${conveyorResource}.glb`);
         const mesh = _mesh.clone();
-        mesh.position.set(0, slotY, slotStartZ + newSlot * slotSpacing);
+        mesh.position.set(0, slotsStart.y, slotsStart.z + newSlot * slotSpacing);
         mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
         truck.resources!.root.add(mesh);
     }
@@ -102,6 +103,7 @@ export class Trucks {
     public static removeResource(truck: ITruckUnit) {
         const oldAmount = truck.resources!.amount;
         const newAmount = oldAmount - 1;
+        const { resourcesPerSlot, slotScaleRange } = trucksConfig;
         const currentSlot = Math.floor(oldAmount / resourcesPerSlot);
         const newSlot = Math.floor(newAmount / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;

@@ -359,7 +359,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
             switch (buildingType) {
                 case "factory": Factories.create(sectorCoords, localCoords, props.factoryInput, props.factoryOutput); break;
                 case "mine": Mines.create(sectorCoords, localCoords); break;
-                case "depot": Depots.create(sectorCoords, localCoords, props.depotType); break;                
+                case "depot": Depots.create(sectorCoords, localCoords, props.depotType); break;
+                default: buildings.create(buildingType, sectorCoords, localCoords);           
             }
         }
 
