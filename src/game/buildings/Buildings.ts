@@ -8,34 +8,12 @@ import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
+import { Depots } from "./Depots";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
-
-// function onProductionDone(outputCellAddr: IUnitAddr, resource: ResourceType | MineralType) {
-//     const outputCell = getCellFromAddr(outputCellAddr);
-//     if (!tryFillAdjacentConveyors(outputCell, outputCellAddr.mapCoords, resource)) {
-//         const { sector, localCoords } = outputCellAddr;
-//         const visual = utils.createObject(sector.layers.resources, resource);
-//         visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-
-//         resources.loadModel(resource).then(_mesh => {
-//             const mesh = _mesh.clone();
-//             visual.add(mesh);
-//             mesh.scale.multiplyScalar(itemScale);
-//             mesh.position.y = 0.1;
-//             mesh.castShadow = true;
-//         });
-
-//         console.assert(!outputCell.pickableResource);
-//         outputCell.pickableResource = {
-//             type: resource,
-//             visual
-//         };
-//     }
-// }
 
 class Buildings {
 
@@ -188,6 +166,7 @@ class Buildings {
             switch (instance.buildingType) {
                 case "mine": Mines.update(instance); break;
                 case "factory": Factories.update(instance); break;
+                case "depot": Depots.update(instance); break;
             }
         }
     }

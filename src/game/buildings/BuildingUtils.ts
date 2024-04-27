@@ -18,7 +18,7 @@ const { itemScale } = config.conveyors;
 
 export class BuildingUtils {
 
-    public static tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number) {
+    public static tryGetFromAdjacentCell(type: ResourceType | RawResourceType, mapCoords: Vector2, dx: number, dy: number, axis: "x" | "z") {
         cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
         const cell = GameUtils.getCell(cellCoords);
         if (!cell) {
@@ -27,20 +27,46 @@ export class BuildingUtils {
 
         const conveyor = cell?.conveyor;
         if (conveyor) {
-            let itemToGet = -1;
-            for (let i = 0; i < conveyor.items.length; i++) {
-                const item = conveyor.items[i];
-                if (item.type === type) {
-                    itemToGet = i;
-                    break;
+
+            const validInput = (() => {
+                const { startAxis, direction } = conveyor.config;
+                if (axis === "z") {
+                    if (startAxis === "x") {
+                        if (dx < 0) {
+                            return direction.x === 1;
+                        } else {
+                            return direction.x === -1;
+                        }
+                    }
+                } else {
+                    if (startAxis === "z") {
+                        if (dy < 0) {
+                            return direction.y === 1;
+                        } else {
+                            return direction.y === -1;
+                        }
+                    }
+                }
+                return false;
+            })();
+
+            if (validInput) {
+                let itemToGet = -1;
+                for (let i = 0; i < conveyor.items.length; i++) {
+                    const item = conveyor.items[i];
+                    if (item.type === type) {
+                        itemToGet = i;
+                        break;
+                    }
+                }
+                if (itemToGet >= 0) {
+                    const item = conveyor.items[itemToGet];
+                    utils.fastDelete(conveyor.items, itemToGet);
+                    conveyorItems.removeItem(item);
+                    return true;
                 }
             }
-            if (itemToGet >= 0) {
-                const item = conveyor.items[itemToGet];
-                utils.fastDelete(conveyor.items, itemToGet);
-                conveyorItems.removeItem(item);
-                return true;
-            }
+            
         } else if (cell.units) {
             const truck = cell.units.find(unit => unit.type === "truck") as ITruckUnit;
             if (truck) {
@@ -57,28 +83,25 @@ export class BuildingUtils {
         return false;
     }
 
-    public static tryFillAdjacentConveyors(cell: ICell, mapCoords: Vector2, resourceType: RawResourceType | ResourceType) {
-        const tryFillConveyor = (neighbor: ICell | null) => {
-            const conveyor = neighbor?.conveyor;
-            if (conveyor) {
-                const added = conveyorItems.addItem(neighbor, cellCoords, resourceType);
-                if (added) {
-                    cell.pickableResource?.visual.removeFromParent();
-                    cell.pickableResource = undefined;
-                    return true;
-                }
+    public static tryGetFromAdjacentCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+        const size = buildingSizes[instance.buildingType];
+        for (let x = 0; x < size.x; ++x) {
+            if (BuildingUtils.tryGetFromAdjacentCell(type, instance.mapCoords, x, -1, "x")) {
+                return true;
             }
-            return false;
+            if (BuildingUtils.tryGetFromAdjacentCell(type, instance.mapCoords, x, size.z, "x")) {
+                return true;
+            }
         }
-
-        cellCoords.set(mapCoords.x + 1, mapCoords.y);
-        const neighbor1 = GameUtils.getCell(cellCoords);
-        if (tryFillConveyor(neighbor1)) {
-            return true;
+        for (let z = 0; z < size.z; ++z) {
+            if (BuildingUtils.tryGetFromAdjacentCell(type, instance.mapCoords, -1, z, "z")) {
+                return true;
+            }
+            if (BuildingUtils.tryGetFromAdjacentCell(type, instance.mapCoords, size.x, z, "z")) {
+               return true;
+            }
         }
-        cellCoords.set(mapCoords.x, mapCoords.y + 1);
-        const neighbor2 = GameUtils.getCell(cellCoords);
-        return tryFillConveyor(neighbor2);
+        return false;
     }
 
     public static tryFillOutputConveyors(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
@@ -90,8 +113,8 @@ export class BuildingUtils {
                 cellCoords.set(startX + i * sx, startY + i * sy);
                 const cell = GameUtils.getCell(cellCoords);
                 if (cell?.conveyor) {
-                    const { startAxis, direction } = cell.conveyor.config;
                     const validOutput = (() => {
+                        const { startAxis, direction } = cell.conveyor.config;
                         if (sx === 0) {
                             if (startAxis === "x") {
                                 if (startX < mapCoords.x) {

@@ -3,6 +3,8 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { IBuildingInstance, IDepotState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
+import { BuildingUtils } from "./BuildingUtils";
+import { time } from "../../engine/core/Time";
 
 const depotsConfig = {
     slotCount: 9,
@@ -10,13 +12,18 @@ const depotsConfig = {
     resourcesPerSlot: 3,
     slotStart: new Vector3(1.23, 0.43, 1.19),
     slotSize: .83,
-    slotScaleRange: [.8, 1.3]
+    slotScaleRange: [.8, 1.3],
+    inputAccepFrequency: 1
 };
 
 export class Depots {
     public static create(sectorCoords: Vector2, localCoords: Vector2, type: RawResourceType | ResourceType) {
         const instance = buildings.create("depot", sectorCoords, localCoords);
-        const depotState: IDepotState = { type, amount: 0 };
+        const depotState: IDepotState = { 
+            type, 
+            amount: 0,
+            inputTimer: -1
+     };
         instance.state = depotState;
     }
 
@@ -84,6 +91,30 @@ export class Depots {
             newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
         }
         state.amount = newAmount;
+    }
+
+    public static update(instance: IBuildingInstance) {
+        const state = instance.state as IDepotState;
+        if (state.amount === 0) {
+            return;
+        }
+
+        if (BuildingUtils.tryFillOutputConveyors(instance, state.type)) {
+            Depots.removeResource(instance);
+        }
+
+        if (state.inputTimer < 0) {
+            const { resourcesPerSlot, slotCount } = depotsConfig;
+            const capacity = slotCount * resourcesPerSlot;
+            if (state.amount < capacity) {
+                if (BuildingUtils.tryGetFromAdjacentCells(instance, state.type)) {
+                    Depots.tryDepositResource(instance, state.type);
+                    state.inputTimer = depotsConfig.inputAccepFrequency;
+                }
+            }
+        } else {
+            state.inputTimer -= time.deltaTime;
+        }
     }
 }
 

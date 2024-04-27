@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import { IBuildingInstance, IFactoryState, buildingSizes } from "./BuildingTypes";
+import { IBuildingInstance, IFactoryState } from "./BuildingTypes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
@@ -7,6 +7,7 @@ import { BuildingUtils } from "./BuildingUtils";
 
 const productionTime = 2;
 const inputCapacity = 5;
+const inputAccepFrequency = 1;
 
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, input: RawResourceType | ResourceType, output: ResourceType) {
@@ -17,7 +18,6 @@ export class Factories {
             output,
             active: false,
             inputReserve: 0,
-            inputAccepFrequency: 1,
             inputTimer: -1,
             timer: 0,
             outputFull: false,
@@ -72,38 +72,11 @@ export class Factories {
             }
         }
 
-        // check nearby conveyors for input
         if (state.inputTimer < 0) {
             if (state.inputReserve < inputCapacity) {
-                const size = buildingSizes.factory;
-                let inputAccepted = false;
-                for (let x = 0; x < size.x; ++x) {
-                    if (BuildingUtils.tryGetFromAdjacentCell(state.input, instance.mapCoords, x, -1)) {
-                        state.inputReserve++;
-                        state.inputTimer = state.inputAccepFrequency;
-                        inputAccepted = true;
-                        break;
-                    }
-                    if (BuildingUtils.tryGetFromAdjacentCell(state.input, instance.mapCoords, x, size.z)) {
-                        state.inputReserve++;
-                        state.inputTimer = state.inputAccepFrequency;
-                        inputAccepted = true;
-                        break;
-                    }
-                }
-                if (!inputAccepted) {
-                    for (let z = 0; z < size.z; ++z) {
-                        if (BuildingUtils.tryGetFromAdjacentCell(state.input, instance.mapCoords, -1, z)) {
-                            state.inputReserve++;
-                            state.inputTimer = state.inputAccepFrequency;
-                            break;
-                        }
-                        if (BuildingUtils.tryGetFromAdjacentCell(state.input, instance.mapCoords, size.x, z)) {
-                            state.inputReserve++;
-                            state.inputTimer = state.inputAccepFrequency;
-                            break;
-                        }
-                    }
+                if (BuildingUtils.tryGetFromAdjacentCells(instance, state.input)) {
+                    state.inputReserve++;
+                    state.inputTimer = inputAccepFrequency;
                 }
             }
 
