@@ -42,6 +42,7 @@ export interface IResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
     producer: string;
+    minedCell?: ICell;
 }
 
 export interface IStraightRailConfig {

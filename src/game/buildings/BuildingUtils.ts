@@ -139,7 +139,7 @@ export class BuildingUtils {
         return false;
     }
 
-    public static tryFillOutputCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    public static tryFillOutputCells(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
         const { mapCoords } = instance;
         const size = buildingSizes[instance.buildingType];
 
@@ -160,18 +160,18 @@ export class BuildingUtils {
                 mesh.castShadow = true;
             });
 
-            cell.pickableResource = { type, visual, producer: instance.id };
+            cell.pickableResource = { type, visual, producer: instance.id, minedCell };
             return true;
         }
         return false;
     }
 
-    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
         if (BuildingUtils.tryFillOutputConveyors(instance, type)) {
             return true;
         }
 
-        return BuildingUtils.tryFillOutputCells(instance, type);
+        return BuildingUtils.tryFillOutputCells(instance, type, minedCell);
     }
 }
 

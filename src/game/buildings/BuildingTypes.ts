@@ -1,6 +1,7 @@
 
 import { Object3D, Vector2, Vector3 } from "three";
 import { ResourceType, RawResourceType, ProductType } from "../GameDefinitions";
+import { ICell } from "../GameTypes";
 
 export const BuildingTypes = [
     "hq",
@@ -13,11 +14,6 @@ export const BuildingTypes = [
 
 export type BuildingType = typeof BuildingTypes[number];
 
-export enum FactoryState {
-    idle,
-    processing
-}
-
 export interface IFactoryState {
     input: RawResourceType | ResourceType;
     output: ResourceType;
@@ -25,8 +21,11 @@ export interface IFactoryState {
     inputReserve: number;
     inputAccepFrequency: number;
     inputTimer: number;
-    state: FactoryState;
+    active: boolean;
     timer: number;
+
+    outputFull: boolean;
+    outputCheckTimer: number;
 }
 
 export interface IAssemblyState {
@@ -42,7 +41,7 @@ export interface IMineState {
     timer: number;
     outputConveyorIndex: number;
     outputFull: boolean;
-    outputType?: RawResourceType;
+    minedCell?: ICell;
     outputCheckTimer: number;
 }
 

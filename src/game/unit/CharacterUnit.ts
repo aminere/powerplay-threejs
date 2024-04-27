@@ -20,6 +20,7 @@ import { getCellFromAddr } from "./UnitAddr";
 import { UnitUtils } from "./UnitUtils";
 import { Workers } from "./Workers";
 import { Depots } from "../buildings/Depots";
+import { Factories } from "../buildings/Factories";
 
 interface IUnitAnim {
     name: string;
@@ -149,8 +150,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 case "factory": {
                     const state = buildingInstance.state as IFactoryState;
                     if (state.input === this.resource.type) {
-                        state.inputReserve++;
-                        this.resource = null;
+                        if (Factories.tryDepositResource(buildingInstance)) {
+                            this.resource = null;
+                        }
                     }
                 }
                     break;

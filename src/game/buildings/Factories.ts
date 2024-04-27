@@ -1,9 +1,12 @@
 import { Vector2 } from "three";
-import { FactoryState, IBuildingInstance, IFactoryState, buildingSizes } from "./BuildingTypes";
+import { IBuildingInstance, IFactoryState, buildingSizes } from "./BuildingTypes";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
+
+const productionTime = 2;
+const inputCapacity = 5;
 
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, input: RawResourceType | ResourceType, output: ResourceType) {
@@ -12,11 +15,13 @@ export class Factories {
         const factoryState: IFactoryState = {
             input,
             output,
-            state: FactoryState.idle,
+            active: false,
             inputReserve: 0,
             inputAccepFrequency: 1,
             inputTimer: -1,
-            timer: 0
+            timer: 0,
+            outputFull: false,
+            outputCheckTimer: -1
         };
 
         instance.state = factoryState;
@@ -24,38 +29,52 @@ export class Factories {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IFactoryState;
+        if (!state.active) {
 
-        switch (state.state) {
-            case FactoryState.idle: {
-                const outputFull = false; // TODO
-                if (outputFull) {
-                    // output full, can't process
-                } else {
-                    if (state.inputReserve > 0) {
-                        state.inputReserve--;
-                        state.state = FactoryState.processing;
-                        state.timer = 0;
+            if (state.outputFull) {
+                if (state.outputCheckTimer < 0) {
+                    if (BuildingUtils.tryFillOutputConveyors(instance, state.output)) {
+                        Factories.consumeResource(state);
+                        state.outputFull = false;
+
+                    } else {
+                        state.outputCheckTimer = 1;
                     }
+                } else {
+                    state.outputCheckTimer -= time.deltaTime;
+                }
+            } else {
+                if (state.inputReserve > 0) {
+                    state.active = true;
+                    state.timer = 0;    
                 }
             }
-                break;
 
-            case FactoryState.processing: {
-                const productionTime = 2;
-                if (state.timer >= productionTime) {
-                    state.state = FactoryState.idle;
-                    BuildingUtils.produceResource(instance, state.output);
+        } else {
+
+            if (state.timer >= productionTime) {
+                if (BuildingUtils.produceResource(instance, state.output)) {
+                    Factories.consumeResource(state);
+
+                    if (state.inputReserve > 0) {
+                        state.timer = 0;
+                    } else {
+                        state.active = false;
+                    }
 
                 } else {
-                    state.timer += time.deltaTime;
+                    state.active = false;
+                    state.outputFull = true;
+                    state.outputCheckTimer = 1;
                 }
+            } else {
+                state.timer += time.deltaTime;
             }
-                break;
         }
 
         // check nearby conveyors for input
         if (state.inputTimer < 0) {
-            if (state.inputReserve < 5) {
+            if (state.inputReserve < inputCapacity) {
                 const size = buildingSizes.factory;
                 let inputAccepted = false;
                 for (let x = 0; x < size.x; ++x) {
@@ -91,11 +110,25 @@ export class Factories {
         } else {
             state.inputTimer -= time.deltaTime;
         }
+    }
 
-        // TODO
-        // if (outputCell.pickableResource) {
-        //     BuildingUtils.tryFillAdjacentConveyors(outputCell, state.outputCell.mapCoords, outputCell.pickableResource.type);
-        // }
+    public static tryDepositResource(instance: IBuildingInstance) {
+        const state = instance.state as IFactoryState;
+        if (state.inputReserve < inputCapacity) {
+            state.inputReserve++;
+            return true;
+        }
+        return false;
+    }
+
+    public static onResourcePicked(instance: IBuildingInstance) {
+        const state = instance.state as IFactoryState;
+        Factories.consumeResource(state);
+        state.outputFull = false;
+    }
+
+    public static consumeResource(state: IFactoryState) {
+        state.inputReserve--;
     }
 }
 

@@ -6,6 +6,7 @@ import { IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
 import { BuildingUtils } from "./BuildingUtils";
 import { buildings } from "./Buildings";
 import { MineralType } from "../GameDefinitions";
+import { ICell } from "../GameTypes";
 
 const cellCoords = new Vector2();
 const miningFrequency = 2;
@@ -53,12 +54,11 @@ export class Mines {
 
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
-                    console.assert(state.outputType !== undefined);
-                    if (BuildingUtils.tryFillOutputConveyors(instance, state.outputType as MineralType)) {
+                    console.assert(state.minedCell !== undefined);
+                    const resourceType = state.minedCell!.resource!.type;
+                    if (BuildingUtils.tryFillOutputConveyors(instance, resourceType as MineralType)) {
+                        Mines.consumeResource(state, state.minedCell!);
                         state.outputFull = false;
-                        state.outputType = undefined;
-                        state.active = true;
-                        state.timer = 0;
                     } else {
                         state.outputCheckTimer = 1;
                     }
@@ -66,7 +66,7 @@ export class Mines {
                     state.outputCheckTimer -= time.deltaTime;
                 }
             } else {
-                state.outputType = undefined;
+                state.minedCell = undefined;
                 state.active = true;
                 state.timer = 0;
             }
@@ -74,32 +74,40 @@ export class Mines {
         } else {
 
             if (state.timer >= miningFrequency) {
-                const cell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
-                const resource = cell.resource!;
-
-                if (BuildingUtils.produceResource(instance, resource.type as MineralType)) {
-                    resource.amount -= 1;
-                    if (resource.amount === 0) {
-                        cell.resource = undefined;
-                        utils.fastDelete(state.resourceCells, state.currentResourceCell);
-                        if (state.currentResourceCell < state.resourceCells.length - 1) {
-                            state.currentResourceCell++;
-                        } else {
-                            console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
-                            state.depleted = true;
-                        }
-                    }
+                const minedCell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
+                if (BuildingUtils.produceResource(instance, minedCell.resource!.type as MineralType, minedCell)) {
+                    Mines.consumeResource(state, minedCell);
                     state.timer = 0;
 
                 } else {
                     state.active = false;
                     state.outputFull = true;
-                    state.outputType = resource.type as MineralType;
+                    state.minedCell = minedCell;
                     state.outputCheckTimer = 1;
                 }
 
             } else {
                 state.timer += time.deltaTime;
+            }
+        }
+    }
+
+    public static onResourcePicked(instance: IBuildingInstance, minedCell: ICell) {
+        const state = instance.state as IMineState;
+        Mines.consumeResource(state, minedCell);
+        state.outputFull = false;
+    }
+
+    public static consumeResource(state: IMineState, cell: ICell) {
+        const resource = cell.resource!;
+        resource.amount -= 1;
+        if (resource.amount === 0) {
+            cell.resource = undefined;
+            utils.fastDelete(state.resourceCells, state.currentResourceCell);
+            if (state.currentResourceCell < state.resourceCells.length - 1) {
+                state.currentResourceCell++;
+            } else {
+                state.depleted = true;
             }
         }
     }

@@ -19,7 +19,8 @@ import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
 import { Workers } from "./Workers";
-import { IMineState } from "../buildings/BuildingTypes";
+import { Mines } from "../buildings/Mines";
+import { Factories } from "../buildings/Factories";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -512,11 +513,8 @@ export class UnitMotion {
                                             Workers.pickResource(unit as ICharacterUnit, nextCell.pickableResource.type);
                                             const building = GameMapState.instance.buildings.get(nextCell.pickableResource.producer)!;
                                             switch (building.buildingType) {
-                                                case "mine": {
-                                                    const state = building.state as IMineState;
-                                                    state.outputFull = false;
-                                                }
-                                                    break;
+                                                case "mine": Mines.onResourcePicked(building, nextCell.pickableResource.minedCell!); break;
+                                                case "factory": Factories.onResourcePicked(building); break;
                                             }
                                             nextCell.pickableResource = undefined;
                                         }
