@@ -42,6 +42,8 @@ export interface IMineState {
     timer: number;
     outputConveyorIndex: number;
     outputFull: boolean;
+    outputType?: RawResourceType;
+    outputCheckTimer: number;
 }
 
 export interface IDepotState {

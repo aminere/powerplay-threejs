@@ -41,6 +41,7 @@ export interface IRawResource {
 export interface IResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
+    producer: string;
 }
 
 export interface IStraightRailConfig {

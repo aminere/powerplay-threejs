@@ -7,8 +7,14 @@ import { ITruckUnit } from "../unit/TruckUnit";
 import { ICell } from "../GameTypes";
 import { Trucks } from "../unit/Trucks";
 import { IBuildingInstance, buildingSizes } from "./BuildingTypes";
+import { config } from "../config";
+import { resources } from "../Resources";
 
 const cellCoords = new Vector2();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
+const { cellSize } = config.game;
+const { itemScale } = config.conveyors;
 
 export class BuildingUtils {
 
@@ -75,13 +81,12 @@ export class BuildingUtils {
         return tryFillConveyor(neighbor2);
     }
 
-    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    public static tryFillOutputConveyors(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
 
         const { mapCoords } = instance;
 
-        // find conveyors
         const scan = (startX: number, startY: number, sx: number, sy: number, iterations: number) => {
-            for (let i = 0; i < iterations; ++i) {                
+            for (let i = 0; i < iterations; ++i) {
                 cellCoords.set(startX + i * sx, startY + i * sy);
                 const cell = GameUtils.getCell(cellCoords);
                 if (cell?.conveyor) {
@@ -106,18 +111,18 @@ export class BuildingUtils {
                         }
                         return false;
                     })();
-                    if (validOutput) {                       
+                    if (validOutput) {
                         const added = conveyorItems.addItem(cell, cellCoords, type);
                         if (added) {
                             return true;
                         }
-                    }                    
+                    }
                 }
             }
             return false;
         };
 
-        const size = buildingSizes[instance.buildingType];        
+        const size = buildingSizes[instance.buildingType];
         if (scan(mapCoords.x, mapCoords.y - 1, 1, 0, size.x)) {
             return true;
         }
@@ -131,15 +136,42 @@ export class BuildingUtils {
             return true;
         }
 
+        return false;
+    }
+
+    public static tryFillOutputCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+        const { mapCoords } = instance;
+        const size = buildingSizes[instance.buildingType];
+
         // find an empty output cell
-        const startX = Math.round(mapCoords.x + size.x / 2);
+        const startX = Math.floor(mapCoords.x + size.x / 2);
         const startY = mapCoords.y + size.z;
         cellCoords.set(startX, startY);
-        const cell = GameUtils.getCell(cellCoords);
+        const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
         if (cell?.isWalkable && !cell.pickableResource) {
-            
+            const sector = GameUtils.getSector(sectorCoords)!;
+            const visual = utils.createObject(sector.layers.resources, type);
+            visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+
+            resources.loadModel(type).then(mesh => {
+                visual.add(mesh);
+                mesh.scale.multiplyScalar(itemScale);
+                mesh.position.y = 0.1;
+                mesh.castShadow = true;
+            });
+
+            cell.pickableResource = { type, visual, producer: instance.id };
+            return true;
         }
         return false;
+    }
+
+    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+        if (BuildingUtils.tryFillOutputConveyors(instance, type)) {
+            return true;
+        }
+
+        return BuildingUtils.tryFillOutputCells(instance, type);
     }
 }
 

@@ -8,6 +8,7 @@ import { buildings } from "./Buildings";
 import { MineralType } from "../GameDefinitions";
 
 const cellCoords = new Vector2();
+const miningFrequency = 2;
 
 export class Mines {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -27,60 +28,74 @@ export class Mines {
             }
         }
 
-        const depleted = resourceCells.length === 0;
+        console.assert(resourceCells.length > 0);
         const mineState: IMineState = {
             resourceCells,
             currentResourceCell: 0,
-            active: !depleted,
-            depleted,
+            active: true,
+            depleted: false,
             timer: 0,
             outputConveyorIndex: -1,
-            outputFull: false
+            outputFull: false,
+            outputCheckTimer: -1
         };
 
         instance.state = mineState;
     }
 
     public static update(instance: IBuildingInstance) {
-        const miningFrequency = 2;
         const state = instance.state as IMineState;
         if (state.depleted) {
             return;
         }
 
         if (!state.active) {
-            
-            if (!state.outputFull) {
-                // start mining a new resource
+
+            if (state.outputFull) {
+                if (state.outputCheckTimer < 0) {
+                    console.assert(state.outputType !== undefined);
+                    if (BuildingUtils.tryFillOutputConveyors(instance, state.outputType as MineralType)) {
+                        state.outputFull = false;
+                        state.outputType = undefined;
+                        state.active = true;
+                        state.timer = 0;
+                    } else {
+                        state.outputCheckTimer = 1;
+                    }
+                } else {
+                    state.outputCheckTimer -= time.deltaTime;
+                }
+            } else {
+                state.outputType = undefined;
                 state.active = true;
                 state.timer = 0;
-            } else {
-
-                // TODO periodically (1s) check if there is space in the output
             }
-
+            
         } else {
 
             if (state.timer >= miningFrequency) {
                 const cell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
                 const resource = cell.resource!;
 
-                resource.amount -= 1;
-                if (resource.amount === 0) {
-                    cell.resource = undefined;
-                    utils.fastDelete(state.resourceCells, state.currentResourceCell);
-                    if (state.currentResourceCell < state.resourceCells.length - 1) {
-                        state.currentResourceCell++;
-                    } else {
-                        console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
-                        state.depleted = true;
+                if (BuildingUtils.produceResource(instance, resource.type as MineralType)) {
+                    resource.amount -= 1;
+                    if (resource.amount === 0) {
+                        cell.resource = undefined;
+                        utils.fastDelete(state.resourceCells, state.currentResourceCell);
+                        if (state.currentResourceCell < state.resourceCells.length - 1) {
+                            state.currentResourceCell++;
+                        } else {
+                            console.log(`${resource.type} mine depleted at ${instance.mapCoords.x}, ${instance.mapCoords.y}`);
+                            state.depleted = true;
+                        }
                     }
-                }
+                    state.timer = 0;
 
-                state.active = false;
-                if (!BuildingUtils.produceResource(instance, resource.type as MineralType)) {
+                } else {
+                    state.active = false;
                     state.outputFull = true;
-                    console.log("mine output full");
+                    state.outputType = resource.type as MineralType;
+                    state.outputCheckTimer = 1;
                 }
 
             } else {

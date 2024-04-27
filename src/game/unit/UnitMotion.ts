@@ -18,6 +18,8 @@ import { ICharacterUnit } from "./CharacterUnit";
 import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
+import { Workers } from "./Workers";
+import { IMineState } from "../buildings/BuildingTypes";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -501,13 +503,30 @@ export class UnitMotion {
                         if (npcState) {
                             npcState.onReachedTarget(unit as ICharacterUnit);
                         } else {
-                            const miningState = unit.fsm.getState(MiningState);
-                            if (miningState) {
-                                miningState.stopMining(unit as ICharacterUnit);
-                            } else {
-                                unit.arriving = true;
-                                unit.onArriving();
+
+                            if (nextCell.pickableResource) {
+                                switch (unit.type) {
+                                    case "worker": {
+                                        const worker = unit as ICharacterUnit;
+                                        if (nextCell.pickableResource.type !== worker.resource?.type) {
+                                            Workers.pickResource(unit as ICharacterUnit, nextCell.pickableResource.type);
+                                            const building = GameMapState.instance.buildings.get(nextCell.pickableResource.producer)!;
+                                            switch (building.buildingType) {
+                                                case "mine": {
+                                                    const state = building.state as IMineState;
+                                                    state.outputFull = false;
+                                                }
+                                                    break;
+                                            }
+                                            nextCell.pickableResource = undefined;
+                                        }
+                                    }
+                                        break;
+                                }
                             }
+
+                            unit.arriving = true;
+                            unit.onArriving();
                         }
                     }
                 }

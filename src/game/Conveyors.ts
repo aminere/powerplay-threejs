@@ -138,6 +138,11 @@ class Conveyors {
             this._straightCells.push(cell);
             cell.conveyor!.visual.instanceIndex = count;
         }        
+
+        if (cell.pickableResource) {
+            conveyorItems.addItem(cell, mapCoords, cell.pickableResource.type);
+            cell.pickableResource = undefined;
+        }
     }
 
     private setStraightTransform(position: Vector3, direction: Vector2, instanceIndex: number) {

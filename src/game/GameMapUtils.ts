@@ -310,10 +310,10 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
     if (button === 0) {
         const size = buildingSizes[buildingType];
 
-        // TODO is units under the structure, move them away
+        // TODO if units under the structure, move them away
         const allowed = (() => {
 
-            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits);
+            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits && !cell.pickableResource);
 
             const validateCells = (isValid: (cell: ICell | null) => boolean) => {
                 for (let i = 0; i < size.z; ++i) {

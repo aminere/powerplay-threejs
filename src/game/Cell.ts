@@ -1,5 +1,5 @@
 import { InstancedMesh } from "three";
-import { ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
+import { ICell, IConveyor, IRail, IRawResource, IResource } from "./GameTypes";
 import { trees } from "./Trees";
 import { IUnit } from "./unit/Unit";
 
@@ -86,6 +86,14 @@ export class Cell implements ICell {
         this._flowFieldCost = value ? 1 : 0xffff;
     }
 
+    public get pickableResource() { return this._pickableResource; }
+    public set pickableResource(value: IResource | undefined) {
+        if (this._pickableResource) {
+            this._pickableResource.visual.removeFromParent();
+        }
+        this._pickableResource = value;
+    }
+
     public get isEmpty() { return this._isEmpty; }    
     public get hasUnits() { return this._units !== undefined && this._units.length > 0; }
     public get flowFieldCost() { return this._flowFieldCost; }
@@ -99,5 +107,6 @@ export class Cell implements ICell {
     private _conveyor: IConveyor | undefined = undefined;
     private _roadTile: number | undefined = undefined;
     private _units: IUnit[] | undefined = undefined;
+    private _pickableResource: IResource | undefined = undefined;
 }
 
