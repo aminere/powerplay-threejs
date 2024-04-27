@@ -38,7 +38,12 @@ export interface IRawResource {
     amount: number;
 }
 
-export interface IResource {
+export interface ICarriedResource {
+    type: RawResourceType | ResourceType;    
+    visual: Object3D;
+}
+
+export interface IPickableResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
     producer: string;
@@ -89,7 +94,7 @@ export interface ICell {
     building?: string;    
     rail?: IRail;
     resource?: IRawResource;
-    pickableResource?: IResource;
+    pickableResource?: IPickableResource;
     
     units?: IUnit[];
 }

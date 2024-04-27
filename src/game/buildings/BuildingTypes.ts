@@ -19,6 +19,7 @@ export interface IFactoryState {
     output: ResourceType;
 
     inputReserve: number;
+    inputCapacity: number;
     inputTimer: number;
     active: boolean;
     timer: number;
@@ -47,7 +48,9 @@ export interface IMineState {
 export interface IDepotState {
     type: RawResourceType | ResourceType;
     amount: number;
+    capacity: number;
     inputTimer: number;
+    outputTimer: number;
 }
 
 export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState;

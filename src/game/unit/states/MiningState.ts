@@ -33,14 +33,14 @@ function findClosestFactoryOrDepot(unit: IUnit, resourceType: RawResourceType | 
         const canAcceptResource = (() => {
             switch (instance.buildingType) {
                 case "depot": {
-                    const otherState = instance.state as IDepotState;
-                    return otherState.type === resourceType;
-                }
+                    const state = instance.state as IDepotState;
+                    return state.type === resourceType && state.amount < state.capacity; 
+                }                
 
                 case "factory": {
-                    const otherState = instance.state as IFactoryState;
-                    return otherState.input === resourceType;
-                }
+                    const state = instance.state as IFactoryState;
+                    return state.input === resourceType && state.inputReserve < state.inputCapacity;
+                }                
 
                 default: return false;
             }
@@ -79,7 +79,7 @@ export class MiningState extends State<ICharacterUnit> {
         unit.isIdle = true;
     }
 
-    private goToFactoryOrDepot(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
+    public goToFactoryOrDepot(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
         const target = findClosestFactoryOrDepot(unit, resourceType);
         this._closestTarget = target;
         if (this._closestTarget) {

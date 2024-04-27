@@ -29,12 +29,12 @@ export class Mines {
             }
         }
 
-        console.assert(resourceCells.length > 0);
+        const depleted = resourceCells.length === 0;
         const mineState: IMineState = {
             resourceCells,
             currentResourceCell: 0,
-            active: true,
-            depleted: false,
+            active: !depleted,
+            depleted,
             timer: 0,
             outputConveyorIndex: -1,
             outputFull: false,

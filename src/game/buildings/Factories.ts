@@ -6,7 +6,6 @@ import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
 
 const productionTime = 2;
-const inputCapacity = 5;
 const inputAccepFrequency = 1;
 
 export class Factories {
@@ -18,6 +17,7 @@ export class Factories {
             output,
             active: false,
             inputReserve: 0,
+            inputCapacity: 5,
             inputTimer: -1,
             timer: 0,
             outputFull: false,
@@ -73,7 +73,7 @@ export class Factories {
         }
 
         if (state.inputTimer < 0) {
-            if (state.inputReserve < inputCapacity) {
+            if (state.inputReserve < state.inputCapacity) {
                 if (BuildingUtils.tryGetFromAdjacentCells(instance, state.input)) {
                     state.inputReserve++;
                     state.inputTimer = inputAccepFrequency;
@@ -87,7 +87,7 @@ export class Factories {
 
     public static tryDepositResource(instance: IBuildingInstance) {
         const state = instance.state as IFactoryState;
-        if (state.inputReserve < inputCapacity) {
+        if (state.inputReserve < state.inputCapacity) {
             state.inputReserve++;
             return true;
         }

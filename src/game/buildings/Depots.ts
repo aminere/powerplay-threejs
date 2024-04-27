@@ -13,16 +13,22 @@ const depotsConfig = {
     slotStart: new Vector3(1.23, 0.43, 1.19),
     slotSize: .83,
     slotScaleRange: [.8, 1.3],
-    inputAccepFrequency: 1
+    inputFrequency: 1,
+    outputFrequency: 1
 };
 
 export class Depots {
     public static create(sectorCoords: Vector2, localCoords: Vector2, type: RawResourceType | ResourceType) {
         const instance = buildings.create("depot", sectorCoords, localCoords);
+        const { resourcesPerSlot, slotCount } = depotsConfig;
+
+        const capacity = slotCount * resourcesPerSlot;
         const depotState: IDepotState = { 
             type, 
             amount: 0,
-            inputTimer: -1
+            capacity,
+            inputTimer: -1,
+            outputTimer: -1
      };
         instance.state = depotState;
     }
@@ -33,11 +39,10 @@ export class Depots {
             return false;
         }
 
-        const { resourcesPerSlot, slotScaleRange, slotCount, slotsPerRow, slotSize, slotStart } = depotsConfig;
+        const { resourcesPerSlot, slotScaleRange, slotsPerRow, slotSize, slotStart } = depotsConfig;
         const oldAmount = state.amount;
         const newAmount = oldAmount + 1;
-        const capacity = slotCount * resourcesPerSlot;
-        if (newAmount > capacity) {
+        if (newAmount > state.capacity) {
             return false;
         }
 
@@ -95,12 +100,16 @@ export class Depots {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IDepotState;
-        if (state.amount === 0) {
-            return;
-        }
 
-        if (BuildingUtils.tryFillOutputConveyors(instance, state.type)) {
-            Depots.removeResource(instance);
+        if (state.outputTimer < 0) {
+            if (state.amount > 0) {
+                if (BuildingUtils.tryFillOutputConveyors(instance, state.type)) {
+                    Depots.removeResource(instance);
+                    state.outputTimer = depotsConfig.outputFrequency;
+                }    
+            }
+        } else {
+            state.outputTimer -= time.deltaTime;
         }
 
         if (state.inputTimer < 0) {
@@ -109,7 +118,7 @@ export class Depots {
             if (state.amount < capacity) {
                 if (BuildingUtils.tryGetFromAdjacentCells(instance, state.type)) {
                     Depots.tryDepositResource(instance, state.type);
-                    state.inputTimer = depotsConfig.inputAccepFrequency;
+                    state.inputTimer = depotsConfig.inputFrequency;
                 }
             }
         } else {

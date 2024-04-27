@@ -11,7 +11,7 @@ import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
 import { MiningState } from "./states/MiningState";
-import { ICell, IResource } from "../GameTypes";
+import { ICell, ICarriedResource } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
@@ -32,7 +32,7 @@ export interface ICharacterUnit extends IUnit {
     animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
     muzzleFlashTimer: number;
-    resource: IResource | null;
+    resource: ICarriedResource | null;
 }
 
 export interface ICharacterUnitProps {
@@ -53,7 +53,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }   
 
-    public set resource(value: IResource | null) { 
+    public set resource(value: ICarriedResource | null) { 
         if (value?.type === this._resource?.type) {
             return;
         }
@@ -66,10 +66,10 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get boundingBox() { return this._skinnedMesh.boundingBox; }
 
     private _animation: IUnitAnim;
-    private _skeleton: IUniqueSkeleton | null = null;    
+    private _skeleton: IUniqueSkeleton | null = null;
     private _skinnedMesh: SkinnedMesh;
     private _muzzleFlashTimer = 0;
-    private _resource: IResource | null = null;
+    private _resource: ICarriedResource | null = null;
 
     constructor(props: ICharacterUnitProps, id: number) {
         super({ ...props, boundingBox: props.visual.boundingBox }, id);
@@ -175,7 +175,12 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
             const miningState = this.fsm.getState(MiningState)!;
             if (miningState) {
-                miningState.onReachedBuilding(this);
+                const wasDeposited = this.resource === null;
+                if (wasDeposited) {
+                    miningState.onReachedBuilding(this);
+                } else {
+                    miningState.goToFactoryOrDepot(this, this.resource!.type);
+                }
             } else {
                 this.onArrived();
             }
