@@ -56,7 +56,7 @@ export class Mines {
                 if (state.outputCheckTimer < 0) {
                     console.assert(state.minedCell !== undefined);
                     const resourceType = state.minedCell!.resource!.type;
-                    if (BuildingUtils.tryFillOutputConveyors(instance, resourceType as MineralType)) {
+                    if (BuildingUtils.tryFillAdjacentCells(instance, resourceType as MineralType)) {
                         Mines.consumeResource(state, state.minedCell!);
                         state.outputFull = false;
                     } else {

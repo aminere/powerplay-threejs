@@ -3,18 +3,45 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { GameUtils } from "../GameUtils";
 import { utils } from "../../engine/Utils";
 import { conveyorItems } from "../ConveyorItems";
-import { ITruckUnit } from "../unit/TruckUnit";
 import { ICell } from "../GameTypes";
-import { Trucks } from "../unit/Trucks";
 import { IBuildingInstance, buildingSizes } from "./BuildingTypes";
 import { config } from "../config";
 import { resources } from "../Resources";
+import { Trucks } from "../unit/Trucks";
+import { ITruckUnit } from "../unit/TruckUnit";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
 const { cellSize } = config.game;
 const { itemScale } = config.conveyors;
+
+function tryFillGroundCells(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
+    const { mapCoords } = instance;
+    const size = buildingSizes[instance.buildingType];
+
+    // find an empty output cell
+    const startX = Math.floor(mapCoords.x + size.x / 2);
+    const startY = mapCoords.y + size.z;
+    cellCoords.set(startX, startY);
+    const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
+    if (cell?.isWalkable && !cell.pickableResource) {
+        const sector = GameUtils.getSector(sectorCoords)!;
+        const visual = utils.createObject(sector.layers.resources, type);
+        visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+
+        resources.loadModel(type).then(mesh => {
+            visual.add(mesh);
+            mesh.scale.multiplyScalar(itemScale);
+            mesh.position.y = 0.1;
+            mesh.castShadow = true;
+        });
+
+        cell.pickableResource = { type, visual, producer: instance.id, minedCell };
+        return true;
+    }
+    return false;
+}
 
 export class BuildingUtils {
 
@@ -104,7 +131,7 @@ export class BuildingUtils {
         return false;
     }
 
-    public static tryFillOutputConveyors(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    public static tryFillAdjacentCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
 
         const { mapCoords } = instance;
 
@@ -159,42 +186,17 @@ export class BuildingUtils {
             return true;
         }
 
+        // TODO try nearby trucks
+
         return false;
-    }
-
-    public static tryFillOutputCells(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
-        const { mapCoords } = instance;
-        const size = buildingSizes[instance.buildingType];
-
-        // find an empty output cell
-        const startX = Math.floor(mapCoords.x + size.x / 2);
-        const startY = mapCoords.y + size.z;
-        cellCoords.set(startX, startY);
-        const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
-        if (cell?.isWalkable && !cell.pickableResource) {
-            const sector = GameUtils.getSector(sectorCoords)!;
-            const visual = utils.createObject(sector.layers.resources, type);
-            visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
-
-            resources.loadModel(type).then(mesh => {
-                visual.add(mesh);
-                mesh.scale.multiplyScalar(itemScale);
-                mesh.position.y = 0.1;
-                mesh.castShadow = true;
-            });
-
-            cell.pickableResource = { type, visual, producer: instance.id, minedCell };
-            return true;
-        }
-        return false;
-    }
+    }    
 
     public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
-        if (BuildingUtils.tryFillOutputConveyors(instance, type)) {
+        if (BuildingUtils.tryFillAdjacentCells(instance, type)) {
             return true;
         }
 
-        return BuildingUtils.tryFillOutputCells(instance, type, minedCell);
+        return tryFillGroundCells(instance, type, minedCell);
     }
 }
 

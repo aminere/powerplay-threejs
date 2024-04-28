@@ -33,7 +33,7 @@ export class Factories {
 
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
-                    if (BuildingUtils.tryFillOutputConveyors(instance, state.output)) {
+                    if (BuildingUtils.tryFillAdjacentCells(instance, state.output)) {
                         Factories.consumeResource(state);
                         state.outputFull = false;
 

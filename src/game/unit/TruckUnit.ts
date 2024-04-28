@@ -2,7 +2,6 @@
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { IUnit, Unit } from "./Unit";
-import { ICell } from "../GameTypes";
 
 interface ITruckResources {
     type: RawResourceType | ResourceType;
@@ -13,7 +12,6 @@ interface ITruckResources {
 export interface ITruckUnit extends IUnit {
     resources: ITruckResources | null;    
 }
-
 
 export class TruckUnit extends Unit implements ITruckUnit {    
     public get resources(): ITruckResources | null { return this._resources; }
@@ -34,14 +32,6 @@ export class TruckUnit extends Unit implements ITruckUnit {
             this.resources = null;
         }
         super.setHealth(value);
-    }
-    
-    public override onReachedBuilding(cell: ICell) {
-        if (this.resources) {
-            
-        } else {
-            
-        }
     }
 }
 

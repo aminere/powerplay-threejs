@@ -103,7 +103,7 @@ export class Depots {
 
         if (state.outputTimer < 0) {
             if (state.amount > 0) {
-                if (BuildingUtils.tryFillOutputConveyors(instance, state.type)) {
+                if (BuildingUtils.tryFillAdjacentCells(instance, state.type)) {
                     Depots.removeResource(instance);
                     state.outputTimer = depotsConfig.outputFrequency;
                 }    
