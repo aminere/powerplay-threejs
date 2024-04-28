@@ -1,62 +1,6 @@
-import { UnitType } from "./GameDefinitions";
+import { Vector3 } from "three";
 
-interface ICameraConfig {
-    rotation: number[];
-    orthoSize: number;
-    zoomRange: number[];
-    zoomSpeed: number;
-    panMargin: number;
-    panSpeed: number;
-    shadowRange: number;
-}
-
-interface ITerrainConfig {
-    atlasTileCount: number;
-    waterDepth: number;
-}
-
-interface IGameConfig {
-    cellSize: number;
-    cellsPerRoadBlock: number;
-    mapRes: number;
-    elevationStep: number;
-    unitScale: number;
-    truckScale: number;
-    tankScale: number;
-}
-
-interface IConveyorConfig {
-    itemSize: number;
-    itemScale: number;
-    width: number;
-    height: number;
-    maxCount: number;
-    speed: number;
-}
-
-interface ITrainConfig {
-    maxSpeed: number;
-    acceleration: number;
-    deceleration: number;
-    scale: number;
-}
-
-interface ISteeringConfig {
-    maxForce: number;
-    maxSpeed: number;
-    separations: Record<UnitType, number>;
-}
-
-interface IConfig {
-    camera: ICameraConfig;
-    terrain: ITerrainConfig;
-    game: IGameConfig;
-    conveyors: IConveyorConfig;
-    train: ITrainConfig;
-    steering: ISteeringConfig;
-}
-
-export const config: IConfig = {
+export const config = {
     camera: {
         rotation: [-30, 45],
         orthoSize: 10,
@@ -77,7 +21,7 @@ export const config: IConfig = {
         elevationStep: .2,
         unitScale: .7,
         truckScale: 1.7,
-        tankScale: 2        
+        tankScale: 2
     },
     conveyors: {
         itemSize: .5, // relative to the cell
@@ -87,11 +31,18 @@ export const config: IConfig = {
         maxCount: 500,
         speed: 3,
     },
-    train: {
+    trains: {
         maxSpeed: 40,
         acceleration: 1,
         deceleration: -3,
         scale: 2.3
+    },
+    trucks: {
+        slotCount: 3,
+        resourcesPerSlot: 5,
+        slotStart: new Vector3(0, .36, -.7),
+        slotSpacing: .35,
+        slotScaleRange: [.3, .6]
     },
     steering: {
         maxForce: 40,

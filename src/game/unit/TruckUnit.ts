@@ -25,7 +25,7 @@ export class TruckUnit extends Unit implements ITruckUnit {
         this._resources = value; 
     }
 
-    private _resources: ITruckResources | null = null;    
+    private _resources: ITruckResources | null = null;
 
     public override setHealth(value: number): void {
         if (value <= 0) {

@@ -20,7 +20,7 @@ export class TrainProps extends ComponentProps {
     cell = new Vector2();
 }
 
-const { scale } = config.train;
+const { scale } = config.trains;
 const { cellSize } = config.game;
 
 export class Train extends Component<TrainProps> {

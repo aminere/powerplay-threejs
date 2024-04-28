@@ -1,5 +1,6 @@
-import { MathUtils, Vector3 } from "three";
+import { MathUtils } from "three";
 import { ITruckUnit } from "./TruckUnit";
+import { config } from "../config";
 
 // import { meshes } from "../../engine/resources/Meshes";
 // import { utils } from "../../engine/Utils";
@@ -8,14 +9,6 @@ import { ITruckUnit } from "./TruckUnit";
 // import { GameUtils } from "../GameUtils";
 // const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 // const neighborCoords = new Vector2();
-
-const trucksConfig = {
-    slotCount: 3,
-    resourcesPerSlot: 5,
-    slotStart: new Vector3(0, .36, -.7),    
-    slotSpacing: .35,    
-    slotScaleRange: [.3, .6]
-};
 
 // function tryPickFromConveyor(truck: ITruckUnit, conveyor: IConveyor) {    
 //     const itemToGet = 0;
@@ -73,6 +66,8 @@ const trucksConfig = {
 //     truck.resources!.amount = newAmount;
 // }
 
+const { resourcesPerSlot, slotScaleRange } = config.trucks;
+
 export class Trucks {
     
     public static update(truck: ITruckUnit) {
@@ -98,7 +93,6 @@ export class Trucks {
     public static removeResource(truck: ITruckUnit) {
         const oldAmount = truck.resources!.amount;
         const newAmount = oldAmount - 1;
-        const { resourcesPerSlot, slotScaleRange } = trucksConfig;
         const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
         const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;

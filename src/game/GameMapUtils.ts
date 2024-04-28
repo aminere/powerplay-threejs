@@ -41,7 +41,7 @@ const max = new Vector2();
 const worldPos = new Vector3();
 
 const { elevationStep, cellSize, mapRes, cellsPerRoadBlock } = config.game;
-const { scale: trainScale } = config.train;
+const { scale: trainScale } = config.trains;
 const mapSize = mapRes * cellSize;
 const halfMapSize = mapSize / 2;
 

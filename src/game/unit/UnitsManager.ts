@@ -125,7 +125,7 @@ class UnitsManager {
             case "truck": {
                 const visual = await loadVisual(type);
                 GameUtils.mapToWorld(mapCoords, visual.position);
-                const boundingBox = getBoundingBox(visual);                
+                const boundingBox = getBoundingBox(visual);
                 const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);                
                 visual.scale.multiplyScalar(truckScale);
                 this._units.push(unit);

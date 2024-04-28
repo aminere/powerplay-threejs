@@ -9,6 +9,8 @@ import { Component } from "../../engine/ecs/Component";
 import { time } from "../../engine/core/Time";
 import { ComponentProps } from "../../powerplay";
 
+const { maxSpeed, acceleration, deceleration } = config.trains;
+
 interface IMotionSegment {
     endDist: number;
     startAxis: Axis;
@@ -221,7 +223,6 @@ export class Wagon extends Component<WagonProps, IWagonState> {
             return;
         }
 
-        const { maxSpeed, acceleration, deceleration } = config.train;
         if (this.state.canAccelerate) {   
             const newSpeed = this.state.speed + acceleration * time.deltaTime;         
             const distanceToStop = newSpeed * newSpeed / (2 * -deceleration);
