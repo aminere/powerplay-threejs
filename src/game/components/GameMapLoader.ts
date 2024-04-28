@@ -36,6 +36,7 @@ import { Factories } from "../buildings/Factories";
 import { Depots } from "../buildings/Depots";
 import { Workers } from "../unit/Workers";
 import { BuildingType } from "../buildings/BuildingTypes";
+import { Incubators } from "../buildings/Incubators";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -173,18 +174,19 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             }
         }
 
-        for (const [buildingType, instances] of Object.entries(data.buildings)) {
+        for (const [type, instances] of Object.entries(data.buildings)) {
+            const buildingType = type as BuildingType;
             switch (buildingType) {
-                case "mine": {
+                case "mine":
                     createBuildings(instances, (sectorCoords, localCoords) => Mines.create(sectorCoords, localCoords));
-                } break;
+                break;
 
-                case "factory": {
+                case "factory":
                     createBuildings(instances, (sectorCoords, localCoords, instance) => {
                         const factory = instance as ISerializedFactory;
                         Factories.create(sectorCoords, localCoords, factory.input, factory.output);
                     });
-                }
+                
                     break;
 
                 case "depot":
@@ -194,11 +196,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                     });
                     break;
 
-                default: {
-                    createBuildings(instances, (sectorCoords, localCoords) => {
-                        buildings.create(buildingType as BuildingType, sectorCoords, localCoords)
-                    });
-                }                    
+                case "incubator":
+                    createBuildings(instances, (sectorCoords, localCoords) => Incubators.create(sectorCoords, localCoords));
+                    break;
+
+                default:
+                    createBuildings(instances, (sectorCoords, localCoords) => buildings.create(buildingType, sectorCoords, localCoords));                                    
             }
         }
 

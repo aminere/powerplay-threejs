@@ -21,6 +21,7 @@ import { buildingSizes } from "./buildings/BuildingTypes";
 import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
+import { Incubators } from "./buildings/Incubators";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -360,7 +361,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                 case "factory": Factories.create(sectorCoords, localCoords, props.factoryInput, props.factoryOutput); break;
                 case "mine": Mines.create(sectorCoords, localCoords); break;
                 case "depot": Depots.create(sectorCoords, localCoords, props.depotType); break;
-                default: buildings.create(buildingType, sectorCoords, localCoords);           
+                case "incubator": Incubators.create(sectorCoords, localCoords); break;
+                default: buildings.create(buildingType, sectorCoords, localCoords);
             }
         }
 

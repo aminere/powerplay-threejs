@@ -53,7 +53,12 @@ export interface IDepotState {
     outputTimer: number;
 }
 
-export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState;
+export interface IIncubatorState {
+    active: boolean;
+    progress: number;
+}
+
+export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState | IIncubatorState;
 
 export interface IBuildingInstance {
     id: string;
@@ -66,7 +71,7 @@ export interface IBuildingInstance {
 
 export const buildingSizes: Record<BuildingType, Vector3> = {
     "mine": new Vector3(3, 2, 3),
-    "factory": new Vector3(4, 3, 4),
+    "factory": new Vector3(5, 3, 4),
     "hq": new Vector3(10, 4, 5),    
     "assembly": new Vector3(6, 4, 5),
     "incubator": new Vector3(1, 3, 1),
