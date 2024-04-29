@@ -45,7 +45,13 @@ export class TruckState extends State<ITruckUnit> {
         this._timer = transferFrequency;
     }
 
-    public stopTransfer() {
+    public tryStopTransfer() {
+        if (this._targetDepot) {
+            this.stopTransfer();
+        }
+    }
+
+    private stopTransfer() {
         this._targetDepot = null;
     }
 }

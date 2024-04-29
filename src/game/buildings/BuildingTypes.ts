@@ -9,7 +9,8 @@ export const BuildingTypes = [
     "factory",
     "assembly",
     "incubator",
-    "depot"
+    "depot",
+    "train-factory"
 ] as const;
 
 export type BuildingType = typeof BuildingTypes[number];
@@ -75,6 +76,7 @@ export const buildingSizes: Record<BuildingType, Vector3> = {
     "hq": new Vector3(10, 4, 5),    
     "assembly": new Vector3(6, 4, 5),
     "incubator": new Vector3(1, 3, 1),
-    "depot": new Vector3(4, 1, 4)
+    "depot": new Vector3(4, 1, 4),
+    "train-factory": new Vector3(8, 4, 5)
 };
 

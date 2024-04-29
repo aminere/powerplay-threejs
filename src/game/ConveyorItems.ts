@@ -109,19 +109,26 @@ class ConveyorItems {
                     neighborCoords.y = mapCoords.y + direction.y * sz;
                 } else {
                     neighborCoords.addVectors(mapCoords, direction);
-                }            
-
-                const indexInCurrentOwner = item.owner.items.indexOf(item);
-                console.assert(indexInCurrentOwner >= 0);
-                utils.fastDelete(item.owner.items, indexInCurrentOwner);                
+                }
                 
-                const nextConveyor = GameUtils.getCell(neighborCoords)!;
-                nextConveyor.conveyor!.items.push(item);
-                item.mapCoords.copy(neighborCoords);
-                item.owner = nextConveyor.conveyor!;
+                const nextConveyor = GameUtils.getCell(neighborCoords)?.conveyor;
+                if (nextConveyor) {
+                    const indexInCurrentOwner = item.owner.items.indexOf(item);
+                    console.assert(indexInCurrentOwner >= 0);
+                    utils.fastDelete(item.owner.items, indexInCurrentOwner);
 
-                const dt = newT - 1;
-                newT = Math.min(dt, step);
+                    nextConveyor.items.push(item);
+                    item.mapCoords.copy(neighborCoords);
+                    item.owner = nextConveyor;
+
+                    const dt = newT - 1;
+                    newT = Math.min(dt, step);
+                } else {
+
+                    // next conveyor was deleted, remain in current conveyor
+                    newT = 1;
+                }
+                
 
             } else if (newT > 1 - halfItemSize) {
 

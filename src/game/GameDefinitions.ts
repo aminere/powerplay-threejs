@@ -36,7 +36,6 @@ export const ResourceTypes = [
     "rubber",
     "plastic",
     "steel",
-    "wheel",
     "engine",
     "truck-frame",
     "ak47",

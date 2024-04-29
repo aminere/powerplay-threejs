@@ -511,10 +511,12 @@ export class UnitMotion {
                                         const worker = unit as ICharacterUnit;
                                         if (nextCell.pickableResource.type !== worker.resource?.type) {
                                             Workers.pickResource(unit as ICharacterUnit, nextCell.pickableResource.type);
-                                            const building = GameMapState.instance.buildings.get(nextCell.pickableResource.producer)!;
-                                            switch (building.buildingType) {
-                                                case "mine": Mines.onResourcePicked(building, nextCell.pickableResource.minedCell!); break;
-                                                case "factory": Factories.onResourcePicked(building); break;
+                                            const building = GameMapState.instance.buildings.get(nextCell.pickableResource.producer);
+                                            if (building) {
+                                                switch (building.buildingType) {
+                                                    case "mine": Mines.onResourcePicked(building, nextCell.pickableResource.minedCell!); break;
+                                                    case "factory": Factories.onResourcePicked(building); break;
+                                                }
                                             }
                                             nextCell.pickableResource = undefined;
                                         }

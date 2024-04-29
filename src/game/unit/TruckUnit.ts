@@ -82,7 +82,7 @@ export class TruckUnit extends Unit implements ITruckUnit {
 
     public override onMoveCommand() {
         const truckState = this.fsm.getState(TruckState)!;
-        truckState.stopTransfer();
+        truckState.tryStopTransfer();
     }
 }
 
