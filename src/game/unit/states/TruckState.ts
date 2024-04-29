@@ -20,13 +20,13 @@ export class TruckState extends State<ITruckUnit> {
                 const depotState = this._targetDepot.state as IDepotState;
                 const type = depotState.type;
                 if (this._getFromDepot) {
-                    if (Trucks.tryDepositResource(unit, type)) {
+                    if (depotState.amount > 0 && Trucks.tryDepositResource(unit, type)) {
                         Depots.removeResource(this._targetDepot);
                     } else {
                         this.stopTransfer();
                     }
                 } else {
-                    if (Depots.tryDepositResource(this._targetDepot, type)) {
+                    if (unit.resources!.amount > 0 && Depots.tryDepositResource(this._targetDepot, type)) {
                         Trucks.removeResource(unit);
                     } else {
                         this.stopTransfer();

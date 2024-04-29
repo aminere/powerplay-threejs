@@ -11,7 +11,6 @@ import { TruckState } from "./states/TruckState";
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
 
-
 interface ITruckResources {
     type: RawResourceType | ResourceType;
     amount: number;
@@ -56,6 +55,7 @@ export class TruckUnit extends Unit implements ITruckUnit {
                     const getFromDepot = (() => {
                         if (this.resources) {
                             if (state.type === this.resources.type) {
+                                // return this.resources.amount === 0;
                                 const depotPercentFull = state.amount / state.capacity;
                                 const truckPercentFull = this.resources.amount / truckCapacity;
                                 if (depotPercentFull >= truckPercentFull) {                                    
@@ -70,30 +70,10 @@ export class TruckUnit extends Unit implements ITruckUnit {
                         } else {
                             return true;
                         }
-                    })();
-
-                    const hasCapacity = (() => {
-                        if (getFromDepot) {
-
-                            const _truckAmount = (() => {
-                                if (this.resources?.type === state.type) {
-                                    return this.resources.amount;
-                                } else {
-                                    // existing resources are lost                                
-                                    return 0;
-                                }
-                            })();
-
-                            return (_truckAmount + 1 < truckCapacity);
-                        } else {
-                            return (state.amount + 1 < state.capacity);
-                        }
-                    })();                    
+                    })();         
                     
-                    if (hasCapacity) {
-                        const truckState = this.fsm.getState(TruckState)!;
-                        truckState.startTransfer(instance, getFromDepot);
-                    }
+                    const truckState = this.fsm.getState(TruckState)!;
+                    truckState.startTransfer(instance, getFromDepot);
                 }
             }
             break;
