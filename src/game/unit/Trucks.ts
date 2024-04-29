@@ -1,93 +1,53 @@
 import { MathUtils } from "three";
 import { ITruckUnit } from "./TruckUnit";
 import { config } from "../config";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { utils } from "../../engine/Utils";
+import { meshes } from "../../engine/resources/Meshes";
 
-// import { meshes } from "../../engine/resources/Meshes";
-// import { utils } from "../../engine/Utils";
-// import { IConveyor } from "../GameTypes";
-// import { conveyorItems } from "../ConveyorItems";
-// import { GameUtils } from "../GameUtils";
-// const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-// const neighborCoords = new Vector2();
+const { resourcesPerSlot, slotScaleRange, slotCount, slotStart, slotSpacing } = config.trucks;
+const truckCapacity = resourcesPerSlot * slotCount;
 
-// function tryPickFromConveyor(truck: ITruckUnit, conveyor: IConveyor) {    
-//     const itemToGet = 0;
-//     const conveyorResource = conveyor.items[itemToGet].type;
+export class Trucks {    
 
-//     const canPick = (() => {
-//         if (truck.resources?.type === conveyorResource) {
-//             const capacity = trucksConfig.slotCount * trucksConfig.resourcesPerSlot;
-//             return truck.resources!.amount < capacity;
-//         } else {
-//             return true;
-//         }
-//     })();
+    public static tryDepositResource(truck: ITruckUnit, type: RawResourceType | ResourceType) {
+        if (truck.resources && truck.resources.type === type) {
+            if (truck.resources.amount + 1 > truckCapacity) {
+                return false;
+            }
+        }        
 
-//     if (!canPick) {
-//         return;
-//     }
-
-//     if (!truck.resources) {
-//         truck.resources = {
-//             type: conveyorResource, 
-//             amount: 0,
-//             root: utils.createObject(truck.visual, "resources")
-//         };
-//     } else {
-//         if (truck.resources.type !== conveyorResource) {
-//             // existing resources are lost
-//             truck.resources.type = conveyorResource;
-//             truck.resources.amount = 0;
-//             truck.resources.root.clear();
-//         }
-//     }
-
-//     const { resourcesPerSlot, slotScaleRange, slotSpacing, slotStart: slotsStart } = trucksConfig;
-//     const oldAmount = truck.resources.amount;
-//     const newAmount = oldAmount + 1;
-//     const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
-//     const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
-//     const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
-//     if (currentSlot === newSlot) {
-//         const mesh = truck.resources.root.children[currentSlot];
-//         mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
-//     } else {
-//         console.assert(truck.resources.root.children.length === currentSlot + 1);
-//         const [_mesh] = meshes.loadImmediate(`/models/resources/${conveyorResource}.glb`);
-//         const mesh = _mesh.clone();
-//         mesh.position.set(0, slotsStart.y, slotsStart.z + newSlot * slotSpacing);
-//         mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
-//         truck.resources!.root.add(mesh);
-//     }
-
-//     const item = conveyor.items[itemToGet];
-//     utils.fastDelete(conveyor.items, itemToGet);
-//     conveyorItems.removeItem(item);
-//     truck.resources!.amount = newAmount;
-// }
-
-const { resourcesPerSlot, slotScaleRange } = config.trucks;
-
-export class Trucks {
-    
-    public static update(truck: ITruckUnit) {
-        const isMoving = truck.motionId > 0;
-        if (isMoving) {
-
-        } else {
-            // const { mapCoords } = truck.coords;
-            // for (const [dx, dy] of gridNeighbors) {
-            //     neighborCoords.set(mapCoords.x + dx, mapCoords.y + dy);
-            //     const neighborCell = GameUtils.getCell(neighborCoords);
-            //     const conveyor = neighborCell?.conveyor;
-            //     if (conveyor) {
-            //         if (conveyor.items.length === 0) {
-            //             continue;
-            //         }
-            //         tryPickResource(truck, conveyor);
-            //     }
-            // }
+        if (!truck.resources) {
+            truck.resources = {
+                type,
+                amount: 0,
+                root: utils.createObject(truck.visual, "resources")
+            };
+        } else if (truck.resources.type !== type) {
+            // existing resources are lost
+            truck.resources.type = type;
+            truck.resources.amount = 0;
+            truck.resources.root.clear();
         }
+
+        const oldAmount = truck.resources.amount;
+        const newAmount = oldAmount + 1;
+        const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
+        const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
+        const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
+        if (currentSlot === newSlot) {
+            const mesh = truck.resources.root.children[currentSlot];
+            mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+        } else {
+            console.assert(truck.resources.root.children.length === currentSlot + 1);
+            const [_mesh] = meshes.loadImmediate(`/models/resources/${type}.glb`);
+            const mesh = _mesh.clone();
+            mesh.position.set(0, slotStart.y, slotStart.z + newSlot * slotSpacing);
+            mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
+            truck.resources!.root.add(mesh);
+        }
+        truck.resources!.amount = newAmount;
+        return true;
     }
 
     public static removeResource(truck: ITruckUnit) {

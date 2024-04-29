@@ -15,13 +15,13 @@ import { CharacterUnit, ICharacterUnit } from "./CharacterUnit";
 import { IUnit, Unit } from "./Unit";
 import { MiningState } from "./states/MiningState";
 import { NPCState } from "./states/NPCState";
-import { ITruckUnit, TruckUnit } from "./TruckUnit";
+import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
 import { SoldierState } from "./states/SoldierState";
 import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
-import { Trucks } from "./Trucks";
 import { Workers } from "./Workers";
+import { TruckState } from "./states/TruckState";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -103,9 +103,7 @@ class UnitsManager {
             if (unit.isAlive) {
                 unit.fsm.update();
                 unitMotion.applyForces(unit);
-
                 switch (unit.type) {
-                    case "truck": Trucks.update(unit as ITruckUnit); break;
                     case "worker": Workers.update(unit as ICharacterUnit); break;
                 }
             }
@@ -126,10 +124,11 @@ class UnitsManager {
                 const visual = await loadVisual(type);
                 GameUtils.mapToWorld(mapCoords, visual.position);
                 const boundingBox = getBoundingBox(visual);
-                const unit = new TruckUnit({ visual, boundingBox, type, states: []}, id);                
+                const unit = new TruckUnit({ visual, boundingBox, type, states: [new TruckState()]}, id);                
                 visual.scale.multiplyScalar(truckScale);
                 this._units.push(unit);
                 this._owner.add(visual);
+                unit.fsm.switchState(TruckState);
 
                 cmdFogAddCircle.post({ mapCoords, radius: 10 });    
                 const box3Helper = new Box3Helper(boundingBox);

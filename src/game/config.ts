@@ -42,7 +42,8 @@ export const config = {
         resourcesPerSlot: 5,
         slotStart: new Vector3(0, .36, -.7),
         slotSpacing: .35,
-        slotScaleRange: [.3, .6]
+        slotScaleRange: [.3, .6],
+        transferFrequency: 1
     },
     steering: {
         maxForce: 40,
