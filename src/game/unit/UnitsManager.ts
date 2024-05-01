@@ -13,7 +13,7 @@ import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit, ICharacterUnit } from "./CharacterUnit";
 import { IUnit, Unit } from "./Unit";
-import { MiningState } from "./states/MiningState";
+import { MoverState } from "./states/MoverState";
 import { NPCState } from "./states/NPCState";
 import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
@@ -173,7 +173,7 @@ class UnitsManager {
                     type, 
                     states: (() => {
                         switch (type) {
-                            case "worker": return [new MiningState(), new SoldierState()];
+                            case "worker": return [new MoverState(), new SoldierState()];
                             case "enemy-melee": return [new NPCState()]
                             default: return [];
                         }

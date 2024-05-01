@@ -10,7 +10,7 @@ import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { config } from "../config";
-import { MiningState } from "./states/MiningState";
+import { MoverState } from "./states/MoverState";
 import { utils } from "../../engine/Utils";
 import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./Unit";
@@ -549,8 +549,8 @@ export class UnitMotion {
 
                         switch (unit.type) {
                             case "worker": {
-                                const miningState = unit.fsm.getState(MiningState) ?? unit.fsm.switchState(MiningState);
-                                miningState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
+                                const moverState = unit.fsm.getState(MoverState) ?? unit.fsm.switchState(MoverState);
+                                moverState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
                             }
                         }
 

@@ -10,10 +10,10 @@ import { Fadeout } from "../components/Fadeout";
 import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
-import { MiningState } from "./states/MiningState";
+import { MoverState } from "./states/MoverState";
 import { ICell, ICarriedResource } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
-import { IDepotState, IFactoryState } from "../buildings/BuildingTypes";
+import { IDepotState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { unitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
@@ -111,7 +111,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onMoveCommand() {
-        const isMining = this.fsm.getState(MiningState) !== null;
+        const isMining = this.fsm.getState(MoverState) !== null;
         if (isMining) {
             this.fsm.switchState(null);
         } else {
@@ -178,13 +178,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 break;
             }
 
-            const miningState = this.fsm.getState(MiningState)!;
-            if (miningState) {
+            const moverState = this.fsm.getState(MoverState)!;
+            if (moverState) {
                 const wasDeposited = this.resource === null;
                 if (wasDeposited) {
-                    miningState.onReachedBuilding(this);
+                    moverState.onReachedBuilding(this);
                 } else {
-                    miningState.goToFactoryOrDepot(this, this.resource!.type);
+                    moverState.tryGoToTarget(this, this.resource!.type);
                 }
             } else {
                 this.onArrived();
@@ -211,7 +211,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
 
             const isMining = (() => {
-                if (this.fsm.getState(MiningState)) {
+                if (this.fsm.getState(MoverState)) {
                     return true;
                 }
                 const targetCell = getCellFromAddr(this.targetCell);

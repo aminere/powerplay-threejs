@@ -7,7 +7,7 @@ import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
 
 const { unitScale } = config.game;
-const { capacity, workerCost } = config.incubators;
+const { capacity } = config.incubators;
 const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending });
 
 export class Incubators {
@@ -17,8 +17,10 @@ export class Incubators {
         const state: IIncubatorState = {            
             active: false,
             progress: 0,
-            coalCount: 0,
-            waterCount: 0,
+            amount: {
+                water: 0,
+                coal: 0
+            },
             water: null!,
             worker: null!
         };
@@ -83,9 +85,9 @@ export class Incubators {
         const state = instance.state as IIncubatorState;
         switch (type) {
             case "water": {
-                if (state.waterCount < capacity.water) {
-                    state.waterCount++;
-                    const progress = state.waterCount / capacity.water;                    
+                if (state.amount.water < capacity.water) {
+                    state.amount.water++;
+                    const progress = state.amount.water / capacity.water;                    
                     state.water.scale.setY(progress);                   
                     return true;
                 }
@@ -93,8 +95,8 @@ export class Incubators {
             break;
 
             case "coal": {
-                if (state.coalCount < capacity.coal) {
-                    state.coalCount++;                    
+                if (state.amount.coal < capacity.coal) {
+                    state.amount.coal++;                    
                     return true;
                 }
             }

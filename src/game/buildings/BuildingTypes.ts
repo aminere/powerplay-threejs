@@ -56,9 +56,11 @@ export interface IDepotState {
 
 export interface IIncubatorState {
     active: boolean;
-    progress: number;    
-    coalCount: number;
-    waterCount: number;
+    progress: number;
+    amount: {
+        coal: number;
+        water: number;
+    };
     water: Object3D;
     worker: Object3D;
 }
