@@ -8,7 +8,7 @@ import { time } from "../../engine/core/Time";
 
 const { unitScale } = config.game;
 const { capacity } = config.incubators;
-const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending });
+const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending, transparent: true });
 
 export class Incubators {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {

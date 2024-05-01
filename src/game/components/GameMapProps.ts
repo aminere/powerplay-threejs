@@ -27,7 +27,7 @@ export class GameMapProps extends ComponentProps {
     resourceType: RawResourceType = "aluminium";
 
     @Attributes.enumOptions(BuildingTypes)
-    buildingType: BuildingType = "hq";
+    buildingType: BuildingType = "depot";
 
     @Attributes.enumOptions([...ResourceTypes, ...RawResourceTypes])
     factoryInput: RawResourceType | ResourceType = "aluminium";

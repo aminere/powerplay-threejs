@@ -5,6 +5,8 @@ import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
 import { textures } from "../engine/resources/Textures";
 import { ISector } from "./GameTypes";
+import { BuildingType } from "./buildings/BuildingTypes";
+import { buildings } from "./buildings/Buildings";
 
 const { cellSize, mapRes } = config.game;
 
@@ -29,7 +31,7 @@ export class TileSector extends Object3D {
             color: 0xffff00,
             map: texture,
             transparent: true,
-            depthTest: false,
+            // depthTest: false,
         });
 
         this.setSize(this._size.x, this._size.y);
@@ -88,6 +90,11 @@ export class TileSector extends Object3D {
                 ++tileIndex;              
             }
         }
+    }
+
+    public setBuilding(buildingType: BuildingType) {
+        const visual = buildings.createHologram(buildingType);
+        this.add(visual);
     }
 
     private createMesh(x: number, y: number) {

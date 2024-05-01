@@ -125,6 +125,14 @@ class Buildings {
         return buildingInstance;
     }
 
+    public createHologram(buildingType: BuildingType) {
+        const instance = this._buildings.get(buildingType)!;
+        const visual = instance.prefab.clone();
+        visual.scale.multiplyScalar(cellSize);
+        visual.name = `${buildingType}`;
+        return visual;
+    }
+
     public clear(instanceId: string) {
         const { buildings } = GameMapState.instance;
         const instance = buildings.get(instanceId)!;
