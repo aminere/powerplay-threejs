@@ -5,43 +5,43 @@ import { utils } from "../../engine/Utils";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 import { IBuildingInstance, buildingSizes } from "./BuildingTypes";
-import { config } from "../config";
-import { resources } from "../Resources";
+// import { config } from "../config";
+// import { resources } from "../Resources";
 
 const cellCoords = new Vector2();
-const sectorCoords = new Vector2();
-const localCoords = new Vector2();
-const { cellSize } = config.game;
-const { itemScale } = config.conveyors;
+// const sectorCoords = new Vector2();
+// const localCoords = new Vector2();
+// const { cellSize } = config.game;
+// const { itemScale } = config.conveyors;
 
 type Edge = "left" | "right" | "top" | "bottom";
 
-function tryFillGroundCells(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
-    const { mapCoords } = instance;
-    const size = buildingSizes[instance.buildingType];
+// function tryFillGroundCells(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
+//     const { mapCoords } = instance;
+//     const size = buildingSizes[instance.buildingType];
 
-    // find an empty output cell
-    const startX = Math.floor(mapCoords.x + size.x / 2);
-    const startY = mapCoords.y + size.z;
-    cellCoords.set(startX, startY);
-    const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
-    if (cell?.isWalkable && !cell.pickableResource) {
-        const sector = GameUtils.getSector(sectorCoords)!;
-        const visual = utils.createObject(sector.layers.resources, type);
-        visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
+//     // find an empty output cell
+//     const startX = Math.floor(mapCoords.x + size.x / 2);
+//     const startY = mapCoords.y + size.z;
+//     cellCoords.set(startX, startY);
+//     const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
+//     if (cell?.isWalkable && !cell.pickableResource) {
+//         const sector = GameUtils.getSector(sectorCoords)!;
+//         const visual = utils.createObject(sector.layers.resources, type);
+//         visual.position.set(localCoords.x * cellSize + cellSize / 2, 0, localCoords.y * cellSize + cellSize / 2);
 
-        resources.loadModel(type).then(mesh => {
-            visual.add(mesh);
-            mesh.scale.multiplyScalar(itemScale);
-            mesh.position.y = 0.1;
-            mesh.castShadow = true;
-        });
+//         resources.loadModel(type).then(mesh => {
+//             visual.add(mesh);
+//             mesh.scale.multiplyScalar(itemScale);
+//             mesh.position.y = 0.1;
+//             mesh.castShadow = true;
+//         });
 
-        cell.pickableResource = { type, visual, producer: instance.id, minedCell };
-        return true;
-    }
-    return false;
-}
+//         cell.pickableResource = { type, visual, producer: instance.id, minedCell };
+//         return true;
+//     }
+//     return false;
+// }
 
 function scan(startX: number, startY: number, sx: number, sy: number, iterations: number, cb: (cell: ICell) => boolean) {
     for (let i = 0; i < iterations; ++i) {
@@ -146,12 +146,13 @@ export class BuildingUtils {
         return false;
     }    
 
-    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType, minedCell?: ICell) {
+    public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
         if (BuildingUtils.tryFillAdjacentCells(instance, type)) {
             return true;
         }
 
-        return tryFillGroundCells(instance, type, minedCell);
+        return false;
+        // return tryFillGroundCells(instance, type, minedCell);
     }
 }
 

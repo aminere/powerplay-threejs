@@ -75,7 +75,7 @@ export class Mines {
 
             if (state.timer >= miningFrequency) {
                 const minedCell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
-                if (BuildingUtils.produceResource(instance, minedCell.resource!.type as MineralType, minedCell)) {
+                if (BuildingUtils.produceResource(instance, minedCell.resource!.type as MineralType)) {
                     Mines.consumeResource(state, minedCell);
                     state.timer = 0;
 

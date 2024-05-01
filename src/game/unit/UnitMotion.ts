@@ -67,13 +67,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
         isWalkable: (destBuildingId || destCell.resource) ? (cell: ICell) => {
             if (cell.building) {
                 // allow to walk to any cell in the destination building, the unit will stop when hitting the building
-                if (destCell.pickableResource) {
-                    // unless the destination is an output cell
-                    const isWalkable = cell.pickableResource !== undefined;
-                    return isWalkable;
-                } else {
-                    return cell.building === destBuildingId;
-                }
+                return cell.building === destBuildingId;
             } else if (cell.resource) {
                 return cell.resource.type === destCell.resource?.type;
             }
