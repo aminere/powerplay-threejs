@@ -21,7 +21,7 @@ export const TileTypes = [
 
 export const MineralTypes = [
     "stone",
-    "carbon",
+    "coal",
     "iron-ore",
     "aluminium",
     "scandium",
@@ -30,6 +30,7 @@ export const MineralTypes = [
 export const RawResourceTypes = [
     ...MineralTypes,
     "wood",
+    "water"
 ] as const;
 
 export const ResourceTypes = [

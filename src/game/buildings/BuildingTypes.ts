@@ -56,7 +56,11 @@ export interface IDepotState {
 
 export interface IIncubatorState {
     active: boolean;
-    progress: number;
+    progress: number;    
+    coalCount: number;
+    waterCount: number;
+    water: Object3D;
+    worker: Object3D;
 }
 
 export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState | IIncubatorState;

@@ -9,6 +9,7 @@ import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSiz
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
 import { Depots } from "./Depots";
+import { Incubators } from "./Incubators";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -162,13 +163,14 @@ class Buildings {
 
     public update() {
         const { buildings } = GameMapState.instance;
-        for (const instance of buildings.values()) {
+        buildings.forEach(instance => {
             switch (instance.buildingType) {
                 case "mine": Mines.update(instance); break;
                 case "factory": Factories.update(instance); break;
                 case "depot": Depots.update(instance); break;
+                case "incubator": Incubators.update(instance); break;
             }
-        }
+        });
     }
 }
 

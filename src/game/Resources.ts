@@ -17,7 +17,7 @@ const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
 };
 
 class Resources {
-    public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType | "water") {
+    public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
 
         const resourceInstance = (() => {
             mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);

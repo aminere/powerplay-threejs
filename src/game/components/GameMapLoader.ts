@@ -144,7 +144,16 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, cell.resource);
+                    const type = (() => {
+                        switch (cell.resource as string) {
+                            case "carbon": {
+                                console.warn(`old resource format "carbon" - converting to "coal"`);
+                                return "coal";
+                            }
+                            default: return cell.resource;
+                        }
+                    })();
+                    resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, type);
                 }
 
                 if (cell.units !== undefined) {

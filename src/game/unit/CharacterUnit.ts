@@ -2,7 +2,7 @@
 import { AnimationAction, SkinnedMesh } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { IUnit, Unit } from "./Unit";
-import { CharacterType } from "../GameDefinitions";
+import { CharacterType, RawResourceType } from "../GameDefinitions";
 import { State } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
@@ -21,6 +21,7 @@ import { UnitUtils } from "./UnitUtils";
 import { Workers } from "./Workers";
 import { Depots } from "../buildings/Depots";
 import { Factories } from "../buildings/Factories";
+import { Incubators } from "../buildings/Incubators";
 
 interface IUnitAnim {
     name: string;
@@ -145,32 +146,36 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public override onReachedBuilding(cell: ICell) {
 
         if (this.resource) {
-            const buildingInstance = GameMapState.instance.buildings.get(cell.building!)!;
-            switch (buildingInstance.buildingType) {
+            const instance = GameMapState.instance.buildings.get(cell.building!)!;
+            switch (instance.buildingType) {
                 case "factory": {
-                    const state = buildingInstance.state as IFactoryState;
-                    if (state.input === this.resource.type) {
-                        if (Factories.tryDepositResource(buildingInstance)) {
-                            this.resource = null;
-                        }
+                    if (Factories.tryDepositResource(instance, this.resource.type)) {
+                        this.resource = null;
                     }
                 }
                     break;
 
                 case "depot": {
-                    if (Depots.tryDepositResource(buildingInstance, this.resource.type)) {
+                    if (Depots.tryDepositResource(instance, this.resource.type)) {
                         this.resource = null;
                     } else {
-                        const state = buildingInstance.state as IDepotState;
+                        const state = instance.state as IDepotState;
                         if (state.type !== this.resource.type) {
                             if (state.amount > 0) {
                                 Workers.pickResource(this, state.type);
-                                Depots.removeResource(buildingInstance);
+                                Depots.removeResource(instance);
                             }
                         }
                     }
                 }
                     break;
+
+                case "incubator": {
+                    if (Incubators.tryDepositResource(instance, this.resource.type as RawResourceType)) {
+                        this.resource = null;
+                    }
+                }
+                break;
             }
 
             const miningState = this.fsm.getState(MiningState)!;

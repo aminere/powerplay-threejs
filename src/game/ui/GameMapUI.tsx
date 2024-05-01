@@ -20,7 +20,7 @@ export function GameMapUI(props: IGameUIProps) {
     const hoveredElementOnDown = useRef<HTMLElement | null>(null);
     const actions = useRef<Record<string, HTMLElement>>({});
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-    const buildingRef = useRef<HTMLDivElement>(null);
+    const buildingUi = useRef<HTMLDivElement>(null);
 
     const setAction = useCallback((newAction: Action) => {
         const gameMapState = GameMapState.instance;
@@ -122,11 +122,11 @@ export function GameMapUI(props: IGameUIProps) {
         const onSelectedElems = ({ building }: {
             building?: IBuildingInstance;
         }) => {
-            const buildingUi = buildingRef.current!;
+            const _buildingUi = buildingUi.current!;
             if (building) {
-                buildingUi.style.display = "block";
+                _buildingUi.style.display = "block";
             } else {
-                buildingUi.style.display = "none";
+                _buildingUi.style.display = "none";
             }
         };
 
@@ -184,7 +184,7 @@ export function GameMapUI(props: IGameUIProps) {
         </div>
 
         <div
-            ref={buildingRef}
+            ref={buildingUi}
             style={{
                 position: "absolute",
                 right: "1rem",
@@ -201,9 +201,7 @@ export function GameMapUI(props: IGameUIProps) {
                     width: "4rem",
                     height: "4rem",
                 }}
-                onClick={() => {
-                    unitsManager.spawnUnitRequest();
-                }}
+                onClick={() => unitsManager.spawnUnitRequest()}
             >
                 <div>
                     unit

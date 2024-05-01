@@ -23,6 +23,16 @@ export const config = {
         truckScale: 1.7,
         tankScale: 2
     },
+    incubators: {
+        capacity: {
+            water: 5,
+            coal: 5
+        },
+        workerCost: {
+            water: 1,
+            coal: 1
+        }
+    },
     conveyors: {
         itemSize: .5, // relative to the cell
         itemScale: .7,

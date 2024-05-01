@@ -6,7 +6,7 @@ import { RawResourceType, ResourceType, UnitType } from "./GameDefinitions";
 export interface ISerializedCell {
     index: number;
     roadTile?: number;
-    resource?: RawResourceType | "water";
+    resource?: RawResourceType;
     units?: UnitType[];
     conveyor?: IConveyorConfig;
 }

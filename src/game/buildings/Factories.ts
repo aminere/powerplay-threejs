@@ -85,11 +85,13 @@ export class Factories {
         }
     }
 
-    public static tryDepositResource(instance: IBuildingInstance) {
+    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IFactoryState;
-        if (state.inputReserve < state.inputCapacity) {
-            state.inputReserve++;
-            return true;
+        if (state.input === type) {
+            if (state.inputReserve < state.inputCapacity) {
+                state.inputReserve++;
+                return true;
+            }
         }
         return false;
     }
