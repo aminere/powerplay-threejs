@@ -4,7 +4,6 @@ import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/Unit";
 
-export const evtScreenResized = new AsyncEvent<void>();
 export const cmdShowUI = new AsyncEvent<UIType>();
 export const cmdHideUI = new SyncEvent<UIType>();
 
@@ -32,5 +31,8 @@ export const cmdFogAddCircle = new SyncEvent<{ mapCoords: Vector2; radius: numbe
 export const cmdFogMoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
 export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number;}>();
 
+
+export const evtScreenResized = new AsyncEvent<void>();
 export const evtUnitKilled = new SyncEvent<IUnit>();
+export const evtActionCleared = new AsyncEvent<void>();
 

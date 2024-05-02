@@ -22,6 +22,7 @@ import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
+import { evtActionCleared } from "../Events";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -483,9 +484,13 @@ export function onAction(touchButton: number) {
 
     const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
     if (!cell) {
-        createSector(sectorCoords.clone());
-        updateCameraBounds();
+
+        // TODO show warning
+        // createSector(sectorCoords.clone());
+        // updateCameraBounds();
+
     } else {
+
         const mapCoords = state.selectedCellCoords;
         switch (state.action) {
             case "elevation": {
@@ -577,6 +582,11 @@ export function onAction(touchButton: number) {
             break;
 
         }
+
+        // TODO is action failed, show fail reason
+        // If action succeeded, clear it
+        GameMapState.instance.action = null;
+        evtActionCleared.post();
     }
 }
 

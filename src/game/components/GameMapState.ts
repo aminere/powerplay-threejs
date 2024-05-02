@@ -18,7 +18,6 @@ export class GameMapState {
     public sectorRes = 1;
     public sectorsRoot = utils.createObject(root(), "sectors");
     public sectors = new Map<string, ISector>();
-    public action: Action | null = null;
     public previousRoad: Vector2[] = [];
     public previousRail: ICell[] = [];
     public previousConveyors: Vector2[] = [];
@@ -73,7 +72,16 @@ export class GameMapState {
         }
     }
 
+    public get action() { return this._action; }
+    public set action(value: Action | null) {
+        this._action = value;
+        if (!value) {
+            this.tileSelector.visible = false;
+        }
+    }
+
     private _cursorOverUI = false;
+    private _action: Action | null = null;
     
     constructor() {
         GameMapState._instance = this;

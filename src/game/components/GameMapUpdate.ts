@@ -8,7 +8,7 @@ import { pools } from "../../engine/core/Pools";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
-import { cmdEndSelection, cmdSetSelectedElems } from "../../Events";
+import { cmdEndSelection, cmdSetSelectedElems, evtActionCleared } from "../../Events";
 import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
 import { conveyorItems } from "../ConveyorItems";
@@ -344,7 +344,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
             } else if (input.touchButton === 2) {
 
                 if (state.action) {
-                    onAction(2);
+
+                    // onAction(2);
+                    state.action = null;
+                    evtActionCleared.post();
+
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
                         const targetCellCoords = pools.vec2.getOne();

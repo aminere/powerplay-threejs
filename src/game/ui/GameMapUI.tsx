@@ -11,6 +11,7 @@ import { BuildingType, BuildingTypes, buildingSizes } from "../buildings/Buildin
 import gsap from "gsap";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
+import { evtActionCleared } from "../../Events";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -31,7 +32,6 @@ interface ActionButtonProps {
 function ActionButton(props: ActionButtonProps) {
     return <div
         className={`${styles.action} ${props.selected ? styles.selected : ""} clickable`}
-        style={{ backgroundColor: "#00000066" }}
         onClick={e => {
             props.onClick();
             e.stopPropagation();
@@ -58,7 +58,7 @@ function ActionSection(props: IActionSectionProps) {
     const { open: _open } = props;
     useEffect(() => {
         setOpen(_open);
-    }, [_open])
+    }, [_open])    
 
     useEffect(() => {
         if (open) {
@@ -88,11 +88,21 @@ function ActionSection(props: IActionSectionProps) {
         }
     }, [open]);
 
+    useEffect(() => {
+        const onActionCleared = () => {
+            setAction(null);
+        };
+        evtActionCleared.attach(onActionCleared);
+        return () => {
+            evtActionCleared.detach(onActionCleared);
+        }
+    }, []);
+
     return <div
         className={`${styles.action} clickable`}
         style={{
             position: "relative",
-            backgroundColor: open ? "#00000066" : "#0000002b"
+            backgroundColor: open ? undefined : "#0000002b"
         }}
         onClick={() => {
             if (open) {
@@ -343,7 +353,7 @@ export function GameMapUI(_props: IGameUIProps) {
 
             <div style={{
                 position: "absolute",
-                bottom: "0",
+                bottom: ".5rem",
                 left: "50%",
                 transform: "translateX(-50%)",
                 backgroundColor: "#0000002b",
