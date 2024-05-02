@@ -7,11 +7,12 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, buildingSizes } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
 import gsap from "gsap";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
-import { evtActionCleared, evtBuildError } from "../../Events";
+import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
+import { unitsManager } from "../unit/UnitsManager";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -145,6 +146,33 @@ function ActionSection(props: IActionSectionProps) {
     </div>
 }
 
+interface IBuildingUIProps {
+    instance: IBuildingInstance;
+}
+
+function BuildingUI(props: React.PropsWithChildren<IBuildingUIProps>) {
+    return <div
+        style={{
+            padding: ".5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            backgroundColor: "#0000002b"
+        }}>
+        <div
+            style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                textTransform: "uppercase"
+            }}>
+            {props.instance.buildingType}
+        </div>
+        <div style={{ display: "flex", gap: "1rem" }}>
+            {props.children}
+        </div>
+    </div>
+}
+
 export function GameMapUI(_props: IGameUIProps) {
     // const actionsElem = useRef<HTMLDivElement>(null);
     // const hoveredElement = useRef<HTMLElement | null>(null);
@@ -234,22 +262,25 @@ export function GameMapUI(_props: IGameUIProps) {
     //     };
     // }, [setAction]);
 
+    const [selectedBuilding, setSelectedBuilding] = useState<IBuildingInstance | null>(null);
+    const [selectedBuildingTimestamp, setSelectedBuildingTimestamp] = useState(Date.now());
     useEffect(() => {
-        // const onSelectedElems = ({ building }: {
-        //     building?: IBuildingInstance;
-        // }) => {
-        //     if (building) {
-        //         _buildingUi.style.display = "block";
-        //     } else {
-        //         _buildingUi.style.display = "none";
-        //     }
-        // };
+        const onSelectedElems = ({ building }: {
+            building?: IBuildingInstance;
+        }) => {
+            setSelectedBuilding(building ?? null);
+        };
 
-        // cmdSetSelectedElems.attach(onSelectedElems);
-        // return () => {
-        //     cmdSetSelectedElems.detach(onSelectedElems);
-        // }
+        const onBuildingStateChanged = () => {
+            setSelectedBuildingTimestamp(Date.now());
+        };
 
+        cmdSetSelectedElems.attach(onSelectedElems);
+        evtBuildingStateChanged.attach(onBuildingStateChanged);
+        return () => {
+            cmdSetSelectedElems.detach(onSelectedElems);
+            evtBuildingStateChanged.detach(onBuildingStateChanged);
+        }
     }, []);
 
     const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
@@ -287,7 +318,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     setErrorTween(null);
                 }
             });
-            setErrorTween(tween);      
+            setErrorTween(tween);
         };
 
         const onActionCleared = () => {
@@ -407,7 +438,7 @@ export function GameMapUI(_props: IGameUIProps) {
                 position: "absolute",
                 bottom: ".5rem",
                 left: "50%",
-                transform: "translateX(-50%)",                
+                transform: "translateX(-50%)",
             }}>
                 <div style={{ position: "relative" }}>
                     <div
@@ -420,40 +451,65 @@ export function GameMapUI(_props: IGameUIProps) {
                             transform: "translateX(-50%)",
                             textAlign: "center",
                             color: "red",
-                            opacity: 0
+                            opacity: 0,
+                            textShadow: "1 1 0 black"
                         }}
                     >
                         {error ?? ""}
                     </div>
                 </div>
+                {(() => {
+                    const buildingType = selectedBuilding?.buildingType;
+                    if (!buildingType) {
+                        return null;
+                    }
+                    switch (buildingType) {
+                        case "incubator": {
+                            const state = selectedBuilding.state as IIncubatorState;
 
-                <div style={{
-                    padding: ".5rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                    backgroundColor: "#0000002b",
-                    minHeight: "10rem",
-                }}>
-                    <div
-                        style={{
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            textTransform: "uppercase"
-                        }}>
-                        Incubator
-                    </div>
-                    <div style={{ display: "flex", gap: "1rem" }}>
-                        <div>
-                            <div>Water: 0</div>
-                            <div>Coal: 0</div>
-                        </div>
-                        <div>
-                            <div className={`${styles.action} clickable`}>Worker</div>
-                        </div>
-                    </div>
-                </div>
-                
+                            const canSpawn = () => {
+                                const { workerCost } = config.incubators;
+                                if (state.amount.water < workerCost.water) {
+                                    return false;
+                                }
+                                if (state.amount.coal < workerCost.coal) {
+                                    return false;
+                                }
+                                return true
+                            };
+
+                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                                <div>
+                                    <div>Water: {state.amount.water}</div>
+                                    <div>Coal: {state.amount.coal}</div>
+                                </div>
+                                <div>
+                                    <div
+                                        className={`${styles.action} clickable`}
+                                        style={{
+                                            opacity: canSpawn() ? 1 : .5
+                                        }}
+                                        onClick={() => {                                            
+                                            if (canSpawn()) {
+                                                unitsManager.spawnUnitRequest();
+                                            } else {
+                                                const { workerCost } = config.incubators;
+                                                evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
+                                            }
+                                        }}
+                                    >
+                                        Worker
+                                        {/* <span className={styles.tooltiptext}>
+                                            Incubate Worker<br/>
+                                            Water x 1 <br/>
+                                            Coal x 1 <br/>
+                                        </span> */}
+                                    </div>
+                                </div>
+                            </BuildingUI>
+                        }
+                    }
+                })()}
             </div>
         </InGameUI>
 

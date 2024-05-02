@@ -5,6 +5,7 @@ import { meshes } from "../../engine/resources/Meshes";
 import { config } from "../config";
 import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
+import { evtBuildingStateChanged } from "../../Events";
 
 const { unitScale } = config.game;
 const { capacity } = config.incubators;
@@ -30,6 +31,7 @@ export class Incubators {
         const mesh = instance.visual as Mesh;
         const material = mesh.material as Material;
         material.side = DoubleSide;
+        mesh.receiveShadow = false;
 
         meshes.load("/models/buildings/incubator-water.glb").then(([_mesh]) => {
             const mesh = _mesh.clone();            
@@ -88,7 +90,8 @@ export class Incubators {
                 if (state.amount.water < capacity.water) {
                     state.amount.water++;
                     const progress = state.amount.water / capacity.water;                    
-                    state.water.scale.setY(progress);                   
+                    state.water.scale.setY(progress);
+                    evtBuildingStateChanged.post();
                     return true;
                 }
             }
@@ -96,7 +99,8 @@ export class Incubators {
 
             case "coal": {
                 if (state.amount.coal < capacity.coal) {
-                    state.amount.coal++;                    
+                    state.amount.coal++;
+                    evtBuildingStateChanged.post();
                     return true;
                 }
             }
