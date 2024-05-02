@@ -1,16 +1,20 @@
 
+export const TransportActions = [
+    "conveyor", 
+    "road", 
+    "rail"
+] as const;
+
 export const Actions = [
     "elevation",     
     "terrain",
     "water",
     "flatten",
-    "road", 
     "building", 
-    "rail", 
-    "belt",
     "unit",
     "train",
     "resource",
+    ...TransportActions
 ] as const;
 
 export const TileTypes = [
@@ -64,6 +68,7 @@ export const UnitTypes = [
 ] as const;
 
 export type UIType = "gamemap";
+export type TransportAction = typeof TransportActions[number];
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
 export type RawResourceType = typeof RawResourceTypes[number];

@@ -169,7 +169,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
         }
             break;
 
-        case "belt": {
+        case "conveyor": {
             state.previousConveyors.forEach(cell => conveyors.clear(cell));
             state.previousConveyors.length = 0;
             conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
@@ -546,7 +546,7 @@ export function onAction(touchButton: number) {
             }
                 break;
 
-            case "belt": {
+            case "conveyor": {
                 onConveyor(mapCoords, cell, touchButton);
             }
                 break;

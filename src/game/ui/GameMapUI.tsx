@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Action } from "../GameDefinitions";
 
 import styles from './GameMapUI.module.css';
-import { utils } from "../../engine/Utils";
 import { IGameUIProps } from "./GameUIProps";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
-import { cmdSetSelectedElems } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, buildingSizes } from "../buildings/BuildingTypes";
 import gsap from "gsap";
+import { TransportAction, TransportActions } from "../GameDefinitions";
+import { config } from "../config";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -23,29 +22,105 @@ function InGameUI({ children }: { children: React.ReactNode }) {
     </div>
 }
 
-interface BuildButtonProps {
-    name: BuildingType;
+interface ActionButtonProps {
+    name: string;
     selected: boolean;
     onClick: () => void;
 }
 
-function BuildButton(props: BuildButtonProps) {
+function ActionButton(props: ActionButtonProps) {
     return <div
         className={`${styles.action} ${props.selected ? styles.selected : ""} clickable`}
-        onClick={props.onClick}
+        onClick={e => {
+            props.onClick();
+            e.stopPropagation();
+        }}
     >
         {props.name}
     </div>
 }
 
-export function GameMapUI(props: IGameUIProps) {
-    const actionsElem = useRef<HTMLDivElement>(null);
-    const hoveredElement = useRef<HTMLElement | null>(null);
-    const hoveredElementOnDown = useRef<HTMLElement | null>(null);
-    const actions = useRef<Record<string, HTMLElement>>({});
-    const [buildingType, setBuildingType] = useState<BuildingType | null>(null);
-    const [buildingsOpen, setBuildingsOpen] = useState(false);
-    const buildingsRef = useRef<HTMLDivElement>(null);
+interface IActionSectionProps {
+    name: string;
+    actions: readonly string[];
+    onSelected: (action: string) => void;
+}
+
+function ActionSection(props: IActionSectionProps) {
+    const [open, setOpen] = useState(false);
+    const [action, setAction] = useState<string | null>(null);
+    const actionsRef = useRef<HTMLDivElement>(null);
+
+    return <div
+        style={{ position: "relative" }}
+        className={`${styles.action} clickable`}
+        onClick={() => {
+            if (open) {
+                setOpen(false);
+                gsap.to(actionsRef.current, {
+                    scaleY: 0,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => {
+                        actionsRef.current!.style.pointerEvents = "none";
+                    }
+                });
+
+                setAction(null);
+                const gameMapState = GameMapState.instance;
+                gameMapState.action = null;
+
+            } else {
+                setOpen(true);
+                gsap.to(actionsRef.current, {
+                    scaleY: 1,
+                    opacity: 1,
+                    duration: 0.2,
+                    onComplete: () => {
+                        actionsRef.current!.style.pointerEvents = "all";
+                    }
+                });
+            }
+        }}
+    >
+        <span>{props.name}</span>
+        <div
+            ref={actionsRef}
+            style={{
+                position: "absolute",
+                left: "calc(5rem + .2rem)",
+                display: "flex",
+                flexDirection: "column",
+                gap: ".2rem",
+                transform: "scaleY(0)",
+                opacity: 0,
+                pointerEvents: "none"
+            }}
+        >
+            {props.actions.map(_action => <ActionButton
+                key={_action}
+                name={_action}
+                selected={action === _action}
+                onClick={() => {
+                    const gameMapState = GameMapState.instance;
+                    if (action === _action) {                        
+                        setAction(null);
+                        gameMapState.action = null;
+                        return;
+                    }
+                    setAction(_action);
+                    props.onSelected(_action);
+                }}
+            />)}
+        </div>
+    </div>
+}
+
+export function GameMapUI(_props: IGameUIProps) {
+    // const actionsElem = useRef<HTMLDivElement>(null);
+    // const hoveredElement = useRef<HTMLElement | null>(null);
+    // const hoveredElementOnDown = useRef<HTMLElement | null>(null);
+    // const actions = useRef<Record<string, HTMLElement>>({});
 
     // const setAction = useCallback((newAction: Action) => {
     //     const gameMapState = GameMapState.instance;
@@ -131,21 +206,20 @@ export function GameMapUI(props: IGameUIProps) {
     // }, [setAction]);
 
     useEffect(() => {
+        // const onSelectedElems = ({ building }: {
+        //     building?: IBuildingInstance;
+        // }) => {
+        //     if (building) {
+        //         _buildingUi.style.display = "block";
+        //     } else {
+        //         _buildingUi.style.display = "none";
+        //     }
+        // };
 
-        const onSelectedElems = ({ building }: {
-            building?: IBuildingInstance;
-        }) => {
-            // if (building) {
-            //     _buildingUi.style.display = "block";
-            // } else {
-            //     _buildingUi.style.display = "none";
-            // }
-        };
-
-        cmdSetSelectedElems.attach(onSelectedElems);
-        return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);
-        }
+        // cmdSetSelectedElems.attach(onSelectedElems);
+        // return () => {
+        //     cmdSetSelectedElems.detach(onSelectedElems);
+        // }
 
     }, []);
 
@@ -200,76 +274,36 @@ export function GameMapUI(props: IGameUIProps) {
             <div
                 style={{
                     position: "absolute",
-                    right: "1rem",
-                    bottom: ".5rem"
+                    left: ".5rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: ".2rem",
                 }}
             >
-                <div
-                    className={`${styles.action} clickable`}
-                    onClick={() => {                        
-                        if (buildingsOpen) {
-                            setBuildingsOpen(false);
-                            setBuildingType(null);
-                            const gameMapState = GameMapState.instance;
-                            gameMapState.action = null;
-                            gsap.to(buildingsRef.current, {
-                                y: "100%",
-                                opacity: 0,
-                                duration: 0.5,
-                                onComplete: () => {
-                                    buildingsRef.current!.style.pointerEvents = "none";
-                                }
-                            });
-                        } else {
-                            setBuildingsOpen(true);
-                            gsap.to(buildingsRef.current, {
-                                y: 0,
-                                opacity: 1,
-                                duration: 0.5,
-                                onComplete: () => {
-                                    buildingsRef.current!.style.pointerEvents = "all";
-                                }
-                            });
-                        }                        
-                    }}
-                >
-                    Build
-                </div>
-
-                <div
-                    ref={buildingsRef}
-                    style={{
-                        position: "absolute",
-                        bottom: "calc(5rem + .2rem)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: ".2rem",
-                        transformOrigin: "bottom",
-                        transform: "translateY(100%)",
-                        opacity: 0,
-                        pointerEvents: "none"
-                    }}
-                >
-                    {BuildingTypes.map(type => <BuildButton
-                        key={type}
-                        name={type}
-                        selected={buildingType === type}
-                        onClick={() => {
-                            const gameMapState = GameMapState.instance;
-                            if (type === buildingType) {
-                                gameMapState.action = null;
-                                setBuildingType(null);
-                                return;
-                            }
-                            GameMapProps.instance.buildingType = type;
-                            const size = buildingSizes[type];
-                            gameMapState.tileSelector.setSize(size.x, size.z);
-                            gameMapState.tileSelector.setBuilding(type);
-                            gameMapState.action = "building";
-                            setBuildingType(type);
-                        }}
-                    />)}
-                </div>
+                <ActionSection name="Build" actions={BuildingTypes} onSelected={action => {
+                    const buildingType = action as BuildingType;
+                    GameMapProps.instance.buildingType = buildingType;
+                    const size = buildingSizes[buildingType];
+                    const gameMapState = GameMapState.instance;
+                    gameMapState.tileSelector.setSize(size.x, size.z);
+                    gameMapState.tileSelector.setBuilding(buildingType);
+                    gameMapState.action = "building";
+                }} />
+                <ActionSection name="Transport" actions={TransportActions} onSelected={action => {
+                    const transportType = action as TransportAction;
+                    const gameMapState = GameMapState.instance;
+                    if (transportType === "road") {
+                        const { cellsPerRoadBlock } = config.game;
+                        gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
+                        gameMapState.tileSelector.resolution = cellsPerRoadBlock;
+                    } else {
+                        gameMapState.tileSelector.setSize(1, 1);
+                        gameMapState.tileSelector.resolution = 1;
+                    }
+                    gameMapState.action = transportType;                    
+                }} />
             </div>
 
             <div style={{
