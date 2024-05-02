@@ -31,6 +31,7 @@ interface ActionButtonProps {
 function ActionButton(props: ActionButtonProps) {
     return <div
         className={`${styles.action} ${props.selected ? styles.selected : ""} clickable`}
+        style={{ backgroundColor: "#00000066" }}
         onClick={e => {
             props.onClick();
             e.stopPropagation();
@@ -41,45 +42,63 @@ function ActionButton(props: ActionButtonProps) {
 }
 
 interface IActionSectionProps {
+    open: boolean;    
     name: string;
     actions: readonly string[];
     onSelected: (action: string) => void;
+    onOpen: () => void;   
+    onClose: () => void; 
 }
 
 function ActionSection(props: IActionSectionProps) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(props.open);
     const [action, setAction] = useState<string | null>(null);
     const actionsRef = useRef<HTMLDivElement>(null);
 
+    const { open: _open } = props;
+    useEffect(() => {
+        setOpen(_open);
+    }, [_open])
+
+    useEffect(() => {
+        if (open) {
+            gsap.to(actionsRef.current, {
+                scaleY: 1,
+                opacity: 1,
+                duration: 0.2,
+                onComplete: () => {
+                    actionsRef.current!.style.pointerEvents = "all";
+                }
+            });
+            props.onOpen();
+
+        } else {
+            gsap.to(actionsRef.current, {
+                scaleY: 0,
+                opacity: 0,
+                duration: 0.2,
+                onComplete: () => {
+                    actionsRef.current!.style.pointerEvents = "none";
+                }
+            });
+
+            setAction(null);
+            const gameMapState = GameMapState.instance;
+            gameMapState.action = null;
+        }
+    }, [open]);
+
     return <div
-        style={{ position: "relative" }}
         className={`${styles.action} clickable`}
+        style={{
+            position: "relative",
+            backgroundColor: open ? "#00000066" : "#0000002b"
+        }}
         onClick={() => {
             if (open) {
                 setOpen(false);
-                gsap.to(actionsRef.current, {
-                    scaleY: 0,
-                    opacity: 0,
-                    duration: 0.2,
-                    onComplete: () => {
-                        actionsRef.current!.style.pointerEvents = "none";
-                    }
-                });
-
-                setAction(null);
-                const gameMapState = GameMapState.instance;
-                gameMapState.action = null;
-
             } else {
                 setOpen(true);
-                gsap.to(actionsRef.current, {
-                    scaleY: 1,
-                    opacity: 1,
-                    duration: 0.2,
-                    onComplete: () => {
-                        actionsRef.current!.style.pointerEvents = "all";
-                    }
-                });
             }
         }}
     >
@@ -223,6 +242,8 @@ export function GameMapUI(_props: IGameUIProps) {
 
     }, []);
 
+    const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
+
     return <div className={styles.root}>
 
         {/* <div 
@@ -282,28 +303,42 @@ export function GameMapUI(_props: IGameUIProps) {
                     gap: ".2rem",
                 }}
             >
-                <ActionSection name="Build" actions={BuildingTypes} onSelected={action => {
-                    const buildingType = action as BuildingType;
-                    GameMapProps.instance.buildingType = buildingType;
-                    const size = buildingSizes[buildingType];
-                    const gameMapState = GameMapState.instance;
-                    gameMapState.tileSelector.setSize(size.x, size.z);
-                    gameMapState.tileSelector.setBuilding(buildingType);
-                    gameMapState.action = "building";
-                }} />
-                <ActionSection name="Transport" actions={TransportActions} onSelected={action => {
-                    const transportType = action as TransportAction;
-                    const gameMapState = GameMapState.instance;
-                    if (transportType === "road") {
-                        const { cellsPerRoadBlock } = config.game;
-                        gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-                        gameMapState.tileSelector.resolution = cellsPerRoadBlock;
-                    } else {
-                        gameMapState.tileSelector.setSize(1, 1);
-                        gameMapState.tileSelector.resolution = 1;
-                    }
-                    gameMapState.action = transportType;                    
-                }} />
+                <ActionSection
+                    name="Build"
+                    actions={BuildingTypes}
+                    open={openSection === "build"}
+                    onSelected={action => {
+                        const buildingType = action as BuildingType;
+                        GameMapProps.instance.buildingType = buildingType;
+                        const size = buildingSizes[buildingType];
+                        const gameMapState = GameMapState.instance;
+                        gameMapState.tileSelector.setSize(size.x, size.z);
+                        gameMapState.tileSelector.setBuilding(buildingType);
+                        gameMapState.action = "building";
+                    }}
+                    onOpen={() => setOpenSection("build")}
+                    onClose={() => setOpenSection(null)}
+                />
+                <ActionSection
+                    name="Transport"
+                    actions={TransportActions}
+                    open={openSection === "transport"}
+                    onSelected={action => {
+                        const transportType = action as TransportAction;
+                        const gameMapState = GameMapState.instance;
+                        if (transportType === "road") {
+                            const { cellsPerRoadBlock } = config.game;
+                            gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
+                            gameMapState.tileSelector.resolution = cellsPerRoadBlock;
+                        } else {
+                            gameMapState.tileSelector.setSize(1, 1);
+                            gameMapState.tileSelector.resolution = 1;
+                        }
+                        gameMapState.action = transportType;
+                    }}
+                    onOpen={() => setOpenSection("transport")}
+                    onClose={() => setOpenSection(null)}
+                />
             </div>
 
             <div style={{

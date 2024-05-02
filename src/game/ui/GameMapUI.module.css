@@ -17,13 +17,12 @@
 }
 
 .selected {
-    outline: 2px solid yellow !important;
+    outline: 2px solid yellow;
 }
 
 .action {
     height: 5rem;
-    width: 5rem;
-    background-color: #0000002b;
+    width: 5rem;    
     display: flex;
     align-items: center;
     justify-content: center;
