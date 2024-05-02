@@ -1,7 +1,7 @@
 import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
-import { cmdFogAddCircle, cmdSetSelectedElems, cmdStartSelection, evtUnitKilled } from "../../Events";
+import { cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
@@ -82,10 +82,13 @@ class UnitsManager {
 
         this.onUnitKilled = this.onUnitKilled.bind(this);
         evtUnitKilled.attach(this.onUnitKilled);
+        this.onSpawnUnit = this.onSpawnUnit.bind(this);
+        cmdSpawnUnit.attach(this.onSpawnUnit);
     }
 
     public dispose() {
         evtUnitKilled.detach(this.onUnitKilled);
+        cmdSpawnUnit.detach(this.onSpawnUnit);
         skeletonManager.dispose();
         skeletonPool.dispose();
         this._units.length = 0;
@@ -211,12 +214,6 @@ class UnitsManager {
         cmdSetSelectedElems.post({ units: this._selectedUnits });
     }
 
-    public spawnUnitRequest() {
-        const { selectedBuilding } = GameMapState.instance;
-        console.assert(selectedBuilding);
-        this._spawnUnitRequest = selectedBuilding!;
-    }
-
     private handleSpawnRequests() {
         const spawnUnitRequest = this._spawnUnitRequest;
         if (!spawnUnitRequest) {
@@ -301,6 +298,10 @@ class UnitsManager {
         const index = this._units.indexOf(unit as Unit);
         console.assert(index >= 0, `unit ${unit.id} not found`);
         utils.fastDelete(this._units, index);
+    }
+
+    private onSpawnUnit(building: IBuildingInstance) {
+        this._spawnUnitRequest = building;
     }
 }
 

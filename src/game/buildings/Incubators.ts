@@ -5,7 +5,7 @@ import { meshes } from "../../engine/resources/Meshes";
 import { config } from "../config";
 import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
-import { evtBuildingStateChanged } from "../../Events";
+import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
 
 const { unitScale } = config.game;
 const { capacity } = config.incubators;
@@ -108,6 +108,14 @@ export class Incubators {
         }
 
         return false;
+    }
+
+    public static spawn(instance: IBuildingInstance) {
+        cmdSpawnUnit.post(instance);
+        const state = instance.state as IIncubatorState;
+        state.amount.water--;
+        state.amount.coal--;
+        evtBuildingStateChanged.post();
     }
 }
 

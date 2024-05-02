@@ -13,6 +13,7 @@ import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
+import { Incubators } from "../buildings/Incubators";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -174,39 +175,6 @@ function BuildingUI(props: React.PropsWithChildren<IBuildingUIProps>) {
 }
 
 export function GameMapUI(_props: IGameUIProps) {
-    // const actionsElem = useRef<HTMLDivElement>(null);
-    // const hoveredElement = useRef<HTMLElement | null>(null);
-    // const hoveredElementOnDown = useRef<HTMLElement | null>(null);
-    // const actions = useRef<Record<string, HTMLElement>>({});
-
-    // const setAction = useCallback((newAction: Action) => {
-    //     const gameMapState = GameMapState.instance;
-    //     gameMapState.action = newAction;
-
-    //     let resolution = 1;
-    //     switch (newAction) {
-    //         case "elevation":
-    //         case "water":
-    //         case "flatten": {
-    //             const { brushSize } = GameMapProps.instance;
-    //             gameMapState.tileSelector.setSize(brushSize, brushSize);
-    //         }
-    //             break;
-
-    //         case "road": {
-    //             const { cellsPerRoadBlock } = config.game;
-    //             gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-    //             resolution = cellsPerRoadBlock;
-    //         }
-    //             break;
-
-    //         default:
-    //             gameMapState.tileSelector.setSize(1, 1);
-    //     }
-    //     gameMapState.tileSelector.resolution = resolution;
-
-    // }, [selectedAction]);
-
     // useEffect(() => {
     //     if (!actionsElem.current) {
     //         return;
@@ -338,52 +306,6 @@ export function GameMapUI(_props: IGameUIProps) {
     }, [errorTween, clearError]);
 
     return <div className={styles.root}>
-
-        {/* <div 
-            ref={actionsElem} 
-            className={styles.actions}
-            onPointerEnter={() => {
-                if (!GameMapState.instance) {
-                    return;
-                }
-                GameMapState.instance.cursorOverUI = true;
-            }}
-            onPointerLeave={() => {
-                if (!GameMapState.instance) {
-                    return;
-                }
-                GameMapState.instance.cursorOverUI = false
-            }}
-        >
-            {Actions.map(action => {
-
-                const ignoredActions: Action[] = [
-                    "terrain"
-                ];
-                
-                if (ignoredActions.includes(action)) {
-                    return null;
-                }
-
-                const selected = selectedAction === action;
-                return <div
-                    id={action}
-                    key={action}
-                    className={`${styles.action} clickable ${selected ? styles.selected : ''}`}
-                    ref={e => actions.current[action] = e as HTMLElement}
-                    onClick={() => {
-                        if (!utils.isPointerLocked()) {
-                            setAction(action);
-                        }
-                    }}
-                >
-                    <div>
-                        {action}
-                    </div>
-                </div>
-            })}
-        </div> */}
-
         <InGameUI>
             <div
                 style={{
@@ -458,6 +380,7 @@ export function GameMapUI(_props: IGameUIProps) {
                         {error ?? ""}
                     </div>
                 </div>
+                
                 {(() => {
                     const buildingType = selectedBuilding?.buildingType;
                     if (!buildingType) {
@@ -491,7 +414,7 @@ export function GameMapUI(_props: IGameUIProps) {
                                         }}
                                         onClick={() => {                                            
                                             if (canSpawn()) {
-                                                unitsManager.spawnUnitRequest();
+                                                Incubators.spawn(selectedBuilding);
                                             } else {
                                                 const { workerCost } = config.incubators;
                                                 evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);

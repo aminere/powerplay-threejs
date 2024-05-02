@@ -31,6 +31,7 @@ export const cmdFogAddCircle = new SyncEvent<{ mapCoords: Vector2; radius: numbe
 export const cmdFogMoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
 export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number;}>();
 
+export const cmdSpawnUnit = new AsyncEvent<IBuildingInstance>();
 
 export const evtScreenResized = new AsyncEvent<void>();
 export const evtUnitKilled = new SyncEvent<IUnit>();

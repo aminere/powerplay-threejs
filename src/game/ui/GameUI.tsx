@@ -3,6 +3,7 @@ import { UIType } from "../GameDefinitions";
 import { cmdHideUI, cmdShowUI } from "../../Events";
 import { IGameUIProps } from "./GameUIProps";
 import { GameMapUI } from "./GameMapUI";
+import { DebugUI } from "./DebugUI";
 
 export function GameUI(props: IGameUIProps) {
     const [ui, setUI] = useState<UIType>();
@@ -28,7 +29,10 @@ export function GameUI(props: IGameUIProps) {
         {(() => {
             switch (ui) {
                 case "gamemap":
-                    return <GameMapUI {...props} />;
+                    return <>
+                        <GameMapUI {...props} />
+                        <DebugUI />
+                    </>;
             }
         })()}
     </>
