@@ -11,7 +11,7 @@ import { BuildingType, BuildingTypes, buildingSizes } from "../buildings/Buildin
 import gsap from "gsap";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
-import { evtActionCleared } from "../../Events";
+import { evtActionCleared, evtBuildError } from "../../Events";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -253,6 +253,58 @@ export function GameMapUI(_props: IGameUIProps) {
     }, []);
 
     const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [clearError, setClearError] = useState<NodeJS.Timeout | null>(null);
+    const [errorTween, setErrorTween] = useState<gsap.core.Tween | null>(null);
+    const errorRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const _clearError = () => {
+            if (errorTween) {
+                errorTween.kill();
+            }
+            if (clearError) {
+                clearTimeout(clearError);
+            }
+        };
+
+        const onError = (error: string) => {
+            setError(error);
+            _clearError();
+            errorRef.current!.style.opacity = "0";
+            const tween = gsap.to(errorRef.current, {
+                opacity: 1,
+                repeat: 4,
+                yoyo: true,
+                duration: .4,
+                onComplete: () => {
+                    const timeout = setTimeout(() => {
+                        errorRef.current!.style.opacity = "0";
+                        setError(null);
+                        setClearError(null);
+                    }, 3000);
+                    setClearError(timeout);
+                    setErrorTween(null);
+                }
+            });
+            setErrorTween(tween);      
+        };
+
+        const onActionCleared = () => {
+            _clearError();
+            setErrorTween(null);
+            setClearError(null);
+            setError(null);
+            errorRef.current!.style.opacity = "0";
+        };
+
+        evtBuildError.attach(onError);
+        evtActionCleared.attach(onActionCleared);
+        return () => {
+            evtBuildError.detach(onError);
+            evtActionCleared.detach(onActionCleared);
+        }
+    }, [errorTween, clearError]);
 
     return <div className={styles.root}>
 
@@ -358,16 +410,20 @@ export function GameMapUI(_props: IGameUIProps) {
                 transform: "translateX(-50%)",                
             }}>
                 <div style={{ position: "relative" }}>
-                    <div style={{
-                        position: "absolute",
-                        bottom: ".5rem",
-                        width: "250%",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        textAlign: "center",
-
-                    }}>
-                        Hello this is a very long error message and I hope its centered
+                    <div
+                        ref={errorRef}
+                        style={{
+                            position: "absolute",
+                            bottom: ".5rem",
+                            width: "500px",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            textAlign: "center",
+                            color: "red",
+                            opacity: 0
+                        }}
+                    >
+                        {error ?? ""}
                     </div>
                 </div>
 

@@ -35,4 +35,5 @@ export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: nu
 export const evtScreenResized = new AsyncEvent<void>();
 export const evtUnitKilled = new SyncEvent<IUnit>();
 export const evtActionCleared = new AsyncEvent<void>();
+export const evtBuildError = new AsyncEvent<string>();
 

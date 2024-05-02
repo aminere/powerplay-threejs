@@ -22,7 +22,7 @@ import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
-import { evtActionCleared } from "../Events";
+import { evtActionCleared, evtBuildError } from "../Events";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -312,6 +312,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
     if (button === 0) {
         const size = buildingSizes[buildingType];
 
+        let error: string | null = null;
+
         // TODO if units under the structure, move them away
         const allowed = (() => {
 
@@ -332,7 +334,6 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
 
             switch (buildingType) {
                 case "mine": {
-
                     let resourceCount = 0;
                     const cellsValid = validateCells(cell => {
                         if (!cell || cell.hasUnits) {
@@ -346,17 +347,33 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                         } else {
                             return cell.isEmpty;
                         }
-                    });
+                    });                    
 
-                    return cellsValid && resourceCount > 0;
+                    if (!cellsValid) {
+                        error = "Can't build here";
+                        return false;
+                    }
+
+                    if (resourceCount === 0) {
+                        error = "Mine must be placed on a mineral resource";
+                        return false;
+                    }
+
+                    return true;
                 }
 
                 default: {
-                    return validateCells(validateCell);
+                    const cellsValid = validateCells(validateCell);
+                    if (!cellsValid) {
+                        error = "Can't build here";
+                        return false;
+                    }
+                    return true;
                 }
             }
 
         })();
+
         if (allowed) {
             switch (buildingType) {
                 case "factory": Factories.create(sectorCoords, localCoords, props.factoryInput, props.factoryOutput); break;
@@ -364,7 +381,9 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
                 case "depot": Depots.create(sectorCoords, localCoords, props.depotType); break;
                 case "incubator": Incubators.create(sectorCoords, localCoords); break;
                 default: buildings.create(buildingType, sectorCoords, localCoords);
-            }
+            }            
+        } else {
+            return error;
         }
 
     } else if (button === 2) {
@@ -372,6 +391,8 @@ function onBuilding(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, bu
             buildings.clear(cell.building);
         }
     }
+
+    return null;
 }
 
 function onResource(sectorCoords: Vector2, localCoords: Vector2, cell: ICell, button: number, type: RawResourceType) {
@@ -482,6 +503,15 @@ export function onAction(touchButton: number) {
     const state = GameMapState.instance;
     const props = GameMapProps.instance;
 
+    const onSuccess = () => {
+        GameMapState.instance.action = null;
+        evtActionCleared.post();
+    };
+
+    const onError = (error: string) => {
+        evtBuildError.post(error);
+    };
+
     const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
     if (!cell) {
 
@@ -523,7 +553,12 @@ export function onAction(touchButton: number) {
                 break;
 
             case "building": {
-                onBuilding(sectorCoords, localCoords, cell, touchButton);
+                const error = onBuilding(sectorCoords, localCoords, cell, touchButton);
+                if (error) {
+                    onError(error);
+                } else {
+                    onSuccess();
+                }
             }
                 break;
 
@@ -581,12 +616,7 @@ export function onAction(touchButton: number) {
             }
             break;
 
-        }
-
-        // TODO is action failed, show fail reason
-        // If action succeeded, clear it
-        GameMapState.instance.action = null;
-        evtActionCleared.post();
+        }        
     }
 }
 
