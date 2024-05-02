@@ -14,6 +14,7 @@ export const Actions = [
     "unit",
     "train",
     "resource",
+    "destroy",
     ...TransportActions
 ] as const;
 
@@ -27,7 +28,6 @@ export const MineralTypes = [
     "stone",
     "coal",
     "iron-ore",
-    "aluminium",
     "scandium",
 ] as const;
 

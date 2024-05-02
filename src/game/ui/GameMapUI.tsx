@@ -12,7 +12,6 @@ import gsap from "gsap";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
-import { unitsManager } from "../unit/UnitsManager";
 import { Incubators } from "../buildings/Incubators";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
@@ -83,10 +82,7 @@ function ActionSection(props: IActionSectionProps) {
                     actionsRef.current!.style.pointerEvents = "none";
                 }
             });
-
             setAction(null);
-            const gameMapState = GameMapState.instance;
-            gameMapState.action = null;
         }
     }, [open]);
 
@@ -251,7 +247,7 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
-    const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
+    const [openSection, setOpenSection] = useState<"build" | "transport" | "destroy" | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [clearError, setClearError] = useState<NodeJS.Timeout | null>(null);
     const [errorTween, setErrorTween] = useState<gsap.core.Tween | null>(null);
@@ -303,7 +299,30 @@ export function GameMapUI(_props: IGameUIProps) {
             evtBuildError.detach(onError);
             evtActionCleared.detach(onActionCleared);
         }
-    }, [errorTween, clearError]);
+    }, [errorTween, clearError, openSection]);
+
+    useEffect(() => {
+        const gameMapState = GameMapState.instance;
+        if (openSection === "destroy") {
+            gameMapState.action = "destroy";
+            gameMapState.tileSelector.setSize(1, 1);
+            gameMapState.tileSelector.resolution = 1;
+        } else {
+            gameMapState.action = null;    
+        }
+
+        const onActionCleared = () => {
+            if (openSection === "destroy") {
+                setOpenSection(null);
+            }
+        }
+
+        evtActionCleared.attach(onActionCleared);
+        return () => {
+            evtActionCleared.detach(onActionCleared);
+        }
+
+    }, [openSection]);
 
     return <div className={styles.root}>
         <InGameUI>
@@ -353,7 +372,25 @@ export function GameMapUI(_props: IGameUIProps) {
                     }}
                     onOpen={() => setOpenSection("transport")}
                     onClose={() => setOpenSection(null)}
-                />
+                />                
+
+                <div
+                    className={`${styles.action} ${openSection === "destroy" ? styles.selected : ""} clickable`}
+                    style={{
+                        backgroundColor: openSection === "destroy" ? undefined : "#0000002b"
+                    }}
+                    onClick={e => {
+                        if (openSection === "destroy") {
+                            setOpenSection(null);
+                        } else {
+                            setOpenSection("destroy");                            
+                        }                        
+                        e.stopPropagation();
+                    }}
+                >
+                    Destroy
+                </div>            
+
             </div>
 
             <div style={{
@@ -380,7 +417,7 @@ export function GameMapUI(_props: IGameUIProps) {
                         {error ?? ""}
                     </div>
                 </div>
-                
+
                 {(() => {
                     const buildingType = selectedBuilding?.buildingType;
                     if (!buildingType) {

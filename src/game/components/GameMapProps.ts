@@ -24,13 +24,13 @@ export class GameMapProps extends ComponentProps {
     tileType: TileType = "sand";
 
     @Attributes.enumOptions(RawResourceTypes)
-    resourceType: RawResourceType = "aluminium";
+    resourceType: RawResourceType = "wood";
 
     @Attributes.enumOptions(BuildingTypes)
     buildingType: BuildingType = "depot";
 
     @Attributes.enumOptions([...ResourceTypes, ...RawResourceTypes])
-    factoryInput: RawResourceType | ResourceType = "aluminium";
+    factoryInput: RawResourceType | ResourceType = "wood";
 
     @Attributes.enumOptions(ResourceTypes)
     factoryOutput: ResourceType = "steel";

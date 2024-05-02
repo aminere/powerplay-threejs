@@ -11,7 +11,6 @@ import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells,
 import { cmdEndSelection, cmdSetSelectedElems, evtActionCleared } from "../../Events";
 import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
-import { conveyorItems } from "../ConveyorItems";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
 import { time } from "../../engine/core/Time";
@@ -229,6 +228,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 if (cellCoords?.equals(state.touchHoveredCoords) === false) {
                                     state.touchHoveredCoords.copy(cellCoords!);
                                     onAction(2);
+                                    state.touchDragged = true;
                                 }
                             }
                         }
@@ -309,7 +309,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                                 const { unit, building } = intersections[0];
                                 if (unit) {
-                                    state.selectedBuilding = null;
                                     unitsManager.selectedUnits = [unit];
                                     cmdSetSelectedElems.post({ units: unitsManager.selectedUnits });
 
@@ -317,7 +316,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                     if (unitsManager.selectedUnits.length > 0) {
                                         unitsManager.selectedUnits.length = 0;
                                     }
-                                    state.selectedBuilding = building;
                                     cmdSetSelectedElems.post({ building });
                                 }
 
@@ -327,15 +325,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                     unitsManager.selectedUnits.length = 0;
                                 }
 
-                                state.selectedBuilding = null;
-                                const cell = GameUtils.getCell(state.highlightedCellCoords);
-                                if (cell?.conveyor) {
-                                    // cmdSetSelectedElems.post({ conveyor: this.state.highlightedCellCoords.clone() });
-                                    conveyorItems.addItem(cell, state.highlightedCellCoords, "aluminium");
-
-                                } else {
-                                    cmdSetSelectedElems.post({});
-                                }
+                                cmdSetSelectedElems.post({});
                             }
                         }
 
@@ -345,9 +335,25 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                 if (state.action) {
 
-                    // onAction(2);
-                    state.action = null;
-                    evtActionCleared.post();
+                    switch (state.action) {
+                        case "conveyor": {
+                            const executed = onAction(2);
+                            if (!executed && !state.touchDragged) {
+                                state.action = null;
+                                evtActionCleared.post();
+                            }                            
+                        }
+                            break;
+
+                        default: {
+                            state.action = null;
+                            evtActionCleared.post();
+                        }
+                    }     
+                    
+                    if (state.touchDragged) {
+                        state.touchDragged = false;
+                    }
 
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {

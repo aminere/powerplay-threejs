@@ -56,7 +56,6 @@ export class GameMapState {
     };
     public buildings = new Map<string, IBuildingInstance>();
     public rails = new Map<string, Object3D>();
-    public selectedBuilding: IBuildingInstance | null = null;
     public initialDragAxis: "x" | "z" | null= null;
     public bounds: Box2 | null = null;
     

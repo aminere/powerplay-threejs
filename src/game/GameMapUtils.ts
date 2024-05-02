@@ -151,11 +151,34 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut
     return cell;
 }
 
+function clearCell(mapCoords: Vector2) {
+    const cell = GameUtils.getCell(mapCoords);
+    if (cell) {
+        if (cell.building) {
+            buildings.clear(cell.building);
+        } else if (cell.resource) {
+            cell.resource = undefined;
+        } else if (cell.roadTile !== undefined) {
+            roads.clear(mapCoords);
+        } else if (cell.rail) {
+            Rails.clear(cell);
+        } else if (cell.conveyor) {
+            conveyors.clear(mapCoords);
+            conveyors.clearLooseCorners(mapCoords);
+        }
+    }
+}
+
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
     const state = GameMapState.instance;
     const { resolution } = state.tileSelector;
     switch (state.action) {
+        case "destroy": {
+            clearCell(current);            
+        }
+        break;
+
         case "road": {
             state.previousRoad.forEach(road => roads.clear(road));
             state.previousRoad.length = 0;
@@ -230,6 +253,11 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
             state.tileSelector.fit(start.x, start.y, state.sectors);
         }
             break;
+
+        case "destroy": {
+            clearCell(start);
+        }
+        break;
     }
 
     onDrag(start, current);
@@ -422,16 +450,20 @@ function onTerrain(mapCoords: Vector2, tileType: TileType) {
 }
 
 function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
+    let executed = false;
     if (button === 0) {
         if (cell.isEmpty) {
             conveyors.createAndFit(cell, mapCoords);
+            executed = true;
         }
     } else if (button === 2) {
         if (cell.conveyor !== undefined) {
             conveyors.clear(mapCoords);
             conveyors.clearLooseCorners(mapCoords);
+            executed = true;
         }
     }
+    return executed;
 }
 
 export function createSector(coords: Vector2) {
@@ -523,6 +555,12 @@ export function onAction(touchButton: number) {
 
         const mapCoords = state.selectedCellCoords;
         switch (state.action) {
+            case "destroy": {
+                clearCell(mapCoords);
+            }
+            break;
+
+
             case "elevation": {
                 onElevation(mapCoords, touchButton);
                 state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
@@ -587,9 +625,8 @@ export function onAction(touchButton: number) {
                 break;
 
             case "conveyor": {
-                onConveyor(mapCoords, cell, touchButton);
+                return onConveyor(mapCoords, cell, touchButton);
             }
-                break;
 
             case "unit": {
                 if (touchButton === 0) {
