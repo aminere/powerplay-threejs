@@ -42,12 +42,12 @@ function ActionButton(props: ActionButtonProps) {
 }
 
 interface IActionSectionProps {
-    open: boolean;    
+    open: boolean;
     name: string;
     actions: readonly string[];
     onSelected: (action: string) => void;
-    onOpen: () => void;   
-    onClose: () => void; 
+    onOpen: () => void;
+    onClose: () => void;
 }
 
 function ActionSection(props: IActionSectionProps) {
@@ -58,7 +58,7 @@ function ActionSection(props: IActionSectionProps) {
     const { open: _open } = props;
     useEffect(() => {
         setOpen(_open);
-    }, [_open])    
+    }, [_open])
 
     useEffect(() => {
         if (open) {
@@ -132,7 +132,7 @@ function ActionSection(props: IActionSectionProps) {
                 selected={action === _action}
                 onClick={() => {
                     const gameMapState = GameMapState.instance;
-                    if (action === _action) {                        
+                    if (action === _action) {
                         setAction(null);
                         gameMapState.action = null;
                         return;
@@ -355,30 +355,49 @@ export function GameMapUI(_props: IGameUIProps) {
                 position: "absolute",
                 bottom: ".5rem",
                 left: "50%",
-                transform: "translateX(-50%)",
-                backgroundColor: "#0000002b",
-                padding: ".5rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem"
+                transform: "translateX(-50%)",                
             }}>
-                <div
-                    style={{
+                <div style={{ position: "relative" }}>
+                    <div style={{
+                        position: "absolute",
+                        bottom: ".5rem",
+                        width: "250%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
                         textAlign: "center",
-                        fontWeight: "bold",
-                        textTransform: "uppercase"
+
                     }}>
-                    Incubator
-                </div>
-                <div style={{ display: "flex", gap: "1rem" }}>
-                    <div>
-                        <div>Water: 0</div>
-                        <div>Coal: 0</div>
-                    </div>
-                    <div>
-                        <div className={`${styles.action} clickable`}>Worker</div>
+                        Hello this is a very long error message and I hope its centered
                     </div>
                 </div>
+
+                <div style={{
+                    padding: ".5rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                    backgroundColor: "#0000002b",
+                    minHeight: "10rem",
+                }}>
+                    <div
+                        style={{
+                            textAlign: "center",
+                            fontWeight: "bold",
+                            textTransform: "uppercase"
+                        }}>
+                        Incubator
+                    </div>
+                    <div style={{ display: "flex", gap: "1rem" }}>
+                        <div>
+                            <div>Water: 0</div>
+                            <div>Coal: 0</div>
+                        </div>
+                        <div>
+                            <div className={`${styles.action} clickable`}>Worker</div>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </InGameUI>
 
