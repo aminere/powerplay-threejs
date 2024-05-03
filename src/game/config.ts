@@ -33,6 +33,12 @@ export const config = {
             coal: 1
         }
     },
+    depots: {
+        range: 10
+    },
+    factories: {
+        buildCost: 5
+    },
     conveyors: {
         itemSize: .5, // relative to the cell
         itemScale: .7,

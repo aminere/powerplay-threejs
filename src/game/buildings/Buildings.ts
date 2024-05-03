@@ -1,7 +1,6 @@
 import { Box3, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
-import { pools } from "../../engine/core/Pools";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingStateChanged } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
@@ -10,11 +9,13 @@ import { Mines } from "./Mines";
 import { Factories } from "./Factories";
 import { Depots } from "./Depots";
 import { Incubators } from "./Incubators";
+import { utils } from "../../engine/Utils";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
+const sectorCoords = new Vector2();
 
 class Buildings {
 
@@ -104,6 +105,18 @@ class Buildings {
 
         const { layers, buildings } = GameMapState.instance;
         buildings.set(instanceId, buildingInstance);
+
+        if (buildingType === "depot") {
+            const { depotsCache } = GameMapState.instance;
+            const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+            const list = depotsCache.get(sectorId);
+            if (list) {
+                list.push(buildingInstance);
+            } else {
+                depotsCache.set(sectorId, [buildingInstance]);
+            }
+        }
+
         const size = buildingSizes[buildingType];
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
@@ -140,13 +153,12 @@ class Buildings {
         instance.deleted = true;
         instance.visual.removeFromParent();
 
-        const mapCoords = pools.vec2.getOne();
         const buildingType = instance.buildingType;
         const size = buildingSizes[buildingType];
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
-                mapCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
-                const cell = GameUtils.getCell(mapCoords)!;
+                cellCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
+                const cell = GameUtils.getCell(cellCoords)!;
                 cell.building = undefined;
             }
         }
@@ -163,10 +175,21 @@ class Buildings {
                 }                
             }
                 break;
+
+            case "depot": {
+                // remove from the depot cache
+                const { depotsCache } = GameMapState.instance;
+                GameUtils.getCell(instance.mapCoords, sectorCoords)
+                const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+                const list = depotsCache.get(sectorId)!;
+                const index = list.findIndex(item => item.id === instanceId);
+                utils.fastDelete(list, index);
+            }
+            break;
         }
 
-        mapCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));
-        cmdFogRemoveCircle.post({ mapCoords, radius: 20 });
+        cellCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));
+        cmdFogRemoveCircle.post({ mapCoords: cellCoords, radius: 20 });
         evtBuildingStateChanged.post(instance);
     }
 

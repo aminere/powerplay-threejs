@@ -155,7 +155,8 @@ function BuildingUI(props: React.PropsWithChildren<IBuildingUIProps>) {
             display: "flex",
             flexDirection: "column",
             gap: "1rem",
-            backgroundColor: "#0000002b"
+            backgroundColor: "#0000002b",
+            height: "100%"
         }}>
         <div
             style={{
@@ -403,8 +404,9 @@ export function GameMapUI(_props: IGameUIProps) {
             <div style={{
                 position: "absolute",
                 bottom: ".5rem",
-                left: "50%",
-                transform: "translateX(-50%)",
+                left: "580px",
+                height: "200px",
+                width: "250px"
             }}>
                 <div style={{ position: "relative" }}>
                     <div
@@ -412,13 +414,10 @@ export function GameMapUI(_props: IGameUIProps) {
                         style={{
                             position: "absolute",
                             bottom: ".5rem",
-                            width: "500px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            textAlign: "center",
+                            width: "80ch",
                             color: "red",
                             opacity: 0,
-                            textShadow: "1 1 0 black"
+                            textShadow: "1px 1px 0px black"
                         }}
                     >
                         {error ?? ""}
