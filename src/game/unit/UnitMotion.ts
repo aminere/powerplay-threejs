@@ -566,6 +566,12 @@ export class UnitMotion {
                     lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
                     unit.velocity.lerp(lookDirection, .5).projectOnVector(awayDirection3).normalize().multiplyScalar(maxSpeed);
                     unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
+                    nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
+                    GameUtils.worldToMap(nextPos, nextMapCoords);
+                    const nextCell = GameUtils.getCell(nextMapCoords);
+                    if (nextCell?.isWalkable) {
+                        unit.visual.position.copy(nextPos);
+                    }
                 }
             }
         }
