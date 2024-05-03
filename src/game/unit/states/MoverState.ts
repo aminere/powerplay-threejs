@@ -98,6 +98,7 @@ export class MoverState extends State<ICharacterUnit> {
     override exit(unit: IUnit): void {
         console.log(`MoverState exit`);
         unit.isIdle = true;
+        unit.collidable = true;
     }
 
     public tryGoToTarget(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {

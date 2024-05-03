@@ -29,8 +29,8 @@ export class Depots {
             type: null, 
             amount: 0,
             capacity,
-            inputTimer: -1,
-            outputTimer: -1
+            inputTimer: depotsConfig.inputFrequency,
+            outputTimer: depotsConfig.outputFrequency
      };
         instance.state = depotState;
     }
@@ -111,32 +111,31 @@ export class Depots {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IDepotState;
-
-        if (state.outputTimer < 0) {
-            if (state.amount > 0) {
+        if (state.amount > 0) {
+            if (state.outputTimer < 0) {
                 console.assert(state.type !== null);
                 if (BuildingUtils.tryFillAdjacentCells(instance, state.type!)) {
                     Depots.removeResource(instance);
                     state.outputTimer = depotsConfig.outputFrequency;
-                }    
+                }
+            } else {
+                state.outputTimer -= time.deltaTime;
             }
-        } else {
-            state.outputTimer -= time.deltaTime;
         }
 
-        if (state.inputTimer < 0) {
-            const { resourcesPerSlot, slotCount } = depotsConfig;
-            const capacity = slotCount * resourcesPerSlot;
-            if (state.amount < capacity) {
+        const { resourcesPerSlot, slotCount } = depotsConfig;
+        const capacity = slotCount * resourcesPerSlot;
+        if (state.amount < capacity) {
+            if (state.inputTimer < 0) {
                 const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, state.type);
                 if (resourceType) {
                     Depots.tryDepositResource(instance, resourceType);
                     state.inputTimer = depotsConfig.inputFrequency;                    
                 }
+            } else {
+                state.inputTimer -= time.deltaTime;
             }
-        } else {
-            state.inputTimer -= time.deltaTime;
-        }
+        }        
     }
 }
 

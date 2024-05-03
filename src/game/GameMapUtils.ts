@@ -419,8 +419,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                                 const state = depot.state as IDepotState;
                                 if (state.type === "stone" && state.amount >= factoryBuildCost) {
                                     depotInRange = depot;
+                                    break;
                                 }
-                                break;
                             }
                         }
                         if (depotInRange) {
