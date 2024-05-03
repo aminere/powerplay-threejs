@@ -7,12 +7,13 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
 import gsap from "gsap";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { Incubators } from "../buildings/Incubators";
+import { Tooltip } from "./Tooltip";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -71,9 +72,9 @@ function ActionSection(props: IActionSectionProps) {
                     actionsRef.current!.style.pointerEvents = "all";
                 }
             });
-            props.onOpen();
 
         } else {
+            setAction(null);
             gsap.to(actionsRef.current, {
                 scaleY: 0,
                 opacity: 0,
@@ -82,7 +83,6 @@ function ActionSection(props: IActionSectionProps) {
                     actionsRef.current!.style.pointerEvents = "none";
                 }
             });
-            setAction(null);
         }
     }, [open]);
 
@@ -105,8 +105,10 @@ function ActionSection(props: IActionSectionProps) {
         onClick={() => {
             if (open) {
                 setOpen(false);
+                props.onClose();
             } else {
                 setOpen(true);
+                props.onOpen();
             }
         }}
     >
@@ -247,25 +249,23 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
-    const [openSection, setOpenSection] = useState<"build" | "transport" | "destroy" | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [clearError, setClearError] = useState<NodeJS.Timeout | null>(null);
-    const [errorTween, setErrorTween] = useState<gsap.core.Tween | null>(null);
+    const clearErrorRef = useRef<NodeJS.Timeout | null>(null);
+    const errorTweenRef = useRef<gsap.core.Tween | null>(null);
     const errorRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
-        const _clearError = () => {
-            if (errorTween) {
-                errorTween.kill();
-            }
-            if (clearError) {
-                clearTimeout(clearError);
+        const clearError = () => {
+            errorTweenRef.current?.kill();
+            errorTweenRef.current = null;
+            if (clearErrorRef.current) {
+                clearTimeout(clearErrorRef.current);
+                clearErrorRef.current = null;
             }
         };
 
         const onError = (error: string) => {
             setError(error);
-            _clearError();
+            clearError();
             errorRef.current!.style.opacity = "0";
             const tween = gsap.to(errorRef.current, {
                 opacity: 1,
@@ -273,22 +273,19 @@ export function GameMapUI(_props: IGameUIProps) {
                 yoyo: true,
                 duration: .4,
                 onComplete: () => {
-                    const timeout = setTimeout(() => {
+                    errorTweenRef.current = null;
+                    clearErrorRef.current = setTimeout(() => {
                         errorRef.current!.style.opacity = "0";
                         setError(null);
-                        setClearError(null);
+                        clearErrorRef.current = null;
                     }, 3000);
-                    setClearError(timeout);
-                    setErrorTween(null);
                 }
             });
-            setErrorTween(tween);
+            errorTweenRef.current = tween;
         };
 
         const onActionCleared = () => {
-            _clearError();
-            setErrorTween(null);
-            setClearError(null);
+            clearError();
             setError(null);
             errorRef.current!.style.opacity = "0";
         };
@@ -299,16 +296,18 @@ export function GameMapUI(_props: IGameUIProps) {
             evtBuildError.detach(onError);
             evtActionCleared.detach(onActionCleared);
         }
-    }, [errorTween, clearError, openSection]);
+    }, []);
 
+    const [openSection, setOpenSection] = useState<"build" | "transport" | "destroy" | null>(null);
     useEffect(() => {
         const gameMapState = GameMapState.instance;
         if (openSection === "destroy") {
             gameMapState.action = "destroy";
             gameMapState.tileSelector.setSize(1, 1);
             gameMapState.tileSelector.resolution = 1;
+            gameMapState.tileSelector.mode = "destroy";
         } else {
-            gameMapState.action = null;    
+            gameMapState.action = null;
         }
 
         const onActionCleared = () => {
@@ -346,9 +345,10 @@ export function GameMapUI(_props: IGameUIProps) {
                         GameMapProps.instance.buildingType = buildingType;
                         const size = buildingSizes[buildingType];
                         const gameMapState = GameMapState.instance;
+                        gameMapState.action = "building";
+                        gameMapState.tileSelector.mode = "select";
                         gameMapState.tileSelector.setSize(size.x, size.z);
                         gameMapState.tileSelector.setBuilding(buildingType);
-                        gameMapState.action = "building";
                     }}
                     onOpen={() => setOpenSection("build")}
                     onClose={() => setOpenSection(null)}
@@ -360,6 +360,8 @@ export function GameMapUI(_props: IGameUIProps) {
                     onSelected={action => {
                         const transportType = action as TransportAction;
                         const gameMapState = GameMapState.instance;
+                        gameMapState.action = transportType;
+                        gameMapState.tileSelector.mode = "select";
                         if (transportType === "road") {
                             const { cellsPerRoadBlock } = config.game;
                             gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
@@ -368,28 +370,28 @@ export function GameMapUI(_props: IGameUIProps) {
                             gameMapState.tileSelector.setSize(1, 1);
                             gameMapState.tileSelector.resolution = 1;
                         }
-                        gameMapState.action = transportType;
                     }}
                     onOpen={() => setOpenSection("transport")}
                     onClose={() => setOpenSection(null)}
-                />                
+                />
 
                 <div
-                    className={`${styles.action} ${openSection === "destroy" ? styles.selected : ""} clickable`}
+                    className={`${styles.action} clickable`}
                     style={{
-                        backgroundColor: openSection === "destroy" ? undefined : "#0000002b"
+                        backgroundColor: openSection === "destroy" ? undefined : "#0000002b",
+                        outline: openSection === "destroy" ? "2px solid red" : undefined
                     }}
                     onClick={e => {
                         if (openSection === "destroy") {
                             setOpenSection(null);
                         } else {
-                            setOpenSection("destroy");                            
-                        }                        
+                            setOpenSection("destroy");
+                        }
                         e.stopPropagation();
                     }}
                 >
                     Destroy
-                </div>            
+                </div>
 
             </div>
 
@@ -443,28 +445,39 @@ export function GameMapUI(_props: IGameUIProps) {
                                     <div>Water: {state.amount.water}</div>
                                     <div>Coal: {state.amount.coal}</div>
                                 </div>
+                                <div
+                                    className={`${styles.action} clickable`}
+                                    style={{
+                                        opacity: canSpawn() ? 1 : .5,
+                                        filter: canSpawn() ? undefined : "grayscale(1)"
+                                    }}
+                                    onClick={() => {
+                                        if (canSpawn()) {
+                                            Incubators.spawn(selectedBuilding);
+                                        } else {
+                                            const { workerCost } = config.incubators;
+                                            evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
+                                        }
+                                    }}
+                                >
+                                    Worker
+                                </div>
+                            </BuildingUI>
+                        }
+
+                        case "depot": {
+                            // const state = selectedBuilding.state as IDepotState;                            
+                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
-                                    <div
-                                        className={`${styles.action} clickable`}
-                                        style={{
-                                            opacity: canSpawn() ? 1 : .5
-                                        }}
-                                        onClick={() => {                                            
-                                            if (canSpawn()) {
-                                                Incubators.spawn(selectedBuilding);
-                                            } else {
-                                                const { workerCost } = config.incubators;
-                                                evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
-                                            }
-                                        }}
-                                    >
-                                        Worker
-                                        {/* <span className={styles.tooltiptext}>
-                                            Incubate Worker<br/>
-                                            Water x 1 <br/>
-                                            Coal x 1 <br/>
-                                        </span> */}
-                                    </div>
+                                    TBD
+                                </div>
+                            </BuildingUI>
+                        }
+
+                        case "factory": {
+                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                                <div>
+                                    TBD
                                 </div>
                             </BuildingUI>
                         }
