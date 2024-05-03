@@ -156,7 +156,8 @@ function BuildingUI(props: React.PropsWithChildren<IBuildingUIProps>) {
             flexDirection: "column",
             gap: "1rem",
             backgroundColor: "#0000002b",
-            height: "100%"
+            height: "100%",
+            pointerEvents: "all"
         }}>
         <div
             style={{
@@ -406,7 +407,8 @@ export function GameMapUI(_props: IGameUIProps) {
                 bottom: ".5rem",
                 left: "580px",
                 height: "200px",
-                width: "250px"
+                width: "250px",
+                pointerEvents: "none"
             }}>
                 <div style={{ position: "relative" }}>
                     <div
