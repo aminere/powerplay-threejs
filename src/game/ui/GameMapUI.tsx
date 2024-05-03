@@ -399,33 +399,16 @@ export function GameMapUI(_props: IGameUIProps) {
                 >
                     Destroy
                 </div>
-
             </div>
 
             <div style={{
                 position: "absolute",
                 bottom: ".5rem",
-                left: "580px",
+                left: "200px",
                 height: "200px",
                 width: "250px",
                 pointerEvents: "none"
             }}>
-                <div style={{ position: "relative" }}>
-                    <div
-                        ref={errorRef}
-                        style={{
-                            position: "absolute",
-                            bottom: ".5rem",
-                            width: "80ch",
-                            color: "red",
-                            opacity: 0,
-                            textShadow: "1px 1px 0px black"
-                        }}
-                    >
-                        {error ?? ""}
-                    </div>
-                </div>
-
                 {(() => {
                     const buildingType = selectedBuilding?.buildingType;
                     if (!buildingType) {
@@ -495,6 +478,23 @@ export function GameMapUI(_props: IGameUIProps) {
                         }
                     }
                 })()}
+            </div>
+
+            <div
+                ref={errorRef}
+                style={{
+                    position: "absolute",
+                    bottom: "120px",
+                    width: "80ch",
+                    color: "red",
+                    opacity: 0,
+                    textShadow: "1px 1px 0px black",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    textAlign: "center"
+                }}
+            >
+                {error ?? ""}
             </div>
         </InGameUI>
 

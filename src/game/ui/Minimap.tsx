@@ -16,7 +16,7 @@ const screenPos = new Vector2();
 const worldPos = new Vector3();
 const mapCoordsTopLeft = new Vector2();
 const mapCoords = new Vector2();
-const minimapPos = new Vector2(100, 30);
+const minimapPos = new Vector2(-90, 35);
 const minimapSize = 350;
 // const unitsCanvasOffsetX = 70;
 
@@ -44,7 +44,8 @@ function makeScreenToCanvasTransform(angleDeg: number, offset: number) {
 }
 
 function updateCameraPos(clientX: number, clientY: number, offset: number) {
-    const { left: startX, top, height } = engine.screenRect;
+    const { left, top, width, height } = engine.screenRect;
+    const startX = left + width - minimapSize;
     const startY = top + height - minimapSize;
 
     // convert from screen to canvas space
@@ -262,7 +263,7 @@ export function Minimap() {
 
     }, [initialized]);    
 
-    return <div ref={root} style={{ position: "absolute", left: "0", bottom: "0" }}>
+    return <div ref={root} style={{ position: "absolute", right: "0", bottom: "0" }}>
         <div
             style={{
                 position: "relative",
