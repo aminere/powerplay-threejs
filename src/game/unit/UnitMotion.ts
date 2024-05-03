@@ -371,8 +371,7 @@ export class UnitMotion {
 
     public applyForces(unit: IUnit) {
 
-        unit.acceleration.set(0, 0, 0);
-        if (unit.motionId > 0) {            
+        if (unit.motionId > 0) {
             if (!unit.arriving) {
                 applyFlowfieldForce(unit, maxForce);
             }
@@ -531,37 +530,42 @@ export class UnitMotion {
         } else {
 
             // nextCell is not walkable
-            if (isMoving && nextCell !== null) {
+            if (nextCell !== null) {
 
                 let isObstacle = true;
-                if (nextCell.building) {
-                    const targetCell = getCellFromAddr(unit.targetCell);
-                    if (nextCell.building === targetCell.building) {
-                        this.endMotion(unit);
-                        unit.onReachedBuilding(targetCell);
-                        isObstacle = false;
-                    }
-                } else if (nextCell.resource) {
-                    const targetCell = getCellFromAddr(unit.targetCell);
-                    if (nextCell.resource.type === targetCell.resource?.type) {
-                        this.endMotion(unit);
-                        unit.onArrived();
 
-                        switch (unit.type) {
-                            case "worker": {
-                                const moverState = unit.fsm.getState(MoverState) ?? unit.fsm.switchState(MoverState);
-                                moverState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
-                            }
+                if (isMoving) {
+                    if (nextCell.building) {
+                        const targetCell = getCellFromAddr(unit.targetCell);
+                        if (nextCell.building === targetCell.building) {
+                            this.endMotion(unit);
+                            unit.onReachedBuilding(targetCell);
+                            isObstacle = false;
                         }
-
-                        isObstacle = false;
+                    } else if (nextCell.resource) {
+                        const targetCell = getCellFromAddr(unit.targetCell);
+                        if (nextCell.resource.type === targetCell.resource?.type) {
+                            this.endMotion(unit);
+                            unit.onArrived();
+    
+                            switch (unit.type) {
+                                case "worker": {
+                                    const moverState = unit.fsm.getState(MoverState) ?? unit.fsm.switchState(MoverState);
+                                    moverState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
+                                }
+                            }    
+                            isObstacle = false;
+                        }
                     }
                 }
 
                 if (isObstacle) {
+                    // slide along the obstacle
                     awayDirection.subVectors(unit.coords.mapCoords, nextMapCoords).normalize();
-                    unit.velocity.x += awayDirection.x * maxSpeed * .2;
-                    unit.velocity.z += awayDirection.y * maxSpeed * .2;
+                    awayDirection3.set(awayDirection.x, 0, awayDirection.y).cross(GameUtils.vec3.up);
+                    lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
+                    unit.velocity.lerp(lookDirection, .5).projectOnVector(awayDirection3).normalize().multiplyScalar(maxSpeed);
+                    unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
                 }
             }
         }
@@ -575,6 +579,7 @@ export class UnitMotion {
 
         if (unit.arriving) {
             mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
+            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();
