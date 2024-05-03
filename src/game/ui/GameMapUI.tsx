@@ -236,8 +236,14 @@ export function GameMapUI(_props: IGameUIProps) {
             setSelectedBuilding(building ?? null);
         };
 
-        const onBuildingStateChanged = () => {
-            setSelectedBuildingTimestamp(Date.now());
+        const onBuildingStateChanged = (instance: IBuildingInstance) => {
+            if (instance === selectedBuilding) {
+                if (instance.deleted) {
+                    setSelectedBuilding(null);
+                } else {
+                    setSelectedBuildingTimestamp(Date.now());
+                }
+            }
         };
 
         cmdSetSelectedElems.attach(onSelectedElems);
@@ -246,7 +252,7 @@ export function GameMapUI(_props: IGameUIProps) {
             cmdSetSelectedElems.detach(onSelectedElems);
             evtBuildingStateChanged.detach(onBuildingStateChanged);
         }
-    }, []);
+    }, [selectedBuilding]);
 
     const [error, setError] = useState<string | null>(null);
     const clearErrorRef = useRef<NodeJS.Timeout | null>(null);

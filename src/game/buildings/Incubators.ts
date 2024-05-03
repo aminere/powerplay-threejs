@@ -91,7 +91,7 @@ export class Incubators {
                     state.amount.water++;
                     const progress = state.amount.water / capacity.water;                    
                     state.water.scale.setY(progress);
-                    evtBuildingStateChanged.post();
+                    evtBuildingStateChanged.post(instance);
                     return true;
                 }
             }
@@ -100,7 +100,7 @@ export class Incubators {
             case "coal": {
                 if (state.amount.coal < capacity.coal) {
                     state.amount.coal++;
-                    evtBuildingStateChanged.post();
+                    evtBuildingStateChanged.post(instance);
                     return true;
                 }
             }
@@ -115,7 +115,7 @@ export class Incubators {
         const state = instance.state as IIncubatorState;
         state.amount.water--;
         state.amount.coal--;
-        evtBuildingStateChanged.post();
+        evtBuildingStateChanged.post(instance);
     }
 }
 

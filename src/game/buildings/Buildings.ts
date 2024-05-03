@@ -2,7 +2,7 @@ import { Box3, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { pools } from "../../engine/core/Pools";
-import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
+import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingStateChanged } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
@@ -167,6 +167,7 @@ class Buildings {
 
         mapCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));
         cmdFogRemoveCircle.post({ mapCoords, radius: 20 });
+        evtBuildingStateChanged.post(instance);
     }
 
     public update() {

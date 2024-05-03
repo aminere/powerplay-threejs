@@ -84,7 +84,13 @@ export function HealthBars() {
             ctx.strokeStyle = "black";
             
             const selectedUnits = selectedUnitsRef.current;
-            const selectedBuilding = selectedBuildingRef.current;
+            const selectedBuilding = (() => {
+                if (selectedBuildingRef.current?.deleted) {
+                    selectedBuildingRef.current = null;
+                }
+                return selectedBuildingRef.current;
+            })();
+
             const selectedConveyor = selectedConveyorRef.current;
             if (selectedUnits.length > 0) {
                 for (let i = 0; i < selectedUnits.length; i++) {  
