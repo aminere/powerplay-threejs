@@ -7,7 +7,7 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
@@ -446,8 +446,8 @@ export function GameMapUI(_props: IGameUIProps) {
 
                             return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
-                                    <div>Water: {state.amount.water}</div>
-                                    <div>Coal: {state.amount.coal}</div>
+                                    <div>water: {state.amount.water}</div>
+                                    <div>coal: {state.amount.coal}</div>
                                 </div>
                                 <div
                                     className={`${styles.action} clickable`}
@@ -470,10 +470,16 @@ export function GameMapUI(_props: IGameUIProps) {
                         }
 
                         case "depot": {
-                            // const state = selectedBuilding.state as IDepotState;                            
+                            const state = selectedBuilding.state as IDepotState;                            
                             return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
-                                    TBD
+                                    {(() => {
+                                        if (state.amount === 0) {
+                                            return <div>empty</div>
+                                        } else {
+                                            return <div>{state.type!}: {state.amount}</div>
+                                        }
+                                    })()}
                                 </div>
                             </BuildingUI>
                         }

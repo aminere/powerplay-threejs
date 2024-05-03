@@ -5,6 +5,7 @@ import { IBuildingInstance, IDepotState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { BuildingUtils } from "./BuildingUtils";
 import { time } from "../../engine/core/Time";
+import { evtBuildingStateChanged } from "../../Events";
 
 const depotsConfig = {
     slotCount: 9,
@@ -75,33 +76,37 @@ export class Depots {
 
         state.amount = newAmount;
         state.type = type;
+        evtBuildingStateChanged.post(instance);
         return true;
     }
 
-    public static removeResource(instance: IBuildingInstance) {
+    public static removeResource(instance: IBuildingInstance, amount?: number) {
         const state = instance.state as IDepotState;
         const oldAmount = state.amount;
-        const newAmount = oldAmount - 1;
+        const newAmount = oldAmount - (amount ?? 1);
         const { resourcesPerSlot, slotScaleRange } = depotsConfig;
         const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
         const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
-        if (currentSlot === newSlot || newSlot < 0) {
-            const mesh = instance.visual.children[currentSlot];
+        if (currentSlot === newSlot || newSlot < 0) {            
             if (newAmount === 0) {
-                mesh.removeFromParent();
+                instance.visual.clear();
                 state.type = null;
             } else {
+                const mesh = instance.visual.children[currentSlot];
                 mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
             }
         } else {
-            const currentSlotMesh = instance.visual.children[currentSlot];
-            currentSlotMesh.removeFromParent();
+            console.assert(newSlot < currentSlot);
+            for (let i = currentSlot; i > newSlot; i--) {
+                const currentSlotMesh = instance.visual.children[i];
+                currentSlotMesh.removeFromParent();
+            }
             const newSlotMesh = instance.visual.children[newSlot];
             newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
         }
         state.amount = newAmount;
-
+        evtBuildingStateChanged.post(instance);
     }
 
     public static update(instance: IBuildingInstance) {

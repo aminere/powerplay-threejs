@@ -342,6 +342,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
         const size = buildingSizes[buildingType];
 
         let error: string | null = null;
+        let depotInRange: IBuildingInstance | null = null;
+        const { buildCost: factoryBuildCost } = config.factories;
 
         // TODO if units under the structure, move them away
         const allowed = (() => {
@@ -392,11 +394,15 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 }
 
                 case "factory": {
-                    let depotInRange: IBuildingInstance | null = null;
+                    const cellsValid = validateCells(validateCell);
+                    if (!cellsValid) {
+                        error = "Can't build here";
+                        return false;
+                    }
+
                     const { depotsCache } = GameMapState.instance;
                     cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
                     const { range } = config.depots;
-                    const { buildCost } = config.factories;
                     for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
                         neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);                        
                         const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
@@ -411,7 +417,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                             const endY = startY + range * 2 + size.z;
                             if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
                                 const state = depot.state as IDepotState;
-                                if (state.type === "stone" && state.amount >= buildCost) {
+                                if (state.type === "stone" && state.amount >= factoryBuildCost) {
                                     depotInRange = depot;
                                 }
                                 break;
@@ -423,9 +429,11 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                     }
 
                     if (!depotInRange) {
-                        error = `Factory must be built near a stone depot (requires ${buildCost} stone)`;
+                        error = `Factory must be built near a stone depot (requires ${factoryBuildCost} stone)`;
                         return false;
                     }
+
+                    return true;
                 }
             }
 
@@ -434,18 +442,23 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 error = "Can't build here";
                 return false;
             }
-
             return true;
+
         })();
 
         if (allowed) {
             switch (buildingType) {
-                case "factory": Factories.create(_sectorCoords, _localCoords, props.factoryInput, props.factoryOutput); break;
+                case "factory": {
+                    Factories.create(_sectorCoords, _localCoords, props.factoryInput, props.factoryOutput);
+                    console.assert(depotInRange);
+                    Depots.removeResource(depotInRange!, factoryBuildCost);
+                }
+                    break;
                 case "mine": Mines.create(_sectorCoords, _localCoords); break;
                 case "depot": Depots.create(_sectorCoords, _localCoords); break;
                 case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
-            }            
+            }
         } else {
             return error;
         }
