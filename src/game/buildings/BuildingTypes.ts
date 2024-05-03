@@ -46,7 +46,7 @@ export interface IMineState {
 }
 
 export interface IDepotState {
-    type: RawResourceType | ResourceType;
+    type: RawResourceType | ResourceType | null;
     amount: number;
     capacity: number;
     inputTimer: number;

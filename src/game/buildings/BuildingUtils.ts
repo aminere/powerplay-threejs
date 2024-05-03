@@ -49,14 +49,16 @@ function scan(startX: number, startY: number, sx: number, sy: number, iterations
         const cell = GameUtils.getCell(cellCoords);
         if (cell && cb(cell)) {
             return true;
-        }                
+        }
     }
     return false;
 }
 
-export class BuildingUtils {    
+export class BuildingUtils {
 
-    public static tryGetFromAdjacentCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    public static tryGetFromAdjacentCells(instance: IBuildingInstance, type: ResourceType | RawResourceType | null) {
+
+        let acceptedType: ResourceType | RawResourceType | null = null;
         const tryConveyor = (cell: ICell, edge: Edge) => {
             if (cell.conveyor) {
                 const validInput = (() => {
@@ -72,6 +74,10 @@ export class BuildingUtils {
                     let itemToGet = -1;
                     for (let i = 0; i < cell.conveyor.items.length; i++) {
                         const item = cell.conveyor.items[i];
+                        if (type === null) {
+                            itemToGet = i;
+                            break;
+                        }
                         if (item.type === type) {
                             itemToGet = i;
                             break;
@@ -81,29 +87,29 @@ export class BuildingUtils {
                         const item = cell.conveyor.items[itemToGet];
                         utils.fastDelete(cell.conveyor.items, itemToGet);
                         conveyorItems.removeItem(item);
+                        acceptedType = item.type;
                         return true;
                     }
                 }
             }
-            return false;           
-        };        
+            return false;
+        };
 
         const { mapCoords } = instance;
         const size = buildingSizes[instance.buildingType];
         if (scan(mapCoords.x, mapCoords.y - 1, 1, 0, size.x, cell => tryConveyor(cell, "top"))) {
-            return true;
+            return acceptedType!;
         }
         if (scan(mapCoords.x, mapCoords.y + size.z, 1, 0, size.x, cell => tryConveyor(cell, "bottom"))) {
-            return true;
+            return acceptedType!;
         }
         if (scan(mapCoords.x - 1, mapCoords.y, 0, 1, size.z, cell => tryConveyor(cell, "left"))) {
-            return true;
+            return acceptedType!;
         }
         if (scan(mapCoords.x + size.x, mapCoords.y, 0, 1, size.z, cell => tryConveyor(cell, "right"))) {
-            return true;
+            return acceptedType!;
         }
-
-        return false;
+        return null;        
     }
 
     public static tryFillAdjacentCells(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
@@ -125,8 +131,8 @@ export class BuildingUtils {
                     }
                 }
             }
-            return false;           
-        };        
+            return false;
+        };
 
         const { mapCoords } = instance;
         const size = buildingSizes[instance.buildingType];
@@ -142,9 +148,8 @@ export class BuildingUtils {
         if (scan(mapCoords.x + size.x, mapCoords.y, 0, 1, size.z, cell => tryConveyor(cell, "right"))) {
             return true;
         }
-
         return false;
-    }    
+    }
 
     public static produceResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
         if (BuildingUtils.tryFillAdjacentCells(instance, type)) {

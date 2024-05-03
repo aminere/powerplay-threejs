@@ -2,7 +2,7 @@
 import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { ISerializedDepot, ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
+import { ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
@@ -199,10 +199,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                     break;
 
                 case "depot":
-                    createBuildings(instances, (sectorCoords, localCoords, instance) => {
-                        const depot = instance as ISerializedDepot;
-                        Depots.create(sectorCoords, localCoords, depot.type);
-                    });
+                    createBuildings(instances, (sectorCoords, localCoords) => Depots.create(sectorCoords, localCoords));
                     break;
 
                 case "incubator":

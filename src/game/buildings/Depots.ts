@@ -18,13 +18,14 @@ const depotsConfig = {
 };
 
 export class Depots {
-    public static create(sectorCoords: Vector2, localCoords: Vector2, type: RawResourceType | ResourceType) {
+
+    public static create(sectorCoords: Vector2, localCoords: Vector2) {
         const instance = buildings.create("depot", sectorCoords, localCoords);
         const { resourcesPerSlot, slotCount } = depotsConfig;
 
         const capacity = slotCount * resourcesPerSlot;
-        const depotState: IDepotState = { 
-            type, 
+        const depotState: IDepotState = {
+            type: null, 
             amount: 0,
             capacity,
             inputTimer: -1,
@@ -36,7 +37,9 @@ export class Depots {
     public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IDepotState;        
         if (state.type !== type) {
-            return false;
+            if (state.type !== null) {
+                return false;
+            }
         }
 
         const { resourcesPerSlot, slotScaleRange, slotsPerRow, slotSize, slotStart } = depotsConfig;
@@ -71,6 +74,7 @@ export class Depots {
         }
 
         state.amount = newAmount;
+        state.type = type;
         return true;
     }
 
@@ -86,6 +90,7 @@ export class Depots {
             const mesh = instance.visual.children[currentSlot];
             if (newAmount === 0) {
                 mesh.removeFromParent();
+                state.type = null;
             } else {
                 mesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
             }
@@ -96,6 +101,7 @@ export class Depots {
             newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
         }
         state.amount = newAmount;
+
     }
 
     public static update(instance: IBuildingInstance) {
@@ -103,7 +109,8 @@ export class Depots {
 
         if (state.outputTimer < 0) {
             if (state.amount > 0) {
-                if (BuildingUtils.tryFillAdjacentCells(instance, state.type)) {
+                console.assert(state.type !== null);
+                if (BuildingUtils.tryFillAdjacentCells(instance, state.type!)) {
                     Depots.removeResource(instance);
                     state.outputTimer = depotsConfig.outputFrequency;
                 }    
@@ -116,9 +123,10 @@ export class Depots {
             const { resourcesPerSlot, slotCount } = depotsConfig;
             const capacity = slotCount * resourcesPerSlot;
             if (state.amount < capacity) {
-                if (BuildingUtils.tryGetFromAdjacentCells(instance, state.type)) {
-                    Depots.tryDepositResource(instance, state.type);
-                    state.inputTimer = depotsConfig.inputFrequency;
+                const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, state.type);
+                if (resourceType) {
+                    Depots.tryDepositResource(instance, resourceType);
+                    state.inputTimer = depotsConfig.inputFrequency;                    
                 }
             }
         } else {

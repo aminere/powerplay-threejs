@@ -31,11 +31,7 @@ export interface ISerializedFactory extends ISerializedBuilding {
     output: ResourceType;
 }
 
-export interface ISerializedDepot extends ISerializedBuilding {
-    type: RawResourceType | ResourceType;
-}
-
-export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory | ISerializedDepot;
+export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory;
 
 export interface ISerializedRail {
     config: IRailConfig;

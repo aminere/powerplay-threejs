@@ -7,13 +7,12 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
-import gsap from "gsap";
+import { BuildingType, BuildingTypes, IBuildingInstance, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { Incubators } from "../buildings/Incubators";
-import { Tooltip } from "./Tooltip";
+import gsap from "gsap";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div

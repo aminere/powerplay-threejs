@@ -162,7 +162,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                         const state = instance.state as IDepotState;
                         if (state.type !== this.resource.type) {
                             if (state.amount > 0) {
-                                Workers.pickResource(this, state.type);
+                                console.assert(state.type !== null);
+                                Workers.pickResource(this, state.type!);
                                 Depots.removeResource(instance);
                             }
                         }
@@ -196,7 +197,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 case "depot": {
                     const state = buildingInstance.state as IDepotState;
                     if (state.amount > 0) {
-                        Workers.pickResource(this, state.type);
+                        console.assert(state.type !== null);
+                        Workers.pickResource(this, state.type!);
                         Depots.removeResource(buildingInstance);
                     }
                 }

@@ -18,19 +18,39 @@ export class TruckState extends State<ITruckUnit> {
         if (this._targetDepot) {
             if (this._timer < 0) {
                 const depotState = this._targetDepot.state as IDepotState;
-                const type = depotState.type;
+                
                 if (this._getFromDepot) {
-                    if (depotState.amount > 0 && Trucks.tryDepositResource(unit, type)) {
-                        Depots.removeResource(this._targetDepot);
-                    } else {
+
+                    const transferred = (() => {
+                        if (depotState.amount > 0) {
+                            console.assert(depotState.type !== null);
+                            if (Trucks.tryDepositResource(unit, depotState.type!)) {
+                                Depots.removeResource(this._targetDepot);
+                                return true;
+                            }
+                        }
+                        return false;
+                    })();
+
+                    if (!transferred) {
                         this.stopTransfer();
                     }
+                    
                 } else {
-                    if (unit.resources!.amount > 0 && Depots.tryDepositResource(this._targetDepot, type)) {
-                        Trucks.removeResource(unit);
-                    } else {
+
+                    const transferred = (() => {
+                        if ((unit.resources?.amount ?? 0) > 0) {
+                            if (Depots.tryDepositResource(this._targetDepot, unit.resources!.type)) {
+                                Trucks.removeResource(unit);
+                                return true;
+                            }                      
+                        }
+                        return false;
+                    })();
+
+                    if (!transferred) {
                         this.stopTransfer();
-                    }
+                    }                    
                 }
                 this._timer = transferFrequency;
             } else {
