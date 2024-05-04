@@ -8,6 +8,19 @@ import { BuildingUtils } from "./BuildingUtils";
 const productionTime = 2;
 const inputAccepFrequency = 1;
 
+function hasEnoughInputs(state: IFactoryState) {
+    if (state.inputs) {
+        for (const input of state.inputs) {
+            const amount = state.reserve.get(input) ?? 0;
+            if (amount < 1) {
+                return false;
+            }            
+        }
+        return true;
+    }
+    return false;
+}
+
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, inputs: Array<RawResourceType | ResourceType> | null, output: ResourceType | null) {
 
