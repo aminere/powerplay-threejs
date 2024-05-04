@@ -43,12 +43,12 @@ export interface ICarriedResource {
     visual: Object3D;
 }
 
-export interface IPickableResource {
-    type: RawResourceType | ResourceType;    
-    visual: Object3D;
-    producer: string;
-    minedCell?: ICell;
-}
+// export interface IPickableResource {
+//     type: RawResourceType | ResourceType;    
+//     visual: Object3D;
+//     producer: string;
+//     minedCell?: ICell;
+// }
 
 export interface IStraightRailConfig {
     length: number;
@@ -94,7 +94,6 @@ export interface ICell {
     building?: string;    
     rail?: IRail;
     resource?: IRawResource;
-    pickableResource?: IPickableResource;
     
     units?: IUnit[];
 }

@@ -19,7 +19,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             textAlign: "center",
             backgroundColor: "#00000066",
             cursor: "pointer",
-            outline: props.selected ? `2px solid ${props.selectedColor ?? "yellow"}` : undefined
+            border: props.selected ? `2px solid ${props.selectedColor ?? "yellow"}` : undefined
         }}
         onClick={e => {
             e.stopPropagation();

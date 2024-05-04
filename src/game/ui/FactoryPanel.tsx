@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ResourceTypes } from "../GameDefinitions";
-import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { ResourceType, ResourceTypes } from "../GameDefinitions";
+import { IBuildingInstance, IFactoryState } from "../buildings/BuildingTypes";
 import { ActionButton } from "./ActionButton";
 import { BuildingPanel } from "./BuildingPanel";
 import gsap from "gsap";
+import { Factories } from "../buildings/Factories";
+import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 
 interface FactoryPanelProps {
     building: IBuildingInstance;
@@ -12,6 +14,8 @@ interface FactoryPanelProps {
 export function FactoryPanel(props: FactoryPanelProps) {
 
     const [open, setOpen] = useState(false);
+    const state = props.building.state as IFactoryState;
+    const [output, setOutput] = useState<ResourceType | null>(state.output);
     const outputsRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -26,7 +30,6 @@ export function FactoryPanel(props: FactoryPanelProps) {
             });
 
         } else {
-            // setAction(null);
             gsap.to(outputsRef.current, {
                 scaleX: 0,
                 opacity: 0,
@@ -40,7 +43,17 @@ export function FactoryPanel(props: FactoryPanelProps) {
 
     return <BuildingPanel instance={props.building}>
         <div>
-
+            {(() => {
+                if (output) {
+                    const inputs = FactoryDefinitions[output];
+                    return inputs.map(input => {
+                        const amount = state.reserve.get(input) ?? 0;
+                        return <div key={input}>
+                            {input}: {amount}
+                        </div>
+                    });
+                }
+            })()}
         </div>
 
         <ActionButton
@@ -48,7 +61,7 @@ export function FactoryPanel(props: FactoryPanelProps) {
                 setOpen(prev => !prev);
             }}
         >
-            Output
+            {output ? output : "Select Output"}
         </ActionButton>
 
         <div
@@ -79,8 +92,10 @@ export function FactoryPanel(props: FactoryPanelProps) {
             {ResourceTypes.map(resource => {
                 return <ActionButton
                     key={resource}
+                    selected={output === resource}
                     onClick={() => {
-
+                        setOutput(resource);
+                        Factories.setOutput(props.building, resource);
                     }}
                 >
                     {resource}

@@ -355,7 +355,7 @@ export function GameMapUI(_props: IGameUIProps) {
             <div style={{
                 position: "absolute",
                 bottom: ".5rem",
-                left: "200px",
+                left: "470px",
                 height: "200px",
                 width: "250px",
                 pointerEvents: "none"

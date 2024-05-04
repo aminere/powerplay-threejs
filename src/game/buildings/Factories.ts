@@ -4,35 +4,52 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
+import { FactoryDefinitions } from "./FactoryDefinitions";
+import { config } from "../config";
+import { evtBuildingStateChanged } from "../../Events";
 
-const productionTime = 2;
-const inputAccepFrequency = 1;
+const factoryConfig = {
+    productionTime: 2,
+    inputAccepFrequency: 1,
+}
+const { inputCapacity: factoryInputCapacity } = config.factories;
 
-function hasEnoughInputs(state: IFactoryState) {
-    if (state.inputs) {
-        for (const input of state.inputs) {
+function canProduce(state: IFactoryState) {
+    if (state.output) {
+        const inputs = FactoryDefinitions[state.output];
+        for (const input of inputs) {
             const amount = state.reserve.get(input) ?? 0;
             if (amount < 1) {
                 return false;
-            }            
+            }
         }
         return true;
     }
     return false;
 }
 
+function removeResource(instance: IBuildingInstance) {
+    const state = instance.state as IFactoryState;
+    console.assert(state.output);
+    const inputs = FactoryDefinitions[state.output!];
+    for (const input of inputs) {
+        const amount = state.reserve.get(input)!;
+        console.assert(amount !== undefined);
+        state.reserve.set(input, amount - 1);
+    }
+    evtBuildingStateChanged.post(instance);
+}
+
 export class Factories {
-    public static create(sectorCoords: Vector2, localCoords: Vector2, inputs: Array<RawResourceType | ResourceType> | null, output: ResourceType | null) {
+    public static create(sectorCoords: Vector2, localCoords: Vector2, output: ResourceType | null) {
 
         const instance = buildings.create("factory", sectorCoords, localCoords);
         const factoryState: IFactoryState = {
-            inputs,
             output,
             active: false,
             reserve: new Map(),
-            capacity: 5,
             inputTimer: -1,
-            timer: 0,
+            productionTimer: 0,
             outputFull: false,
             outputCheckTimer: -1
         };
@@ -47,7 +64,7 @@ export class Factories {
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
                     if (BuildingUtils.tryFillAdjacentCells(instance, state.output!)) {
-                        Factories.consumeResource(state);
+                        removeResource(instance);
                         state.outputFull = false;
 
                     } else {
@@ -57,44 +74,57 @@ export class Factories {
                     state.outputCheckTimer -= time.deltaTime;
                 }
             } else {
-                if (state.inputReserve > 0) {
+                if (canProduce(state)) {
                     state.active = true;
-                    state.timer = 0;    
+                    state.productionTimer = 0;    
                 }
             }
 
         } else {
 
-            if (state.output) {
-                if (state.timer >= productionTime) {
-                    if (BuildingUtils.produceResource(instance, state.output)) {
-                        Factories.consumeResource(state);
-    
-                        if (state.inputReserve > 0) {
-                            state.timer = 0;
-                        } else {
-                            state.active = false;
-                        }
-    
+            if (state.productionTimer >= factoryConfig.productionTime) {
+                if (BuildingUtils.produceResource(instance, state.output!)) {
+                    removeResource(instance);
+
+                    if (canProduce(state)) {
+                        state.productionTimer = 0;
                     } else {
                         state.active = false;
-                        state.outputFull = true;
-                        state.outputCheckTimer = 1;
                     }
+
                 } else {
-                    state.timer += time.deltaTime;
+                    state.active = false;
+                    state.outputFull = true;
+                    state.outputCheckTimer = 1;
                 }
-            }
-            
+            } else {
+                state.productionTimer += time.deltaTime;
+            }            
         }
 
-        if (state.inputs) {
+        if (state.output) {
             if (state.inputTimer < 0) {
-                if (state.inputReserve < state.inputCapacity) {
-                    if (BuildingUtils.tryGetFromAdjacentCells(instance, state.input)) {
-                        state.inputReserve++;
-                        state.inputTimer = inputAccepFrequency;
+
+                let accepted = false;
+
+                const inputs = FactoryDefinitions[state.output];
+                for (const input of inputs) {
+                    const currentAmount = state.reserve.get(input);
+                    if ((currentAmount ?? 0) < factoryInputCapacity) {
+                        if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
+                            if (currentAmount === undefined) {
+                                state.reserve.set(input, 1);
+                            } else {
+                                state.reserve.set(input, currentAmount + 1);
+                            }
+                            accepted = true;
+                        }
                     }
+                }
+
+                if (accepted) {
+                    state.inputTimer = factoryConfig.inputAccepFrequency;
+                    evtBuildingStateChanged.post(instance);
                 }
     
             } else {
@@ -105,23 +135,28 @@ export class Factories {
 
     public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IFactoryState;
-        if (state.input === type) {
-            if (state.inputReserve < state.inputCapacity) {
-                state.inputReserve++;
-                return true;
+        if (state.output) {
+            const inputs = FactoryDefinitions[state.output];
+            if (inputs.includes(type)) {
+                const currentAmount = state.reserve.get(type);
+                if ((currentAmount ?? 0) < factoryInputCapacity) {
+                    if (currentAmount === undefined) {
+                        state.reserve.set(type, 1);
+                    } else {
+                        state.reserve.set(type, currentAmount + 1);
+                    }
+                    evtBuildingStateChanged.post(instance);
+                    return true;
+                }    
             }
         }
         return false;
     }
 
-    public static onResourcePicked(instance: IBuildingInstance) {
+    public static setOutput(instance: IBuildingInstance, type: ResourceType) {
         const state = instance.state as IFactoryState;
-        Factories.consumeResource(state);
-        state.outputFull = false;
-    }
-
-    public static consumeResource(state: IFactoryState) {
-        state.inputReserve--;
+        state.output = type;
+        state.reserve.clear();
     }
 }
 

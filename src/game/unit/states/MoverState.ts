@@ -12,6 +12,7 @@ import { ICharacterUnit } from "../CharacterUnit";
 import { ICell } from "../../GameTypes";
 import { Workers } from "../Workers";
 import { config } from "../../config";
+import { FactoryDefinitions } from "../../buildings/FactoryDefinitions";
 
 enum MoverStep {
     GoToResource,    
@@ -41,7 +42,15 @@ function findClosestTarget(unit: IUnit, resourceType: RawResourceType | Resource
     
                     case "factory": {
                         const state = instance.state as IFactoryState;
-                        return state.input === resourceType && state.inputReserve < state.inputCapacity;
+                        if (state.output) {
+                            const inputs = FactoryDefinitions[state.output];
+                            if (inputs.includes(resourceType)) {
+                                const { inputCapacity } = config.factories;
+                                const amount = state.reserve.get(resourceType) ?? 0;
+                                return amount < inputCapacity;
+                            }
+                        }
+                        return false;
                     }          
                     
                     case "incubator": {

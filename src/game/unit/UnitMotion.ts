@@ -18,9 +18,6 @@ import { ICharacterUnit } from "./CharacterUnit";
 import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { UnitType } from "../GameDefinitions";
-import { Workers } from "./Workers";
-import { Mines } from "../buildings/Mines";
-import { Factories } from "../buildings/Factories";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -220,13 +217,7 @@ function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
         }
     } else if (destCell.building) {
         if (destCell.building === currentCell.building) {
-            if (destCell.pickableResource) {
-                if (currentCell === destCell) {
-                    return 1;
-                }
-            } else {
-                return 1;
-            }
+            return 1;
         }
     }
     return currentCell.flowFieldCost;
@@ -497,27 +488,6 @@ export class UnitMotion {
                         if (npcState) {
                             npcState.onReachedTarget(unit as ICharacterUnit);
                         } else {
-
-                            if (nextCell.pickableResource) {
-                                switch (unit.type) {
-                                    case "worker": {
-                                        const worker = unit as ICharacterUnit;
-                                        if (nextCell.pickableResource.type !== worker.resource?.type) {
-                                            Workers.pickResource(unit as ICharacterUnit, nextCell.pickableResource.type);
-                                            const building = GameMapState.instance.buildings.get(nextCell.pickableResource.producer);
-                                            if (building) {
-                                                switch (building.buildingType) {
-                                                    case "mine": Mines.onResourcePicked(building, nextCell.pickableResource.minedCell!); break;
-                                                    case "factory": Factories.onResourcePicked(building); break;
-                                                }
-                                            }
-                                            nextCell.pickableResource = undefined;
-                                        }
-                                    }
-                                        break;
-                                }
-                            }
-
                             unit.arriving = true;
                             unit.onArriving();
                         }

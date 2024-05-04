@@ -26,17 +26,17 @@ import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
-import { ResourceType, UnitType } from "../GameDefinitions";
+import { UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { meshes } from "../../powerplay";
 import { unitAnimation } from "../unit/UnitAnimation";
 import { Mines } from "../buildings/Mines";
-import { Factories } from "../buildings/Factories";
 import { Depots } from "../buildings/Depots";
 import { Workers } from "../unit/Workers";
 import { BuildingType } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
+import { Factories } from "../buildings/Factories";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -116,7 +116,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await this.preload();
 
         trees.init(data.size);
-
+ 
         const unitsToSpawn = new Map<Vector2, UnitType[]>();
         for (const sector of data.sectors) {
 
@@ -144,16 +144,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
 
                 if (cell.resource) {
-                    const type = (() => {
-                        switch (cell.resource as string) {
-                            case "carbon": {
-                                console.warn(`old resource format "carbon" - converting to "coal"`);
-                                return "coal";
-                            }
-                            default: return cell.resource;
-                        }
-                    })();
-                    resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, type);
+                    resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, cell.resource);
                 }
 
                 if (cell.units !== undefined) {
@@ -193,10 +184,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 case "factory":
                     createBuildings(instances, (sectorCoords, localCoords, instance) => {
                         const factory = instance as ISerializedFactory;
-                        const inputs = Array.isArray(factory.inputs) ? factory.inputs : [factory.inputs as unknown as ResourceType];
-                        Factories.create(sectorCoords, localCoords, inputs, factory.output);
-                    });
-                
+                        Factories.create(sectorCoords, localCoords, factory.output);
+                    });           
                     break;
 
                 case "depot":

@@ -15,15 +15,12 @@ export const BuildingTypes = [
 export type BuildingType = typeof BuildingTypes[number];
 
 export interface IFactoryState {
-    inputs: Array<RawResourceType | ResourceType> | null;
     output: ResourceType | null;
-
     reserve: Map<RawResourceType | ResourceType, number>;
-    capacity: number;
     
     inputTimer: number;
     active: boolean;
-    timer: number;
+    productionTimer: number;
 
     outputFull: boolean;
     outputCheckTimer: number;

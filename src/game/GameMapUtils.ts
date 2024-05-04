@@ -348,7 +348,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
         // TODO if units under the structure, move them away
         const allowed = (() => {
 
-            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits && !cell.pickableResource);
+            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits);
 
             const validateCells = (isValid: (cell: ICell | null) => boolean) => {
                 for (let i = 0; i < size.z; ++i) {
@@ -449,7 +449,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
         if (allowed) {
             switch (buildingType) {
                 case "factory": {
-                    Factories.create(_sectorCoords, _localCoords, [props.factoryInput], props.factoryOutput);
+                    Factories.create(_sectorCoords, _localCoords, null);
                     console.assert(depotInRange);
                     Depots.removeResource(depotInRange!, factoryBuildCost);
                 }

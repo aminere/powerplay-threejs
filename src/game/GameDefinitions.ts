@@ -28,7 +28,9 @@ export const MineralTypes = [
     "stone",
     "coal",
     "iron-ore",
-    "scandium",
+    "sulfur",
+    "oil",
+    "copper"
 ] as const;
 
 export const RawResourceTypes = [
@@ -38,7 +40,7 @@ export const RawResourceTypes = [
 ] as const;
 
 export const ResourceTypes = [
-    "charcoal",
+    "coal",
     "steel",
     "gunpowder",    
     "plastic",
@@ -46,7 +48,6 @@ export const ResourceTypes = [
     "concrete",
     "glass",
     "engine",
-    "truck-frame",
     "ak47",    
     "gasoline",
     "tire",

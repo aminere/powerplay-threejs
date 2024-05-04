@@ -29,13 +29,7 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(BuildingTypes)
     buildingType: BuildingType = "depot";
 
-    @Attributes.enumOptions([...ResourceTypes, ...RawResourceTypes])
-    factoryInput: RawResourceType | ResourceType = "wood";
-
-    @Attributes.enumOptions(ResourceTypes)
-    factoryOutput: ResourceType = "steel";
-
-    @Attributes.enumOptions([...ResourceTypes, ...RawResourceTypes])
+    @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
     depotType: RawResourceType | ResourceType = "wood";
 
     brushSize = 1;

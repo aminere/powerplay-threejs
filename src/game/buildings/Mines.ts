@@ -92,12 +92,6 @@ export class Mines {
         }
     }
 
-    public static onResourcePicked(instance: IBuildingInstance, minedCell: ICell) {
-        const state = instance.state as IMineState;
-        Mines.consumeResource(state, minedCell);
-        state.outputFull = false;
-    }
-
     public static consumeResource(state: IMineState, cell: ICell) {
         const resource = cell.resource!;
         resource.amount -= 1;

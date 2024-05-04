@@ -37,7 +37,8 @@ export const config = {
         range: 10
     },
     factories: {
-        buildCost: 5
+        buildCost: 5,
+        inputCapacity: 5
     },
     conveyors: {
         itemSize: .5, // relative to the cell
