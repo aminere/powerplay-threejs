@@ -1,6 +1,6 @@
 
 import { Object3D, Vector2, Vector3 } from "three";
-import { ResourceType, RawResourceType, ProductType } from "../GameDefinitions";
+import { ResourceType, RawResourceType } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
 
 export const BuildingTypes = [
@@ -15,22 +15,18 @@ export const BuildingTypes = [
 export type BuildingType = typeof BuildingTypes[number];
 
 export interface IFactoryState {
-    input: RawResourceType | ResourceType;
-    output: ResourceType;
+    inputs: Array<RawResourceType | ResourceType> | null;
+    output: ResourceType | null;
 
-    inputReserve: number;
-    inputCapacity: number;
+    reserve: Map<RawResourceType | ResourceType, number>;
+    capacity: number;
+    
     inputTimer: number;
     active: boolean;
     timer: number;
 
     outputFull: boolean;
     outputCheckTimer: number;
-}
-
-export interface IAssemblyState {
-    inputs: Array<RawResourceType | ResourceType>;
-    output: ProductType;
 }
 
 export interface IMineState {
@@ -64,7 +60,7 @@ export interface IIncubatorState {
     worker: Object3D;
 }
 
-export type TBuildingState = IFactoryState | IAssemblyState | IMineState | IDepotState | IIncubatorState;
+export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState;
 
 export interface IBuildingInstance {
     id: string;

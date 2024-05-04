@@ -26,7 +26,7 @@ import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
-import { UnitType } from "../GameDefinitions";
+import { ResourceType, UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { meshes } from "../../powerplay";
@@ -193,7 +193,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 case "factory":
                     createBuildings(instances, (sectorCoords, localCoords, instance) => {
                         const factory = instance as ISerializedFactory;
-                        Factories.create(sectorCoords, localCoords, factory.input, factory.output);
+                        const inputs = Array.isArray(factory.inputs) ? factory.inputs : [factory.inputs as unknown as ResourceType];
+                        Factories.create(sectorCoords, localCoords, inputs, factory.output);
                     });
                 
                     break;

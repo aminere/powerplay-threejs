@@ -16,19 +16,3 @@
     transform: translateY(10px);
 }
 
-.selected {
-    outline: 2px solid yellow;
-}
-
-.action {
-    height: 5rem;
-    width: 5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: .1rem;
-    text-align: center;
-    background-color: #00000066;
-    cursor: pointer;
-}
-

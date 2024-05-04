@@ -13,6 +13,9 @@ import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { Incubators } from "../buildings/Incubators";
 import gsap from "gsap";
+import { FactoryPanel } from "./FactoryPanel";
+import { BuildingPanel } from "./BuildingPanel";
+import { ActionButton } from "./ActionButton";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -21,24 +24,6 @@ function InGameUI({ children }: { children: React.ReactNode }) {
         onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
     >
         {children}
-    </div>
-}
-
-interface ActionButtonProps {
-    name: string;
-    selected: boolean;
-    onClick: () => void;
-}
-
-function ActionButton(props: ActionButtonProps) {
-    return <div
-        className={`${styles.action} ${props.selected ? styles.selected : ""} clickable`}
-        onClick={e => {
-            props.onClick();
-            e.stopPropagation();
-        }}
-    >
-        {props.name}
     </div>
 }
 
@@ -95,12 +80,7 @@ function ActionSection(props: IActionSectionProps) {
         }
     }, []);
 
-    return <div
-        className={`${styles.action} clickable`}
-        style={{
-            position: "relative",
-            backgroundColor: open ? undefined : "#0000002b"
-        }}
+    return <ActionButton
         onClick={() => {
             if (open) {
                 setOpen(false);
@@ -125,52 +105,27 @@ function ActionSection(props: IActionSectionProps) {
                 pointerEvents: "none"
             }}
         >
-            {props.actions.map(_action => <ActionButton
-                key={_action}
-                name={_action}
-                selected={action === _action}
-                onClick={() => {
-                    const gameMapState = GameMapState.instance;
-                    if (action === _action) {
-                        setAction(null);
-                        gameMapState.action = null;
-                        return;
-                    }
-                    setAction(_action);
-                    props.onSelected(_action);
-                }}
-            />)}
+            {props.actions.map(_action => {
+                return <ActionButton
+                    key={_action}
+                    selected={action === _action}
+                    selectedColor="yellow"
+                    onClick={() => {
+                        const gameMapState = GameMapState.instance;
+                        if (action === _action) {
+                            setAction(null);
+                            gameMapState.action = null;
+                            return;
+                        }
+                        setAction(_action);
+                        props.onSelected(_action);
+                    }}
+                >
+                    {_action}
+                </ActionButton>
+            })}
         </div>
-    </div>
-}
-
-interface IBuildingUIProps {
-    instance: IBuildingInstance;
-}
-
-function BuildingUI(props: React.PropsWithChildren<IBuildingUIProps>) {
-    return <div
-        style={{
-            padding: ".5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            backgroundColor: "#0000002b",
-            height: "100%",
-            pointerEvents: "all"
-        }}>
-        <div
-            style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                textTransform: "uppercase"
-            }}>
-            {props.instance.buildingType}
-        </div>
-        <div style={{ display: "flex", gap: "1rem" }}>
-            {props.children}
-        </div>
-    </div>
+    </ActionButton>
 }
 
 export function GameMapUI(_props: IGameUIProps) {
@@ -382,23 +337,19 @@ export function GameMapUI(_props: IGameUIProps) {
                     onClose={() => setOpenSection(null)}
                 />
 
-                <div
-                    className={`${styles.action} clickable`}
-                    style={{
-                        backgroundColor: openSection === "destroy" ? undefined : "#0000002b",
-                        outline: openSection === "destroy" ? "2px solid red" : undefined
-                    }}
-                    onClick={e => {
+                <ActionButton
+                    selected={openSection === "destroy"}
+                    selectedColor="red"
+                    onClick={() => {
                         if (openSection === "destroy") {
                             setOpenSection(null);
                         } else {
                             setOpenSection("destroy");
                         }
-                        e.stopPropagation();
                     }}
                 >
                     Destroy
-                </div>
+                </ActionButton>                
             </div>
 
             <div style={{
@@ -429,17 +380,13 @@ export function GameMapUI(_props: IGameUIProps) {
                                 return true
                             };
 
-                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                            return <BuildingPanel key={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
                                     <div>water: {state.amount.water}</div>
                                     <div>coal: {state.amount.coal}</div>
                                 </div>
-                                <div
-                                    className={`${styles.action} clickable`}
-                                    style={{
-                                        opacity: canSpawn() ? 1 : .5,
-                                        filter: canSpawn() ? undefined : "grayscale(1)"
-                                    }}
+
+                                <ActionButton
                                     onClick={() => {
                                         if (canSpawn()) {
                                             Incubators.spawn(selectedBuilding);
@@ -450,13 +397,13 @@ export function GameMapUI(_props: IGameUIProps) {
                                     }}
                                 >
                                     Worker
-                                </div>
-                            </BuildingUI>
+                                </ActionButton>                                
+                            </BuildingPanel>
                         }
 
                         case "depot": {
-                            const state = selectedBuilding.state as IDepotState;                            
-                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                            const state = selectedBuilding.state as IDepotState;
+                            return <BuildingPanel key={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
                                     {(() => {
                                         if (state.amount === 0) {
@@ -466,15 +413,11 @@ export function GameMapUI(_props: IGameUIProps) {
                                         }
                                     })()}
                                 </div>
-                            </BuildingUI>
+                            </BuildingPanel>
                         }
 
                         case "factory": {
-                            return <BuildingUI key={selectedBuildingTimestamp} instance={selectedBuilding}>
-                                <div>
-                                    TBD
-                                </div>
-                            </BuildingUI>
+                            return <FactoryPanel  key={selectedBuildingTimestamp} building={selectedBuilding} />
                         }
                     }
                 })()}
@@ -484,7 +427,7 @@ export function GameMapUI(_props: IGameUIProps) {
                 ref={errorRef}
                 style={{
                     position: "absolute",
-                    bottom: "120px",
+                    bottom: "220px",
                     width: "80ch",
                     color: "red",
                     opacity: 0,

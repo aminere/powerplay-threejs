@@ -38,17 +38,18 @@ export const RawResourceTypes = [
 ] as const;
 
 export const ResourceTypes = [
-    "rubber",
-    "plastic",
+    "charcoal",
     "steel",
+    "gunpowder",    
+    "plastic",
+    "rubber",
+    "concrete",
+    "glass",
     "engine",
     "truck-frame",
-    "ak47",
-    "tire"
-] as const;
-
-export const ProductTypes = [
-    "truck",
+    "ak47",    
+    "gasoline",
+    "tire",
 ] as const;
 
 export const CharacterTypes = [
@@ -74,7 +75,6 @@ export type TileType = typeof TileTypes[number];
 export type RawResourceType = typeof RawResourceTypes[number];
 export type MineralType = typeof MineralTypes[number];
 export type ResourceType = typeof ResourceTypes[number];
-export type ProductType = typeof ProductTypes[number];
 export type CharacterType = typeof CharacterTypes[number];
 export type UnitType = typeof UnitTypes[number];
 export type VehicleType = typeof VehicleTypes[number];

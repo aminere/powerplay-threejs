@@ -27,8 +27,8 @@ interface ISerializedBuilding {
 }
 
 export interface ISerializedFactory extends ISerializedBuilding {
-    input: RawResourceType | ResourceType;
-    output: ResourceType;
+    inputs: Array<RawResourceType | ResourceType> | null;
+    output: ResourceType | null;
 }
 
 export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory;

@@ -449,7 +449,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
         if (allowed) {
             switch (buildingType) {
                 case "factory": {
-                    Factories.create(_sectorCoords, _localCoords, props.factoryInput, props.factoryOutput);
+                    Factories.create(_sectorCoords, _localCoords, [props.factoryInput], props.factoryOutput);
                     console.assert(depotInRange);
                     Depots.removeResource(depotInRange!, factoryBuildCost);
                 }
