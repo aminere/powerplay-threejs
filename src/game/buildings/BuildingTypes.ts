@@ -1,5 +1,5 @@
 
-import { Object3D, Vector2, Vector3 } from "three";
+import { Object3D, Vector2 } from "three";
 import { ResourceType, RawResourceType } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
 
@@ -67,13 +67,4 @@ export interface IBuildingInstance {
     state: TBuildingState | null;
     deleted: boolean;
 }
-
-export const buildingSizes: Record<BuildingType, Vector3> = {
-    "mine": new Vector3(3, 2, 3),
-    "factory": new Vector3(5, 3, 4),
-    "assembly": new Vector3(6, 4, 5),
-    "incubator": new Vector3(1, 3, 1),
-    "depot": new Vector3(4, 1, 4),
-    "train-factory": new Vector3(8, 4, 5)
-};
 

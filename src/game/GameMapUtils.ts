@@ -17,12 +17,13 @@ import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
 import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
-import { IBuildingInstance, IDepotState, buildingSizes } from "./buildings/BuildingTypes";
+import { BuildingType, IBuildingInstance, IDepotState } from "./buildings/BuildingTypes";
 import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
 import { evtActionCleared, evtBuildError } from "../Events";
+import { buildingConfig } from "./buildings/BuildingConfig";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -334,16 +335,51 @@ function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
     }
 }
 
+function onBuildingAccepted() {
+    GameMapState.instance.action = null;
+    evtActionCleared.post();
+}
+
+function rejectBuilding(error: string) {
+    evtBuildError.post(error);
+};
+
+function getDepotInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildingType) {
+    const { size, buildCost } = buildingConfig[buildingType];
+    const { depotsCache } = GameMapState.instance;
+    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+    const { range } = config.depots;
+    for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+        neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
+        const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
+        const list = depotsCache.get(sectorId);
+        if (!list) {
+            continue;
+        }
+        for (const depot of list) {
+            const startX = depot.mapCoords.x - range;
+            const startY = depot.mapCoords.y - range;
+            const endX = startX + range * 2 + size.x;
+            const endY = startY + range * 2 + size.z;
+            if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
+                const state = depot.state as IDepotState;
+                if (state.type === "stone" && state.amount >= buildCost) {
+                    return depot;
+                }
+            }
+        }
+    }
+    return null;
+}
+
 function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
     const props = GameMapProps.instance;
     const { buildingType } = props;
 
     if (button === 0) {
-        const size = buildingSizes[buildingType];
+        const { size, buildCost } = buildingConfig[buildingType];
 
-        let error: string | null = null;
         let depotInRange: IBuildingInstance | null = null;
-        const { buildCost: factoryBuildCost } = config.factories;
 
         // TODO if units under the structure, move them away
         const allowed = (() => {
@@ -381,55 +417,18 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                     });                    
 
                     if (!cellsValid) {
-                        error = "Can't build here";
+                        rejectBuilding("Can't build here");
                         return false;
                     }
 
                     if (resourceCount === 0) {
-                        error = "Mine must be placed on a mineral resource";
+                        rejectBuilding("Mine must be placed on a mineral resource");
                         return false;
                     }
 
-                    return true;
-                }
-
-                case "factory": {
-                    const cellsValid = validateCells(validateCell);
-                    if (!cellsValid) {
-                        error = "Can't build here";
-                        return false;
-                    }
-
-                    const { depotsCache } = GameMapState.instance;
-                    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                    const { range } = config.depots;
-                    for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
-                        neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);                        
-                        const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
-                        const list = depotsCache.get(sectorId);
-                        if (!list) {
-                            continue;
-                        }
-                        for (const depot of list) {
-                            const startX = depot.mapCoords.x - range;
-                            const startY = depot.mapCoords.y - range;
-                            const endX = startX + range * 2 + size.x;
-                            const endY = startY + range * 2 + size.z;
-                            if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
-                                const state = depot.state as IDepotState;
-                                if (state.type === "stone" && state.amount >= factoryBuildCost) {
-                                    depotInRange = depot;
-                                    break;
-                                }
-                            }
-                        }
-                        if (depotInRange) {
-                            break;
-                        }
-                    }
-
+                    depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
                     if (!depotInRange) {
-                        error = `Factory must be built near a stone depot (requires ${factoryBuildCost} stone)`;
+                        rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
                         return false;
                     }
 
@@ -439,28 +438,31 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 
             const cellsValid = validateCells(validateCell);
             if (!cellsValid) {
-                error = "Can't build here";
+                rejectBuilding("Can't build here");
                 return false;
             }
-            return true;
 
+            depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
+            if (!depotInRange) {
+                rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
+                return false;
+            }
+
+            return true;
         })();
 
         if (allowed) {
             switch (buildingType) {
-                case "factory": {
-                    Factories.create(_sectorCoords, _localCoords, null);
-                    console.assert(depotInRange);
-                    Depots.removeResource(depotInRange!, factoryBuildCost);
-                }
-                    break;
+                case "factory": Factories.create(_sectorCoords, _localCoords, null); break;
                 case "mine": Mines.create(_sectorCoords, _localCoords); break;
                 case "depot": Depots.create(_sectorCoords, _localCoords); break;
                 case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
-        } else {
-            return error;
+
+            console.assert(depotInRange);
+            Depots.removeResource(depotInRange!, buildCost);
+            onBuildingAccepted();
         }
 
     } else if (button === 2) {
@@ -468,8 +470,6 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             buildings.clear(cell.building);
         }
     }
-
-    return null;
 }
 
 function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number, type: RawResourceType) {
@@ -584,15 +584,6 @@ export function onAction(touchButton: number) {
     const state = GameMapState.instance;
     const props = GameMapProps.instance;
 
-    const onSuccess = () => {
-        GameMapState.instance.action = null;
-        evtActionCleared.post();
-    };
-
-    const onError = (error: string) => {
-        evtBuildError.post(error);
-    };
-
     const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
     if (!cell) {
 
@@ -640,12 +631,7 @@ export function onAction(touchButton: number) {
                 break;
 
             case "building": {
-                const error = onBuilding(sectorCoords, localCoords, cell, touchButton);
-                if (error) {
-                    onError(error);
-                } else {
-                    onSuccess();
-                }
+                onBuilding(sectorCoords, localCoords, cell, touchButton);
             }
                 break;
 

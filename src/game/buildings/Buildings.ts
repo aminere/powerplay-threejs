@@ -1,15 +1,16 @@
-import { Box3, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingStateChanged } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
-import { BuildingType, BuildingTypes, IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IMineState } from "./BuildingTypes";
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
 import { Depots } from "./Depots";
 import { Incubators } from "./Incubators";
 import { utils } from "../../engine/Utils";
+import { buildingConfig } from "./BuildingConfig";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -47,7 +48,7 @@ class Buildings {
             building.castShadow = true;
             building.receiveShadow = true;
 
-            const size = buildingSizes[buildingType];
+            const size = buildingConfig[buildingType].size;
             const boundingBox = new Box3();
             boundingBox.min.set(0, 0, 0);
             boundingBox.max.copy(size);
@@ -117,7 +118,7 @@ class Buildings {
             }
         }
 
-        const size = buildingSizes[buildingType];
+        const size = buildingConfig[buildingType].size;
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
@@ -143,6 +144,19 @@ class Buildings {
         const visual = instance.prefab.clone();
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}`;
+
+        if (buildingType === "incubator") {
+            meshes.load("/models/buildings/incubator-glass.glb").then(([_mesh]) => {
+                const mesh = _mesh.clone();
+                mesh.castShadow = true;
+                const glass = mesh.material as Material;
+                glass.transparent = true;
+                glass.opacity = 0.6;
+                mesh.renderOrder = 1;
+                visual.add(mesh);
+            });    
+        }
+
         return visual;
     }
 
@@ -154,7 +168,7 @@ class Buildings {
         instance.visual.removeFromParent();
 
         const buildingType = instance.buildingType;
-        const size = buildingSizes[buildingType];
+        const size = buildingConfig[buildingType].size;
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);

@@ -2,11 +2,12 @@ import { Vector2 } from "three";
 import { utils } from "../../engine/Utils";
 import { time } from "../../engine/core/Time";
 import { GameUtils } from "../GameUtils";
-import { IBuildingInstance, IMineState, buildingSizes } from "./BuildingTypes";
+import { IBuildingInstance, IMineState } from "./BuildingTypes";
 import { BuildingUtils } from "./BuildingUtils";
 import { buildings } from "./Buildings";
 import { MineralType } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
+import { buildingConfig } from "./BuildingConfig";
 
 const cellCoords = new Vector2();
 const miningFrequency = 2;
@@ -16,7 +17,7 @@ export class Mines {
         const instance = buildings.create("mine", sectorCoords, localCoords);
         
         const { mapCoords } = instance;
-        const size = buildingSizes["mine"];
+        const size = buildingConfig["mine"].size;
         const resourceCells = new Array<Vector2>();
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {

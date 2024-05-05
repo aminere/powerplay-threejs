@@ -34,10 +34,9 @@ export const config = {
         }
     },
     depots: {
-        range: 10
+        range: 10,
     },
     factories: {
-        buildCost: 5,
         inputCapacity: 5
     },
     conveyors: {

@@ -6,7 +6,7 @@ import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { GameMapState } from "../components/GameMapState";
-import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
+import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { config } from "../config";
 import { UnitType } from "../GameDefinitions";
 import { GameMapProps } from "../components/GameMapProps";
@@ -22,6 +22,7 @@ import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
 import { Workers } from "./Workers";
 import { TruckState } from "./states/TruckState";
+import { buildingConfig } from "../buildings/BuildingConfig";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -221,7 +222,7 @@ class UnitsManager {
         }
         spawnCoords.copy(spawnUnitRequest.mapCoords);
         const buildingType = spawnUnitRequest.buildingType;
-        const size = buildingSizes[buildingType];
+        const size = buildingConfig[buildingType].size;
         spawnCoords.x += size.x / 2;
         spawnCoords.y += size.z;
 

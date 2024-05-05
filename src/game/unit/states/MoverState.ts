@@ -5,7 +5,7 @@ import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
 import { computeUnitAddr, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
 import { unitMotion } from "../UnitMotion";
-import { BuildingType, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState, buildingSizes } from "../../buildings/BuildingTypes";
+import { BuildingType, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../../buildings/BuildingTypes";
 import { GameMapState } from "../../components/GameMapState";
 import { RawResourceType, ResourceType } from "../../GameDefinitions";
 import { ICharacterUnit } from "../CharacterUnit";
@@ -13,6 +13,7 @@ import { ICell } from "../../GameTypes";
 import { Workers } from "../Workers";
 import { config } from "../../config";
 import { FactoryDefinitions } from "../../buildings/FactoryDefinitions";
+import { buildingConfig } from "../../buildings/BuildingConfig";
 
 enum MoverStep {
     GoToResource,    
@@ -28,7 +29,7 @@ function findClosestTarget(unit: IUnit, resourceType: RawResourceType | Resource
     const { buildings } = GameMapState.instance;
     let distToClosest = 999999;
     let closest: IBuildingInstance | null = null;
-    const size = buildingSizes.factory;    
+    const size = buildingConfig.factory.size;    
 
     for (const [, instance] of buildings) {
 
@@ -115,7 +116,7 @@ export class MoverState extends State<ICharacterUnit> {
             const target = findClosestTarget(unit, resourceType, this._targetType!);        
             this._closestTarget = target;
             if (this._closestTarget) {
-                const size = buildingSizes[this._targetType];
+                const size = buildingConfig[this._targetType].size;
                 const coords = this._closestTarget.mapCoords;
                 const center = cellCoords.set(Math.round(coords.x + (size.x - 1) / 2), Math.round(coords.y + (size.z - 1) / 2));
                 const isExtracting = unit.animation.name === "pick";

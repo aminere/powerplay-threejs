@@ -6,7 +6,8 @@ import { engine } from "../../engine/Engine";
 import { IUnit } from "../unit/Unit";
 import { config } from "../config";
 import { GameMapState } from "../components/GameMapState";
-import { IBuildingInstance, buildingSizes } from "../buildings/BuildingTypes";
+import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { buildingConfig } from "../buildings/BuildingConfig";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -104,7 +105,7 @@ export function HealthBars() {
                 }
             } else if (selectedBuilding) {
                 const { visual, buildingType } = selectedBuilding;
-                const size = buildingSizes[buildingType];
+                const size = buildingConfig[buildingType].size;
                 worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
                 worldPos.x += size.x / 2 * cellSize;
                 worldPos.z += size.z / 2 * cellSize;

@@ -7,7 +7,7 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState, buildingSizes } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
 import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
@@ -16,6 +16,7 @@ import gsap from "gsap";
 import { FactoryPanel } from "./FactoryPanel";
 import { BuildingPanel } from "./BuildingPanel";
 import { ActionButton } from "./ActionButton";
+import { buildingConfig } from "../buildings/BuildingConfig";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -305,7 +306,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     onSelected={action => {
                         const buildingType = action as BuildingType;
                         GameMapProps.instance.buildingType = buildingType;
-                        const size = buildingSizes[buildingType];
+                        const size = buildingConfig[buildingType].size;
                         const gameMapState = GameMapState.instance;
                         gameMapState.action = "building";
                         gameMapState.tileSelector.mode = "select";

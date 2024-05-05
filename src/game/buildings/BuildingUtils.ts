@@ -4,7 +4,8 @@ import { GameUtils } from "../GameUtils";
 import { utils } from "../../engine/Utils";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
-import { IBuildingInstance, buildingSizes } from "./BuildingTypes";
+import { IBuildingInstance } from "./BuildingTypes";
+import { buildingConfig } from "./BuildingConfig";
 // import { config } from "../config";
 // import { resources } from "../Resources";
 
@@ -96,7 +97,7 @@ export class BuildingUtils {
         };
 
         const { mapCoords } = instance;
-        const size = buildingSizes[instance.buildingType];
+        const size = buildingConfig[instance.buildingType].size;
         if (scan(mapCoords.x, mapCoords.y - 1, 1, 0, size.x, cell => tryConveyor(cell, "top"))) {
             return acceptedType!;
         }
@@ -135,7 +136,7 @@ export class BuildingUtils {
         };
 
         const { mapCoords } = instance;
-        const size = buildingSizes[instance.buildingType];
+        const size = buildingConfig[instance.buildingType].size;
         if (scan(mapCoords.x, mapCoords.y - 1, 1, 0, size.x, cell => tryConveyor(cell, "top"))) {
             return true;
         }

@@ -1,11 +1,12 @@
 import { AdditiveBlending, DoubleSide, Material, Mesh, MeshBasicMaterial, Vector2 } from "three";
 import { buildings } from "./Buildings";
-import { IBuildingInstance, IIncubatorState, buildingSizes } from "./BuildingTypes";
+import { IBuildingInstance, IIncubatorState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { config } from "../config";
 import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
 import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
+import { buildingConfig } from "./BuildingConfig";
 
 const { unitScale } = config.game;
 const { capacity } = config.incubators;
@@ -53,7 +54,7 @@ export class Incubators {
 
         meshes.load("/models/characters/worker.glb").then(([_mesh]) => {            
             const mesh = _mesh.clone();            
-            const size = buildingSizes["incubator"];
+            const size = buildingConfig["incubator"].size;
             mesh.position.set(size.x / 2, 0, size.z / 2);
             mesh.scale.setScalar(unitScale);
             mesh.scale.setY(0);
