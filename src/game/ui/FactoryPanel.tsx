@@ -8,24 +8,38 @@ import { Factories } from "../buildings/Factories";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 
 interface FactoryPanelProps {
+    timestamp: number;
     building: IBuildingInstance;
 }
 
 export function FactoryPanel(props: FactoryPanelProps) {
 
+    const [timestamp, setTimestamp] = useState(props.timestamp);
     const [open, setOpen] = useState(false);
-    const state = props.building.state as IFactoryState;
-    const [output, setOutput] = useState<ResourceType | null>(state.output);
+    const [output, setOutput] = useState<ResourceType | null>((props.building.state as IFactoryState).output);
     const outputsRef = useRef<HTMLDivElement | null>(null);
 
+    const { building } = props;
     useEffect(() => {
+        setOutput((building.state as IFactoryState).output);
+    }, [building]);
+
+    const { timestamp: newTimeStamp } = props;
+    useEffect(() => {
+        setTimestamp(newTimeStamp);
+    }, [newTimeStamp]);
+
+    useEffect(() => {
+        if (!outputsRef.current) {
+            return;
+        }
         if (open) {
             gsap.to(outputsRef.current, {
                 scaleX: 1,
                 opacity: 1,
                 duration: 0.2,
                 onComplete: () => {
-                    outputsRef.current!.style.pointerEvents = "all";
+                    outputsRef.current!.style.pointerEvents = "all"
                 }
             });
 
@@ -35,16 +49,17 @@ export function FactoryPanel(props: FactoryPanelProps) {
                 opacity: 0,
                 duration: 0.2,
                 onComplete: () => {
-                    outputsRef.current!.style.pointerEvents = "none";
+                    outputsRef.current!.style.pointerEvents = "none"
                 }
             });
         }
     }, [open]);
 
-    return <BuildingPanel instance={props.building}>
+    return <BuildingPanel timestamp={timestamp} instance={props.building}>
         <div>
             {(() => {
                 if (output) {
+                    const state = props.building.state as IFactoryState;
                     const inputs = FactoryDefinitions[output];
                     return inputs.map(input => {
                         const amount = state.reserve.get(input) ?? 0;

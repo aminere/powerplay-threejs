@@ -1,11 +1,21 @@
 
+import { useEffect, useState } from "react";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 
 interface BuildingPanelProps {
+    timestamp: number;
     instance: IBuildingInstance;
 }
 
 export function BuildingPanel(props: React.PropsWithChildren<BuildingPanelProps>) {
+
+    const [, setTimestamp] = useState(props.timestamp);
+
+    const { timestamp } = props;
+    useEffect(() => {
+        setTimestamp(timestamp);
+    }, [timestamp]);
+
     return <div
         style={{
             padding: ".5rem",

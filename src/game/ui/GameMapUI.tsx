@@ -380,7 +380,7 @@ export function GameMapUI(_props: IGameUIProps) {
                                 return true
                             };
 
-                            return <BuildingPanel key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                            return <BuildingPanel timestamp={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
                                     <div>water: {state.amount.water}</div>
                                     <div>coal: {state.amount.coal}</div>
@@ -403,7 +403,7 @@ export function GameMapUI(_props: IGameUIProps) {
 
                         case "depot": {
                             const state = selectedBuilding.state as IDepotState;
-                            return <BuildingPanel key={selectedBuildingTimestamp} instance={selectedBuilding}>
+                            return <BuildingPanel timestamp={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
                                     {(() => {
                                         if (state.amount === 0) {
@@ -417,7 +417,7 @@ export function GameMapUI(_props: IGameUIProps) {
                         }
 
                         case "factory": {
-                            return <FactoryPanel  key={selectedBuildingTimestamp} building={selectedBuilding} />
+                            return <FactoryPanel timestamp={selectedBuildingTimestamp} building={selectedBuilding} />
                         }
                     }
                 })()}
