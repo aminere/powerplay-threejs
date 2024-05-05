@@ -41,6 +41,7 @@ export interface IRawResource {
 export interface ICarriedResource {
     type: RawResourceType | ResourceType;    
     visual: Object3D;
+    sourceCell: Vector2;
 }
 
 // export interface IPickableResource {

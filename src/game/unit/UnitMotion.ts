@@ -10,7 +10,6 @@ import { cellPathfinder } from "../pathfinding/CellPathfinder";
 import { GameMapProps } from "../components/GameMapProps";
 import { sectorPathfinder } from "../pathfinding/SectorPathfinder";
 import { config } from "../config";
-import { MoverState } from "./states/MoverState";
 import { utils } from "../../engine/Utils";
 import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./Unit";
@@ -516,14 +515,7 @@ export class UnitMotion {
                         const targetCell = getCellFromAddr(unit.targetCell);
                         if (nextCell.resource.type === targetCell.resource?.type) {
                             this.endMotion(unit);
-                            unit.onArrived();
-    
-                            switch (unit.type) {
-                                case "worker": {
-                                    const moverState = unit.fsm.getState(MoverState) ?? unit.fsm.switchState(MoverState);
-                                    moverState.onReachedResource(unit as ICharacterUnit, nextCell, nextMapCoords);
-                                }
-                            }    
+                            unit.onReachedResource(targetCell);
                             isObstacle = false;
                         }
                     }

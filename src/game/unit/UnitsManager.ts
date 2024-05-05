@@ -13,7 +13,6 @@ import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit, ICharacterUnit } from "./CharacterUnit";
 import { IUnit, Unit } from "./Unit";
-import { MoverState } from "./states/MoverState";
 import { NPCState } from "./states/NPCState";
 import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
@@ -23,6 +22,7 @@ import { TankState } from "./states/TankState";
 import { Workers } from "./Workers";
 import { TruckState } from "./states/TruckState";
 import { buildingConfig } from "../buildings/BuildingConfig";
+import { MiningState } from "./states/MiningState";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -177,7 +177,7 @@ class UnitsManager {
                     type, 
                     states: (() => {
                         switch (type) {
-                            case "worker": return [new MoverState(), new SoldierState()];
+                            case "worker": return [new MiningState(), new SoldierState()];
                             case "enemy-melee": return [new NPCState()]
                             default: return [];
                         }

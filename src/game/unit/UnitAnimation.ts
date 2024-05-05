@@ -28,7 +28,7 @@ class UnitAnimation {
                 return _animation;
             }
         })();
-
+        
         const destAnimSpeed = (() => {
             if (animation === "shoot") {
                 return 0.5;

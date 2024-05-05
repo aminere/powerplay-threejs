@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { objects } from "../../engine/resources/Objects";
@@ -53,7 +53,7 @@ export class Workers {
         }
     }
 
-    public static pickResource(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType) {
+    public static pickResource(unit: ICharacterUnit, resourceType: RawResourceType | ResourceType, mapCoords: Vector2) {
         const { pickedItems: layer } = GameMapState.instance.layers;
         const visual = utils.createObject(layer, resourceType);
         visual.matrixAutoUpdate = false;
@@ -76,7 +76,8 @@ export class Workers {
         mesh.castShadow = true;
         unit.resource = {
             visual,
-            type: resourceType
+            type: resourceType,
+            sourceCell: mapCoords.clone()
         };
     
         visual.visible = false;

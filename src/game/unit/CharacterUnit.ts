@@ -1,5 +1,5 @@
 
-import { AnimationAction, SkinnedMesh } from "three";
+import { AnimationAction, SkinnedMesh, Vector2 } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { IUnit, Unit } from "./Unit";
 import { CharacterType, RawResourceType } from "../GameDefinitions";
@@ -10,7 +10,6 @@ import { Fadeout } from "../components/Fadeout";
 import { cmdFogRemoveCircle } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
-import { MoverState } from "./states/MoverState";
 import { ICell, ICarriedResource } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
@@ -22,6 +21,7 @@ import { Workers } from "./Workers";
 import { Depots } from "../buildings/Depots";
 import { Factories } from "../buildings/Factories";
 import { Incubators } from "../buildings/Incubators";
+import { MiningState } from "./states/MiningState";
 
 interface IUnitAnim {
     name: string;
@@ -34,6 +34,7 @@ export interface ICharacterUnit extends IUnit {
     skeleton: IUniqueSkeleton | null;
     muzzleFlashTimer: number;
     resource: ICarriedResource | null;
+    targetBuilding: Vector2 | null;
 }
 
 export interface ICharacterUnitProps {
@@ -50,6 +51,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get skinnedMesh() { return this._skinnedMesh; }
     public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
     public get resource() { return this._resource; }
+    public get targetBuilding() { return this._targetBuilding; }
 
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }   
@@ -71,6 +73,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _skinnedMesh: SkinnedMesh;
     private _muzzleFlashTimer = 0;
     private _resource: ICarriedResource | null = null;
+    private _targetBuilding: Vector2 | null = null;
 
     constructor(props: ICharacterUnitProps, id: number) {
         super({ ...props, boundingBox: props.visual.boundingBox }, id);
@@ -111,7 +114,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onMoveCommand() {
-        const isMining = this.fsm.getState(MoverState) !== null;
+        const isMining = this.fsm.getState(MiningState) !== null;
         if (isMining) {
             this.fsm.switchState(null);
         } else {
@@ -120,6 +123,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 soldierState.stopAttack(this);
             }
         }
+        this._targetBuilding = null;
     }
 
     public override onArrived() {
@@ -145,8 +149,10 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override onReachedBuilding(cell: ICell) {
 
+        const instance = GameMapState.instance.buildings.get(cell.building!)!;
         if (this.resource) {
-            const instance = GameMapState.instance.buildings.get(cell.building!)!;
+
+            const sourceCell = this.resource.sourceCell;
             switch (instance.buildingType) {
                 case "factory": {
                     if (Factories.tryDepositResource(instance, this.resource.type)) {
@@ -158,15 +164,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 case "depot": {
                     if (Depots.tryDepositResource(instance, this.resource.type)) {
                         this.resource = null;
-                    } else {
-                        const state = instance.state as IDepotState;
-                        if (state.type !== this.resource.type) {
-                            if (state.amount > 0) {
-                                console.assert(state.type !== null);
-                                Workers.pickResource(this, state.type!);
-                                Depots.removeResource(instance);
-                            }
-                        }
                     }
                 }
                     break;
@@ -179,31 +176,64 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 break;
             }
 
-            const moverState = this.fsm.getState(MoverState)!;
-            if (moverState) {
-                const wasDeposited = this.resource === null;
-                if (wasDeposited) {
-                    moverState.onReachedBuilding(this);
-                } else {
-                    moverState.tryGoToTarget(this, this.resource!.type);
-                }
+            const wasDeposited = this.resource === null;
+            if (wasDeposited) {
+                // go grab another one from the source
+                this._targetBuilding = this.targetCell.mapCoords.clone();
+                unitMotion.moveUnit(this, sourceCell);
             } else {
-                this.onArrived();
+                if (instance.buildingType === "depot") {
+                    // if the depot is of a different type than the carried resource, pick from it (discard the carried resource)
+                    const state = instance.state as IDepotState;
+                    if (state.amount > 0) {
+                        console.assert(state.type !== null);
+                        Workers.pickResource(this, state.type!, this.targetCell.mapCoords);
+                        Depots.removeResource(instance);
+                    }
+                }
             }
 
         } else {
-            const buildingInstance = GameMapState.instance.buildings.get(cell.building!)!;
-            switch (buildingInstance.buildingType) {
+
+            switch (instance.buildingType) {
                 case "depot": {
-                    const state = buildingInstance.state as IDepotState;
+                    const state = instance.state as IDepotState;
                     if (state.amount > 0) {
                         console.assert(state.type !== null);
-                        Workers.pickResource(this, state.type!);
-                        Depots.removeResource(buildingInstance);
+                        Workers.pickResource(this, state.type!, this.targetCell.mapCoords);
+                        Depots.removeResource(instance);
+
+                        if (this._targetBuilding) {
+                            unitMotion.moveUnit(this, this._targetBuilding);
+                        }
                     }
                 }
                 break;
             }
+        }
+
+        if (this.motionId === 0) {
+            this.onArrived();
+        }
+    }
+
+    public override onReachedResource(cell: ICell) {
+
+        const canPick = (() => {
+            console.assert(cell.resource);
+            if (cell.resource!.amount === 0) {
+                return false;
+            }
+            if (this.resource) {
+                return this.resource.type !== cell.resource!.type;
+            } else {
+                return true;
+            }
+        })();
+
+        if (canPick) {
+            this.fsm.switchState(MiningState);
+        } else {
             this.onArrived();
         }
     }
@@ -213,9 +243,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
 
             const isMining = (() => {
-                if (this.fsm.getState(MoverState)) {
-                    return true;
-                }
                 const targetCell = getCellFromAddr(this.targetCell);
                 if (targetCell.resource) {
                     return true;

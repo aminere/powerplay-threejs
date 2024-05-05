@@ -56,6 +56,7 @@ export interface IUnit {
     onArriving: () => void;
     onColliding: () => void;
     onReachedBuilding: (cell: ICell) => void;
+    onReachedResource: (cell: ICell) => void;
     onCollidedWhileMoving: (unit: IUnit) => void;
 }
 
@@ -191,6 +192,7 @@ export class Unit implements IUnit {
     public onArriving() {}
     public onColliding() {}
     public onReachedBuilding(_cell: ICell) {}
+    public onReachedResource(_cell: ICell) {};
     public onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
