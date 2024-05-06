@@ -5,7 +5,7 @@ import { utils } from "../../engine/Utils";
 import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 import { IBuildingInstance } from "./BuildingTypes";
-import { buildingConfig } from "./BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 // import { config } from "../config";
 // import { resources } from "../Resources";
 

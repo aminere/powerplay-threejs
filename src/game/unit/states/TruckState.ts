@@ -1,6 +1,6 @@
 import { time } from "../../../engine/core/Time";
 import { IBuildingInstance, IDepotState } from "../../buildings/BuildingTypes";
-import { config } from "../../config";
+import { config } from "../../config/config";
 import { State } from "../../fsm/StateMachine";
 import { ITruckUnit } from "../TruckUnit";
 import { Trucks } from "../Trucks";

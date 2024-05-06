@@ -3,7 +3,7 @@ import { pools } from "../engine/core/Pools";
 import { BezierPath } from "./BezierPath";
 import { ICell, Axis, IConveyor } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
-import { config } from "./config";
+import { config } from "./config/config";
 
 const { width, maxCount } = config.conveyors;
 const neighborCoords = new Vector2();

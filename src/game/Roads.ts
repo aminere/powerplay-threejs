@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { Axis } from "./GameTypes";
 import { Sector } from "./Sector";
 import { GameMapState } from "./components/GameMapState";
-import { config } from "./config";
+import { config } from "./config/config";
 
 const neighborCombinations: {
     [key: string]: number; // tileIndex

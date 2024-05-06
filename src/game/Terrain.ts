@@ -1,5 +1,5 @@
 
-import { config } from './config';
+import { config } from './config/config';
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Mesh, MeshStandardMaterial, NearestFilter, RGBAFormat, RedFormat, Sphere, Texture, Vector2, Vector3, WebGLProgramParametersWithUniforms } from 'three';
 import FastNoiseLite from "fastnoise-lite";
 import { textures } from '../engine/resources/Textures';

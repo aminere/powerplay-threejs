@@ -1,7 +1,7 @@
 import { BufferAttribute, InstancedMesh, Material, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Quaternion, RepeatWrapping, Vector2, Vector3, WebGLProgramParametersWithUniforms } from "three";
 import { meshes } from "../engine/resources/Meshes";
 import FastNoiseLite from "fastnoise-lite";
-import { config } from "./config";
+import { config } from "./config/config";
 import { time } from "../engine/core/Time";
 import { textures } from "../engine/resources/Textures";
 import { GameMapState } from "./components/GameMapState";

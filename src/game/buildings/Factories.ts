@@ -5,7 +5,7 @@ import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
 import { FactoryDefinitions } from "./FactoryDefinitions";
-import { config } from "../config";
+import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
 
 const factoryConfig = {

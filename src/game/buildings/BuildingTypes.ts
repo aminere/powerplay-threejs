@@ -66,5 +66,6 @@ export interface IBuildingInstance {
     mapCoords: Vector2;
     state: TBuildingState | null;
     deleted: boolean;
+    hitpoints: number;
 }
 

@@ -11,6 +11,7 @@ import { utils } from "../../engine/Utils";
 import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
 import { unitMotion } from "./UnitMotion";
+import { unitConfig } from "../config/UnitConfig";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -44,11 +45,11 @@ export interface IUnit {
     type: UnitType;
     fsm: StateMachine<IUnit>;
     lookAt: Quaternion;
-    health: number;
+    hitpoints: number;
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
 
-    setHealth(value: number): void;
+    setHitpoints(value: number): void;
     onDeath(): void;
     onMove: (bindSkeleton: boolean) => void;
     onMoveCommand: () => void;
@@ -77,7 +78,7 @@ export class Unit implements IUnit {
     public get collidable() { return this._collidable; }
     public get type() { return this._type; }
     public get id() { return this._id; }  
-    public get health() { return this._health; }  
+    public get hitpoints() { return this._hitpoints; }  
     public get attackers() { return this._attackers; }
     
     public get unitsInRange() { return this._unitsInRange; }
@@ -123,7 +124,7 @@ export class Unit implements IUnit {
     private _isIdle = true;
     private _collidable = true;
     private _type: UnitType = "worker";
-    private _health = 1;
+    private _hitpoints = 1;
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _boundingBox: Box3;
@@ -139,6 +140,9 @@ export class Unit implements IUnit {
         this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
         this._boundingBox = props.boundingBox;
 
+        const { hitpoints } = unitConfig[this._type];
+        this._hitpoints = hitpoints;
+
         GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
         UnitUtils.applyElevation(this._coords, this._visual.position);
@@ -153,8 +157,8 @@ export class Unit implements IUnit {
         }        
     }
 
-    public setHealth(value: number) {
-        this._health = value;
+    public setHitpoints(value: number) {
+        this._hitpoints = value;
         if (value <= 0 && this._isAlive) {
             this._fsm.switchState(null);
             this._isAlive = false;

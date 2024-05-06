@@ -6,7 +6,7 @@ import { ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
-import { config } from "../config";
+import { config } from "../config/config";
 import { buildings } from "../buildings/Buildings";
 import { GameUtils } from "../GameUtils";
 import { createSector, createSectors, updateCameraSize } from "../GameMapUtils";

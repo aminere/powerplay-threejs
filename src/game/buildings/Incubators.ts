@@ -2,22 +2,17 @@ import { AdditiveBlending, DoubleSide, Material, Mesh, MeshBasicMaterial, Vector
 import { buildings } from "./Buildings";
 import { IBuildingInstance, IIncubatorState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
-import { config } from "../config";
+import { config } from "../config/config";
 import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
 import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
-import { buildingConfig } from "./BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 import { BuildingUtils } from "./BuildingUtils";
 
 const { unitScale } = config.game;
 const { inputCapacity: incubatorInputCapacity } = config.incubators;
 const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending, transparent: true });
-
-const incubatorConfig = {
-    productionTime: 2,
-    inputAccepFrequency: 1,
-    inputs: ["coal", "water"] as const
-}
+const { inputAccepFrequency, inputs } = config.incubators;
 
 export class Incubators {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -96,7 +91,7 @@ export class Incubators {
                 let accepted = false;
                 let fullInputs = 0;
 
-                for (const input of incubatorConfig.inputs) {
+                for (const input of inputs) {
                     const currentAmount = state.reserve[input];
                     if (currentAmount < incubatorInputCapacity) {
                         if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
@@ -112,8 +107,8 @@ export class Incubators {
                     evtBuildingStateChanged.post(instance);
                 }
 
-                state.inputTimer = incubatorConfig.inputAccepFrequency;
-                if (fullInputs === incubatorConfig.inputs.length) {
+                state.inputTimer = inputAccepFrequency;
+                if (fullInputs === inputs.length) {
                     state.inputFull = true;
                 }
 
@@ -125,8 +120,8 @@ export class Incubators {
 
     public static tryDepositResource(instance: IBuildingInstance, _type: RawResourceType) {
         const state = instance.state as IIncubatorState;
-        const type = _type as typeof incubatorConfig.inputs[number];
-        if (!incubatorConfig.inputs.includes(type)) {            
+        const type = _type as typeof inputs[number];
+        if (!inputs.includes(type)) {            
             return false;
         }
 
@@ -147,7 +142,7 @@ export class Incubators {
     public static spawn(instance: IBuildingInstance) {
         cmdSpawnUnit.post(instance);
         const state = instance.state as IIncubatorState;
-        for (const input of incubatorConfig.inputs) {
+        for (const input of inputs) {
             state.reserve[input]--;
         }
         const progress = state.reserve["water"] / incubatorInputCapacity;

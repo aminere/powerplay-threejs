@@ -9,12 +9,13 @@ import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
 import { BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
-import { config } from "../config";
+import { config } from "../config/config";
 import { evtActionCleared, evtBuildError } from "../../Events";
 import { ActionButton } from "./ActionButton";
-import { buildingConfig } from "../buildings/BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import gsap from "gsap";
+import { uiconfig } from "./uiconfig";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -95,10 +96,10 @@ function ActionSection(props: IActionSectionProps) {
             ref={actionsRef}
             style={{
                 position: "absolute",
-                left: "calc(5rem + .2rem)",
+                left: `calc(${uiconfig.buttonSize}rem + ${uiconfig.gap}rem)`,
                 display: "flex",
                 flexDirection: "column",
-                gap: ".2rem",
+                gap: `${uiconfig.gap}rem`,
                 transform: "scaleY(0)",
                 opacity: 0,
                 pointerEvents: "none"
@@ -262,12 +263,12 @@ export function GameMapUI(_props: IGameUIProps) {
             <div
                 style={{
                     position: "absolute",
-                    left: ".5rem",
+                    left: `${uiconfig.padding}rem`,
                     top: "50%",
                     transform: "translateY(-50%)",
                     display: "flex",
                     flexDirection: "column",
-                    gap: ".2rem",
+                    gap: `${uiconfig.gap}rem`,
                 }}
             >
                 <ActionSection
@@ -333,8 +334,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     bottom: "240px",
                     left: "1rem",
                     color: "red",
-                    opacity: 0,
-                    textShadow: "1px 1px 0px black"
+                    opacity: 0
                 }}
             >
                 {error ?? ""}

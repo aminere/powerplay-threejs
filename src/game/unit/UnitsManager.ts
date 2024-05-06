@@ -7,7 +7,7 @@ import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { GameMapState } from "../components/GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
-import { config } from "../config";
+import { config } from "../config/config";
 import { UnitType } from "../GameDefinitions";
 import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
@@ -21,7 +21,7 @@ import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
 import { Workers } from "./Workers";
 import { TruckState } from "./states/TruckState";
-import { buildingConfig } from "../buildings/BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 import { MiningState } from "./states/MiningState";
 
 const screenPos = new Vector3();
@@ -209,7 +209,7 @@ class UnitsManager {
             return;
         }
         for (const unit of this._selectedUnits) {
-            unit.setHealth(0);
+            unit.setHitpoints(0);
         }
         this._selectedUnits.length = 0;
         cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });

@@ -7,7 +7,7 @@ import { BuildingUtils } from "./BuildingUtils";
 import { buildings } from "./Buildings";
 import { MineralType } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
-import { buildingConfig } from "./BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 
 const cellCoords = new Vector2();
 const miningFrequency = 2;

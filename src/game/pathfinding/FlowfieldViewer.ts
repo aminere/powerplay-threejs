@@ -1,7 +1,7 @@
 
 
 import { BufferGeometry, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3D, Points, PointsMaterial, Vector2, Vector3 } from "three";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
 import { TFlowFieldMap, flowField } from "./Flowfield";

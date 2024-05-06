@@ -6,6 +6,7 @@ import { BuildingPanel } from "./BuildingPanel";
 import gsap from "gsap";
 import { Factories } from "../buildings/Factories";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
+import { uiconfig } from "./uiconfig";
 
 interface FactoryPanelProps {
     timestamp: number;
@@ -92,7 +93,7 @@ export function FactoryPanel(props: FactoryPanelProps) {
                 overflow: "auto",
                 // display: "flex",
                 display: "grid",
-                gap: ".2rem",
+                gap: `${uiconfig.gap}rem`,
                 gridTemplateColumns: "repeat(7, 5rem)",
                 gridAutoRows: "min-content",
                 transform: "scaleX(0)",

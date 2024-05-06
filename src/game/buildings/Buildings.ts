@@ -1,5 +1,5 @@
 import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingStateChanged } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
@@ -10,7 +10,7 @@ import { Factories } from "./Factories";
 import { Depots } from "./Depots";
 import { Incubators } from "./Incubators";
 import { utils } from "../../engine/Utils";
-import { buildingConfig } from "./BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -94,6 +94,7 @@ class Buildings {
         // visual.add(box3Helper);
         // box3Helper.visible = false;
 
+        const { size, hitpoints } = buildingConfig[buildingType];
         const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
@@ -101,7 +102,8 @@ class Buildings {
             visual,
             mapCoords,
             state: null,
-            deleted: false
+            deleted: false,
+            hitpoints
         };
 
         const { layers, buildings } = GameMapState.instance;
@@ -117,8 +119,7 @@ class Buildings {
                 depotsCache.set(sectorId, [buildingInstance]);
             }
         }
-
-        const size = buildingConfig[buildingType].size;
+        
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);

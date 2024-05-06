@@ -5,7 +5,7 @@ import { IUnit, Unit } from "./Unit";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
-import { config } from "../config";
+import { config } from "../config/config";
 import { TruckState } from "./states/TruckState";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
@@ -35,11 +35,11 @@ export class TruckUnit extends Unit implements ITruckUnit {
 
     private _resources: ITruckResources | null = null;
 
-    public override setHealth(value: number) {
+    public override setHitpoints(value: number) {
         if (value <= 0) {
             this.resources = null;
         }
-        super.setHealth(value);
+        super.setHitpoints(value);
     }
     
     public override onReachedBuilding(cell: ICell) {

@@ -1,6 +1,6 @@
 
 import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, NearestFilter, Vector2 } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { GameUtils } from "./GameUtils";
 import { pools } from "../engine/core/Pools";
 import { textures } from "../engine/resources/Textures";

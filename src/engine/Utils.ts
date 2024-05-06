@@ -1,5 +1,5 @@
 import { AnimationAction, Camera, DirectionalLight, Line, LoopOnce, LoopPingPong, LoopRepeat, Mesh, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
-import { config } from "../game/config";
+import { config } from "../game/config/config";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
 import { TArray } from "./serialization/TArray";

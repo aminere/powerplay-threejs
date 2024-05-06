@@ -1,7 +1,7 @@
 import { Vector2 } from "three";
 import { ISector } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameMapState } from "../components/GameMapState";
 
 export interface IUnitAddr {

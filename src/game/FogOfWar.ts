@@ -1,5 +1,5 @@
 import { DataTexture, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
 import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog } from "../Events";

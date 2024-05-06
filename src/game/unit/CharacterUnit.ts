@@ -82,12 +82,12 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         this._skinnedMesh = props.visual;
     }
 
-    public override setHealth(value: number): void {
+    public override setHitpoints(value: number): void {
         if (value <= 0) {            
             engineState.removeComponent(this.visual, UnitCollisionAnim);
             this.resource = null;
         }
-        super.setHealth(value);
+        super.setHitpoints(value);
     }
 
     public override onDeath() {

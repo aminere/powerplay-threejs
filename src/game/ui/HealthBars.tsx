@@ -1,13 +1,11 @@
 import { useEffect, useRef } from "react"
 import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems, SelectedElems } from "../../Events";
-import { Color, Vector2, Vector3 } from "three";
+import { Color, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
-import { IUnit } from "../unit/Unit";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameMapState } from "../components/GameMapState";
-import { IBuildingInstance } from "../buildings/BuildingTypes";
-import { buildingConfig } from "../buildings/BuildingConfig";
+import { buildingConfig } from "../config/BuildingConfig";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -20,7 +18,6 @@ const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
 const { cellSize, unitScale } = config.game;
-const { height: conveyorHeight } = config.conveyors;
 
 const headOffset = 2 * unitScale;
 
@@ -94,7 +91,7 @@ export function HealthBars() {
                                 continue;
                             }
                             worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);                    
-                            drawBar(ctx, worldPos, units[i].health);
+                            drawBar(ctx, worldPos, units[i].hitpoints);
                         }
                     }
                     break;

@@ -1,11 +1,12 @@
 import { InstancedMesh, Vector2, Vector3 } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
 import { meshes } from "../engine/resources/Meshes";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 import { trees } from "./Trees";
 import { GameUtils } from "./GameUtils";
+import { resourceConfig } from "./config/ResourceConfig";
 
 const { cellSize, mapRes } = config.game;
 const mapCoords = new Vector2();
@@ -23,21 +24,22 @@ class Resources {
             mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
             GameUtils.mapToWorld(mapCoords, worldPos);
             worldPos.y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z);
+            const { capacity } = resourceConfig[type];
 
             switch (type) {
                 case "wood": {                    
-                    trees.createRandomTree(cell, worldPos, instanceInfo);
+                    trees.createRandomTree(cell, worldPos, instanceInfo);                    
                     const resourceInstance: IRawResource = {
                         visual: instanceInfo.instancedMesh,
                         instanceIndex: instanceInfo.instanceIndex,
                         type,
-                        amount: 100,
+                        amount: capacity,
                     };
                     return resourceInstance;
                 }
 
                 case "water": {
-                    const resourceInstance: IRawResource = { type, amount: 999999 };
+                    const resourceInstance: IRawResource = { type, amount: capacity };
                     return resourceInstance;
                 }
     
@@ -56,7 +58,7 @@ class Resources {
                             });
 
                     visual.position.set(localX, worldPos.y, localZ);
-                    const resourceInstance: IRawResource = { visual, type, amount: 100 };
+                    const resourceInstance: IRawResource = { visual, type, amount: capacity };
                     return resourceInstance;
                 }
             }

@@ -1,6 +1,6 @@
 import { MathUtils } from "three";
 import { ITruckUnit } from "./TruckUnit";
-import { config } from "../config";
+import { config } from "../config/config";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";

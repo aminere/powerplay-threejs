@@ -52,7 +52,7 @@ export class SoldierState extends State<ICharacterUnit> {
 
                         // attack
                         if (this._hitTimer < 0) {
-                            target!.setHealth(target!.health - damage);
+                            target!.setHitpoints(target!.hitpoints - damage);
                             this._hitTimer = hitFrequency;
                         } else {
                             this._hitTimer -= time.deltaTime;

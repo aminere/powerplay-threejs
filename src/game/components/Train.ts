@@ -6,7 +6,7 @@ import { Wagon } from "./Wagon";
 import { Object3D, Vector2 } from "three";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { engineState } from "../../engine/EngineState";
-import { config } from "../config";
+import { config } from "../config/config";
 
 export class TrainProps extends ComponentProps {
     constructor(props?: Partial<TrainProps>) {

@@ -1,6 +1,6 @@
 import { InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RepeatWrapping, Texture, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
-import { config } from "./config";
+import { config } from "./config/config";
 import { Axis, ICell } from "./GameTypes";
 import { time } from "../engine/core/Time";
 import { conveyorUtils } from "./ConveyorUtils";

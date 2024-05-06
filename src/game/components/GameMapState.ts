@@ -4,7 +4,7 @@ import { TileSector } from "../TileSelector";
 import { Action } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
-import { config } from "../config";
+import { config } from "../config/config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 

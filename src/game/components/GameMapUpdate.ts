@@ -4,7 +4,7 @@ import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
 import { engine } from "../../engine/Engine";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, cmdSetSelectedElems, evtActionCleared } from "../../Events";

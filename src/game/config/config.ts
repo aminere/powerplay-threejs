@@ -28,7 +28,10 @@ export const config = {
         workerCost: {
             water: 1,
             coal: 1
-        }
+        },
+        productionTime: 2,
+        inputAccepFrequency: 1,
+        inputs: ["coal", "water"] as const
     },
     depots: {
         range: 10,

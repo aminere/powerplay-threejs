@@ -1,5 +1,5 @@
 import { Color, Material, Mesh, Object3D, Vector2 } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { ISector } from "./GameTypes";
 import { terrain, TerrainUniforms } from "./Terrain";
 import { utils } from "../engine/Utils";

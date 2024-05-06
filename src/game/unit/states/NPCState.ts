@@ -66,7 +66,7 @@ export class NPCState extends State<ICharacterUnit> {
                     targetPos.add(unit.visual.position);
                     unitMotion.updateRotation(unit, unit.visual.position, targetPos);
                     if (this._hitTimer < 0) {
-                        target!.setHealth(target!.health - damage);
+                        target!.setHitpoints(target!.hitpoints - damage);
                         this._hitTimer = hitFrequency;                    
                     } else {
                         this._hitTimer -= time.deltaTime;                

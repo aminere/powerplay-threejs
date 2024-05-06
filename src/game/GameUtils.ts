@@ -1,6 +1,6 @@
 
 import { Camera, Vector2, Vector3, Raycaster, Plane, Line3, Mesh, BufferGeometry, BufferAttribute, MathUtils } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { GameMapState } from "./components/GameMapState";
 import { ICell, ISector } from "./GameTypes";
 import { engine } from "../engine/Engine";

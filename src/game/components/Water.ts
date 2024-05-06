@@ -3,7 +3,7 @@ import { Euler, InstancedMesh, Material, Matrix4, MeshStandardMaterial, Object3D
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { time } from "../../engine/core/Time";
-import { config } from "../config";
+import { config } from "../config/config";
 import { textures } from "../../engine/resources/Textures";
 
 export class WaterProps extends ComponentProps {

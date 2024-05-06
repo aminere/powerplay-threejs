@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry, Mesh, Vector2 } from "three";
 import { GameUtils } from "./GameUtils";
 import { ISector } from "./GameTypes";
-import { config } from "./config";
+import { config } from "./config/config";
 import { GameMapState } from "./components/GameMapState";
 import { resources } from "./Resources";
 

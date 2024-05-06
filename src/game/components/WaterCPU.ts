@@ -4,7 +4,7 @@ import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { time } from "../../engine/core/Time";
 import FastNoiseLite from "fastnoise-lite";
-import { config } from "../config";
+import { config } from "../config/config";
 
 export class WaterProps extends ComponentProps {
 

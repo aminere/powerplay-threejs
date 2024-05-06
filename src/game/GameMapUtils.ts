@@ -1,6 +1,6 @@
 import { Box2, BufferAttribute, BufferGeometry, Camera, Line3, Mesh, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
-import { config } from "./config";
+import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
 import { MineralType, MineralTypes, RawResourceType, TileType, TileTypes } from "./GameDefinitions";
@@ -23,7 +23,7 @@ import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
 import { evtActionCleared, evtBuildError } from "../Events";
-import { buildingConfig } from "./buildings/BuildingConfig";
+import { buildingConfig } from "./config/BuildingConfig";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -681,7 +681,7 @@ export function onAction(touchButton: number) {
                     if (cell.units) {
                         const cellUnits = [...cell.units];
                         for (const unit of cellUnits) {
-                            unit.setHealth(0);
+                            unit.setHitpoints(0);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 import { GameUtils } from "./GameUtils";
 import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from "three";
-import { config } from "./config";
+import { config } from "./config/config";
 import { BezierPath } from "./BezierPath";
 import { IRailUserData } from "./GameTypes";
 import { meshes } from "../engine/resources/Meshes";

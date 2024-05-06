@@ -5,7 +5,7 @@ import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { textures } from "../../engine/resources/Textures";
 import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
-import { config } from "../config";
+import { config } from "../config/config";
 import { GameMapState } from "./GameMapState";
 
 export class EnvPropsProps extends ComponentProps {

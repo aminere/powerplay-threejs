@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
-import { config } from "../config";
+import { config } from "../config/config";
 import { ICell } from "../GameTypes";
 
 export type TFlowField = {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
-import { config } from "../config";
+import { config } from "../config/config";
 import { BufferAttribute, MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";

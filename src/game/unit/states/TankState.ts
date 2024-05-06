@@ -104,7 +104,7 @@ export class TankState extends State<ICharacterUnit> {
                                     if (units) {
                                         for (const unit of units) {
                                             if (UnitUtils.isEnemy(unit)) {
-                                                unit.setHealth(unit!.health - damage);
+                                                unit.setHitpoints(unit!.hitpoints - damage);
                                             }
                                         }
                                     }

@@ -13,7 +13,7 @@ export { time } from "./engine/core/Time";
 
 export { GameUI } from "./game/ui/GameUI";
 export { EngineStats } from "./debug/EngineStats";
-export { config } from "./game/config";
+export { config } from "./game/config/config";
 
 export { meshes } from "./engine/resources/Meshes";
 export { textures } from "./engine/resources/Textures";

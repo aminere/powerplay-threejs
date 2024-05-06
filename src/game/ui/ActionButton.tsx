@@ -1,3 +1,4 @@
+import { uiconfig } from "./uiconfig";
 
 interface ActionButtonProps {
     onClick: () => void;
@@ -10,17 +11,16 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         className="clickable"
         style={{
             position: "relative",
-            height: "5rem",
-            width: "5rem",
+            height: `${uiconfig.buttonSize}rem`,
+            width: `${uiconfig.buttonSize}rem`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: ".1rem",
             textAlign: "center",
-            backgroundColor: "#00000066",
+            backgroundColor: uiconfig.buttonBackgroundColor,
             cursor: "pointer",
-            border: props.selected ? `2px solid ${props.selectedColor ?? "yellow"}` : undefined,
-            textShadow: "1px 1px 0px black"
+            border: props.selected ? `2px solid ${props.selectedColor ?? "yellow"}` : undefined
         }}
         onClick={e => {
             e.stopPropagation();

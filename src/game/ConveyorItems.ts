@@ -1,7 +1,7 @@
 import { Box3Helper, Object3D, Vector2, Vector3 } from "three";
 import { ICell, IConveyorItem } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
-import { config } from "./config";
+import { config } from "./config/config";
 import { utils } from "../engine/Utils";
 import { time } from "../engine/core/Time";
 import { BezierPath } from "./BezierPath";
