@@ -3,7 +3,6 @@ import { evtActionCleared } from "../../Events";
 import { ActionButton } from "./ActionButton";
 import { uiconfig } from "./uiconfig";
 import { GameMapState } from "../components/GameMapState";
-import gsap from "gsap";
 
 interface IActionSectionProps {
     open: boolean;
