@@ -8,12 +8,7 @@ import { FactoryDefinitions } from "./FactoryDefinitions";
 import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
 
-const factoryConfig = {
-    productionTime: 2,
-    inputAccepFrequency: 1,
-}
-
-const { inputCapacity: factoryInputCapacity } = config.factories;
+const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 
 function canProduce(state: IFactoryState) {
     if (state.output) {
@@ -85,7 +80,7 @@ export class Factories {
 
         } else {
 
-            if (state.productionTimer >= factoryConfig.productionTime) {
+            if (state.productionTimer >= productionTime) {
                 if (BuildingUtils.produceResource(instance, state.output!)) {
                     removeResource(instance);
 
@@ -114,7 +109,7 @@ export class Factories {
                     const inputs = FactoryDefinitions[state.output];
                     for (const input of inputs) {
                         const currentAmount = state.reserve.get(input);
-                        if ((currentAmount ?? 0) < factoryInputCapacity) {
+                        if ((currentAmount ?? 0) < inputCapacity) {
                             if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
                                 if (currentAmount === undefined) {
                                     state.reserve.set(input, 1);
@@ -132,7 +127,7 @@ export class Factories {
                         evtBuildingStateChanged.post(instance);
                     }
 
-                    state.inputTimer = factoryConfig.inputAccepFrequency;
+                    state.inputTimer = inputAccepFrequency;
                     if (fullInputs === inputs.length) {
                         state.inputFull = true;
                     }                    
@@ -150,7 +145,7 @@ export class Factories {
             const inputs = FactoryDefinitions[state.output];
             if (inputs.includes(type)) {
                 const currentAmount = state.reserve.get(type);
-                if ((currentAmount ?? 0) < factoryInputCapacity) {
+                if ((currentAmount ?? 0) < inputCapacity) {
                     if (currentAmount === undefined) {
                         state.reserve.set(type, 1);
                     } else {

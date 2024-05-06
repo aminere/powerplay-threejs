@@ -212,7 +212,7 @@ class UnitsManager {
             unit.setHitpoints(0);
         }
         this._selectedUnits.length = 0;
-        cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
+        cmdSetSelectedElems.post(null);
     }
 
     private handleSpawnRequests() {

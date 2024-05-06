@@ -16,6 +16,7 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import gsap from "gsap";
 import { uiconfig } from "./uiconfig";
+import { ActionsPanel } from "./ActionsPanel";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -325,7 +326,17 @@ export function GameMapUI(_props: IGameUIProps) {
                 </ActionButton>
             </div>
 
-            <SelectionPanel />
+            <div style={{
+                position: "absolute",
+                bottom: `${uiconfig.padding}rem`,
+                left: "470px",
+                height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSize}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gap}rem + 2 * ${uiconfig.padding}rem)`,
+                display: "flex",
+                gap: `${uiconfig.gap}rem`,
+            }}>
+                <SelectionPanel />
+                <ActionsPanel />
+            </div>            
 
             <div
                 ref={errorRef}

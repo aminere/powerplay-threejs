@@ -6,6 +6,11 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
 import { resourceConfig } from "../config/ResourceConfig";
 import { config } from "../config/config";
+import { ICharacterUnit } from "../unit/CharacterUnit";
+import { ITruckUnit } from "../unit/TruckUnit";
+
+const { resourcesPerSlot, slotCount } = config.trucks;
+const truckCapacity = resourcesPerSlot * slotCount;
 
 interface PropertyProps {
     name: string;
@@ -15,8 +20,8 @@ interface PropertyProps {
 function Property(props: PropertyProps) {
     return <div style={{
         position: "relative",
-        height: "3.2rem",
-        width: "3.2rem",
+        height: `${uiconfig.propertySize}rem`,
+        width: `${uiconfig.propertySize}rem`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -48,17 +53,14 @@ function SingleSelectionPanel(props: SingleSelectionProps) {
             padding: `${uiconfig.padding}rem`,
             display: "flex",
             flexDirection: "column",
-            gap: "1rem",
-            backgroundColor: "#0000002b",
+            gap: `${uiconfig.padding}rem`,
             height: "100%",
-            pointerEvents: "all",
             position: "relative"
         }}>
         <div
             style={{
                 textAlign: "center",
                 fontWeight: "bold",
-                textTransform: "uppercase"
             }}>
             {props.name}
         </div>
@@ -75,20 +77,20 @@ function SingleSelectionPanel(props: SingleSelectionProps) {
             </div>
             <div
                 style={{
-                    display: "flex",
                     gap: `${uiconfig.gap}rem`,
-                    flexWrap: "wrap",
-                    justifyContent: "end",
+                    display: "grid",
+                    gridTemplateColumns: `repeat(3, ${uiconfig.propertySize}rem)`,
+                    gridAutoRows: "min-content",
                 }}
             >
-                {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
+                {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}                
             </div>
         </div>
     </div>
 }
 
 function MultiSelectionPanel() {
-    return <div>TODO</div>
+    return null;
 }
 
 export function SelectionPanel() {
@@ -123,37 +125,37 @@ export function SelectionPanel() {
         }
     }, [selectedElems]);
 
-    return <div style={{
-        position: "absolute",
-        bottom: `${uiconfig.padding}rem`,
-        left: "470px",
-        height: "200px",
-        width: "250px",
-        pointerEvents: "none"
-    }}>
+    if (!selectedElems) {
+        return null;
+    }
 
+    return <div
+        style={{
+            width: "250px",
+            pointerEvents: "none",
+            backgroundColor: uiconfig.backgroundColor,
+        }}
+    >
         {(() => {
-            if (!selectedElems) {
-                return null;
-            }
             switch (selectedElems.type) {
                 case "building": {
                     const building = selectedElems.building;
                     const { hitpoints } = buildingConfig[building.buildingType];
 
                     const properties = (() => {
-                        switch (building.buildingType) {                            
+                        switch (building.buildingType) {
                             case "incubator": {
                                 const state = building.state as IIncubatorState;
                                 const { inputs, inputCapacity } = config.incubators;
                                 return inputs.map(input => {
                                     const amount = state.reserve[input];
-                                    return { name: 
-                                        input,
+                                    return {
+                                        name:
+                                            input,
                                         value: `${amount} / ${inputCapacity}`
                                     };
                                 });
-                            }                            
+                            }
                         }
                         return null;
                     })();
@@ -170,11 +172,38 @@ export function SelectionPanel() {
                     if (units.length === 1) {
                         const unit = units[0];
                         const { hitpoints } = unitConfig[unit.type];
+                        const properties = (() => {
+                            switch (unit.type) {
+                                case "worker": {
+                                    const character = unit as ICharacterUnit;
+                                    if (character.resource) {
+                                        return [{
+                                            name: character.resource.type,
+                                            value: `1 / 1`
+                                        }];
+                                    }
+                                    return null;
+                                }
+
+                                case "truck": {
+                                    const truck = unit as ITruckUnit;
+                                    if (truck.resources) {
+                                        return [{
+                                            name: truck.resources.type,
+                                            value: `${truck.resources.amount} / ${truckCapacity}`                                        
+                                        }]
+                                    }
+                                    return null;
+                                }
+
+                                default: return null;
+                            }
+                        })();
                         return <SingleSelectionPanel
                             name={unit.type}
                             amount={unit.hitpoints}
                             capacity={hitpoints}
-                            properties={[]}
+                            properties={properties}
                         />
                     } else if (units.length > 0) {
                         return <MultiSelectionPanel />
@@ -195,9 +224,7 @@ export function SelectionPanel() {
                     }
                 }
             }
-            return null;
         })()}
-
     </div>
 }
 

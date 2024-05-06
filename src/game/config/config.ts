@@ -37,7 +37,9 @@ export const config = {
         range: 10,
     },
     factories: {
-        inputCapacity: 5
+        inputCapacity: 5,
+        productionTime: 2,
+        inputAccepFrequency: 1
     },
     conveyors: {
         itemSize: .5, // relative to the cell

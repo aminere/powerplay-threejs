@@ -6,6 +6,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { GameMapState } from "../components/GameMapState";
 import { buildingConfig } from "../config/BuildingConfig";
+import { unitConfig } from "../config/UnitConfig";
 
 const full = new Color(0x19c80f);
 const empty = new Color(0xc01c06);
@@ -21,7 +22,7 @@ const { cellSize, unitScale } = config.game;
 
 const headOffset = 2 * unitScale;
 
-function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number) {
+function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number, maxHealth: number) {
     const { camera } = GameMapState.instance;
     GameUtils.worldToScreen(position, camera, screenPos);
     const barX = Math.round(screenPos.x - totalWidth / 2);
@@ -29,7 +30,7 @@ function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: numbe
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.fillRect(barX, barY, totalWidth, partHeight);
 
-    const progress = health;
+    const progress = health / maxHealth;
     color.copy(empty).lerpHSL(full, progress);
     for (let j = 0; j < parts; ++j) {
         const section = Math.floor(progress * parts);
@@ -78,7 +79,7 @@ export function HealthBars() {
                         worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
                         worldPos.x += size.x / 2 * cellSize;
                         worldPos.z += size.z / 2 * cellSize;
-                        drawBar(ctx, worldPos, 1);
+                        drawBar(ctx, worldPos, building.hitpoints, buildingConfig[buildingType].hitpoints);
                     }
                     break;
 
@@ -91,7 +92,7 @@ export function HealthBars() {
                                 continue;
                             }
                             worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);                    
-                            drawBar(ctx, worldPos, units[i].hitpoints);
+                            drawBar(ctx, worldPos, units[i].hitpoints, unitConfig[unit.type].hitpoints);
                         }
                     }
                     break;
