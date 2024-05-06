@@ -10,6 +10,7 @@ import { ICharacterUnit } from "../unit/CharacterUnit";
 import { ITruckUnit } from "../unit/TruckUnit";
 import { IUnit } from "../unit/Unit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
+import { ProgressBar } from "./ProgressBar";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -30,6 +31,7 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
         backgroundColor: uiconfig.buttonBackgroundColor,
     }}>
         {props.name}
+
         <div style={{
             position: "absolute",
             right: "0",
@@ -51,22 +53,26 @@ interface SingleSelectionProps {
     properties: { name: string, value: string }[] | null;
 }
 
-function SingleSelectionPanel(props: SingleSelectionProps) {
+function SingleSelectionPanelHeader({ children }: React.PropsWithChildren<{}>) {
+    return <div
+        style={{
+            position: "absolute",
+            width: "100%",
+            backgroundColor: uiconfig.backgroundColor,
+            padding: `${uiconfig.padding}rem`,
+            top: `-${uiconfig.gap}rem`,
+            transformOrigin: "bottom",
+            transform: "translateY(-100%)",
+            textAlign: "center"
+        }}
+    >
+        {children}
+    </div>
+}
+
+function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
     return <>
-        {/* <div
-            style={{
-                position: "absolute",
-                width: "100%",
-                backgroundColor: uiconfig.backgroundColor,
-                padding: `${uiconfig.padding}rem`,
-                top: `-${uiconfig.gap}rem`,
-                transformOrigin: "bottom",
-                transform: "translateY(-100%)",
-                textAlign: "center"
-            }}
-        >
-            {props.name}
-        </div> */}
+        {props.children}
 
         <Property name={""} value={`${props.amount} / ${props.capacity}`}>
             <div
@@ -91,53 +97,12 @@ function SingleSelectionPanel(props: SingleSelectionProps) {
         }}>
             {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
         </div>
-    </>
-
-    // return <div
-    //     style={{
-    //         padding: `${uiconfig.padding}rem`,
-    //         display: "flex",
-    //         flexDirection: "column",
-    //         gap: `${uiconfig.padding}rem`,
-    //         height: "100%",
-    //         position: "relative"
-    //     }}>
-    //     <div
-    //         style={{
-    //             textAlign: "center",
-    //             fontWeight: "bold",
-    //         }}>
-    //         {props.name}
-    //     </div>
-    //     <div style={{ display: "flex", gap: `${uiconfig.gap}rem`, justifyContent: "space-between" }}>
-    //         <div>
-    //             <div
-    //                 style={{
-    //                     width: "4rem",
-    //                     height: "4rem",
-    //                     backgroundColor: uiconfig.buttonBackgroundColor,
-    //                 }}
-    //             />
-    //             <div style={{ textAlign: "center" }}>{props.amount} / {props.capacity}</div>
-    //         </div>
-    //         <div
-    //             style={{
-    //                 gap: `${uiconfig.gap}rem`,
-    //                 display: "grid",
-    //                 gridTemplateColumns: `repeat(3, ${uiconfig.propertySize}rem)`,
-    //                 gridAutoRows: "min-content",
-    //             }}
-    //         >
-    //             {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}                
-    //         </div>
-    //     </div>
-    // </div>
+    </>    
 }
 
 function MultiSelectionPanel() {
     return null;
 }
-
 interface SelectionPanelProps {
     selectedElems: SelectedElems | null;
 }
@@ -195,59 +160,63 @@ export function SelectionPanel(props: SelectionPanelProps) {
             switch (selectedElems.type) {
                 case "building": {
                     const building = selectedElems.building;
-                    const { hitpoints } = buildingConfig[building.buildingType];
+                    const { hitpoints: maxHitpoints } = buildingConfig[building.buildingType];
+                    const { buildingType: type, hitpoints } = building;
+                    switch (type) {
+                        case "incubator": {
+                            const state = building.state as IIncubatorState;
+                            const { inputs, inputCapacity } = config.incubators;
+                            const properties = inputs.map(input => {
+                                const amount = state.reserve[input];
+                                return {
+                                    name: input,
+                                    value: `${amount} / ${inputCapacity}`
+                                };
+                            });
+                            return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+                        }
 
-                    const properties = (() => {
-                        switch (building.buildingType) {
-                            case "incubator": {
-                                const state = building.state as IIncubatorState;
-                                const { inputs, inputCapacity } = config.incubators;
-                                return inputs.map(input => {
-                                    const amount = state.reserve[input];
+                        case "depot": {
+                            const state = building.state as IDepotState;
+                            if (state.type) {
+                                const properties = [{
+                                    name: state.type,
+                                    value: `${state.amount} / ${state.capacity}`
+                                }];
+                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+                            }
+                            break;
+                        }
+
+                        case "factory": {
+                            const state = building.state as IFactoryState;
+                            if (state.output) {
+                                const inputs = FactoryDefinitions[state.output];
+                                const { inputCapacity, productionTime } = config.factories;
+                                const properties = inputs.map(input => {
+                                    const amount = state.reserve.get(input) ?? 0;
                                     return {
                                         name: input,
                                         value: `${amount} / ${inputCapacity}`
-                                    };
+                                    }
                                 });
-                            }
 
-                            case "depot": {
-                                const state = building.state as IDepotState;
-                                if (state.type) {
-                                    return [{
-                                        name: state.type,
-                                        value: `${state.amount} / ${state.capacity}`
-                                    }];
-                                }
-                                break;
-                            }
-
-                            case "factory": {                                
-                                const state = building.state as IFactoryState;
-                                if (state.output) {
-                                    const inputs = FactoryDefinitions[state.output];
-                                    const { inputCapacity } = config.factories;
-                                    return inputs.map(input => {
-                                        const amount = state.reserve.get(input) ?? 0;
-                                        return {
-                                            name: input,
-                                            value: `${amount} / ${inputCapacity}`
+                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties}>
+                                    {(() => {
+                                        if (state.active) {
+                                            const progress = state.productionTimer / productionTime;
+                                            return <SingleSelectionPanelHeader>
+                                                <ProgressBar progress={progress} />
+                                            </SingleSelectionPanelHeader>                                            
                                         }
-                                    });
-                                }
+                                    })()}
+                                </SingleSelectionPanel>
                             }
                         }
-
-                        return null;
-                    })();
-
-                    return <SingleSelectionPanel
-                        name={building.buildingType}
-                        amount={building.hitpoints}
-                        capacity={hitpoints}
-                        properties={properties}
-                    />
+                    }
+                    return null;
                 }
+
                 case "units": {
                     const units = selectedElems.units;
                     if (units.length === 1) {

@@ -74,7 +74,8 @@ export class Factories {
             } else {
                 if (canProduce(state)) {
                     state.active = true;
-                    state.productionTimer = 0;    
+                    state.productionTimer = 0;
+                    evtBuildingStateChanged.post(instance); 
                 }
             }
 
@@ -88,15 +89,18 @@ export class Factories {
                         state.productionTimer = 0;
                     } else {
                         state.active = false;
+                        evtBuildingStateChanged.post(instance);
                     }
 
                 } else {
                     state.active = false;
                     state.outputFull = true;
                     state.outputCheckTimer = 1;
+                    evtBuildingStateChanged.post(instance);
                 }
             } else {
                 state.productionTimer += time.deltaTime;
+                evtBuildingStateChanged.post(instance);
             }            
         }
 
