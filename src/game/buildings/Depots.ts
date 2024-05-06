@@ -109,6 +109,14 @@ export class Depots {
         evtBuildingStateChanged.post(instance);
     }
 
+    public static clear(instance: IBuildingInstance) {
+        const state = instance.state as IDepotState;
+        state.amount = 0;
+        state.type = null;
+        instance.visual.clear();
+        evtBuildingStateChanged.post(instance);      
+    }
+
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IDepotState;
         if (state.amount > 0) {

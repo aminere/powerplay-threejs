@@ -4,7 +4,7 @@ import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
 import { Fadeout } from "../components/Fadeout";
 import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
-import { cmdFogRemoveCircle, evtUnitKilled } from "../../Events";
+import { cmdFogRemoveCircle, evtUnitKilled, evtUnitStateChanged } from "../../Events";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
@@ -159,20 +159,23 @@ export class Unit implements IUnit {
 
     public setHitpoints(value: number) {
         this._hitpoints = value;
-        if (value <= 0 && this._isAlive) {
-            this._fsm.switchState(null);
-            this._isAlive = false;
-            this._collidable = false;
-            this._motionId = 0;
-            this._isColliding = false;
-            this.onDeath();
-
-            const cell = getCellFromAddr(this._coords);
-            const unitIndex = cell.units!.indexOf(this);
-            console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
-            utils.fastDelete(cell.units!, unitIndex);
-            evtUnitKilled.post(this);
+        if (value <= 0) {
+            if (this._isAlive) {
+                this._fsm.switchState(null);
+                this._isAlive = false;
+                this._collidable = false;
+                this._motionId = 0;
+                this._isColliding = false;
+                this.onDeath();
+    
+                const cell = getCellFromAddr(this._coords);
+                const unitIndex = cell.units!.indexOf(this);
+                console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
+                utils.fastDelete(cell.units!, unitIndex);
+                evtUnitKilled.post(this);                
+            }            
         }
+        evtUnitStateChanged.post(this);
     }
 
     public onDeath() {

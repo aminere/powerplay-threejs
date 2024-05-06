@@ -5,10 +5,9 @@ import { IBuildingInstance, IFactoryState } from "../buildings/BuildingTypes";
 import { useEffect, useState } from "react";
 import { Factories } from "../buildings/Factories";
 
-const height = 200;
-
 interface FactoryOutputPanelProps {
     factory: IBuildingInstance;
+    onOutputSelected: () => void;
 }
 
 export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
@@ -18,19 +17,22 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
     useEffect(() => {
         setOutput((factory.state as IFactoryState).output);
     }, [factory]);
-
+    
+    const height = `${uiconfig.outputRows} * ${uiconfig.buttonSize}rem + ${uiconfig.outputRows - 1} * ${uiconfig.gap}rem + 2 * ${uiconfig.padding}rem`;
     return <div
         style={{
             position: "absolute",
             left: "0px",
-            top: `calc(-${height}px - ${uiconfig.gap}rem)`,
-            height: `${height}px`,
-            overflow: "auto",
+            top: `calc(-1 * (${height}) - ${uiconfig.gap}rem)`,
+            height: `calc(${height})`,
+            overflowY: "auto",
+            overflowX: "hidden",
             display: "grid",
             gap: `${uiconfig.gap}rem`,
-            gridTemplateColumns: `repeat(7, ${uiconfig.buttonSize}rem)`,
+            gridTemplateColumns: `repeat(${uiconfig.outputsPerRow}, ${uiconfig.buttonSize}rem)`,
             gridAutoRows: "min-content",
             backgroundColor: uiconfig.backgroundColor,
+            padding: `${uiconfig.padding}rem`,
         }}
         onWheel={e => e.stopPropagation()}
     >
@@ -41,11 +43,12 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
                 onClick={() => {
                     setOutput(resource);
                     Factories.setOutput(factory, resource);
+                    props.onOutputSelected();
                 }}
             >
                 {resource}
             </ActionButton>
-        })}
+        })}        
     </div>
 }
 

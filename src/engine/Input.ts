@@ -54,6 +54,9 @@ class Input {
         } else {
             if (this._touchPressed) {
                 this._touchJustReleased = true;
+
+                
+
             }
             this._touchPressed = false;
         }

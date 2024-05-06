@@ -36,6 +36,7 @@ export interface ICharacterUnit extends IUnit {
     muzzleFlashTimer: number;
     resource: ICarriedResource | null;
     targetBuilding: Vector2 | null;
+    clearResource: () => void;
 }
 
 export interface ICharacterUnitProps {
@@ -55,7 +56,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get targetBuilding() { return this._targetBuilding; }
 
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
-    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }   
+    public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
 
     public set resource(value: ICarriedResource | null) { 
         if (value?.type === this._resource?.type) {
@@ -81,6 +82,11 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         super({ ...props, boundingBox: props.visual.boundingBox }, id);
         this._animation = props.animation;
         this._skinnedMesh = props.visual;
+    }
+
+    public clearResource() {
+        this.resource = null;
+        this._targetBuilding = null;
     }
 
     public override setHitpoints(value: number): void {

@@ -229,7 +229,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                         })();
                         return <SingleSelectionPanel
                             name={unit.type}
-                            amount={unit.hitpoints}
+                            amount={Math.round(unit.hitpoints)}
                             capacity={hitpoints}
                             properties={properties}
                         />

@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { SelectedElems, cmdSetSelectedElems, evtBuildError, evtBuildingStateChanged } from "../../Events";
+import { SelectedElems, cmdSetSelectedElems, evtBuildError, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
 import { buildings } from "../buildings/Buildings";
 import { config } from "../config/config";
-import { IBuildingInstance, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
+import { ICharacterUnit } from "../unit/CharacterUnit";
+import { IUnit } from "../unit/Unit";
+import { Depots } from "../buildings/Depots";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -33,13 +36,13 @@ function canIncubate(incubator: IIncubatorState) {
 };
 
 interface ActionsPanelProps {
-    onToggleFactoryOutputs: () => void;
+    onShowFactoryOutputs: () => void;
 }
 
 export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) {
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [, setTimestamp] = useState<number>(0);
-    const killedThroughUI = useRef(false);    
+    const killedThroughUI = useRef(false);
 
     useEffect(() => {
         const onBuildingStateChanged = (instance: IBuildingInstance) => {
@@ -49,9 +52,20 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
             }
         }
 
+        const onUnitStateChanged = (unit: IUnit) => {
+            const selectedUnits = selectedElems?.type === "units" ? selectedElems.units : null;
+            if (selectedUnits && selectedUnits.length === 1) {
+                if (unit === selectedUnits[0]) {
+                    setTimestamp(Date.now());
+                }
+            }
+        }
+
         evtBuildingStateChanged.attach(onBuildingStateChanged);
+        evtUnitStateChanged.attach(onUnitStateChanged);
         return () => {
             evtBuildingStateChanged.detach(onBuildingStateChanged);
+            evtUnitStateChanged.detach(onUnitStateChanged);
         }
     }, [selectedElems]);
 
@@ -60,11 +74,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
             setSelectedElems(elems);
             if (!elems) {
                 if (killedThroughUI.current) {
-                    GameMapState.instance.cursorOverUI = false
+                    setTimeout(() => GameMapState.instance.cursorOverUI = false, 60);
                     killedThroughUI.current = false;
                 }
             }
-        };      
+        };
 
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
@@ -92,7 +106,20 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                 case "units": {
                     const units = selectedElems.units;
                     if (units.length === 1) {
+                        const unit = units[0];
                         return <>
+                            {(() => {
+                                switch (unit.type) {
+                                    case "worker": {
+                                        const character = unit as ICharacterUnit;
+                                        if (character.resource) {
+                                            return <ActionButton onClick={() => character.clearResource()}>
+                                                clear
+                                            </ActionButton>
+                                        }
+                                    }
+                                }
+                            })()}
                             <FooterActions>
                                 <ActionButton
                                     onClick={() => {
@@ -106,7 +133,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         </>
                     }
                 }
-                break;
+                    break;
 
                 case "building": {
                     const building = selectedElems.building;
@@ -114,8 +141,8 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         {(() => {
                             switch (building.buildingType) {
                                 case "incubator": {
-                                    const state = building.state as IIncubatorState;                                    
-                                    return <ActionButton 
+                                    const state = building.state as IIncubatorState;
+                                    return <ActionButton
                                         onClick={() => {
                                             if (canIncubate(state)) {
                                                 Incubators.spawn(building);
@@ -131,9 +158,18 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                                 case "factory": {
                                     const state = building.state as IFactoryState;
-                                    return <ActionButton onClick={props.onToggleFactoryOutputs}>
+                                    return <ActionButton onClick={props.onShowFactoryOutputs}>
                                         {state.output ? state.output : "Select Output"}
                                     </ActionButton>
+                                }
+
+                                case "depot": {
+                                    const state = building.state as IDepotState;
+                                    if (state.amount > 0) {
+                                        return <ActionButton onClick={() => Depots.clear(building)}>
+                                            clear
+                                        </ActionButton>
+                                    }
                                 }
                             }
                         })()}
@@ -155,7 +191,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
         })()}
 
         {props.children}
-        
+
     </div>
 }
 
