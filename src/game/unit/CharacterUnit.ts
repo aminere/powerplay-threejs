@@ -22,6 +22,7 @@ import { Depots } from "../buildings/Depots";
 import { Factories } from "../buildings/Factories";
 import { Incubators } from "../buildings/Incubators";
 import { MiningState } from "./states/MiningState";
+import { GameUtils } from "../GameUtils";
 
 interface IUnitAnim {
     name: string;
@@ -179,13 +180,26 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             const wasDeposited = this.resource === null;
             if (wasDeposited) {
                 // go grab another one from the source
-                this._targetBuilding = this.targetCell.mapCoords.clone();
-                unitMotion.moveUnit(this, sourceCell);
+                const validSource = (() => {
+                    const sourceBuilding = GameUtils.getCell(sourceCell)?.building;
+                    if (sourceBuilding) {
+                        const sourceInstance = GameMapState.instance.buildings.get(sourceBuilding)!;
+                        return sourceInstance.id !== instance.id;
+                    }
+                    return true;
+                })();
+                
+                if (validSource) {
+                    this._targetBuilding = this.targetCell.mapCoords.clone();
+                    unitMotion.moveUnit(this, sourceCell);
+                }                
+
             } else {
+
                 if (instance.buildingType === "depot") {
                     // if the depot is of a different type than the carried resource, pick from it (discard the carried resource)
                     const state = instance.state as IDepotState;
-                    if (state.amount > 0) {
+                    if (state.amount > 0 && state.type !== this.resource!.type) {
                         console.assert(state.type !== null);
                         Workers.pickResource(this, state.type!, this.targetCell.mapCoords);
                         Depots.removeResource(instance);

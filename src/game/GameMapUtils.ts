@@ -444,6 +444,13 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 
             depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
             if (!depotInRange) {
+                if (buildingType === "depot") {
+                    const { depotsCache } = GameMapState.instance;
+                    if (depotsCache.size === 0) {
+                        //first depot is free
+                        return true;
+                    }
+                }
                 rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
                 return false;
             }
@@ -460,8 +467,10 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
-            console.assert(depotInRange);
-            Depots.removeResource(depotInRange!, buildCost);
+            if (depotInRange) {
+                Depots.removeResource(depotInRange, buildCost);
+            }
+            
             onBuildingAccepted();
         }
 

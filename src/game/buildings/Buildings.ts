@@ -198,6 +198,9 @@ class Buildings {
                 const list = depotsCache.get(sectorId)!;
                 const index = list.findIndex(item => item.id === instanceId);
                 utils.fastDelete(list, index);
+                if (list.length === 0) {
+                    depotsCache.delete(sectorId);
+                }
             }
             break;
         }

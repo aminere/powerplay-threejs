@@ -372,10 +372,10 @@ export function GameMapUI(_props: IGameUIProps) {
 
                             const canSpawn = () => {
                                 const { workerCost } = config.incubators;
-                                if (state.amount.water < workerCost.water) {
+                                if (state.reserve.water < workerCost.water) {
                                     return false;
                                 }
-                                if (state.amount.coal < workerCost.coal) {
+                                if (state.reserve.coal < workerCost.coal) {
                                     return false;
                                 }
                                 return true
@@ -383,8 +383,8 @@ export function GameMapUI(_props: IGameUIProps) {
 
                             return <BuildingPanel timestamp={selectedBuildingTimestamp} instance={selectedBuilding}>
                                 <div>
-                                    <div>water: {state.amount.water}</div>
-                                    <div>coal: {state.amount.coal}</div>
+                                    <div>water: {state.reserve.water}</div>
+                                    <div>coal: {state.reserve.coal}</div>
                                 </div>
 
                                 <ActionButton

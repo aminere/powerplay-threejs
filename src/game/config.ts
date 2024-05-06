@@ -24,10 +24,7 @@ export const config = {
         tankScale: 2
     },
     incubators: {
-        capacity: {
-            water: 5,
-            coal: 5
-        },
+        inputCapacity: 5,
         workerCost: {
             water: 1,
             coal: 1

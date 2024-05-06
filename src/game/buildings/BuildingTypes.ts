@@ -22,6 +22,7 @@ export interface IFactoryState {
     active: boolean;
     productionTimer: number;
 
+    inputFull: boolean;
     outputFull: boolean;
     outputCheckTimer: number;
 }
@@ -49,10 +50,9 @@ export interface IDepotState {
 export interface IIncubatorState {
     active: boolean;
     progress: number;
-    amount: {
-        coal: number;
-        water: number;
-    };
+    reserve: Record<"coal" | "water", number>;
+    inputTimer: number;
+    inputFull: boolean;
     water: Object3D;
     worker: Object3D;
 }

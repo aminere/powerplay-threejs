@@ -7,10 +7,17 @@ import { RawResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
 import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
 import { buildingConfig } from "./BuildingConfig";
+import { BuildingUtils } from "./BuildingUtils";
 
 const { unitScale } = config.game;
-const { capacity } = config.incubators;
+const { inputCapacity: incubatorInputCapacity } = config.incubators;
 const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending, transparent: true });
+
+const incubatorConfig = {
+    productionTime: 2,
+    inputAccepFrequency: 1,
+    inputs: ["coal", "water"] as const
+}
 
 export class Incubators {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -19,10 +26,12 @@ export class Incubators {
         const state: IIncubatorState = {            
             active: false,
             progress: 0,
-            amount: {
+            reserve: {
                 water: 0,
                 coal: 0
             },
+            inputFull: false,
+            inputTimer: -1,
             water: null!,
             worker: null!
         };
@@ -81,44 +90,70 @@ export class Incubators {
                 state.active = false;
             }
         }
+
+        if (!state.inputFull) {
+            if (state.inputTimer < 0) {
+                let accepted = false;
+                let fullInputs = 0;
+
+                for (const input of incubatorConfig.inputs) {
+                    const currentAmount = state.reserve[input];
+                    if (currentAmount < incubatorInputCapacity) {
+                        if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
+                            state.reserve[input] = currentAmount + 1;
+                            accepted = true;
+                        }
+                    } else {
+                        fullInputs++;
+                    }
+                }
+
+                if (accepted) {                    
+                    evtBuildingStateChanged.post(instance);
+                }
+
+                state.inputTimer = incubatorConfig.inputAccepFrequency;
+                if (fullInputs === incubatorConfig.inputs.length) {
+                    state.inputFull = true;
+                }
+
+            } else {
+                state.inputTimer -= time.deltaTime;
+            }
+        }        
     }
 
-    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType) {
-
+    public static tryDepositResource(instance: IBuildingInstance, _type: RawResourceType) {
         const state = instance.state as IIncubatorState;
-        switch (type) {
-            case "water": {
-                if (state.amount.water < capacity.water) {
-                    state.amount.water++;
-                    const progress = state.amount.water / capacity.water;
-                    state.water.scale.setY(progress);
-                    evtBuildingStateChanged.post(instance);
-                    return true;
-                }
-            }
-            break;
-
-            case "coal": {
-                if (state.amount.coal < capacity.coal) {
-                    state.amount.coal++;
-                    evtBuildingStateChanged.post(instance);
-                    return true;
-                }
-            }
-            break;
+        const type = _type as typeof incubatorConfig.inputs[number];
+        if (!incubatorConfig.inputs.includes(type)) {            
+            return false;
         }
 
-        return false;
+        if (state.reserve[type] === incubatorInputCapacity) {            
+            return false;
+        }        
+
+        if (type === "water") {
+            const progress = state.reserve["water"] / incubatorInputCapacity;
+            state.water.scale.setY(progress);
+        }
+
+        state.reserve[type]++;
+        evtBuildingStateChanged.post(instance);
+        return true;
     }
 
     public static spawn(instance: IBuildingInstance) {
         cmdSpawnUnit.post(instance);
         const state = instance.state as IIncubatorState;
-        state.amount.water--;
-        state.amount.coal--;
-        const progress = state.amount.water / capacity.water;
+        for (const input of incubatorConfig.inputs) {
+            state.reserve[input]--;
+        }
+        const progress = state.reserve["water"] / incubatorInputCapacity;
         state.water.scale.setY(progress);
         evtBuildingStateChanged.post(instance);
+        state.inputFull = false;
     }
 }
 

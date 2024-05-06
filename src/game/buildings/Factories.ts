@@ -12,6 +12,7 @@ const factoryConfig = {
     productionTime: 2,
     inputAccepFrequency: 1,
 }
+
 const { inputCapacity: factoryInputCapacity } = config.factories;
 
 function canProduce(state: IFactoryState) {
@@ -38,6 +39,7 @@ function removeResource(instance: IBuildingInstance) {
         state.reserve.set(input, amount - 1);
     }
     evtBuildingStateChanged.post(instance);
+    state.inputFull = false;
 }
 
 export class Factories {
@@ -50,6 +52,7 @@ export class Factories {
             reserve: new Map(),
             inputTimer: -1,
             productionTimer: 0,
+            inputFull: false,
             outputFull: false,
             outputCheckTimer: -1
         };
@@ -103,33 +106,41 @@ export class Factories {
         }
 
         if (state.output) {
-            if (state.inputTimer < 0) {
-
-                let accepted = false;
-
-                const inputs = FactoryDefinitions[state.output];
-                for (const input of inputs) {
-                    const currentAmount = state.reserve.get(input);
-                    if ((currentAmount ?? 0) < factoryInputCapacity) {
-                        if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
-                            if (currentAmount === undefined) {
-                                state.reserve.set(input, 1);
-                            } else {
-                                state.reserve.set(input, currentAmount + 1);
+            if (!state.inputFull) {
+                if (state.inputTimer < 0) {
+                    let accepted = false;
+                    let fullInputs = 0;
+    
+                    const inputs = FactoryDefinitions[state.output];
+                    for (const input of inputs) {
+                        const currentAmount = state.reserve.get(input);
+                        if ((currentAmount ?? 0) < factoryInputCapacity) {
+                            if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
+                                if (currentAmount === undefined) {
+                                    state.reserve.set(input, 1);
+                                } else {
+                                    state.reserve.set(input, currentAmount + 1);
+                                }
+                                accepted = true;
                             }
-                            accepted = true;
+                        } else {
+                            fullInputs++;                        
                         }
                     }
-                }
-
-                if (accepted) {
-                    state.inputTimer = factoryConfig.inputAccepFrequency;
-                    evtBuildingStateChanged.post(instance);
-                }
     
-            } else {
-                state.inputTimer -= time.deltaTime;
-            }
+                    if (accepted) {                        
+                        evtBuildingStateChanged.post(instance);
+                    }
+
+                    state.inputTimer = factoryConfig.inputAccepFrequency;
+                    if (fullInputs === inputs.length) {
+                        state.inputFull = true;
+                    }                    
+                    
+                } else {
+                    state.inputTimer -= time.deltaTime;
+                }
+            }            
         }        
     }
 
