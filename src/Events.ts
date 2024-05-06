@@ -3,15 +3,28 @@ import { UIType } from "./game/GameDefinitions";
 import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/Unit";
+import { ICell } from "./game/GameTypes";
 
 export const cmdShowUI = new AsyncEvent<UIType>();
 export const cmdHideUI = new SyncEvent<UIType>();
 
-export const cmdSetSelectedElems = new AsyncEvent<{
-    units?: IUnit[];
-    building?: IBuildingInstance;
-    conveyor?: Vector2;
-}>();
+interface IBuildingSelection {
+    type: "building";
+    building: IBuildingInstance;
+}
+
+interface IUnitSelection {
+    type: "units",
+    units: IUnit[];
+}
+
+interface ICellSelection {
+    type: "cell";
+    cell: ICell;
+}
+
+export type SelectedElems = IBuildingSelection | IUnitSelection | ICellSelection;
+export const cmdSetSelectedElems = new AsyncEvent<SelectedElems | null>();
 
 export const cmdStartSelection = new AsyncEvent<Vector2>();
 export const cmdEndSelection = new AsyncEvent<void>();

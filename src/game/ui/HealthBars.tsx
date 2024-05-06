@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems } from "../../Events";
+import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems, SelectedElems } from "../../Events";
 import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
@@ -56,25 +56,13 @@ function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: numbe
 
 export function HealthBars() {
 
-    const selectedUnitsRef = useRef<IUnit[]>([]);
-    const selectedBuildingRef = useRef<IBuildingInstance | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const selectedConveyorRef = useRef<Vector2 | null>(null);
+    const selectedElemsRef = useRef<SelectedElems | null>(null);
 
     useEffect(() => {
 
-        const onSelectedElems = ({ units, building, conveyor }: {
-            units?: IUnit[];
-            building?: IBuildingInstance;
-            conveyor?: Vector2;
-        }) => {
-            if (units) {
-                selectedUnitsRef.current = units;
-            } else {
-                selectedUnitsRef.current.length = 0;
-            }
-            selectedBuildingRef.current = building ?? null;
-            selectedConveyorRef.current = conveyor ?? null;
+        const onSelectedElems = (elems: SelectedElems | null) => {
+            selectedElemsRef.current = elems;
         };
 
         const renderUI = () => {            
@@ -84,37 +72,41 @@ export function HealthBars() {
             ctx.lineWidth = 1;
             ctx.strokeStyle = "black";
             
-            const selectedUnits = selectedUnitsRef.current;
-            const selectedBuilding = (() => {
-                if (selectedBuildingRef.current?.deleted) {
-                    selectedBuildingRef.current = null;
-                }
-                return selectedBuildingRef.current;
-            })();
-
-            const selectedConveyor = selectedConveyorRef.current;
-            if (selectedUnits.length > 0) {
-                for (let i = 0; i < selectedUnits.length; i++) {  
-                    const unit = selectedUnits[i];              
-                    const { visual, isAlive } = unit;
-                    if (!isAlive) {
-                        continue;
+            if (selectedElemsRef.current) {
+                switch (selectedElemsRef.current.type) {
+                    case "building": {
+                        const building = selectedElemsRef.current.building;                        
+                        const { visual, buildingType } = building;
+                        const size = buildingConfig[buildingType].size;
+                        worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
+                        worldPos.x += size.x / 2 * cellSize;
+                        worldPos.z += size.z / 2 * cellSize;
+                        drawBar(ctx, worldPos, 1);
                     }
-                    worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);                    
-                    drawBar(ctx, worldPos, selectedUnits[i].health);
+                    break;
+
+                    case "units": {
+                        const units = selectedElemsRef.current.units;
+                        for (let i = 0; i < units.length; i++) {  
+                            const unit = units[i];              
+                            const { visual, isAlive } = unit;
+                            if (!isAlive) {
+                                continue;
+                            }
+                            worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);                    
+                            drawBar(ctx, worldPos, units[i].health);
+                        }
+                    }
+                    break;
+
+                    // case "conveyor": {
+                    //     GameUtils.mapToWorld(selectedConveyor, worldPos);
+                    //     worldPos.y += conveyorHeight * cellSize;
+                    //     drawBar(ctx, worldPos, 1);
+                    // }
+                    // break;
                 }
-            } else if (selectedBuilding) {
-                const { visual, buildingType } = selectedBuilding;
-                const size = buildingConfig[buildingType].size;
-                worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
-                worldPos.x += size.x / 2 * cellSize;
-                worldPos.z += size.z / 2 * cellSize;
-                drawBar(ctx, worldPos, 1);
-            } else if (selectedConveyor) {
-                GameUtils.mapToWorld(selectedConveyor, worldPos);
-                worldPos.y += conveyorHeight * cellSize;
-                drawBar(ctx, worldPos, 1);
-            }
+            }            
         };
 
         const onResize = () => {

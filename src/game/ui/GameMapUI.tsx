@@ -7,16 +7,14 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IIncubatorState } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config";
-import { cmdSetSelectedElems, evtActionCleared, evtBuildError, evtBuildingStateChanged } from "../../Events";
-import { Incubators } from "../buildings/Incubators";
-import gsap from "gsap";
-import { FactoryPanel } from "./FactoryPanel";
-import { BuildingPanel } from "./BuildingPanel";
+import { evtActionCleared, evtBuildError } from "../../Events";
 import { ActionButton } from "./ActionButton";
 import { buildingConfig } from "../buildings/BuildingConfig";
+import { SelectionPanel } from "./SelectionPanel";
+import gsap from "gsap";
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -183,34 +181,7 @@ export function GameMapUI(_props: IGameUIProps) {
     //             document.removeEventListener('pointerup', onGamePointerUp);
     //         }
     //     };
-    // }, [setAction]);
-
-    const [selectedBuilding, setSelectedBuilding] = useState<IBuildingInstance | null>(null);
-    const [selectedBuildingTimestamp, setSelectedBuildingTimestamp] = useState(Date.now());
-    useEffect(() => {
-        const onSelectedElems = ({ building }: {
-            building?: IBuildingInstance;
-        }) => {
-            setSelectedBuilding(building ?? null);
-        };
-
-        const onBuildingStateChanged = (instance: IBuildingInstance) => {
-            if (instance === selectedBuilding) {
-                if (instance.deleted) {
-                    setSelectedBuilding(null);
-                } else {
-                    setSelectedBuildingTimestamp(Date.now());
-                }
-            }
-        };
-
-        cmdSetSelectedElems.attach(onSelectedElems);
-        evtBuildingStateChanged.attach(onBuildingStateChanged);
-        return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);
-            evtBuildingStateChanged.detach(onBuildingStateChanged);
-        }
-    }, [selectedBuilding]);
+    // }, [setAction]);   
 
     const [error, setError] = useState<string | null>(null);
     const clearErrorRef = useRef<NodeJS.Timeout | null>(null);
@@ -350,92 +321,20 @@ export function GameMapUI(_props: IGameUIProps) {
                     }}
                 >
                     Destroy
-                </ActionButton>                
+                </ActionButton>
             </div>
 
-            <div style={{
-                position: "absolute",
-                bottom: ".5rem",
-                left: "470px",
-                height: "200px",
-                width: "250px",
-                pointerEvents: "none"
-            }}>
-                {(() => {
-                    const buildingType = selectedBuilding?.buildingType;
-                    if (!buildingType) {
-                        return null;
-                    }
-                    switch (buildingType) {
-                        case "incubator": {
-                            const state = selectedBuilding.state as IIncubatorState;
-
-                            const canSpawn = () => {
-                                const { workerCost } = config.incubators;
-                                if (state.reserve.water < workerCost.water) {
-                                    return false;
-                                }
-                                if (state.reserve.coal < workerCost.coal) {
-                                    return false;
-                                }
-                                return true
-                            };
-
-                            return <BuildingPanel timestamp={selectedBuildingTimestamp} instance={selectedBuilding}>
-                                <div>
-                                    <div>water: {state.reserve.water}</div>
-                                    <div>coal: {state.reserve.coal}</div>
-                                </div>
-
-                                <ActionButton
-                                    onClick={() => {
-                                        if (canSpawn()) {
-                                            Incubators.spawn(selectedBuilding);
-                                        } else {
-                                            const { workerCost } = config.incubators;
-                                            evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
-                                        }
-                                    }}
-                                >
-                                    Worker
-                                </ActionButton>                                
-                            </BuildingPanel>
-                        }
-
-                        case "depot": {
-                            const state = selectedBuilding.state as IDepotState;
-                            return <BuildingPanel timestamp={selectedBuildingTimestamp} instance={selectedBuilding}>
-                                <div>
-                                    {(() => {
-                                        if (state.amount === 0) {
-                                            return <div>empty</div>
-                                        } else {
-                                            return <div>{state.type!}: {state.amount}</div>
-                                        }
-                                    })()}
-                                </div>
-                            </BuildingPanel>
-                        }
-
-                        case "factory": {
-                            return <FactoryPanel timestamp={selectedBuildingTimestamp} building={selectedBuilding} />
-                        }
-                    }
-                })()}
-            </div>
+            <SelectionPanel />
 
             <div
                 ref={errorRef}
                 style={{
                     position: "absolute",
-                    bottom: "220px",
-                    width: "80ch",
+                    bottom: "240px",
+                    left: "1rem",
                     color: "red",
                     opacity: 0,
-                    textShadow: "1px 1px 0px black",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    textAlign: "center"
+                    textShadow: "1px 1px 0px black"
                 }}
             >
                 {error ?? ""}

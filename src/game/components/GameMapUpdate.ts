@@ -1,10 +1,9 @@
 
-import { MathUtils, Matrix4, Object3D, Ray, Vector2 } from "three";
+import { MathUtils, Matrix4, Object3D, Ray, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { input } from "../../engine/Input";
 import { engine } from "../../engine/Engine";
-import { pools } from "../../engine/core/Pools";
 import { config } from "../config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
@@ -22,6 +21,10 @@ import { GameMapProps } from "./GameMapProps";
 import { UnitUtils } from "../unit/UnitUtils";
 
 const cellCoords = new Vector2();
+const deltaPos = new Vector3();
+const oldPos = new Vector3();
+const normalizedPos = new Vector2();
+const intersection = new Vector3();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -75,12 +78,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
         const dt = time.deltaTime;
         const { panMargin, panSpeed } = config.camera;
         const margin = 50;
-        const [delta, oldPos] = pools.vec3.get(2);
         if (Math.abs(xNorm) > 1 - panMargin) {
             const dx = xNorm * dt * panSpeed * state.cameraZoom;
-            delta.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
+            deltaPos.set(dx, 0, 0).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
             oldPos.copy(state.cameraRoot.position);
-            setCameraPos(state.cameraRoot.position.add(delta));
+            setCameraPos(state.cameraRoot.position.add(deltaPos));
             const [_, rightAccessor, __, leftAccessor] = state.cameraBoundsAccessors;
             const rightBound = state.cameraBounds[rightAccessor];
             const leftBound = state.cameraBounds[leftAccessor];
@@ -103,9 +105,9 @@ export class GameMapUpdate extends Component<ComponentProps> {
         if (Math.abs(yNorm) > 1 - panMargin) {
             const aspect = width / height
             const dy = yNorm * aspect * dt * panSpeed * state.cameraZoom;
-            delta.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
+            deltaPos.set(0, 0, dy).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
             oldPos.copy(state.cameraRoot.position);
-            setCameraPos(state.cameraRoot.position.add(delta));
+            setCameraPos(state.cameraRoot.position.add(deltaPos));
             const [topAcecssor, _, bottomAccessor] = state.cameraBoundsAccessors;
             const topBound = state.cameraBounds[topAcecssor];
             const bottomBound = state.cameraBounds[bottomAccessor];
@@ -168,7 +170,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
             const aspect = width / height;
             const offsetX = orthoSize * aspect * xNorm * deltaZoom;
             const offsetY = orthoSize * aspect * yNorm * deltaZoom;
-            const deltaPos = pools.vec3.getOne();
             deltaPos.set(-offsetX, 0, -offsetY).applyAxisAngle(GameUtils.vec3.up, state.cameraAngleRad);
             state.cameraRoot.position.add(deltaPos);
             state.cameraZoom = newZoom;
@@ -196,7 +197,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (input.touchJustMoved) {
                     if (!state.cursorOverUI) {
                         if (state.action) {
-                            const cellCoords = pools.vec2.getOne();
                             if (!state.touchDragged) {
                                 const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                                 if (cell) {
@@ -222,7 +222,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (input.touchJustMoved) {
                     if (!state.cursorOverUI) {
                         if (state.action) {
-                            const cellCoords = pools.vec2.getOne();
                             const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                             if (cell) {
                                 if (cellCoords?.equals(state.touchHoveredCoords) === false) {
@@ -269,8 +268,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                         } else {
 
-                            const { width, height } = engine.screenRect;
-                            const normalizedPos = pools.vec2.getOne();
+                            const { width, height } = engine.screenRect;                            
                             normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
                             rayCaster.setFromCamera(normalizedPos, state.camera);
 
@@ -281,7 +279,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }> = [];
 
                             const units = unitsManager.units;
-                            const intersection = pools.vec3.getOne();
+                           
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
                                 if (!unit.isAlive) {
@@ -310,22 +308,26 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 const { unit, building } = intersections[0];
                                 if (unit) {
                                     unitsManager.selectedUnits = [unit];
-                                    cmdSetSelectedElems.post({ units: unitsManager.selectedUnits });
+                                    cmdSetSelectedElems.post({ type: "units", units: unitsManager.selectedUnits });
 
                                 } else if (building) {
                                     if (unitsManager.selectedUnits.length > 0) {
                                         unitsManager.selectedUnits.length = 0;
                                     }
-                                    cmdSetSelectedElems.post({ building });
+                                    cmdSetSelectedElems.post({ type: "building", building });
                                 }
 
                             } else {
-
                                 if (unitsManager.selectedUnits.length > 0) {
                                     unitsManager.selectedUnits.length = 0;
                                 }
 
-                                cmdSetSelectedElems.post({});
+                                const cell = GameUtils.getCell(state.highlightedCellCoords);
+                                if (!cell || cell.isEmpty) {
+                                    cmdSetSelectedElems.post(null);
+                                } else {
+                                    cmdSetSelectedElems.post({ type: "cell", cell });
+                                }                                
                             }
                         }
 
@@ -357,8 +359,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
-                        const targetCellCoords = pools.vec2.getOne();
-                        const targetCell = raycastOnCells(input.touchPos, state.camera, targetCellCoords, resolution);
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
                         if (targetCell) {
 
                             // group units per sector
@@ -381,10 +382,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             const commandId = unitMotion.createMotionCommandId();
                             for (const group of Object.values(groups)) {
                                 if (group.character.length > 0) {
-                                    unitMotion.moveGroup(commandId, group.character, targetCellCoords, targetCell);
+                                    unitMotion.moveGroup(commandId, group.character, cellCoords, targetCell);
                                 }
                                 if (group.vehicle.length > 0) {
-                                    unitMotion.moveGroup(commandId, group.vehicle, targetCellCoords, targetCell, true);
+                                    unitMotion.moveGroup(commandId, group.vehicle, cellCoords, targetCell, true);
                                 }
                             }
                         }

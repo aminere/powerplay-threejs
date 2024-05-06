@@ -212,7 +212,7 @@ class UnitsManager {
             unit.setHealth(0);
         }
         this._selectedUnits.length = 0;
-        cmdSetSelectedElems.post({ units: this._selectedUnits });
+        cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
     }
 
     private handleSpawnRequests() {
@@ -267,7 +267,7 @@ class UnitsManager {
                                     }
                                 }
 
-                                cmdSetSelectedElems.post({ units: this._selectedUnits });
+                                cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
 
                             } else {
 
