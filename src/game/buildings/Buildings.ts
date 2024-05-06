@@ -208,7 +208,6 @@ class Buildings {
 
         cellCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));
         cmdFogRemoveCircle.post({ mapCoords: cellCoords, radius: 20 });
-        evtBuildingStateChanged.post(instance);
     }
 
     public update() {

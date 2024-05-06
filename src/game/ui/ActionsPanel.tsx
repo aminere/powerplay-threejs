@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { SelectedElems, cmdSetSelectedElems } from "../../Events";
+import { SelectedElems, cmdSetSelectedElems, evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
+import { buildings } from "../buildings/Buildings";
+import { config } from "../config/config";
+import { IBuildingInstance, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { Incubators } from "../buildings/Incubators";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -17,9 +21,39 @@ function FooterActions({ children }: { children: React.ReactNode }) {
     </div>
 }
 
-export function ActionsPanel() {
+function canIncubate(incubator: IIncubatorState) {
+    const { workerCost } = config.incubators;
+    if (incubator.reserve.water < workerCost.water) {
+        return false;
+    }
+    if (incubator.reserve.coal < workerCost.coal) {
+        return false;
+    }
+    return true
+};
+
+interface ActionsPanelProps {
+    onToggleFactoryOutputs: () => void;
+}
+
+export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) {
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
-    const killedThroughUI = useRef(false);
+    const [, setTimestamp] = useState<number>(0);
+    const killedThroughUI = useRef(false);    
+
+    useEffect(() => {
+        const onBuildingStateChanged = (instance: IBuildingInstance) => {
+            const selectedBuilding = selectedElems?.type === "building" ? selectedElems.building : null;
+            if (instance === selectedBuilding) {
+                setTimestamp(Date.now());
+            }
+        }
+
+        evtBuildingStateChanged.attach(onBuildingStateChanged);
+        return () => {
+            evtBuildingStateChanged.detach(onBuildingStateChanged);
+        }
+    }, [selectedElems]);
 
     useEffect(() => {
         const onSelectedElems = (elems: SelectedElems | null) => {
@@ -30,7 +64,7 @@ export function ActionsPanel() {
                     killedThroughUI.current = false;
                 }
             }
-        };
+        };      
 
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
@@ -70,14 +104,58 @@ export function ActionsPanel() {
                                 </ActionButton>
                             </FooterActions>
                         </>
-                    } else if (units.length > 0) {
-                        return null
-                    } else {
-                        return null;
                     }
                 }
+                break;
+
+                case "building": {
+                    const building = selectedElems.building;
+                    return <>
+                        {(() => {
+                            switch (building.buildingType) {
+                                case "incubator": {
+                                    const state = building.state as IIncubatorState;                                    
+                                    return <ActionButton 
+                                        onClick={() => {
+                                            if (canIncubate(state)) {
+                                                Incubators.spawn(building);
+                                            } else {
+                                                const { workerCost } = config.incubators;
+                                                evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
+                                            }
+                                        }}
+                                    >
+                                        incubate
+                                    </ActionButton>
+                                }
+
+                                case "factory": {
+                                    const state = building.state as IFactoryState;
+                                    return <ActionButton onClick={props.onToggleFactoryOutputs}>
+                                        {state.output ? state.output : "Select Output"}
+                                    </ActionButton>
+                                }
+                            }
+                        })()}
+                        <FooterActions>
+                            <ActionButton
+                                onClick={() => {
+                                    killedThroughUI.current = true;
+                                    buildings.clear(building.id);
+                                    cmdSetSelectedElems.post(null);
+                                }}
+                            >
+                                destroy
+                            </ActionButton>
+                        </FooterActions>
+                    </>
+                }
             }
+            return null;
         })()}
+
+        {props.children}
+        
     </div>
 }
 

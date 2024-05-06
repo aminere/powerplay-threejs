@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdSetSelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
@@ -95,30 +95,19 @@ function MultiSelectionPanel() {
     return null;
 }
 
-export function SelectionPanel() {
-    const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
+interface SelectionPanelProps {
+    selectedElems: SelectedElems | null;
+}
+
+export function SelectionPanel(props: SelectionPanelProps) {
     const [, setTimestamp] = useState<number>(0);
 
-    useEffect(() => {
-        const onSelectedElems = (elems: SelectedElems | null) => {
-            setSelectedElems(elems);
-        }
-
-        cmdSetSelectedElems.attach(onSelectedElems);
-        return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);           
-        }
-    }, []);
-
+    const { selectedElems } = props;
     useEffect(() => {
         const onBuildingStateChanged = (instance: IBuildingInstance) => {
             const selectedBuilding = selectedElems?.type === "building" ? selectedElems.building : null;
             if (instance === selectedBuilding) {
-                if (instance.deleted) {
-                    setSelectedElems(null);
-                } else {
-                    setTimestamp(Date.now());
-                }
+                setTimestamp(Date.now());
             }
         }
 
@@ -222,7 +211,7 @@ export function SelectionPanel() {
                                             value: `1 / 1`
                                         }];
                                     }
-                                    return null;
+                                    break;
                                 }
 
                                 case "truck": {
@@ -230,14 +219,13 @@ export function SelectionPanel() {
                                     if (truck.resources) {
                                         return [{
                                             name: truck.resources.type,
-                                            value: `${truck.resources.amount} / ${truckCapacity}`                                        
+                                            value: `${truck.resources.amount} / ${truckCapacity}`
                                         }]
                                     }
-                                    return null;
                                 }
-
-                                default: return null;
                             }
+
+                            return null;
                         })();
                         return <SingleSelectionPanel
                             name={unit.type}
@@ -259,7 +247,7 @@ export function SelectionPanel() {
                             name={cell.resource.type}
                             amount={cell.resource.amount}
                             capacity={capacity}
-                            properties={[]}
+                            properties={null}
                         />
                     }
                 }

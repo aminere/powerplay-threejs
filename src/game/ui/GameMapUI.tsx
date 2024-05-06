@@ -10,13 +10,15 @@ import { GameMapProps } from "../components/GameMapProps";
 import { BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config/config";
-import { evtActionCleared, evtBuildError } from "../../Events";
-import { ActionButton } from "./ActionButton";
+import { SelectedElems, cmdSetSelectedElems, evtActionCleared, evtBuildError } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
-import gsap from "gsap";
 import { uiconfig } from "./uiconfig";
 import { ActionsPanel } from "./ActionsPanel";
+import { ActionSection } from "./ActionSection";
+import gsap from "gsap";
+import { FactoryOutputPanel } from "./FactoryOutputPanel";
+
 
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
@@ -26,107 +28,6 @@ function InGameUI({ children }: { children: React.ReactNode }) {
     >
         {children}
     </div>
-}
-
-interface IActionSectionProps {
-    open: boolean;
-    name: string;
-    actions: readonly string[];
-    onSelected: (action: string) => void;
-    onOpen: () => void;
-    onClose: () => void;
-}
-
-function ActionSection(props: IActionSectionProps) {
-    const [open, setOpen] = useState(props.open);
-    const [action, setAction] = useState<string | null>(null);
-    const actionsRef = useRef<HTMLDivElement>(null);
-
-    const { open: _open } = props;
-    useEffect(() => {
-        setOpen(_open);
-    }, [_open])
-
-    useEffect(() => {
-        if (open) {
-            gsap.to(actionsRef.current, {
-                scaleY: 1,
-                opacity: 1,
-                duration: 0.2,
-                onComplete: () => {
-                    actionsRef.current!.style.pointerEvents = "all";
-                }
-            });
-
-        } else {
-            setAction(null);
-            gsap.to(actionsRef.current, {
-                scaleY: 0,
-                opacity: 0,
-                duration: 0.2,
-                onComplete: () => {
-                    actionsRef.current!.style.pointerEvents = "none";
-                }
-            });
-        }
-    }, [open]);
-
-    useEffect(() => {
-        const onActionCleared = () => {
-            setAction(null);
-        };
-        evtActionCleared.attach(onActionCleared);
-        return () => {
-            evtActionCleared.detach(onActionCleared);
-        }
-    }, []);
-
-    return <ActionButton
-        onClick={() => {
-            if (open) {
-                setOpen(false);
-                props.onClose();
-            } else {
-                setOpen(true);
-                props.onOpen();
-            }
-        }}
-    >
-        <span>{props.name}</span>
-        <div
-            ref={actionsRef}
-            style={{
-                position: "absolute",
-                left: `calc(${uiconfig.buttonSize}rem + ${uiconfig.gap}rem)`,
-                display: "flex",
-                flexDirection: "column",
-                gap: `${uiconfig.gap}rem`,
-                transform: "scaleY(0)",
-                opacity: 0,
-                pointerEvents: "none"
-            }}
-        >
-            {props.actions.map(_action => {
-                return <ActionButton
-                    key={_action}
-                    selected={action === _action}
-                    selectedColor="yellow"
-                    onClick={() => {
-                        const gameMapState = GameMapState.instance;
-                        if (action === _action) {
-                            setAction(null);
-                            gameMapState.action = null;
-                            return;
-                        }
-                        setAction(_action);
-                        props.onSelected(_action);
-                    }}
-                >
-                    {_action}
-                </ActionButton>
-            })}
-        </div>
-    </ActionButton>
 }
 
 export function GameMapUI(_props: IGameUIProps) {
@@ -189,6 +90,7 @@ export function GameMapUI(_props: IGameUIProps) {
     const clearErrorRef = useRef<NodeJS.Timeout | null>(null);
     const errorTweenRef = useRef<gsap.core.Tween | null>(null);
     const errorRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const clearError = () => {
             errorTweenRef.current?.kill();
@@ -259,6 +161,18 @@ export function GameMapUI(_props: IGameUIProps) {
 
     }, [openSection]);
 
+    const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
+    const [showFactoryPanel, setShowFactoryPanel] = useState(false);
+    useEffect(() => {
+        const onSelectedElems = (elems: SelectedElems | null) => {
+            setSelectedElems(elems);
+        }
+        cmdSetSelectedElems.attach(onSelectedElems);
+        return () => {
+            cmdSetSelectedElems.detach(onSelectedElems);           
+        }
+    }, []);
+
     return <div className={styles.root}>
         <InGameUI>
             <div
@@ -310,8 +224,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     onOpen={() => setOpenSection("transport")}
                     onClose={() => setOpenSection(null)}
                 />
-
-                <ActionButton
+                {/* <ActionButton
                     selected={openSection === "destroy"}
                     selectedColor="red"
                     onClick={() => {
@@ -323,7 +236,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     }}
                 >
                     Destroy
-                </ActionButton>
+                </ActionButton> */}
             </div>
 
             <div style={{
@@ -334,9 +247,20 @@ export function GameMapUI(_props: IGameUIProps) {
                 display: "flex",
                 gap: `${uiconfig.gap}rem`,
             }}>
-                <SelectionPanel />
-                <ActionsPanel />
-            </div>            
+                <SelectionPanel selectedElems={selectedElems} />
+                <ActionsPanel onToggleFactoryOutputs={() => setShowFactoryPanel(prev => !prev)}>
+                    {(() => {
+                        if (showFactoryPanel) {
+                            if (selectedElems?.type === "building") {
+                                const building = selectedElems.building;
+                                if (building.buildingType === "factory") {
+                                    return <FactoryOutputPanel factory={building} />
+                                }
+                            }                            
+                        }
+                    })()}
+                </ActionsPanel>
+            </div>
 
             <div
                 ref={errorRef}

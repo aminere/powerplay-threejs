@@ -163,6 +163,7 @@ export class Factories {
         const state = instance.state as IFactoryState;
         state.output = type;
         state.reserve.clear();
+        evtBuildingStateChanged.post(instance);
     }
 }
 
