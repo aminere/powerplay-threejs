@@ -26,25 +26,26 @@ export function ActionSection(props: IActionSectionProps) {
 
     useEffect(() => {
         if (open) {
-            gsap.to(actionsRef.current, {
-                scaleY: 1,
-                opacity: 1,
-                duration: 0.2,
-                onComplete: () => {
-                    actionsRef.current!.style.pointerEvents = "all";
-                }
-            });
-
+            actionsRef.current!.style.display = "flex";
+            // gsap.to(actionsRef.current, {
+            //     scaleY: 1,
+            //     opacity: 1,
+            //     duration: 0.2,
+            //     onComplete: () => {
+            //         actionsRef.current!.style.pointerEvents = "all";
+            //     }
+            // });
         } else {
             setAction(null);
-            gsap.to(actionsRef.current, {
-                scaleY: 0,
-                opacity: 0,
-                duration: 0.2,
-                onComplete: () => {
-                    actionsRef.current!.style.pointerEvents = "none";
-                }
-            });
+            actionsRef.current!.style.display = "none";
+            // gsap.to(actionsRef.current, {
+            //     scaleY: 0,
+            //     opacity: 0,
+            //     duration: 0.2,
+            //     onComplete: () => {
+            //         actionsRef.current!.style.pointerEvents = "none";
+            //     }
+            // });
         }
     }, [open]);
 
@@ -74,13 +75,13 @@ export function ActionSection(props: IActionSectionProps) {
             ref={actionsRef}
             style={{
                 position: "absolute",
-                left: `calc(${uiconfig.buttonSize}rem + ${uiconfig.gap}rem)`,
-                display: "flex",
+                left: `calc(${uiconfig.buttonSize}rem + ${uiconfig.gap}rem)`,                
                 flexDirection: "column",
                 gap: `${uiconfig.gap}rem`,
-                transform: "scaleY(0)",
-                opacity: 0,
-                pointerEvents: "none"
+                display: "none", //"flex",
+                // transform: "scaleY(0)",
+                // opacity: 0,
+                // pointerEvents: "none"
             }}
         >
             {props.actions.map(_action => {

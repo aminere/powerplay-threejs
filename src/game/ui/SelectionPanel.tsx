@@ -19,11 +19,11 @@ interface PropertyProps {
     value: string;
 }
 
-function Property(props: PropertyProps) {
+function Property(props: React.PropsWithChildren<PropertyProps>) {
     return <div style={{
         position: "relative",
-        height: `${uiconfig.propertySize}rem`,
-        width: `${uiconfig.propertySize}rem`,
+        height: `${uiconfig.buttonSize}rem`,
+        width: `${uiconfig.buttonSize}rem`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -39,6 +39,8 @@ function Property(props: PropertyProps) {
         }}>
             {props.value}
         </div>
+
+        {props.children}
     </div>
 }
 
@@ -50,45 +52,86 @@ interface SingleSelectionProps {
 }
 
 function SingleSelectionPanel(props: SingleSelectionProps) {
-    return <div
-        style={{
-            padding: `${uiconfig.padding}rem`,
-            display: "flex",
-            flexDirection: "column",
-            gap: `${uiconfig.padding}rem`,
-            height: "100%",
-            position: "relative"
-        }}>
-        <div
+    return <>
+        {/* <div
             style={{
-                textAlign: "center",
-                fontWeight: "bold",
-            }}>
+                position: "absolute",
+                width: "100%",
+                backgroundColor: uiconfig.backgroundColor,
+                padding: `${uiconfig.padding}rem`,
+                top: `-${uiconfig.gap}rem`,
+                transformOrigin: "bottom",
+                transform: "translateY(-100%)",
+                textAlign: "center"
+            }}
+        >
             {props.name}
-        </div>
-        <div style={{ display: "flex", gap: `${uiconfig.gap}rem`, justifyContent: "space-between" }}>
-            <div>
-                <div
-                    style={{
-                        width: "4rem",
-                        height: "4rem",
-                        backgroundColor: uiconfig.buttonBackgroundColor,
-                    }}
-                />
-                <div style={{ textAlign: "center" }}>{props.amount} / {props.capacity}</div>
-            </div>
+        </div> */}
+
+        <Property name={""} value={`${props.amount} / ${props.capacity}`}>
             <div
                 style={{
-                    gap: `${uiconfig.gap}rem`,
-                    display: "grid",
-                    gridTemplateColumns: `repeat(3, ${uiconfig.propertySize}rem)`,
-                    gridAutoRows: "min-content",
+                    position: "absolute",
+                    bottom: `-${uiconfig.gap}rem`,
+                    transform: "translateY(100%)",
+                    textAlign: "center"
                 }}
             >
-                {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}                
+                {props.name}
             </div>
+        </Property>
+        <div style={{
+            position: "absolute",
+            right: `${uiconfig.padding}rem`,
+            top: `${uiconfig.padding}rem`,
+            display: "grid",
+            gridTemplateColumns: `repeat(2, ${uiconfig.buttonSize}rem)`,
+            gridAutoRows: "min-content",
+            gap: `${uiconfig.gap}rem`,
+        }}>
+            {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
         </div>
-    </div>
+    </>
+
+    // return <div
+    //     style={{
+    //         padding: `${uiconfig.padding}rem`,
+    //         display: "flex",
+    //         flexDirection: "column",
+    //         gap: `${uiconfig.padding}rem`,
+    //         height: "100%",
+    //         position: "relative"
+    //     }}>
+    //     <div
+    //         style={{
+    //             textAlign: "center",
+    //             fontWeight: "bold",
+    //         }}>
+    //         {props.name}
+    //     </div>
+    //     <div style={{ display: "flex", gap: `${uiconfig.gap}rem`, justifyContent: "space-between" }}>
+    //         <div>
+    //             <div
+    //                 style={{
+    //                     width: "4rem",
+    //                     height: "4rem",
+    //                     backgroundColor: uiconfig.buttonBackgroundColor,
+    //                 }}
+    //             />
+    //             <div style={{ textAlign: "center" }}>{props.amount} / {props.capacity}</div>
+    //         </div>
+    //         <div
+    //             style={{
+    //                 gap: `${uiconfig.gap}rem`,
+    //                 display: "grid",
+    //                 gridTemplateColumns: `repeat(3, ${uiconfig.propertySize}rem)`,
+    //                 gridAutoRows: "min-content",
+    //             }}
+    //         >
+    //             {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}                
+    //         </div>
+    //     </div>
+    // </div>
 }
 
 function MultiSelectionPanel() {
@@ -137,13 +180,17 @@ export function SelectionPanel(props: SelectionPanelProps) {
         return null;
     }
 
-    return <div
-        style={{
-            width: "250px",
-            pointerEvents: "none",
-            backgroundColor: uiconfig.backgroundColor,
-        }}
-    >
+    return <div style={{
+        width: `calc(2 * ${uiconfig.padding}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSize}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gap}rem)`,
+        backgroundColor: uiconfig.backgroundColor,
+        padding: `${uiconfig.padding}rem`,
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: `repeat(4, ${uiconfig.buttonSize}rem)`,
+        gridAutoRows: "min-content",
+        gap: `${uiconfig.gap}rem`
+    }}>
+        
         {(() => {
             switch (selectedElems.type) {
                 case "building": {
