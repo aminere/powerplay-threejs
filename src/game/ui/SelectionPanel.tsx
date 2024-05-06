@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { IBuildingInstance, IIncubatorState } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdSetSelectedElems, evtBuildingStateChanged } from "../../Events";
+import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { SelectedElems, cmdSetSelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
@@ -8,6 +8,8 @@ import { resourceConfig } from "../config/ResourceConfig";
 import { config } from "../config/config";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { ITruckUnit } from "../unit/TruckUnit";
+import { IUnit } from "../unit/Unit";
+import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -95,16 +97,16 @@ function MultiSelectionPanel() {
 
 export function SelectionPanel() {
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
-    const [timestamp, setTimestamp] = useState<number>(0);
+    const [, setTimestamp] = useState<number>(0);
 
     useEffect(() => {
         const onSelectedElems = (elems: SelectedElems | null) => {
             setSelectedElems(elems);
-        };
+        }
 
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);
+            cmdSetSelectedElems.detach(onSelectedElems);           
         }
     }, []);
 
@@ -119,9 +121,21 @@ export function SelectionPanel() {
                 }
             }
         }
+
+        const onUnitStateChanged = (unit: IUnit) => {
+            const selectedUnits = selectedElems?.type === "units" ? selectedElems.units : null;
+            if (selectedUnits && selectedUnits.length === 1) {
+                if (unit === selectedUnits[0]) {
+                    setTimestamp(Date.now());
+                }
+            }
+        }
+
         evtBuildingStateChanged.attach(onBuildingStateChanged);
+        evtUnitStateChanged.attach(onUnitStateChanged);
         return () => {
             evtBuildingStateChanged.detach(onBuildingStateChanged);
+            evtUnitStateChanged.detach(onUnitStateChanged);
         }
     }, [selectedElems]);
 
@@ -150,13 +164,39 @@ export function SelectionPanel() {
                                 return inputs.map(input => {
                                     const amount = state.reserve[input];
                                     return {
-                                        name:
-                                            input,
+                                        name: input,
                                         value: `${amount} / ${inputCapacity}`
                                     };
                                 });
                             }
+
+                            case "depot": {
+                                const state = building.state as IDepotState;
+                                if (state.type) {
+                                    return [{
+                                        name: state.type,
+                                        value: `${state.amount} / ${state.capacity}`
+                                    }];
+                                }
+                                break;
+                            }
+
+                            case "factory": {                                
+                                const state = building.state as IFactoryState;
+                                if (state.output) {
+                                    const inputs = FactoryDefinitions[state.output];
+                                    const { inputCapacity } = config.factories;
+                                    return inputs.map(input => {
+                                        const amount = state.reserve.get(input) ?? 0;
+                                        return {
+                                            name: input,
+                                            value: `${amount} / ${inputCapacity}`
+                                        }
+                                    });
+                                }
+                            }
                         }
+
                         return null;
                     })();
 

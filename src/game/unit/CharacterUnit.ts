@@ -7,7 +7,7 @@ import { State } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { Fadeout } from "../components/Fadeout";
-import { cmdFogRemoveCircle } from "../../Events";
+import { cmdFogRemoveCircle, evtUnitStateChanged } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
 import { ICell, ICarriedResource } from "../GameTypes";
@@ -65,6 +65,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             this._resource.visual.removeFromParent();
         }
         this._resource = value;
+        evtUnitStateChanged.post(this);
     }
 
     public get boundingBox() { return this._skinnedMesh.boundingBox; }
