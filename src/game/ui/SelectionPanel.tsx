@@ -132,6 +132,11 @@ export function SelectionPanel(props: SelectionPanelProps) {
         return null;
     }
 
+    const multipleSelection = selectedElems.type === "units" && selectedElems.units.length > 1;
+    if (multipleSelection) {
+        return null;
+    }
+
     return <div
         style={{
             width: "250px",

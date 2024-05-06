@@ -86,7 +86,12 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
         }
     }, []);
 
-    if (!selectedElems) {
+    if (!selectedElems || selectedElems.type === "cell") {
+        return null;
+    }
+
+    const multipleSelection = selectedElems.type === "units" && selectedElems.units.length > 1;
+    if (multipleSelection) {
         return null;
     }
 
