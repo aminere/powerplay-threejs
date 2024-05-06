@@ -1,4 +1,4 @@
-import { AdditiveBlending, DoubleSide, Material, Mesh, MeshBasicMaterial, Vector2 } from "three";
+import { AdditiveBlending, DoubleSide, Material, MathUtils, Mesh, MeshBasicMaterial, Vector2 } from "three";
 import { buildings } from "./Buildings";
 import { IBuildingInstance, IIncubatorState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
@@ -10,9 +10,20 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { BuildingUtils } from "./BuildingUtils";
 
 const { unitScale } = config.game;
-const { inputCapacity: incubatorInputCapacity } = config.incubators;
+const { inputCapacity, productionTime } = config.incubators;
 const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending, transparent: true });
 const { inputAccepFrequency, inputs } = config.incubators;
+
+function canIncubate(incubator: IIncubatorState) {
+    const { workerCost } = config.incubators;
+    if (incubator.reserve.water < workerCost.water) {
+        return false;
+    }
+    if (incubator.reserve.coal < workerCost.coal) {
+        return false;
+    }
+    return true
+}
 
 export class Incubators {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -20,7 +31,7 @@ export class Incubators {
         const instance = buildings.create("incubator", sectorCoords, localCoords);
         const state: IIncubatorState = {            
             active: false,
-            progress: 0,
+            productionTimer: 0,
             reserve: {
                 water: 0,
                 coal: 0
@@ -28,7 +39,8 @@ export class Incubators {
             inputFull: false,
             inputTimer: -1,
             water: null!,
-            worker: null!
+            worker: null!,
+            spawnRequests: 0
         };
 
         instance.state = state;
@@ -60,8 +72,7 @@ export class Incubators {
             const mesh = _mesh.clone();            
             const size = buildingConfig["incubator"].size;
             mesh.position.set(size.x / 2, 0, size.z / 2);
-            mesh.scale.setScalar(unitScale);
-            mesh.scale.setY(0);
+            mesh.visible = false;
             instance.visual.add(mesh);
             state.worker = mesh;
         });
@@ -72,17 +83,39 @@ export class Incubators {
         if (state.active) {
 
             let isDone = false;
-            state.progress += time.deltaTime;
-            if (state.progress > 1) {
-                state.progress = 1;
+            state.productionTimer += time.deltaTime;
+            let progress = state.productionTimer / productionTime;
+            if (state.productionTimer > productionTime) {
+                progress = 1;
                 isDone = true;
             }
 
-            state.worker.scale.setY(state.progress * unitScale);
-            state.water.scale.setY(1 - state.progress);
+            state.worker.scale.setScalar(progress * unitScale);
+            const water = state.reserve["water"];
+            const waterSrcProgress = water / inputCapacity;
+            const waterDestProgress = (water - 1) / inputCapacity;
+            state.water.scale.setY(MathUtils.lerp(waterSrcProgress, waterDestProgress, progress));
 
             if (isDone) {
                 state.active = false;
+                for (const input of inputs) {
+                    state.reserve[input]--;
+                }
+                const progress = waterDestProgress;
+                state.water.scale.setY(progress);
+                state.worker.visible = false;                
+                state.inputFull = false;
+                cmdSpawnUnit.post(instance);
+                evtBuildingStateChanged.post(instance);
+            }
+
+        } else {
+            if (state.spawnRequests > 0) {
+                state.spawnRequests--;
+                state.productionTimer = 0;
+                state.worker.visible = true;
+                state.worker.scale.setScalar(0);
+                state.active = true;
             }
         }
 
@@ -93,7 +126,7 @@ export class Incubators {
 
                 for (const input of inputs) {
                     const currentAmount = state.reserve[input];
-                    if (currentAmount < incubatorInputCapacity) {
+                    if (currentAmount < inputCapacity) {
                         if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
                             state.reserve[input] = currentAmount + 1;
                             accepted = true;
@@ -125,30 +158,28 @@ export class Incubators {
             return false;
         }
 
-        if (state.reserve[type] === incubatorInputCapacity) {            
+        if (state.reserve[type] === inputCapacity) {            
             return false;
-        }        
-
-        if (type === "water") {
-            const progress = state.reserve["water"] / incubatorInputCapacity;
-            state.water.scale.setY(progress);
         }
 
         state.reserve[type]++;
+
+        if (type === "water") {
+            const progress = state.reserve["water"] / inputCapacity;
+            state.water.scale.setY(progress);
+        }
+
         evtBuildingStateChanged.post(instance);
         return true;
     }
 
-    public static spawn(instance: IBuildingInstance) {
-        cmdSpawnUnit.post(instance);
+    public static spawn(instance: IBuildingInstance) {        
         const state = instance.state as IIncubatorState;
-        for (const input of inputs) {
-            state.reserve[input]--;
+        if (!canIncubate(state)) {
+            return false;
         }
-        const progress = state.reserve["water"] / incubatorInputCapacity;
-        state.water.scale.setY(progress);
-        evtBuildingStateChanged.post(instance);
-        state.inputFull = false;
+        state.spawnRequests++;
+        return true;
     }
 }
 

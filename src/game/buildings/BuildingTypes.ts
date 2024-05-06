@@ -49,12 +49,13 @@ export interface IDepotState {
 
 export interface IIncubatorState {
     active: boolean;
-    progress: number;
+    productionTimer: number;
     reserve: Record<"coal" | "water", number>;
     inputTimer: number;
     inputFull: boolean;
     water: Object3D;
     worker: Object3D;
+    spawnRequests: number;
 }
 
 export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState;

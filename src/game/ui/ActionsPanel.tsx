@@ -6,7 +6,7 @@ import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
 import { buildings } from "../buildings/Buildings";
 import { config } from "../config/config";
-import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { IUnit } from "../unit/Unit";
@@ -23,17 +23,6 @@ function FooterActions({ children }: { children: React.ReactNode }) {
         {children}
     </div>
 }
-
-function canIncubate(incubator: IIncubatorState) {
-    const { workerCost } = config.incubators;
-    if (incubator.reserve.water < workerCost.water) {
-        return false;
-    }
-    if (incubator.reserve.coal < workerCost.coal) {
-        return false;
-    }
-    return true
-};
 
 interface ActionsPanelProps {
     onShowFactoryOutputs: () => void;
@@ -146,12 +135,9 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         {(() => {
                             switch (building.buildingType) {
                                 case "incubator": {
-                                    const state = building.state as IIncubatorState;
                                     return <ActionButton
                                         onClick={() => {
-                                            if (canIncubate(state)) {
-                                                Incubators.spawn(building);
-                                            } else {
+                                            if (!Incubators.spawn(building)) {
                                                 const { workerCost } = config.incubators;
                                                 evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
                                             }
