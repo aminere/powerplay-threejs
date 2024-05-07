@@ -24,6 +24,7 @@ import { TruckState } from "./states/TruckState";
 import { buildingConfig } from "../config/BuildingConfig";
 import { MiningState } from "./states/MiningState";
 import { buildings } from "../buildings/Buildings";
+import { conveyors } from "../Conveyors";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -226,6 +227,14 @@ class UnitsManager {
                     console.assert(units === this._selectedUnits);
                     this._selectedUnits.length = 0;
                 }
+            }
+            break;
+
+            case "cell": {
+                const { cell, mapCoords } = this._selection;
+                console.assert(cell.conveyor);
+                conveyors.clear(mapCoords);
+                conveyors.clearLooseCorners(mapCoords);
             }
             break;
         }

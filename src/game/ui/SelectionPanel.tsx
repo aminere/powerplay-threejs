@@ -184,8 +184,9 @@ export function SelectionPanel(props: SelectionPanelProps) {
                             const properties = state.type ? [{
                                 name: state.type,
                                 value: `${state.amount} / ${state.capacity}`
-                            }] : null;                              
-                            return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+                            }] : null;
+                            const name = state.type ? `${state.type} ${type}` : type;
+                            return <SingleSelectionPanel name={name} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
                         }
 
                         case "factory": {

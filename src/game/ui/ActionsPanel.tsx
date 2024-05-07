@@ -77,8 +77,15 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
         }
     }, []);
 
-    if (!selectedElems || selectedElems.type === "cell") {
+    if (!selectedElems) {
         return null;
+    }
+
+    if (selectedElems.type === "cell") {
+        const cell = selectedElems.cell;
+        if (!cell.conveyor) {
+            return null;
+        }
     }
 
     const multipleSelection = selectedElems.type === "units" && selectedElems.units.length > 1;
@@ -121,9 +128,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 switch (unit.type) {
                                     case "worker": {
                                         const character = unit as ICharacterUnit;
-                                        return <ActionButton onClick={() => character.clearResource()}>
-                                            clear
-                                        </ActionButton>
+                                        if (character.resource) {
+                                            return <ActionButton onClick={() => character.clearResource()}>
+                                                drop
+                                            </ActionButton>
+                                        }
                                     }
                                 }
                             })()}
@@ -188,6 +197,21 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             </ActionButton>
                         </FooterActions>
                     </>
+                }
+
+                case "cell": {
+                    const conveyor = selectedElems.cell.conveyor!;
+                    console.assert(conveyor);
+                    return <FooterActions>
+                        <ActionButton
+                            onClick={() => {
+                                killedThroughUI.current = true;
+                                unitsManager.killSelection();
+                            }}
+                        >
+                            destroy
+                        </ActionButton>
+                    </FooterActions>
                 }
             }
             return null;

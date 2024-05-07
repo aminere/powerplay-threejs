@@ -21,6 +21,7 @@ const screenPos = new Vector3();
 const { cellSize, unitScale } = config.game;
 
 const headOffset = 2 * unitScale;
+const conveyorHeight = .7;
 
 function drawBar(ctx: CanvasRenderingContext2D, position: Vector3, health: number, maxHealth: number) {
     const { camera } = GameMapState.instance;
@@ -97,12 +98,15 @@ export function HealthBars() {
                     }
                     break;
 
-                    // case "conveyor": {
-                    //     GameUtils.mapToWorld(selectedConveyor, worldPos);
-                    //     worldPos.y += conveyorHeight * cellSize;
-                    //     drawBar(ctx, worldPos, 1);
-                    // }
-                    // break;
+                    case "cell": {
+                        const { cell, mapCoords } = selectedElemsRef.current;
+                        if (cell.conveyor) {
+                            GameUtils.mapToWorld(mapCoords, worldPos);
+                            worldPos.y += conveyorHeight * cellSize;
+                            drawBar(ctx, worldPos, 10, 10);
+                        }
+                    }
+                    break;
                 }
             }            
         };

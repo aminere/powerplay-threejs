@@ -21,6 +21,7 @@ interface IUnitSelection {
 interface ICellSelection {
     type: "cell";
     cell: ICell;
+    mapCoords: Vector2;
 }
 
 export type SelectedElems = IBuildingSelection | IUnitSelection | ICellSelection;

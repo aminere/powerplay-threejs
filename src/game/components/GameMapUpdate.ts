@@ -143,17 +143,20 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
-                raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                if (state.action) {
-                    if (cellCoords?.equals(state.selectedCellCoords) === false) {
-                        state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
-                        state.selectedCellCoords.copy(cellCoords);
+                if (raycastOnCells(input.touchPos, state.camera, cellCoords, resolution)) {
+                    if (state.action) {
+                        if (!cellCoords.equals(state.selectedCellCoords)) {
+                            state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
+                            state.selectedCellCoords.copy(cellCoords);
+                        }
+                    } else {
+                        if (!cellCoords.equals(state.highlightedCellCoords)) {
+                            state.highlightedCellCoords.copy(cellCoords!);
+                        }
                     }
                 } else {
-                    if (cellCoords?.equals(state.highlightedCellCoords) === false) {
-                        state.highlightedCellCoords.copy(cellCoords!);
-                    }
-                }
+                    console.log(`raycastOnCells returned null`);
+                }                
             }
         }
 
@@ -316,7 +319,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 if (!cell || cell.isEmpty) {
                                     unitsManager.setSelection(null);
                                 } else {
-                                    unitsManager.setSelection({ type: "cell", cell });
+                                    unitsManager.setSelection({ type: "cell", cell, mapCoords: state.highlightedCellCoords.clone() });
                                 }                                
                             }
                         }

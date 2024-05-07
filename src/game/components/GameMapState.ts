@@ -77,6 +77,7 @@ export class GameMapState {
         this._action = value;
         if (!value) {
             this.tileSelector.visible = false;
+            this.tileSelector.resolution = 1;
         }
     }
 
