@@ -21,16 +21,19 @@ interface PropertyProps {
     value: string;
 }
 
-function Property(props: React.PropsWithChildren<PropertyProps>) {
-    return <div style={{
-        position: "relative",
-        height: `${uiconfig.buttonSizeRem}rem`,
-        width: `${uiconfig.buttonSizeRem}rem`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: `${uiconfig.gapRem}rem`
-    }}>
+function Property(props: React.PropsWithChildren<PropertyProps>) {    
+    return <div
+        className="icon"
+        style={{
+            position: "relative",
+            height: `${uiconfig.buttonSizeRem}rem`,
+            width: `${uiconfig.buttonSizeRem}rem`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: `${uiconfig.gapRem}rem`
+        }}
+    >
         <img src={`/images/icons/${props.name}.png`} />
 
         <div style={{
@@ -48,7 +51,8 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
 }
 
 interface SingleSelectionProps {
-    name: string;
+    type: string;
+    subtype?: string;
     amount: number;
     capacity: number;
     properties: { name: string, value: string }[] | null;
@@ -75,7 +79,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
     return <>
         {props.children}
 
-        <Property name={""} value={`${props.amount} / ${props.capacity}`}>
+        <Property name={props.type} value={`${props.amount} / ${props.capacity}`}>
             <div
                 style={{
                     position: "absolute",
@@ -84,7 +88,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                     textAlign: "center"
                 }}
             >
-                {props.name}
+                {props.subtype ? `${props.subtype} ${props.type}` : props.type}
             </div>
         </Property>
 
@@ -188,7 +192,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     value: `${amount} / ${inputCapacity}`
                                 };
                             });
-                            return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+                            return <SingleSelectionPanel type={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
                         }
 
                         case "depot": {
@@ -197,8 +201,13 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                 name: state.type,
                                 value: `${state.amount} / ${state.capacity}`
                             }] : null;
-                            const name = state.type ? `${state.type} ${type}` : type;
-                            return <SingleSelectionPanel name={name} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+                            return <SingleSelectionPanel
+                                type={type}
+                                subtype={state.type ?? undefined}
+                                amount={hitpoints}
+                                capacity={maxHitpoints}
+                                properties={properties}
+                            />;
                         }
 
                         case "factory": {
@@ -214,18 +223,24 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     }
                                 });
 
-                                return <SingleSelectionPanel name={`${state.output} ${type}`} amount={hitpoints} capacity={maxHitpoints} properties={properties}>
+                                return <SingleSelectionPanel
+                                    type={type}
+                                    subtype={state.output ?? null}
+                                    amount={hitpoints}
+                                    capacity={maxHitpoints}
+                                    properties={properties}
+                                >
                                     {(() => {
                                         if (state.active) {
                                             const progress = state.productionTimer / productionTime;
                                             return <SingleSelectionPanelHeader>
                                                 <ProgressBar progress={progress} />
-                                            </SingleSelectionPanelHeader>                                            
+                                            </SingleSelectionPanelHeader>
                                         }
                                     })()}
                                 </SingleSelectionPanel>
                             } else {
-                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={null} />;
+                                return <SingleSelectionPanel type={type} amount={hitpoints} capacity={maxHitpoints} properties={null} />;
                             }
                         }
                     }
@@ -264,7 +279,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                             return null;
                         })();
                         return <SingleSelectionPanel
-                            name={unit.type}
+                            type={unit.type}
                             amount={Math.round(unit.hitpoints)}
                             capacity={hitpoints}
                             properties={properties}
@@ -280,14 +295,14 @@ export function SelectionPanel(props: SelectionPanelProps) {
                     if (cell.resource) {
                         const { capacity } = resourceConfig[cell.resource.type];
                         return <SingleSelectionPanel
-                            name={cell.resource.type}
+                            type={cell.resource.type}
                             amount={cell.resource.amount}
                             capacity={capacity}
                             properties={null}
                         />
                     } else if (cell.conveyor) {
                         return <SingleSelectionPanel
-                            name={"conveyor"}
+                            type={"conveyor"}
                             amount={10}
                             capacity={10}
                             properties={null}

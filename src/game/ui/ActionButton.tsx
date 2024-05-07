@@ -8,7 +8,7 @@ interface ActionButtonProps {
 
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
     return <div
-        className="clickable"
+        className="icon clickable"
         style={{
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
@@ -20,7 +20,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             cursor: "pointer",
             border: props.selected ? `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}` : "1px outset gray",
             backgroundColor: uiconfig.slotBackgroundColor,
-            padding: `${uiconfig.gapRem}rem`,
+            padding: `${2 * uiconfig.gapRem}rem`,
         }}
         onClick={e => {
             e.stopPropagation();

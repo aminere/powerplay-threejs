@@ -154,9 +154,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             state.highlightedCellCoords.copy(cellCoords!);
                         }
                     }
-                } else {
-                    console.log(`raycastOnCells returned null`);
-                }                
+                }             
             }
         }
 

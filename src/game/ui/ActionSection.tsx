@@ -68,7 +68,7 @@ export function ActionSection(props: IActionSectionProps) {
             }
         }}
     >
-        <img src={`/images/icons/${props.name}.png`} />        
+        <img src={`/images/icons/${props.name}.png`} />
         <div
             ref={actionsRef}
             style={{

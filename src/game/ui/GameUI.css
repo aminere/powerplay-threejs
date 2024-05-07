@@ -3,3 +3,7 @@ img {
     max-width: 100%;
 }
 
+.icon img {
+    filter: drop-shadow(2px 4px 4px black) brightness(1.1);
+}
+
