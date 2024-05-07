@@ -299,7 +299,6 @@ export class UnitMotion {
             return;
         }
 
-
         const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
         const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
         console.assert(flowfields);
@@ -322,8 +321,9 @@ export class UnitMotion {
                 motionId = flowField.register(flowfields);
             }
 
+            unit.onMoveCommand(destMapCoords);
             moveTo(unit, motionCommandId, motionId, destMapCoords);
-            unit.onMoveCommand();
+            unit.clearAction();
             ++unitCount;
         }
 

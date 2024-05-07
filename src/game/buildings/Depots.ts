@@ -35,21 +35,25 @@ export class Depots {
         instance.state = depotState;
     }
 
-    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
-        const state = instance.state as IDepotState;        
+    public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+        const state = instance.state as IDepotState;
         if (state.type !== type) {
             if (state.type !== null) {
                 return false;
             }
         }
+        return state.amount < state.capacity;
+    }
 
-        const { resourcesPerSlot, slotScaleRange, slotsPerRow, slotSize, slotStart } = depotsConfig;
-        const oldAmount = state.amount;
-        const newAmount = oldAmount + 1;
-        if (newAmount > state.capacity) {
+    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+        if (!Depots.canAcceptResource(instance, type)) {
             return false;
         }
 
+        const { resourcesPerSlot, slotScaleRange, slotsPerRow, slotSize, slotStart } = depotsConfig;
+        const state = instance.state as IDepotState;
+        const oldAmount = state.amount;
+        const newAmount = oldAmount + 1;
         const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
         const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;

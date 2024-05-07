@@ -178,14 +178,11 @@ export function SelectionPanel(props: SelectionPanelProps) {
 
                         case "depot": {
                             const state = building.state as IDepotState;
-                            if (state.type) {
-                                const properties = [{
-                                    name: state.type,
-                                    value: `${state.amount} / ${state.capacity}`
-                                }];
-                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
-                            }
-                            break;
+                            const properties = state.type ? [{
+                                name: state.type,
+                                value: `${state.amount} / ${state.capacity}`
+                            }] : null;                              
+                            return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
                         }
 
                         case "factory": {
@@ -201,7 +198,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     }
                                 });
 
-                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={properties}>
+                                return <SingleSelectionPanel name={`${state.output} ${type}`} amount={hitpoints} capacity={maxHitpoints} properties={properties}>
                                     {(() => {
                                         if (state.active) {
                                             const progress = state.productionTimer / productionTime;
@@ -211,6 +208,8 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                         }
                                     })()}
                                 </SingleSelectionPanel>
+                            } else {
+                                return <SingleSelectionPanel name={type} amount={hitpoints} capacity={maxHitpoints} properties={null} />;
                             }
                         }
                     }
@@ -268,6 +267,13 @@ export function SelectionPanel(props: SelectionPanelProps) {
                             name={cell.resource.type}
                             amount={cell.resource.amount}
                             capacity={capacity}
+                            properties={null}
+                        />
+                    } else if (cell.conveyor) {
+                        return <SingleSelectionPanel
+                            name={"conveyor"}
+                            amount={10}
+                            capacity={10}
                             properties={null}
                         />
                     }

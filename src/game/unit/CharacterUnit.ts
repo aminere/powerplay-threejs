@@ -121,7 +121,55 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         }
     }
 
-    public override onMoveCommand() {
+    public override onMoveCommand(mapCoords: Vector2) {                
+        if (this.motionId > 0 && !this.resource) {
+
+            // received a new move command while moving
+            // check if it makes sense to chain 2 motions together                                    
+            const previousTargetResource = (() => {
+                const previousTargetCell = getCellFromAddr(this.targetCell);
+                if (previousTargetCell.resource) {
+                    return previousTargetCell.resource.type;
+                }
+                if (previousTargetCell.building) {
+                    const instance = GameMapState.instance.buildings.get(previousTargetCell.building!)!;
+                    if (instance.buildingType === "depot") {
+                        const state = instance.state as IDepotState;
+                        if (state.amount > 0) {
+                            return state.type;
+                        }
+                    }
+                }
+                return null;
+            })();
+
+            if (!previousTargetResource) {
+                return;
+            }
+
+            const nextTargetCanAccept = (() => {
+                const targetCell = GameUtils.getCell(mapCoords)!;
+                if (targetCell.building) {
+                    const instance = GameMapState.instance.buildings.get(targetCell.building!)!;
+                    switch (instance.buildingType) {
+                        case "depot": {                            
+                            return Depots.canAcceptResource(instance, previousTargetResource);
+                        }
+                        case "factory": {
+                            return Factories.canAcceptResource(instance, previousTargetResource);
+                        }
+                    }                    
+                }
+                return false;
+            })();            
+
+            if (nextTargetCanAccept) {
+                console.log("TODO chain actions!");
+            }
+        }
+    }
+
+    public override clearAction() {
         const isMining = this.fsm.getState(MiningState) !== null;
         if (isMining) {
             this.fsm.switchState(null);

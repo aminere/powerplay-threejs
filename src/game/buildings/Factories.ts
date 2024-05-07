@@ -143,22 +143,31 @@ export class Factories {
         }        
     }
 
-    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+    public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IFactoryState;
         if (state.output) {
             const inputs = FactoryDefinitions[state.output];
             if (inputs.includes(type)) {
                 const currentAmount = state.reserve.get(type);
-                if ((currentAmount ?? 0) < inputCapacity) {
-                    if (currentAmount === undefined) {
-                        state.reserve.set(type, 1);
-                    } else {
-                        state.reserve.set(type, currentAmount + 1);
-                    }
-                    evtBuildingStateChanged.post(instance);
+                if ((currentAmount ?? 0) < inputCapacity) {                    
                     return true;
                 }    
             }
+        }
+        return false;
+    }
+
+    public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+        if (Factories.canAcceptResource(instance, type)) {
+            const state = instance.state as IFactoryState;
+            const currentAmount = state.reserve.get(type);
+            if (currentAmount === undefined) {
+                state.reserve.set(type, 1);
+            } else {
+                state.reserve.set(type, currentAmount + 1);
+            }
+            evtBuildingStateChanged.post(instance);
+            return true;
         }
         return false;
     }

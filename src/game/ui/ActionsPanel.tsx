@@ -11,6 +11,8 @@ import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/CharacterUnit";
 import { IUnit } from "../unit/Unit";
 import { Depots } from "../buildings/Depots";
+import { UnitUtils } from "../unit/UnitUtils";
+import { unitMotion } from "../unit/UnitMotion";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -103,14 +105,25 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         const unit = units[0];
                         return <>
                             {(() => {
+                                if (!UnitUtils.isEnemy(unit)) {
+                                    return <ActionButton onClick={() => { 
+                                        if (unit.motionId > 0) {
+                                            unitMotion.endMotion(unit);
+                                            unit.onArrived();
+                                        }
+                                        unit.clearAction();
+                                    }}>
+                                        stop
+                                    </ActionButton>
+                                }
+                            })()}
+                            {(() => {
                                 switch (unit.type) {
                                     case "worker": {
                                         const character = unit as ICharacterUnit;
-                                        if (character.resource) {
-                                            return <ActionButton onClick={() => character.clearResource()}>
-                                                clear
-                                            </ActionButton>
-                                        }
+                                        return <ActionButton onClick={() => character.clearResource()}>
+                                            clear
+                                        </ActionButton>
                                     }
                                 }
                             })()}
@@ -150,7 +163,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 case "factory": {
                                     const state = building.state as IFactoryState;
                                     return <ActionButton onClick={props.onShowFactoryOutputs}>
-                                        {state.output ? state.output : "Select Output"}
+                                        {state.output ? "Change Output" : "Select Output"}
                                     </ActionButton>
                                 }
 

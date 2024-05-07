@@ -267,7 +267,11 @@ class UnitsManager {
                                     }
                                 }
 
-                                cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
+                                if (this._selectedUnits.length > 0) {
+                                    cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
+                                } else {
+                                    cmdSetSelectedElems.post(null);
+                                }
 
                             } else {
 

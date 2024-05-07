@@ -49,10 +49,11 @@ export interface IUnit {
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
 
-    setHitpoints(value: number): void;
-    onDeath(): void;
+    setHitpoints: (value: number) => void;
+    clearAction: () => void;
+    onDeath: () => void;
     onMove: (bindSkeleton: boolean) => void;
-    onMoveCommand: () => void;
+    onMoveCommand: (mapCoords: Vector2) => void;
     onArrived: () => void;
     onArriving: () => void;
     onColliding: () => void;
@@ -189,7 +190,8 @@ export class Unit implements IUnit {
     }
 
     public onMove(_bindSkeleton: boolean) {}
-    public onMoveCommand() {
+    public onMoveCommand(_mapCoords: Vector2) {}
+    public clearAction() {
         const tankState = this.fsm.getState(TankState);
         if (tankState) {
             tankState.stopAttack();
