@@ -181,8 +181,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             <ActionButton
                                 onClick={() => {
                                     killedThroughUI.current = true;
-                                    buildings.clear(building.id);
-                                    cmdSetSelectedElems.post(null);
+                                    unitsManager.killSelection();
                                 }}
                             >
                                 destroy

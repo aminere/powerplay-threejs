@@ -49,14 +49,19 @@ export class MiningState extends State<ICharacterUnit> {
                 // depleted resource
             }
 
-            unit.fsm.switchState(null);
             if (unit.targetBuilding) {
+                unit.fsm.switchState(null);
                 unitMotion.moveUnit(unit, unit.targetBuilding, false);
                 unitAnimation.setAnimation(unit, "run", { transitionDuration: .1, scheduleCommonAnim: true });
             } else {
-                unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
-            }
+                this.stopMining(unit);
+            }            
         }
+    }
+
+    public stopMining(unit: ICharacterUnit) {
+        unit.fsm.switchState(null);
+        unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
     }
 }
 

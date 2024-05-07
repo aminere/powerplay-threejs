@@ -1,7 +1,7 @@
 import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
-import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingStateChanged } from "../../Events";
+import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState } from "./BuildingTypes";

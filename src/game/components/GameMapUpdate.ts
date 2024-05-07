@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
-import { cmdEndSelection, cmdSetSelectedElems, evtActionCleared } from "../../Events";
+import { cmdEndSelection, evtActionCleared } from "../../Events";
 import { IUnit } from "../unit/Unit";
 import { buildings } from "../buildings/Buildings";
 import { unitMotion } from "../unit/UnitMotion";
@@ -304,29 +304,19 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                             if (intersections.length > 0) {
                                 intersections.sort((a, b) => a.distance - b.distance);
-
                                 const { unit, building } = intersections[0];
                                 if (unit) {
-                                    unitsManager.selectedUnits = [unit];
-                                    cmdSetSelectedElems.post({ type: "units", units: unitsManager.selectedUnits });
-
+                                    unitsManager.setSelection({ type: "units", units: [unit] });
                                 } else if (building) {
-                                    if (unitsManager.selectedUnits.length > 0) {
-                                        unitsManager.selectedUnits.length = 0;
-                                    }
-                                    cmdSetSelectedElems.post({ type: "building", building });
+                                    unitsManager.setSelection({ type: "building", building })
                                 }
 
-                            } else {
-                                if (unitsManager.selectedUnits.length > 0) {
-                                    unitsManager.selectedUnits.length = 0;
-                                }
-
+                            } else {                               
                                 const cell = GameUtils.getCell(state.highlightedCellCoords);
                                 if (!cell || cell.isEmpty) {
-                                    cmdSetSelectedElems.post(null);
+                                    unitsManager.setSelection(null);
                                 } else {
-                                    cmdSetSelectedElems.post({ type: "cell", cell });
+                                    unitsManager.setSelection({ type: "cell", cell });
                                 }                                
                             }
                         }

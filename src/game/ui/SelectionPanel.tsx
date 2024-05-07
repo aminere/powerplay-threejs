@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
-import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, evtBuildingStateChanged, evtUnitKilled, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
@@ -86,15 +86,18 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                 {props.name}
             </div>
         </Property>
-        <div style={{
-            position: "absolute",
-            right: `${uiconfig.padding}rem`,
-            top: `${uiconfig.padding}rem`,
-            display: "grid",
-            gridTemplateColumns: `repeat(2, ${uiconfig.buttonSize}rem)`,
-            gridAutoRows: "min-content",
-            gap: `${uiconfig.gap}rem`,
-        }}>
+        <div
+            dir="rtl"
+            style={{
+                position: "absolute",
+                right: `${uiconfig.padding}rem`,
+                top: `${uiconfig.padding}rem`,
+                display: "grid",
+                gridTemplateColumns: `repeat(2, ${uiconfig.buttonSize}rem)`,
+                gridAutoRows: "min-content",
+                gap: `${uiconfig.gap}rem`,
+            }}
+        >
             {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
         </div>
     </>    

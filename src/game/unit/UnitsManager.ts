@@ -1,7 +1,7 @@
 import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
-import { cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled } from "../../Events";
+import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
@@ -23,6 +23,7 @@ import { Workers } from "./Workers";
 import { TruckState } from "./states/TruckState";
 import { buildingConfig } from "../config/BuildingConfig";
 import { MiningState } from "./states/MiningState";
+import { buildings } from "../buildings/Buildings";
 
 const screenPos = new Vector3();
 const spawnCoords = new Vector2();
@@ -51,15 +52,15 @@ class UnitsManager {
     public get units() { return this._units; }
     public get selectedUnits() { return this._selectedUnits; }
 
-    public set selectedUnits(value: IUnit[]) { this._selectedUnits = value; }
     public set owner(value: Object3D) { this._owner = value; }
 
     private _owner!: Object3D;
     private _units: IUnit[] = [];
-    private _selectedUnits: IUnit[] = [];
+    private _selectedUnits: IUnit[]  = [];
     private _selectionStart: Vector2 = new Vector2();
     private _dragStarted: boolean = false;
     private _spawnUnitRequest: IBuildingInstance | null = null;
+    private _selection: SelectedElems | null = null;
 
     async preload() {
         await skeletonManager.load({
@@ -205,14 +206,51 @@ class UnitsManager {
     }
 
     public killSelection() {
-        if (this._selectedUnits.length === 0) {
+        if (!this._selection) {
             return;
         }
-        for (const unit of this._selectedUnits) {
-            unit.setHitpoints(0);
+
+        switch (this._selection.type) {
+            case "building": {
+                const building = this._selection.building;
+                buildings.clear(building.id);
+            }
+            break;
+
+            case "units": {
+                const units = this._selection.units;
+                if (units.length > 0) {
+                    for (const unit of units) {
+                        unit.setHitpoints(0);
+                    }
+                    console.assert(units === this._selectedUnits);
+                    this._selectedUnits.length = 0;
+                }
+            }
+            break;
         }
-        this._selectedUnits.length = 0;
-        cmdSetSelectedElems.post(null);
+        
+        this.setSelection(null);        
+    }
+
+    public setSelection(selection: SelectedElems | null) {
+        if (selection) {
+            switch (selection.type) {
+                case "units": {
+                    this._selectedUnits = selection.units;
+                }
+                break;
+
+                default: {
+                    this._selectedUnits.length = 0;
+                }
+            }
+        } else {
+            this._selectedUnits.length = 0;
+        }
+
+        cmdSetSelectedElems.post(selection);
+        this._selection = selection;
     }
 
     private handleSpawnRequests() {
@@ -268,9 +306,9 @@ class UnitsManager {
                                 }
 
                                 if (this._selectedUnits.length > 0) {
-                                    cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
+                                    this.setSelection({ type: "units", units: this._selectedUnits });
                                 } else {
-                                    cmdSetSelectedElems.post(null);
+                                    this.setSelection(null);
                                 }
 
                             } else {

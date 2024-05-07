@@ -16,7 +16,7 @@ import { IUnit } from "./Unit";
 import { ICharacterUnit } from "./CharacterUnit";
 import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
-import { UnitType } from "../GameDefinitions";
+import { unitConfig } from "../config/UnitConfig";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -32,16 +32,6 @@ const nextPos = new Vector3();
 
 const { mapRes } = config.game;
 const { separations, maxForce, maxSpeed } = config.steering;
-
-const characterArrivalDamping = .05;
-const vehicleArrivalDamping = .15;
-const arrivalDamping: Record<UnitType, number> = {
-    "enemy-melee": characterArrivalDamping,
-    "enemy-ranged": characterArrivalDamping,
-    "worker": characterArrivalDamping,
-    "truck": vehicleArrivalDamping,
-    "tank": vehicleArrivalDamping
-};
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -546,8 +536,9 @@ export class UnitMotion {
         }
 
         if (unit.arriving) {
-            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
-            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping[unit.type], time.deltaTime);
+            const { arrivalDamping } = unitConfig[unit.type];
+            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();

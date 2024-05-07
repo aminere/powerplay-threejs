@@ -173,9 +173,11 @@ export class Unit implements IUnit {
                 const unitIndex = cell.units!.indexOf(this);
                 console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
                 utils.fastDelete(cell.units!, unitIndex);
-                evtUnitKilled.post(this);                
+                evtUnitKilled.post(this);
+                return;
             }            
         }
+        
         evtUnitStateChanged.post(this);
     }
 
