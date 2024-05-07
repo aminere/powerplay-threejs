@@ -3,7 +3,7 @@ import { uiconfig } from "./uiconfig";
 interface ActionButtonProps {
     onClick: () => void;
     selected?: boolean;
-    selectedColor?: "yellow" | "red";
+    selectedColor?: "yellow" | "white";
 }
 
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
@@ -11,16 +11,16 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         className="clickable"
         style={{
             position: "relative",
-            height: `${uiconfig.buttonSize}rem`,
-            width: `${uiconfig.buttonSize}rem`,
+            height: `${uiconfig.buttonSizeRem}rem`,
+            width: `${uiconfig.buttonSizeRem}rem`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: ".1rem",
             textAlign: "center",
-            backgroundColor: uiconfig.buttonBackgroundColor,
             cursor: "pointer",
-            border: props.selected ? `2px outset ${props.selectedColor ?? "yellow"}` : `1px outset darkgrey`,            
+            border: props.selected ? `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}` : "1px outset gray",
+            backgroundColor: uiconfig.slotBackgroundColor,
+            padding: `${uiconfig.gapRem}rem`,
         }}
         onClick={e => {
             e.stopPropagation();

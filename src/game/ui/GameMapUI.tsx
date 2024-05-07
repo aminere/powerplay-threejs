@@ -179,12 +179,14 @@ export function GameMapUI(_props: IGameUIProps) {
             <div
                 style={{
                     position: "absolute",
-                    left: `${uiconfig.padding}rem`,
+                    padding: `${uiconfig.paddingRem}rem`,
+                    backgroundColor: `${uiconfig.backgroundColor}`,
+                    left: "0px",
                     top: "50%",
-                    transform: "translateY(-50%)",
+                    transform: "translateY(calc(-50% + .5px))",
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${uiconfig.gap}rem`,
+                    gap: `${uiconfig.gapRem}rem`,
                 }}
             >
                 <ActionSection
@@ -242,14 +244,17 @@ export function GameMapUI(_props: IGameUIProps) {
 
             <div style={{
                 position: "absolute",
-                bottom: `${uiconfig.padding}rem`,
+                bottom: "0px",                
                 left: "470px",
-                height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSize}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gap}rem + 2 * ${uiconfig.padding}rem)`,
+                height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
                 display: "flex",
-                gap: `${uiconfig.gap}rem`,
+                gap: `${uiconfig.paddingRem}rem`,
             }}>
                 <SelectionPanel selectedElems={selectedElems} />
-                <ActionsPanel onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}>
+                <ActionsPanel 
+                    factoryOutputsOpen={showFactoryOutputs}
+                    onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
+                >
                     <FactoryOutputPanel
                         open={showFactoryOutputs}
                         selectedElems={selectedElems}

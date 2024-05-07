@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
-import { SelectedElems, evtBuildingStateChanged, evtUnitKilled, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
@@ -11,6 +11,7 @@ import { ITruckUnit } from "../unit/TruckUnit";
 import { IUnit } from "../unit/Unit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { ProgressBar } from "./ProgressBar";
+import { GridFiller } from "./GridFiller";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -23,13 +24,12 @@ interface PropertyProps {
 function Property(props: React.PropsWithChildren<PropertyProps>) {
     return <div style={{
         position: "relative",
-        height: `${uiconfig.buttonSize}rem`,
-        width: `${uiconfig.buttonSize}rem`,
+        height: `${uiconfig.buttonSizeRem}rem`,
+        width: `${uiconfig.buttonSizeRem}rem`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: uiconfig.buttonBackgroundColor,
-        border: "1px inset gray",
+        padding: `${uiconfig.gapRem}rem`
     }}>
         <img src={`/images/icons/${props.name}.png`} />
 
@@ -60,8 +60,8 @@ function SingleSelectionPanelHeader({ children }: React.PropsWithChildren<{}>) {
             position: "absolute",
             width: "100%",
             backgroundColor: uiconfig.backgroundColor,
-            padding: `${uiconfig.padding}rem`,
-            top: `-${uiconfig.gap}rem`,
+            padding: `${uiconfig.paddingRem}rem`,
+            top: `-${uiconfig.gapRem}rem`,
             transformOrigin: "bottom",
             transform: "translateY(-100%)",
             textAlign: "center"
@@ -79,7 +79,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
             <div
                 style={{
                     position: "absolute",
-                    bottom: `-${uiconfig.gap}rem`,
+                    bottom: `-${uiconfig.gapRem}rem`,
                     transform: "translateY(100%)",
                     textAlign: "center"
                 }}
@@ -87,19 +87,30 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                 {props.name}
             </div>
         </Property>
+
         <div
-            dir="rtl"
             style={{
                 position: "absolute",
-                right: `${uiconfig.padding}rem`,
-                top: `${uiconfig.padding}rem`,
-                display: "grid",
-                gridTemplateColumns: `repeat(2, ${uiconfig.buttonSize}rem)`,
-                gridAutoRows: "min-content",
-                gap: `${uiconfig.gap}rem`,
+                right: `${uiconfig.paddingRem}rem`,
+                top: `${uiconfig.paddingRem}rem`,
+                height: `calc(100% - 2 * ${uiconfig.paddingRem}rem)`
             }}
         >
-            {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
+            <div
+                dir="rtl"
+                style={{
+                    position: "relative",
+                    height: "100%",
+                    display: "grid",
+                    gridTemplateColumns: `repeat(2, ${uiconfig.buttonSizeRem}rem)`,
+                    gridAutoRows: "min-content",
+                    gap: `${uiconfig.gapRem}rem`
+                }}
+            >
+                <GridFiller slots={4} columns={2} />
+                {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
+
+            </div>
         </div>
     </>    
 }
@@ -150,16 +161,16 @@ export function SelectionPanel(props: SelectionPanelProps) {
     }
 
     return <div style={{
-        width: `calc(2 * ${uiconfig.padding}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSize}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gap}rem)`,
-        backgroundColor: uiconfig.backgroundColor,
-        padding: `${uiconfig.padding}rem`,
+        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gapRem}rem)`,
         position: "relative",
+        backgroundColor: `${uiconfig.backgroundColor}`,
+        padding: `${uiconfig.paddingRem}rem`,
         display: "grid",
-        gridTemplateColumns: `repeat(4, ${uiconfig.buttonSize}rem)`,
+        gridTemplateColumns: `repeat(4, ${uiconfig.buttonSizeRem}rem)`,
         gridAutoRows: "min-content",
-        gap: `${uiconfig.gap}rem`
+        gap: `${uiconfig.gapRem}rem`
     }}>
-        
+
         {(() => {
             switch (selectedElems.type) {
                 case "building": {

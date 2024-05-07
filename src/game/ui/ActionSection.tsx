@@ -56,6 +56,8 @@ export function ActionSection(props: IActionSectionProps) {
     }, []);
 
     return <ActionButton
+        selected={open}
+        selectedColor="white"
         onClick={() => {
             if (open) {
                 setOpen(false);
@@ -71,9 +73,11 @@ export function ActionSection(props: IActionSectionProps) {
             ref={actionsRef}
             style={{
                 position: "absolute",
-                left: `calc(${uiconfig.buttonSize}rem + ${uiconfig.gap}rem)`,                
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
+                left: `calc(${uiconfig.buttonSizeRem}rem + ${uiconfig.paddingRem}rem - ${uiconfig.selectedBorderSizePx}px)`,
                 flexDirection: "column",
-                gap: `${uiconfig.gap}rem`,
+                gap: `${uiconfig.gapRem}rem`,
                 display: "none", //"flex",
                 transform: "scaleY(0)",
                 opacity: 0,

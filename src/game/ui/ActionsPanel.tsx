@@ -12,20 +12,22 @@ import { IUnit } from "../unit/Unit";
 import { Depots } from "../buildings/Depots";
 import { UnitUtils } from "../unit/UnitUtils";
 import { unitMotion } from "../unit/UnitMotion";
+import { GridFiller } from "./GridFiller";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
         position: "absolute",
-        right: `${uiconfig.padding}rem`,
-        bottom: `${uiconfig.padding}rem`,
+        right: `0px`,
+        bottom: `0px`,
         display: "flex",
-        gap: `${uiconfig.gap}rem`
+        gap: `${uiconfig.gapRem}rem`
     }}>
         {children}
     </div>
 }
 
 interface ActionsPanelProps {
+    factoryOutputsOpen: boolean;
     onShowFactoryOutputs: () => void;
 }
 
@@ -93,43 +95,104 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
     }
 
     return <div style={{
-        width: `calc(2 * ${uiconfig.padding}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSize}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gap}rem)`,
-        backgroundColor: uiconfig.backgroundColor,
-        padding: `${uiconfig.padding}rem`,
+        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gapRem}rem)`,
         position: "relative",
-        display: "grid",
-        gridTemplateColumns: `repeat(4, ${uiconfig.buttonSize}rem)`,
-        gridAutoRows: "min-content",
-        gap: `${uiconfig.gap}rem`
+        backgroundColor: `${uiconfig.backgroundColor}`,
+        padding: `${uiconfig.paddingRem}rem`        
     }}>
+        <div
+            style={{
+                position: "relative",
+                height: "100%",
+                display: "grid",
+                gridTemplateColumns: `repeat(4, ${uiconfig.buttonSizeRem}rem)`,
+                gridAutoRows: "min-content",
+                gap: `${uiconfig.gapRem}rem`
+            }}
+        >
+            <GridFiller slots={8} columns={4} />
 
-        {(() => {
-            switch (selectedElems.type) {
-                case "units": {
-                    const units = selectedElems.units;
-                    if (units.length === 1) {
-                        const unit = units[0];
+            {(() => {
+                switch (selectedElems.type) {
+                    case "units": {
+                        const units = selectedElems.units;
+                        if (units.length === 1) {
+                            const unit = units[0];
+                            return <>
+                                {(() => {
+                                    if (!UnitUtils.isEnemy(unit)) {
+                                        return <ActionButton onClick={() => {
+                                            if (unit.motionId > 0) {
+                                                unitMotion.endMotion(unit);
+                                                unit.onArrived();
+                                            }
+                                            unit.clearAction();
+                                        }}>
+                                            stop
+                                        </ActionButton>
+                                    }
+                                })()}
+                                {(() => {
+                                    switch (unit.type) {
+                                        case "worker": {
+                                            const character = unit as ICharacterUnit;
+                                            if (character.resource) {
+                                                return <ActionButton onClick={() => character.clearResource()}>
+                                                    drop
+                                                </ActionButton>
+                                            }
+                                        }
+                                    }
+                                })()}
+                                <FooterActions>
+                                    <ActionButton
+                                        onClick={() => {
+                                            killedThroughUI.current = true;
+                                            unitsManager.killSelection();
+                                        }}
+                                    >
+                                        <img src="/images/icons/destroy.png" />
+                                    </ActionButton>
+                                </FooterActions>
+                            </>
+                        }
+                    }
+                        break;
+
+                    case "building": {
+                        const building = selectedElems.building;
                         return <>
                             {(() => {
-                                if (!UnitUtils.isEnemy(unit)) {
-                                    return <ActionButton onClick={() => { 
-                                        if (unit.motionId > 0) {
-                                            unitMotion.endMotion(unit);
-                                            unit.onArrived();
-                                        }
-                                        unit.clearAction();
-                                    }}>
-                                        stop
-                                    </ActionButton>
-                                }
-                            })()}
-                            {(() => {
-                                switch (unit.type) {
-                                    case "worker": {
-                                        const character = unit as ICharacterUnit;
-                                        if (character.resource) {
-                                            return <ActionButton onClick={() => character.clearResource()}>
-                                                drop
+                                switch (building.buildingType) {
+                                    case "incubator": {
+                                        return <ActionButton
+                                            onClick={() => {
+                                                if (!Incubators.spawn(building)) {
+                                                    const { workerCost } = config.incubators;
+                                                    evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
+                                                }
+                                            }}
+                                        >
+                                            incubate
+                                        </ActionButton>
+                                    }
+
+                                    case "factory": {
+                                        const state = building.state as IFactoryState;
+                                        return <ActionButton
+                                            selected={props.factoryOutputsOpen}
+                                            selectedColor="white"
+                                            onClick={props.onShowFactoryOutputs}
+                                        >
+                                            {state.output ? "Change Output" : "Select Output"}
+                                        </ActionButton>
+                                    }
+
+                                    case "depot": {
+                                        const state = building.state as IDepotState;
+                                        if (state.amount > 0) {
+                                            return <ActionButton onClick={() => Depots.clear(building)}>
+                                                clear
                                             </ActionButton>
                                         }
                                     }
@@ -147,45 +210,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             </FooterActions>
                         </>
                     }
-                }
-                    break;
 
-                case "building": {
-                    const building = selectedElems.building;
-                    return <>
-                        {(() => {
-                            switch (building.buildingType) {
-                                case "incubator": {
-                                    return <ActionButton
-                                        onClick={() => {
-                                            if (!Incubators.spawn(building)) {
-                                                const { workerCost } = config.incubators;
-                                                evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
-                                            }
-                                        }}
-                                    >
-                                        incubate
-                                    </ActionButton>
-                                }
-
-                                case "factory": {
-                                    const state = building.state as IFactoryState;
-                                    return <ActionButton onClick={props.onShowFactoryOutputs}>
-                                        {state.output ? "Change Output" : "Select Output"}
-                                    </ActionButton>
-                                }
-
-                                case "depot": {
-                                    const state = building.state as IDepotState;
-                                    if (state.amount > 0) {
-                                        return <ActionButton onClick={() => Depots.clear(building)}>
-                                            clear
-                                        </ActionButton>
-                                    }
-                                }
-                            }
-                        })()}
-                        <FooterActions>
+                    case "cell": {
+                        const conveyor = selectedElems.cell.conveyor!;
+                        console.assert(conveyor);
+                        return <FooterActions>
                             <ActionButton
                                 onClick={() => {
                                     killedThroughUI.current = true;
@@ -195,29 +224,14 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 <img src="/images/icons/destroy.png" />
                             </ActionButton>
                         </FooterActions>
-                    </>
+                    }
                 }
+                return null;
+            })()}
 
-                case "cell": {
-                    const conveyor = selectedElems.cell.conveyor!;
-                    console.assert(conveyor);
-                    return <FooterActions>
-                        <ActionButton
-                            onClick={() => {
-                                killedThroughUI.current = true;
-                                unitsManager.killSelection();
-                            }}
-                        >
-                            <img src="/images/icons/destroy.png" />
-                        </ActionButton>
-                    </FooterActions>
-                }
-            }
-            return null;
-        })()}
+        </div>
 
         {props.children}
-
     </div>
 }
 

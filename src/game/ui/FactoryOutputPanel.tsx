@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Factories } from "../buildings/Factories";
 import { SelectedElems } from "../../Events";
 import gsap from "gsap";
+import { GridFiller } from "./GridFiller";
 
 interface FactoryOutputPanelProps {
     open: boolean;
@@ -33,8 +34,8 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
     const [factory, setFactory] = useState<IBuildingInstance | null>(getFactory(selectedElems));
     const [output, setOutput] = useState<ResourceType | null>(getFactoryState(getFactory(selectedElems))?.output ?? null);
     const [_open, setOpen] = useState(props.open);
-    
-    useEffect(() => {        
+
+    useEffect(() => {
         const factory = getFactory(selectedElems);
         setFactory(factory);
         setOutput(getFactoryState(factory)?.output ?? null);
@@ -54,7 +55,7 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
             gsap.to(rootRef.current, {
                 scaleY: 1,
                 opacity: 1,
-                duration: 0.2                
+                duration: 0.2
             });
         } else {
             gsap.to(rootRef.current, {
@@ -74,42 +75,52 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
     if (!factory) {
         return null;
     }
-    
-    const height = `${uiconfig.outputRows} * ${uiconfig.buttonSize}rem + ${uiconfig.outputRows - 1} * ${uiconfig.gap}rem + 2 * ${uiconfig.padding}rem`;
+
+    const height = `${uiconfig.outputRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.outputRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem`;
     return <div
         ref={rootRef}
         style={{
             position: "absolute",
             left: "0px",
-            top: `calc(-1 * (${height}) - ${uiconfig.gap}rem)`,
-            height: `calc(${height})`,
+            top: `calc(-1 * (${height}))`,
+            height: `calc(${height})`,            
             overflowY: "auto",
-            overflowX: "hidden",            
-            gap: `${uiconfig.gap}rem`,
-            gridTemplateColumns: `repeat(${uiconfig.outputsPerRow}, ${uiconfig.buttonSize}rem)`,
-            gridAutoRows: "min-content",
+            overflowX: "hidden",
             backgroundColor: uiconfig.backgroundColor,
-            padding: `${uiconfig.padding}rem`,            
-            display: "none", // "grid"
+            padding: `${uiconfig.paddingRem}rem`,
             transformOrigin: "bottom",
             transform: "scaleY(0)",
             opacity: 0,
+            display: "none"
         }}
         onWheel={e => e.stopPropagation()}
     >
-        {ResourceTypes.map(resource => {
-            return <ActionButton
-                key={resource}
-                selected={output === resource}
-                onClick={() => {
-                    setOutput(resource);
-                    Factories.setOutput(factory, resource);
-                    props.onOutputSelected();
-                }}
-            >
-                <img src={`/images/icons/${resource}.png`} />
-            </ActionButton>
-        })}
+        <div
+            style={{
+                position: "relative",
+                height: "100%",
+                display: "grid",
+                gap: `${uiconfig.gapRem}rem`,
+                gridTemplateColumns: `repeat(${uiconfig.outputsPerRow}, ${uiconfig.buttonSizeRem}rem)`,
+                gridAutoRows: "min-content",
+            }}
+        >
+            <GridFiller slots={uiconfig.outputsPerRow * uiconfig.outputRows} columns={uiconfig.outputsPerRow} />
+
+            {ResourceTypes.map(resource => {
+                return <ActionButton
+                    key={resource}
+                    selected={output === resource}
+                    onClick={() => {
+                        setOutput(resource);
+                        Factories.setOutput(factory, resource);
+                        props.onOutputSelected();
+                    }}
+                >
+                    <img src={`/images/icons/${resource}.png`} />
+                </ActionButton>
+            })}
+        </div>
     </div>
 }
 
