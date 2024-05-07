@@ -29,8 +29,9 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: uiconfig.buttonBackgroundColor,
+        border: "1px inset gray",
     }}>
-        {props.name}
+        <img src={`/images/icons/${props.name}.png`} />
 
         <div style={{
             position: "absolute",

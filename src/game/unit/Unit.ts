@@ -48,12 +48,12 @@ export interface IUnit {
     hitpoints: number;
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;
+    motionQueue: Vector2[] | null;
 
     setHitpoints: (value: number) => void;
     clearAction: () => void;
     onDeath: () => void;
     onMove: (bindSkeleton: boolean) => void;
-    onMoveCommand: (mapCoords: Vector2) => void;
     onArrived: () => void;
     onArriving: () => void;
     onColliding: () => void;
@@ -86,7 +86,8 @@ export class Unit implements IUnit {
 
     public get lookAt() { return this._lookAt; }
     public get fsm() { return this._fsm; }   
-    public get boundingBox() { return this._boundingBox; }
+    public get boundingBox() { return this._boundingBox; }    
+    public get motionQueue() { return this._motionQueue; }    
 
     public set arriving(value: boolean) { 
         this._arriving = value; 
@@ -109,6 +110,7 @@ export class Unit implements IUnit {
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
+    public set motionQueue(value: Vector2[] | null) { this._motionQueue = value; }
 
     private _acceleration = new Vector3();
     private _velocity = new Vector3();
@@ -129,6 +131,7 @@ export class Unit implements IUnit {
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _boundingBox: Box3;
+    private _motionQueue: Vector2[] | null = null;
 
     private _lookAt = new Quaternion();
     private _fsm: StateMachine<IUnit>;
@@ -192,7 +195,6 @@ export class Unit implements IUnit {
     }
 
     public onMove(_bindSkeleton: boolean) {}
-    public onMoveCommand(_mapCoords: Vector2) {}
     public clearAction() {
         const tankState = this.fsm.getState(TankState);
         if (tankState) {

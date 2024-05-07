@@ -4,6 +4,7 @@ import { cmdHideUI, cmdShowUI } from "../../Events";
 import { IGameUIProps } from "./GameUIProps";
 import { GameMapUI } from "./GameMapUI";
 import { DebugUI } from "./DebugUI";
+import "./GameUI.css";
 
 export function GameUI(props: IGameUIProps) {
     const [ui, setUI] = useState<UIType>();

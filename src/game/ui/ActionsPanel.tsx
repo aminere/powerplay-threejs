@@ -4,7 +4,6 @@ import { uiconfig } from "./uiconfig";
 import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
-import { buildings } from "../buildings/Buildings";
 import { config } from "../config/config";
 import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
@@ -143,7 +142,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         unitsManager.killSelection();
                                     }}
                                 >
-                                    kill
+                                    <img src="/images/icons/destroy.png" />
                                 </ActionButton>
                             </FooterActions>
                         </>
@@ -193,7 +192,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                     unitsManager.killSelection();
                                 }}
                             >
-                                destroy
+                                <img src="/images/icons/destroy.png" />
                             </ActionButton>
                         </FooterActions>
                     </>
@@ -209,7 +208,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 unitsManager.killSelection();
                             }}
                         >
-                            destroy
+                            <img src="/images/icons/destroy.png" />
                         </ActionButton>
                     </FooterActions>
                 }

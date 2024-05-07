@@ -172,17 +172,7 @@ export function GameMapUI(_props: IGameUIProps) {
         return () => {
             cmdSetSelectedElems.detach(onSelectedElems);           
         }
-    }, []);
-
-    const factoryOutputsClosedThroughUI = useRef(false);
-    useEffect(() => {
-        if (!showFactoryOutputs) {
-            if (factoryOutputsClosedThroughUI.current) {
-                setTimeout(() => GameMapState.instance.cursorOverUI = false, 60);
-                factoryOutputsClosedThroughUI.current = false;
-            }
-        }
-    }, [showFactoryOutputs]);
+    }, []);    
 
     return <div className={styles.root}>
         <InGameUI>
@@ -198,7 +188,7 @@ export function GameMapUI(_props: IGameUIProps) {
                 }}
             >
                 <ActionSection
-                    name="Build"
+                    name="build"
                     actions={BuildingTypes}
                     open={openSection === "build"}
                     onSelected={action => {
@@ -215,7 +205,7 @@ export function GameMapUI(_props: IGameUIProps) {
                     onClose={() => setOpenSection(null)}
                 />
                 <ActionSection
-                    name="Transport"
+                    name="transport"
                     actions={TransportActions}
                     open={openSection === "transport"}
                     onSelected={action => {
@@ -260,22 +250,13 @@ export function GameMapUI(_props: IGameUIProps) {
             }}>
                 <SelectionPanel selectedElems={selectedElems} />
                 <ActionsPanel onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}>
-                    {(() => {
-                        if (showFactoryOutputs) {
-                            if (selectedElems?.type === "building") {
-                                const building = selectedElems.building;
-                                if (building.buildingType === "factory") {
-                                    return <FactoryOutputPanel
-                                        factory={building}
-                                        onOutputSelected={() => {
-                                            factoryOutputsClosedThroughUI.current = true;
-                                            setShowFactoryOutputs(false);
-                                        }}
-                                    />
-                                }
-                            }
-                        }
-                    })()}
+                    <FactoryOutputPanel
+                        open={showFactoryOutputs}
+                        selectedElems={selectedElems}
+                        onOutputSelected={() => {
+                            setShowFactoryOutputs(false);
+                        }}
+                    />
                 </ActionsPanel>
             </div>
 

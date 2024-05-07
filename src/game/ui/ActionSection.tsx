@@ -3,6 +3,7 @@ import { evtActionCleared } from "../../Events";
 import { ActionButton } from "./ActionButton";
 import { uiconfig } from "./uiconfig";
 import { GameMapState } from "../components/GameMapState";
+import gsap from "gsap";
 
 interface IActionSectionProps {
     open: boolean;
@@ -26,25 +27,21 @@ export function ActionSection(props: IActionSectionProps) {
     useEffect(() => {
         if (open) {
             actionsRef.current!.style.display = "flex";
-            // gsap.to(actionsRef.current, {
-            //     scaleY: 1,
-            //     opacity: 1,
-            //     duration: 0.2,
-            //     onComplete: () => {
-            //         actionsRef.current!.style.pointerEvents = "all";
-            //     }
-            // });
+            gsap.to(actionsRef.current, {
+                scaleY: 1,
+                opacity: 1,
+                duration: 0.2                
+            });
         } else {
             setAction(null);
-            actionsRef.current!.style.display = "none";
-            // gsap.to(actionsRef.current, {
-            //     scaleY: 0,
-            //     opacity: 0,
-            //     duration: 0.2,
-            //     onComplete: () => {
-            //         actionsRef.current!.style.pointerEvents = "none";
-            //     }
-            // });
+            gsap.to(actionsRef.current, {
+                scaleY: 0,
+                opacity: 0,
+                duration: 0.2,
+                onComplete: () => {
+                    actionsRef.current!.style.display = "none";
+                }
+            });
         }
     }, [open]);
 
@@ -69,7 +66,7 @@ export function ActionSection(props: IActionSectionProps) {
             }
         }}
     >
-        <span>{props.name}</span>
+        <img src={`/images/icons/${props.name}.png`} />        
         <div
             ref={actionsRef}
             style={{
@@ -78,9 +75,8 @@ export function ActionSection(props: IActionSectionProps) {
                 flexDirection: "column",
                 gap: `${uiconfig.gap}rem`,
                 display: "none", //"flex",
-                // transform: "scaleY(0)",
-                // opacity: 0,
-                // pointerEvents: "none"
+                transform: "scaleY(0)",
+                opacity: 0,
             }}
         >
             {props.actions.map(_action => {
@@ -99,7 +95,7 @@ export function ActionSection(props: IActionSectionProps) {
                         props.onSelected(_action);
                     }}
                 >
-                    {_action}
+                    <img src={`/images/icons/${_action}.png`} />
                 </ActionButton>
             })}
         </div>

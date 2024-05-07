@@ -250,6 +250,7 @@ export class UnitMotion {
     }
 
     private _motionCommandId = 1;
+    private _multiMotion: Vector2[] | null = null;
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
         const destCell = GameUtils.getCell(destMapCoords)!;
@@ -288,50 +289,63 @@ export class UnitMotion {
         if (!validMove) {
             return;
         }
+    
+        if (destCell.isEmpty) {
 
-        const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
-        console.assert(flowfields);
-        let unitCount = 0;
-        let motionId: number | null = null;
-        for (const unit of units) {
-            if (!unit.isAlive) {
-                continue;
+            this._multiMotion = null;
+            const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
+            const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
+            console.assert(flowfields);
+            let unitCount = 0;
+            let motionId: number | null = null;
+            for (const unit of units) {
+                if (!unit.isAlive) {
+                    continue;
+                }
+    
+                if (unit.coords.mapCoords.equals(destMapCoords)) {
+                    continue;
+                }
+    
+                if (!isDirectionValid(flowfields, unit)) {
+                    continue;
+                }
+    
+                if (motionId === null) {
+                    motionId = flowField.register(flowfields);
+                }
+    
+                moveTo(unit, motionCommandId, motionId, destMapCoords);
+                unit.clearAction();
+                ++unitCount;
             }
-
-            if (unit.coords.mapCoords.equals(destMapCoords)) {
-                continue;
+    
+            if (motionId !== null) {
+                console.assert(unitCount > 0);
+                flowField.setMotionUnitCount(motionId, unitCount);
             }
-
-            if (!isDirectionValid(flowfields, unit)) {
-                continue;
+    
+            for (const sector of GameMapState.instance.sectors.values()) {
+                sector.flowfieldViewer.visible = false;
             }
-
-            if (motionId === null) {
-                motionId = flowField.register(flowfields);
+            if (GameMapProps.instance.debugPathfinding) {
+                for (const sectorCoords of sectors) {
+                    const sector = GameUtils.getSector(sectorCoords)!;
+                    sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
+                    sector.flowfieldViewer.visible = true;
+                }
             }
+        } else {
 
-            unit.onMoveCommand(destMapCoords);
-            moveTo(unit, motionCommandId, motionId, destMapCoords);
-            unit.clearAction();
-            ++unitCount;
-        }
-
-        if (motionId !== null) {
-            console.assert(unitCount > 0);
-            flowField.setMotionUnitCount(motionId, unitCount);
-        }
-
-        for (const sector of GameMapState.instance.sectors.values()) {
-            sector.flowfieldViewer.visible = false;
-        }
-        if (GameMapProps.instance.debugPathfinding) {
-            for (const sectorCoords of sectors) {
-                const sector = GameUtils.getSector(sectorCoords)!;
-                sector.flowfieldViewer.update(flowfields, sector, sectorCoords);
-                sector.flowfieldViewer.visible = true;
+            if (this._multiMotion === null) {
+                this._multiMotion = [destMapCoords];
             }
-        }
+            if (this._multiMotion.length === 1) {
+                // do it now
+            } else {
+                // queue motion
+            }
+        }        
     }
 
     public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
