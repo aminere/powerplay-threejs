@@ -8,7 +8,7 @@ import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
 import { cmdEndSelection, evtActionCleared } from "../../Events";
-import { IUnit } from "../unit/Unit";
+import { IUnit } from "../unit/IUnit";
 import { buildings } from "../buildings/Buildings";
 import { unitMotion } from "../unit/UnitMotion";
 import { conveyors } from "../Conveyors";
@@ -151,7 +151,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                     } else {
                         if (!cellCoords.equals(state.highlightedCellCoords)) {
-                            state.highlightedCellCoords.copy(cellCoords!);
+                            state.highlightedCellCoords.copy(cellCoords!);                            
                         }
                     }
                 }             
@@ -383,11 +383,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 if (group.vehicle.length > 0) {
                                     unitMotion.moveGroup(commandId, group.vehicle, cellCoords, targetCell, true);
                                 }
-                            }
+                            }                            
                         }
                     }
                 }
-
             }
         }
     }

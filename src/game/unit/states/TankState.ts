@@ -1,8 +1,8 @@
 import { MathUtils, Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { time } from "../../../engine/core/Time";
 import { State } from "../../fsm/StateMachine";
-import { ICharacterUnit } from "../CharacterUnit";
-import { IUnit } from "../Unit";
+import { ICharacterUnit } from "../ICharacterUnit";
+import { IUnit } from "../IUnit";
 import { UnitSearch } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { GameUtils } from "../../GameUtils";

@@ -1,7 +1,7 @@
 import { InstancedMesh } from "three";
 import { ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
 import { trees } from "./Trees";
-import { IUnit } from "./unit/Unit";
+import { IUnit } from "./unit/IUnit";
 
 export class Cell implements ICell {
 

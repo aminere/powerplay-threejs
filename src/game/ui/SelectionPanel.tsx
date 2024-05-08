@@ -6,9 +6,9 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
 import { resourceConfig } from "../config/ResourceConfig";
 import { config } from "../config/config";
-import { ICharacterUnit } from "../unit/CharacterUnit";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { ITruckUnit } from "../unit/TruckUnit";
-import { IUnit } from "../unit/Unit";
+import { IUnit } from "../unit/IUnit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { ProgressBar } from "./ProgressBar";
 import { GridFiller } from "./GridFiller";
@@ -36,13 +36,16 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
     >
         <img src={`/images/icons/${props.name}.png`} />
 
-        <div style={{
-            position: "absolute",
-            right: "0",
-            bottom: "0",
-            backgroundColor: "black",
-            fontSize: "0.8rem",
-        }}>
+        <div
+            dir="ltr"
+            style={{
+                position: "absolute",
+                right: "0",
+                bottom: "0",
+                backgroundColor: "black",
+                fontSize: "0.8rem",
+            }}
+        >
             {props.value}
         </div>
 

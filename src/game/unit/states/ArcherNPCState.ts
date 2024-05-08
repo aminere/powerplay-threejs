@@ -1,12 +1,12 @@
 import { State } from "../../fsm/StateMachine";
-import { IUnit } from "../Unit";
+import { IUnit } from "../IUnit";
 import { LoopOnce, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 import { engine } from "../../../engine/Engine";
 import gsap from "gsap";
 import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
-import { ICharacterUnit } from "../CharacterUnit";
+import { ICharacterUnit } from "../ICharacterUnit";
 
 enum NpcStep {
     Idle,

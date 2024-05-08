@@ -1,9 +1,9 @@
-import { Box3, Object3D, Quaternion, Vector2, Vector3 } from "three"
+import { Box3, Object3D, Quaternion, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";
 import { Fadeout } from "../components/Fadeout";
-import { IUnitAddr, computeUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
+import { computeUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
 import { cmdFogRemoveCircle, evtUnitKilled, evtUnitStateChanged } from "../../Events";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
@@ -12,6 +12,7 @@ import { UnitUtils } from "./UnitUtils";
 import { TankState } from "./states/TankState";
 import { unitMotion } from "./UnitMotion";
 import { unitConfig } from "../config/UnitConfig";
+import { IUnit, IUnitFlowfieldInfo } from "./IUnit";
 
 export interface IUnitProps {
     visual: Object3D;
@@ -19,47 +20,6 @@ export interface IUnitProps {
     type: UnitType;
     speed?: number;
     states: State<IUnit>[];
-}
-
-export interface IUnitFlowfieldInfo {
-    cellIndex: number;
-    sectorCoords: Vector2;
-}
-
-export interface IUnit {
-    id: number;
-    velocity: Vector3;
-    acceleration: Vector3;
-    arriving: boolean;
-    lastKnownFlowfield: IUnitFlowfieldInfo | null;
-    targetCell: IUnitAddr;
-    visual: Object3D;
-    coords: IUnitAddr;
-    motionId: number;
-    motionCommandId: number;
-    lastCompletedMotionCommandId: number;
-    isColliding: boolean;
-    isAlive: boolean;
-    isIdle: boolean;
-    collidable: boolean;
-    type: UnitType;
-    fsm: StateMachine<IUnit>;
-    lookAt: Quaternion;
-    hitpoints: number;
-    unitsInRange: Array<[IUnit, number]>;
-    boundingBox: Box3;
-    motionQueue: Vector2[] | null;
-
-    setHitpoints: (value: number) => void;
-    clearAction: () => void;
-    onDeath: () => void;
-    onMove: (bindSkeleton: boolean) => void;
-    onArrived: () => void;
-    onArriving: () => void;
-    onColliding: () => void;
-    onReachedBuilding: (cell: ICell) => void;
-    onReachedResource: (cell: ICell) => void;
-    onCollidedWhileMoving: (unit: IUnit) => void;
 }
 
 export class Unit implements IUnit {
@@ -86,8 +46,7 @@ export class Unit implements IUnit {
 
     public get lookAt() { return this._lookAt; }
     public get fsm() { return this._fsm; }   
-    public get boundingBox() { return this._boundingBox; }    
-    public get motionQueue() { return this._motionQueue; }    
+    public get boundingBox() { return this._boundingBox; }
 
     public set arriving(value: boolean) { 
         this._arriving = value; 
@@ -98,7 +57,6 @@ export class Unit implements IUnit {
     }
 
     public set motionId(value: number) { this._motionId = value; }
-
     public set motionCommandId(value: number) { 
         if (value === 0 && this._motionCommandId > 0) {
             this._lastCompletedMotionCommandId = this._motionCommandId;
@@ -110,7 +68,6 @@ export class Unit implements IUnit {
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
-    public set motionQueue(value: Vector2[] | null) { this._motionQueue = value; }
 
     private _acceleration = new Vector3();
     private _velocity = new Vector3();
@@ -131,7 +88,6 @@ export class Unit implements IUnit {
     private _attackers: IUnit[] = [];
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _boundingBox: Box3;
-    private _motionQueue: Vector2[] | null = null;
 
     private _lookAt = new Quaternion();
     private _fsm: StateMachine<IUnit>;
@@ -182,7 +138,7 @@ export class Unit implements IUnit {
         }
         
         evtUnitStateChanged.post(this);
-    }
+    }   
 
     public onDeath() {
         const fadeDuration = 1;
@@ -205,7 +161,9 @@ export class Unit implements IUnit {
     public onArriving() {}
     public onColliding() {}
     public onReachedBuilding(_cell: ICell) {}
-    public onReachedResource(_cell: ICell) {};
+
+    public onReachedResource(_cell: ICell) {}
+
     public onCollidedWhileMoving(neighbor: IUnit) {
         // if other unit was part of my motion, stop
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {

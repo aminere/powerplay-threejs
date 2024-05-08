@@ -1,7 +1,7 @@
 import { time } from "../../../engine/core/Time";
 import { RawResourceType } from "../../GameDefinitions";
 import { State } from "../../fsm/StateMachine";
-import { ICharacterUnit } from "../CharacterUnit";
+import { ICharacterUnit } from "../ICharacterUnit";
 import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
@@ -17,7 +17,6 @@ export class MiningState extends State<ICharacterUnit> {
         copyUnitAddr(unit.targetCell, this._targetResource);
         unit.isIdle = false;
         unit.collidable = false;
-
         if (unit.resource) {
             unit.resource = null;
         }

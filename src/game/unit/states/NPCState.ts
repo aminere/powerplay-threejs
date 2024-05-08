@@ -1,8 +1,8 @@
 import { State } from "../../fsm/StateMachine";
 import { time } from "../../../engine/core/Time";
 import { unitMotion } from "../UnitMotion";
-import { ICharacterUnit } from "../CharacterUnit";
-import { IUnit } from "../Unit";
+import { ICharacterUnit } from "../ICharacterUnit";
+import { IUnit } from "../IUnit";
 import { spiralFind } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";

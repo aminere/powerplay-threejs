@@ -7,8 +7,8 @@ import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
 import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
-import { ICharacterUnit } from "../unit/CharacterUnit";
-import { IUnit } from "../unit/Unit";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
+import { IUnit } from "../unit/IUnit";
 import { Depots } from "../buildings/Depots";
 import { UnitUtils } from "../unit/UnitUtils";
 import { unitMotion } from "../unit/UnitMotion";
@@ -118,6 +118,9 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         const units = selectedElems.units;
                         if (units.length === 1) {
                             const unit = units[0];
+                            if (UnitUtils.isEnemy(unit)) {
+                                return null;
+                            }
                             return <>
                                 {(() => {
                                     if (!UnitUtils.isEnemy(unit)) {

@@ -1,12 +1,13 @@
 
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { IUnit, Unit } from "./Unit";
+import { Unit } from "./Unit";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { config } from "../config/config";
 import { TruckState } from "./states/TruckState";
+import { IUnit } from "./IUnit";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;

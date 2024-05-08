@@ -1,9 +1,8 @@
 
-import { AnimationAction, SkinnedMesh, Vector2 } from "three";
+import { SkinnedMesh, Vector2 } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
-import { IUnit, Unit } from "./Unit";
-import { CharacterType, RawResourceType } from "../GameDefinitions";
-import { State } from "../fsm/StateMachine";
+import { Unit } from "./Unit";
+import { RawResourceType } from "../GameDefinitions";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { Fadeout } from "../components/Fadeout";
@@ -22,30 +21,10 @@ import { Depots } from "../buildings/Depots";
 import { Factories } from "../buildings/Factories";
 import { Incubators } from "../buildings/Incubators";
 import { MiningState } from "./states/MiningState";
+import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit";
+import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 
-interface IUnitAnim {
-    name: string;
-    action: AnimationAction;
-}
-
-export interface ICharacterUnit extends IUnit {
-    skinnedMesh: SkinnedMesh;
-    animation: IUnitAnim;
-    skeleton: IUniqueSkeleton | null;
-    muzzleFlashTimer: number;
-    resource: ICarriedResource | null;
-    targetBuilding: Vector2 | null;
-    clearResource: () => void;
-}
-
-export interface ICharacterUnitProps {
-    visual: SkinnedMesh;    
-    type: CharacterType;
-    speed?: number;
-    states: State<ICharacterUnit>[];
-    animation: IUnitAnim;
-}
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -119,55 +98,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         if (bindSkeleton) {
             unitAnimation.setAnimation(this, "run");
         }
-    }
-
-    public override onMoveCommand(mapCoords: Vector2) {                
-        if (this.motionId > 0 && !this.resource) {
-
-            // received a new move command while moving
-            // check if it makes sense to chain 2 motions together                                    
-            const previousTargetResource = (() => {
-                const previousTargetCell = getCellFromAddr(this.targetCell);
-                if (previousTargetCell.resource) {
-                    return previousTargetCell.resource.type;
-                }
-                if (previousTargetCell.building) {
-                    const instance = GameMapState.instance.buildings.get(previousTargetCell.building!)!;
-                    if (instance.buildingType === "depot") {
-                        const state = instance.state as IDepotState;
-                        if (state.amount > 0) {
-                            return state.type;
-                        }
-                    }
-                }
-                return null;
-            })();
-
-            if (!previousTargetResource) {
-                return;
-            }
-
-            const nextTargetCanAccept = (() => {
-                const targetCell = GameUtils.getCell(mapCoords)!;
-                if (targetCell.building) {
-                    const instance = GameMapState.instance.buildings.get(targetCell.building!)!;
-                    switch (instance.buildingType) {
-                        case "depot": {                            
-                            return Depots.canAcceptResource(instance, previousTargetResource);
-                        }
-                        case "factory": {
-                            return Factories.canAcceptResource(instance, previousTargetResource);
-                        }
-                    }                    
-                }
-                return false;
-            })();            
-
-            if (nextTargetCanAccept) {
-                console.log("TODO chain actions!");
-            }
-        }
-    }
+    }    
 
     public override clearAction() {
         this._targetBuilding = null;

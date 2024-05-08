@@ -1,7 +1,7 @@
 import { MathUtils, Quaternion, Vector3 } from "three";
 import { State } from "../../fsm/StateMachine";
-import { ICharacterUnit } from "../CharacterUnit";
-import { IUnit } from "../Unit";
+import { ICharacterUnit } from "../ICharacterUnit";
+import { IUnit } from "../IUnit";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
 import { UnitSearch } from "../UnitSearch";

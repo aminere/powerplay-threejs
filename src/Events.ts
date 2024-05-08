@@ -2,7 +2,7 @@ import { AsyncEvent, SyncEvent } from "ts-events";
 import { UIType } from "./game/GameDefinitions";
 import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
-import { IUnit } from "./game/unit/Unit";
+import { IUnit } from "./game/unit/IUnit";
 import { ICell } from "./game/GameTypes";
 
 export const cmdShowUI = new AsyncEvent<UIType>();

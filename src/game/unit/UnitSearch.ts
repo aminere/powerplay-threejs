@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import { IUnit } from "./Unit";
+import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { getCellFromAddr } from "./UnitAddr";
 

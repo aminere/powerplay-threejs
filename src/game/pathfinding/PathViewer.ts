@@ -4,7 +4,7 @@ import { GameUtils } from "../GameUtils";
 export class PathViewer extends Object3D {
     constructor() {
         super();
-        const lineSegments = new Line(new BufferGeometry(), new LineBasicMaterial({ color: 0x0000ff }));
+        const lineSegments = new Line(new BufferGeometry(), new LineBasicMaterial({ color: 0xffffff }));
         lineSegments.position.y = 0.05;
         this.add(lineSegments);
         this.name = "PathViewer";
