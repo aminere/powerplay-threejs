@@ -60,8 +60,8 @@ export interface ITerrainPatch {
 const { mapRes, cellSize, elevationStep, cellsPerRoadBlock } = config.game;
 const verticesPerRow = mapRes + 1;
 const vertexCount = verticesPerRow * verticesPerRow;
-const yellowSand = new Color(0xcdaf69);
-const sand = new Color(0xc4926f);
+const yellowSand = new Color(0xc9b495);
+const sand = new Color(0xd4c3ab);
 // const stone = new Color(0xa0a0a0);
 const colorMix = new Color();
 

@@ -40,7 +40,8 @@ export class Water extends Component<WaterProps> {
             flatShading: true,
             transparent: true,
             opacity: 0.5,
-            color: 0x339CFF
+            color: 0x339CFF,
+            depthWrite: false,
         });
         this._material = waterMaterial;
 
@@ -87,7 +88,8 @@ export class Water extends Component<WaterProps> {
         const waterMesh = new InstancedMesh(geometry, waterMaterial, count);        
         waterMesh.frustumCulled = false;
         waterMesh.matrixAutoUpdate = false;
-        waterMesh.matrixWorldAutoUpdate = false;        
+        waterMesh.matrixWorldAutoUpdate = false;  
+        waterMesh.renderOrder = 1;      
 
         const matrix = new Matrix4();
         const position = new Vector3();

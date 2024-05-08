@@ -338,6 +338,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                             break;
 
+                        case "water": {
+                            onAction(2);
+                        }
+                        break;
+
                         default: {
                             state.action = null;
                             evtActionCleared.post();

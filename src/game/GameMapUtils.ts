@@ -213,6 +213,12 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
             break;
+
+        case "resource": {
+            const cell = GameUtils.getCell(current, sectorCoords, localCoords)!;
+            onResource(sectorCoords, localCoords, cell, 0, GameMapProps.instance.resourceType);
+        }
+        break;
     }
 }
 
