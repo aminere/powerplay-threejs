@@ -31,7 +31,7 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: `${uiconfig.gapRem}rem`
+            padding: `${2 * uiconfig.gapRem}rem`
         }}
     >
         <img src={`/images/icons/${props.name}.png`} />
@@ -165,12 +165,12 @@ export function SelectionPanel(props: SelectionPanelProps) {
     }
 
     return <div style={{
-        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gapRem}rem)`,
+        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.selectionColumns} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.selectionColumns - 1} * ${uiconfig.gapRem}rem)`,
         position: "relative",
         backgroundColor: `${uiconfig.backgroundColor}`,
         padding: `${uiconfig.paddingRem}rem`,
         display: "grid",
-        gridTemplateColumns: `repeat(4, ${uiconfig.buttonSizeRem}rem)`,
+        gridTemplateColumns: `repeat(${uiconfig.selectionColumns}, ${uiconfig.buttonSizeRem}rem)`,
         gridAutoRows: "min-content",
         gap: `${uiconfig.gapRem}rem`
     }}>

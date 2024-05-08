@@ -95,7 +95,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
     }
 
     return <div style={{
-        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.actionsPerRow} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionsPerRow - 1} * ${uiconfig.gapRem}rem)`,
+        width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.actionColumns} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionColumns - 1} * ${uiconfig.gapRem}rem)`,
         position: "relative",
         backgroundColor: `${uiconfig.backgroundColor}`,
         padding: `${uiconfig.paddingRem}rem`        
@@ -105,12 +105,12 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                 position: "relative",
                 height: "100%",
                 display: "grid",
-                gridTemplateColumns: `repeat(4, ${uiconfig.buttonSizeRem}rem)`,
+                gridTemplateColumns: `repeat(${uiconfig.actionColumns}, ${uiconfig.buttonSizeRem}rem)`,
                 gridAutoRows: "min-content",
                 gap: `${uiconfig.gapRem}rem`
             }}
         >
-            <GridFiller slots={8} columns={4} />
+            <GridFiller slots={uiconfig.actionColumns * uiconfig.actionRows} columns={uiconfig.actionColumns} />
 
             {(() => {
                 switch (selectedElems.type) {

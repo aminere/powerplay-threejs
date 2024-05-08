@@ -101,11 +101,11 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
                 height: "100%",
                 display: "grid",
                 gap: `${uiconfig.gapRem}rem`,
-                gridTemplateColumns: `repeat(${uiconfig.outputsPerRow}, ${uiconfig.buttonSizeRem}rem)`,
+                gridTemplateColumns: `repeat(${uiconfig.outputColumns}, ${uiconfig.buttonSizeRem}rem)`,
                 gridAutoRows: "min-content",
             }}
         >
-            <GridFiller slots={uiconfig.outputsPerRow * uiconfig.outputRows} columns={uiconfig.outputsPerRow} />
+            <GridFiller slots={uiconfig.outputColumns * uiconfig.outputRows} columns={uiconfig.outputColumns} />
 
             {ResourceTypes.map(resource => {
                 return <ActionButton

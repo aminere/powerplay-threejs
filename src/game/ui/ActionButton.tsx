@@ -20,7 +20,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             cursor: "pointer",
             border: props.selected ? `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}` : "1px outset gray",
             backgroundColor: uiconfig.slotBackgroundColor,
-            padding: `${2 * uiconfig.gapRem}rem`,
+            padding: `${2 * uiconfig.gapRem}rem`
         }}
         onClick={e => {
             e.stopPropagation();

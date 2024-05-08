@@ -5,10 +5,12 @@ export const uiconfig = {
     gapRem: .2,
     slotBackgroundColor: "#00000044",
     backgroundColor: "#373737b3",
-    actionsPerRow: 4,
+    selectionRows: 2,
+    selectionColumns: 4,        
     actionRows: 2,
+    actionColumns: 3,
     outputRows: 2,
-    outputsPerRow: 8,
+    outputColumns: 8,
     selectedBorderSizePx: 2
 }
 
