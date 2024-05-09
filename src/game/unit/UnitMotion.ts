@@ -17,6 +17,7 @@ import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { unitConfig } from "../config/UnitConfig";
 import { ICharacterUnit } from "./ICharacterUnit";
+import { Collision } from "../../engine/collision/Collision";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -370,6 +371,58 @@ export class UnitMotion {
             }
         }
 
+        const collides = (unit1: IUnit, unit2: IUnit) => {
+            const unit1IsCharacter = !UnitUtils.isVehicle(unit1);
+            const uni21IsCharacter = !UnitUtils.isVehicle(unit2);
+
+            const vehicleCollidesWithCharacter = (vehicle: IUnit, character: ICharacterUnit) => {
+                return Collision.obbIntersectsSphere(
+                    vehicle.visual,
+                    new Vector3(-.3, 0, -1),
+                    new Vector3(.3, .74, 1),
+                    character.visual.position,
+                    separations[character.type] / 2
+                );
+            }
+
+            if (unit1IsCharacter || uni21IsCharacter) {
+                if (!unit1IsCharacter) {
+                    return vehicleCollidesWithCharacter(unit1, unit2 as ICharacterUnit);
+
+                } else if (!uni21IsCharacter) {
+                    return vehicleCollidesWithCharacter(unit2, unit1 as ICharacterUnit);
+
+                } else {
+                    // both characters
+                    const dist = unit1.visual.position.distanceTo(unit2.visual.position);
+                    const separation = Math.max(separations[unit1.type], separations[unit2.type]);   
+                    return dist < separation;      
+                }
+            } else {
+                const vehicle2Sphere1Pos = unit2.visual.localToWorld(new Vector3(0, .74 / 2, .5));
+                const vehicle2Sphere2Pos = unit2.visual.localToWorld(new Vector3(0, .74 / 2, -.5));
+                if (Collision.obbIntersectsSphere(
+                    unit1.visual,
+                    new Vector3(-.3, 0, -1),
+                    new Vector3(.3, .74, 1),
+                    vehicle2Sphere1Pos,
+                    .3
+                )) {
+                    return true;
+                }
+                if (Collision.obbIntersectsSphere(
+                    unit1.visual,
+                    new Vector3(-.3, 0, -1),
+                    new Vector3(.3, .74, 1),
+                    vehicle2Sphere2Pos,
+                    .3
+                )) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         if (unit.collidable) {
             const neighbors = getUnitNeighbors(unit, 2);
             for (const neighbor of neighbors) {
@@ -377,9 +430,7 @@ export class UnitMotion {
                     continue;
                 }
 
-                const dist = neighbor.visual.position.distanceTo(unit.visual.position);
-                const separation = Math.max(separations[unit.type], separations[neighbor.type]);
-                if (dist < separation) {
+                if (collides(unit, neighbor)) {
                     unit.isColliding = true;
                     neighbor.isColliding = true;
 
