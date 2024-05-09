@@ -28,5 +28,31 @@ export class Collision {
         }
         return false;
     }
+
+    // TODO
+    // public static ObbObbIntersects(obb1: Object3D, obb2: Object3D) {
+    //     const planes = [
+    //         [new Plane(new Vector3(0, 1, 0), -.5), "y"],
+    //         [new Plane(new Vector3(0, -1, 0), -.5), "y"],
+    //         [new Plane(new Vector3(1, 0, 0), -.5), "x"],
+    //         [new Plane(new Vector3(-1, 0, 0), -.5), "x"],
+    //         [new Plane(new Vector3(0, 0, 1), -.5), "z"],
+    //         [new Plane(new Vector3(0, 0, -1), -.5), "z"]
+    //     ] as const;
+
+    //     const intersects = () => {
+    //         const sphereRadius = 1;
+    //         const localPos = cube.worldToLocal(sphere.position.clone());
+    //         for (const [plane, axis] of planes) {
+    //             const d = plane.distanceToPoint(localPos) * cube.scale[axis];
+    //             //console.log(d);
+    //             if (d > sphereRadius) {
+    //                 return false;
+    //             }
+    //         }
+    //         return true;
+    //     };
+
+    // }
 }
 
