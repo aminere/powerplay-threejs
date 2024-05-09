@@ -4,7 +4,7 @@ import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { time } from "../../engine/core/Time";
 import { engineState } from "../../engine/EngineState";
 import { unitAnimation } from "../unit/UnitAnimation";
-import { ICharacterUnit } from "../unit/CharacterUnit";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
 
 export class UnitCollisionAnimProps extends ComponentProps {
     duration = .25;

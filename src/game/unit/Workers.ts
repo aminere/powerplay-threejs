@@ -4,7 +4,7 @@ import { meshes } from "../../engine/resources/Meshes";
 import { objects } from "../../engine/resources/Objects";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { GameMapState } from "../components/GameMapState";
-import { ICharacterUnit } from "./CharacterUnit";
+import { ICharacterUnit } from "./ICharacterUnit";
 import { unitAnimation } from "./UnitAnimation";
 import { SoldierState } from "./states/SoldierState";
 import { time } from "../../engine/core/Time";
