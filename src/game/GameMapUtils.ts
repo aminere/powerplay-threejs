@@ -432,11 +432,11 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                         return false;
                     }
 
-                    depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
-                    if (!depotInRange) {
-                        rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
-                        return false;
-                    }
+                    // depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
+                    // if (!depotInRange) {
+                    //     rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
+                    //     return false;
+                    // }
 
                     return true;
                 }
@@ -449,17 +449,17 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             }
 
             depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
-            if (!depotInRange) {
-                if (buildingType === "depot") {
-                    const { depotsCache } = GameMapState.instance;
-                    if (depotsCache.size === 0) {
-                        //first depot is free
-                        return true;
-                    }
-                }
-                rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
-                return false;
-            }
+            // if (!depotInRange) {
+            //     if (buildingType === "depot") {
+            //         const { depotsCache } = GameMapState.instance;
+            //         if (depotsCache.size === 0) {
+            //             //first depot is free
+            //             return true;
+            //         }
+            //     }
+            //     rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
+            //     return false;
+            // }
 
             return true;
         })();

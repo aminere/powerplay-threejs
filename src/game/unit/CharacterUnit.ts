@@ -112,7 +112,10 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         const soldierState = this.fsm.getState(SoldierState);
         if (soldierState) {
             soldierState.stopAttack(this);
+            return;
         }
+
+        this.fsm.switchState(null);
     }
 
     public override onArrived() {

@@ -1,19 +1,14 @@
-import { MathUtils, Quaternion, Vector3 } from "three";
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
 import { unitAnimation } from "../UnitAnimation";
-import { unitMotion } from "../UnitMotion";
 import { UnitSearch } from "../UnitSearch";
-import { GameUtils } from "../../GameUtils";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 
 const shootRange = 4;
 const hitFrequency = .5;
 const damage = .1;
-const targetPos = new Vector3();
-const targetRotation = new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12));
 
 export class SoldierState extends State<ICharacterUnit> {
 
@@ -44,12 +39,8 @@ export class SoldierState extends State<ICharacterUnit> {
                         unit.isIdle = false;
                         unitAnimation.setAnimation(unit, "shoot", { transitionDuration: .3, scheduleCommonAnim: true });
                     } else {
-                        // rotate to target
-                        targetPos.subVectors(target!.visual.position, unit.visual.position);
-                        targetPos.applyQuaternion(targetRotation);
-                        targetPos.add(unit.visual.position);
-                        unitMotion.updateRotation(unit, unit.visual.position, targetPos);
 
+                        UnitUtils.rotateToTarget(unit, target!);
                         // attack
                         if (this._hitTimer < 0) {
                             target!.setHitpoints(target!.hitpoints - damage);

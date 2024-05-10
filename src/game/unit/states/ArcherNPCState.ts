@@ -7,6 +7,7 @@ import { time } from "../../../engine/core/Time";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../ICharacterUnit";
+import { UnitUtils } from "../UnitUtils";
 
 enum NpcStep {
     Idle,
@@ -81,7 +82,7 @@ export class ArcherNPCState extends State<IUnit> {
                     const dist = target.visual.position.distanceTo(unit.visual.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        unitMotion.updateRotation(unit, unit.visual.position, target.visual.position);
+                        UnitUtils.updateRotation(unit, unit.visual.position, target.visual.position);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               

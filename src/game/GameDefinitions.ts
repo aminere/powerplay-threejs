@@ -42,7 +42,7 @@ export const RawResourceTypes = [
 export const ResourceTypes = [
     "coal",
     "steel",
-    "gunpowder",    
+    "bullets",
     "plastic",
     "rubber",
     "concrete",

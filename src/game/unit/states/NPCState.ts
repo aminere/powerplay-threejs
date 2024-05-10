@@ -6,8 +6,7 @@ import { IUnit } from "../IUnit";
 import { spiralFind } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
-import { MathUtils, Quaternion, Vector3 } from "three";
-import { GameUtils } from "../../GameUtils";
+import { MeleeState } from "./MeleeState";
 
 enum NpcStep {
     Idle,
@@ -18,8 +17,6 @@ enum NpcStep {
 const vision = 4;
 const hitFrequency = .5;
 const damage = .1;
-const targetPos = new Vector3();
-const targetRotation = new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(60));
 
 export class NPCState extends State<ICharacterUnit> {
 
@@ -61,13 +58,19 @@ export class NPCState extends State<ICharacterUnit> {
 
                 } else {
 
-                    targetPos.subVectors(target!.visual.position, unit.visual.position);
-                    targetPos.applyQuaternion(targetRotation);
-                    targetPos.add(unit.visual.position);
-                    unitMotion.updateRotation(unit, unit.visual.position, targetPos);
+                    UnitUtils.rotateToTarget(unit, target!);
                     if (this._hitTimer < 0) {
                         target!.setHitpoints(target!.hitpoints - damage);
-                        this._hitTimer = hitFrequency;                    
+
+                        if (target!.isAlive && UnitUtils.isWorker(target!)) {
+                            const worker = target as ICharacterUnit;
+                            if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
+                                const meleeState = target!.fsm.getState(MeleeState) ?? target!.fsm.switchState(MeleeState);
+                                meleeState.startAttack(target as ICharacterUnit, unit);
+                            }
+                        }
+
+                        this._hitTimer = hitFrequency;
                     } else {
                         this._hitTimer -= time.deltaTime;                
                     }

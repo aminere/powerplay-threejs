@@ -52,30 +52,46 @@ export class TruckUnit extends Unit implements ITruckUnit {
                 const truckAmount = this.resources?.amount ?? 0;
                 const totalResources = state.amount + truckAmount;
                 if (totalResources > 0) {
-
-                    const getFromDepot = (() => {
-                        if (this.resources) {
-                            if (state.type === this.resources.type) {
-                                // return this.resources.amount === 0;
-                                const depotPercentFull = state.amount / state.capacity;
-                                const truckPercentFull = this.resources.amount / truckCapacity;
-                                if (depotPercentFull >= truckPercentFull) {                                    
-                                    return true;
-                                } else {
-                                    return false;
-                                }
-                            } else {
-                                // existing resources are lost
-                                return true;
-                            }
-                        } else {
-                            return true;
-                        }
-                    })();         
-                    
                     const truckState = this.fsm.getState(TruckState)!;
-                    truckState.startTransfer(instance, getFromDepot);
-                }
+                    if (truckAmount > 0) {
+                        if (state.type === this.resources!.type) {
+                            truckState.startTransfer(instance, false);
+                        } else {
+                            truckState.startTransfer(instance, true);    
+                        }
+
+                    } else {
+                        truckState.startTransfer(instance, true);
+                    }
+                }                
+
+                // const totalResources = state.amount + truckAmount;
+                // if (totalResources > 0) {
+
+                //     const getFromDepot = (() => {
+                //         if (this.resources) {
+                //             if (state.type === this.resources.type) {
+                //                 // return this.resources.amount === 0;
+                //                 const depotPercentFull = state.amount / state.capacity;
+                //                 const truckPercentFull = this.resources.amount / truckCapacity;
+                //                 if (depotPercentFull >= truckPercentFull) {                                    
+                //                     return true;
+                //                 } else {
+                //                     return false;
+                //                 }
+                //             } else {
+                //                 // existing resources are lost
+                //                 return true;
+                //             }
+                //         } else {
+                //             return true;
+                //         }
+                //     })();         
+                    
+                //     const truckState = this.fsm.getState(TruckState)!;
+                //     truckState.startTransfer(instance, getFromDepot);
+                // }
+
             }
             break;
         }

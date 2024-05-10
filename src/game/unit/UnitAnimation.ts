@@ -68,7 +68,7 @@ class UnitAnimation {
                 }
             }
     
-        } else {
+        } else {            
             this.setCommonAnimation(unit, animation, destAnimSpeed);
         }
     }    

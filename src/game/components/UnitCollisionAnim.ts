@@ -43,7 +43,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
     }
 
     public reset() {
-        this.state.timer = this.props.duration;
+        this.state.timer = this.props.duration;        
     }
 }
 

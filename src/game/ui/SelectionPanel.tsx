@@ -16,10 +16,11 @@ import { Icon } from "./Icon";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
+const noOutput = "no output";
 
 interface PropertyProps {
     name: string;
-    value: string;
+    value?: string;
 }
 
 function Property(props: React.PropsWithChildren<PropertyProps>) {    
@@ -32,22 +33,28 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: `${2 * uiconfig.gapRem}rem`
+            padding: `${2 * uiconfig.gapRem}rem`,
+            textAlign: "center"
         }}
     >
         <Icon name={props.name} />
-        <div
-            dir="ltr"
-            style={{
-                position: "absolute",
-                right: "0",
-                bottom: "0",
-                backgroundColor: "black",
-                fontSize: "0.8rem",
-            }}
-        >
-            {props.value}
-        </div>
+
+        {
+            props.value
+            &&
+            <div
+                dir="ltr"
+                style={{
+                    position: "absolute",
+                    right: "0",
+                    bottom: "0",
+                    backgroundColor: "black",
+                    fontSize: "0.8rem"
+                }}
+            >
+                {props.value}
+            </div>
+        }        
 
         {props.children}
     </div>
@@ -79,21 +86,39 @@ function SingleSelectionPanelHeader({ children }: React.PropsWithChildren<{}>) {
 }
 
 function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
+    
     return <>
-        {props.children}
+        {props.children}    
 
-        <Property name={props.type} value={`${props.amount} / ${props.capacity}`}>
-            <div
-                style={{
-                    position: "absolute",
-                    bottom: `-${uiconfig.gapRem}rem`,
-                    transform: "translateY(100%)",
-                    textAlign: "center"
-                }}
-            >
-                {props.subtype ? `${props.subtype} ${props.type}` : props.type}
-            </div>
-        </Property>
+        <div
+            style={{
+                position: "relative",
+                display: "grid",
+                gridTemplateColumns: `repeat(${uiconfig.selectionColumns}, ${uiconfig.buttonSizeRem}rem)`,
+                gridAutoRows: "min-content",
+                gap: `${uiconfig.gapRem}rem`
+            }}
+        >
+            <GridFiller slots={props.subtype ? 2 : 1} columns={props.subtype ? 2 : 1} />    
+            <Property name={props.type} value={`${props.amount} / ${props.capacity}`}>
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: `-${uiconfig.gapRem}rem`,
+                        transform: "translateY(100%)",
+                        textAlign: "center"
+                    }}
+                >
+                    {(props.subtype && props.subtype !== noOutput) ? `${props.subtype} ${props.type}` : props.type}
+                </div>
+            </Property>
+
+            {
+                props.subtype
+                &&
+                <Property name={props.subtype} />
+            }
+        </div>        
 
         <div
             style={{
@@ -171,11 +196,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
         width: `calc(2 * ${uiconfig.paddingRem}rem + ${uiconfig.selectionColumns} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.selectionColumns - 1} * ${uiconfig.gapRem}rem)`,
         position: "relative",
         backgroundColor: `${uiconfig.backgroundColor}`,
-        padding: `${uiconfig.paddingRem}rem`,
-        display: "grid",
-        gridTemplateColumns: `repeat(${uiconfig.selectionColumns}, ${uiconfig.buttonSizeRem}rem)`,
-        gridAutoRows: "min-content",
-        gap: `${uiconfig.gapRem}rem`
+        padding: `${uiconfig.paddingRem}rem`        
     }}>
 
         {(() => {
@@ -228,7 +249,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
 
                                 return <SingleSelectionPanel
                                     type={type}
-                                    subtype={state.output ?? null}
+                                    subtype={state.output}
                                     amount={hitpoints}
                                     capacity={maxHitpoints}
                                     properties={properties}
@@ -243,7 +264,13 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     })()}
                                 </SingleSelectionPanel>
                             } else {
-                                return <SingleSelectionPanel type={type} amount={hitpoints} capacity={maxHitpoints} properties={null} />;
+                                return <SingleSelectionPanel
+                                    type={type}
+                                    subtype={noOutput}
+                                    amount={hitpoints}
+                                    capacity={maxHitpoints}
+                                    properties={null}
+                                />;
                             }
                         }
                     }

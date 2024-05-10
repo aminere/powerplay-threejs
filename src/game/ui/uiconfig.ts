@@ -6,7 +6,7 @@ export const uiconfig = {
     slotBackgroundColor: "#00000044",
     backgroundColor: "#373737b3",
     selectionRows: 2,
-    selectionColumns: 4,        
+    selectionColumns: 5,        
     actionRows: 2,
     actionColumns: 3,
     outputRows: 2,

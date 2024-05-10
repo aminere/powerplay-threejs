@@ -1,4 +1,4 @@
-import { MathUtils, Matrix4, Vector2, Vector3 } from "three";
+import { MathUtils, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
@@ -19,8 +19,6 @@ import { unitConfig } from "../config/UnitConfig";
 import { ICharacterUnit } from "./ICharacterUnit";
 
 const cellDirection = new Vector2();
-const deltaPos = new Vector3();
-const matrix = new Matrix4();
 const destSectorCoords = new Vector2();
 
 const cellCoords = new Vector2();
@@ -325,8 +323,8 @@ export class UnitMotion {
                 motionId = flowField.register(flowfields);
             }
     
-            moveTo(unit, motionCommandId, motionId, destMapCoords);
             unit.clearAction();
+            moveTo(unit, motionCommandId, motionId, destMapCoords);            
             ++unitCount;
         }
     
@@ -345,17 +343,6 @@ export class UnitMotion {
                 sector.flowfieldViewer.visible = true;
             }
         }    
-    }
-
-    public updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
-        deltaPos.subVectors(toPos, fromPos);
-        const deltaPosLen = deltaPos.length();
-        if (deltaPosLen > 0.01) {
-            deltaPos.divideScalar(deltaPosLen);
-            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
-            const rotationDamp = 0.1;
-            mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
-        }
     }
 
     public endMotion(unit: IUnit) {
@@ -431,15 +418,24 @@ export class UnitMotion {
             return;
         }
 
-        unit.velocity.addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed);
+        const _maxSpeed = (() => {
+            if (UnitUtils.isVehicle(unit)) {
+                const cell = getCellFromAddr(unit.coords);
+                if (cell.roadTile) {
+                    return maxSpeed * 1.5;
+                }
+            }
+            return maxSpeed;
+        })();
+
+        unit.velocity.addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, _maxSpeed);
         nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
-        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, 1, time.deltaTime);
 
         GameUtils.worldToMap(nextPos, nextMapCoords);
         const nextCell = GameUtils.getCell(nextMapCoords);
 
         if (nextCell?.isWalkable) {
-            this.updateRotation(unit, unit.visual.position, nextPos);
+            UnitUtils.updateRotation(unit, unit.visual.position, nextPos);
             
             unit.visual.position.copy(nextPos);
 
@@ -541,17 +537,13 @@ export class UnitMotion {
         }
 
         if (unit.arriving) {
-            const { arrivalDamping } = unitConfig[unit.type];
-            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
-            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            UnitUtils.slowDown(unit);
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();
             }
         } else if (!isMoving) {
-            const { arrivalDamping } = unitConfig[unit.type];
-            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
-            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            UnitUtils.slowDown(unit);
         }
     }
 }

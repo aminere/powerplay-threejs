@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { MathUtils, Matrix4, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { IUnitAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
@@ -6,8 +6,20 @@ import { VehicleType, VehicleTypes } from "../GameDefinitions";
 import { Collision } from "../../engine/collision/Collision";
 import { config } from "../config/config";
 import { ITruckUnit } from "./TruckUnit";
+import { mathUtils } from "../MathUtils";
+import { time } from "../../engine/core/Time";
+import { ICharacterUnit } from "./ICharacterUnit";
+import { unitConfig } from "../config/UnitConfig";
+
+const deltaPos = new Vector3();
+const matrix = new Matrix4();
 
 const { separations } = config.steering;
+
+const baseRotations = {
+    "shoot": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12)),
+    "attack": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(60))
+}
 
 const truckMin = new Vector3(-.3, 0, -1);
 const truckMax = new Vector3(.3, .74, 1);
@@ -67,6 +79,36 @@ export class UnitUtils {
                 return dist < separation;
             }
         }
+    }
+
+    public static updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
+        deltaPos.subVectors(toPos, fromPos);
+        const deltaPosLen = deltaPos.length();
+        if (deltaPosLen > 0.01) {
+            deltaPos.divideScalar(deltaPosLen);
+            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
+            const rotationDamp = 0.1;
+            mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
+        }
+    }
+
+    public static rotateToTarget(unit: IUnit, target: IUnit) {
+        deltaPos.subVectors(target!.visual.position, unit.visual.position);
+
+        const animation = ((unit as ICharacterUnit)?.animation?.name ?? "") as keyof typeof baseRotations;
+        const baseRotation = baseRotations[animation];
+        if (baseRotation) {
+            deltaPos.applyQuaternion(baseRotation);
+        }
+        
+        const targetPos = deltaPos.add(unit.visual.position);
+        UnitUtils.updateRotation(unit, unit.visual.position, targetPos);
+    }
+
+    public static slowDown(unit: IUnit) {
+        const { arrivalDamping } = unitConfig[unit.type];
+        mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+        mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
     }
 }
 
