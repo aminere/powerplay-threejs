@@ -17,7 +17,6 @@ import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { unitConfig } from "../config/UnitConfig";
 import { ICharacterUnit } from "./ICharacterUnit";
-import { Collision } from "../../engine/collision/Collision";
 
 const cellDirection = new Vector2();
 const deltaPos = new Vector3();
@@ -32,7 +31,7 @@ const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 
 const { mapRes } = config.game;
-const { separations, maxForce, maxSpeed } = config.steering;
+const { maxSpeed, maxForce } = config.steering;
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -365,63 +364,12 @@ export class UnitMotion {
 
     public applyForces(unit: IUnit) {
 
+        unit.acceleration.set(0, 0, 0);
         if (unit.motionId > 0) {
             if (!unit.arriving) {
                 applyFlowfieldForce(unit, maxForce);
             }
-        }
-
-        const collides = (unit1: IUnit, unit2: IUnit) => {
-            const unit1IsCharacter = !UnitUtils.isVehicle(unit1);
-            const uni21IsCharacter = !UnitUtils.isVehicle(unit2);
-
-            const vehicleCollidesWithCharacter = (vehicle: IUnit, character: ICharacterUnit) => {
-                return Collision.obbIntersectsSphere(
-                    vehicle.visual,
-                    new Vector3(-.3, 0, -1),
-                    new Vector3(.3, .74, 1),
-                    character.visual.position,
-                    separations[character.type] / 2
-                );
-            }
-
-            if (unit1IsCharacter || uni21IsCharacter) {
-                if (!unit1IsCharacter) {
-                    return vehicleCollidesWithCharacter(unit1, unit2 as ICharacterUnit);
-
-                } else if (!uni21IsCharacter) {
-                    return vehicleCollidesWithCharacter(unit2, unit1 as ICharacterUnit);
-
-                } else {
-                    // both characters
-                    const dist = unit1.visual.position.distanceTo(unit2.visual.position);
-                    const separation = Math.max(separations[unit1.type], separations[unit2.type]);   
-                    return dist < separation;      
-                }
-            } else {
-                const vehicle2Sphere1Pos = unit2.visual.localToWorld(new Vector3(0, .74 / 2, .5));
-                const vehicle2Sphere2Pos = unit2.visual.localToWorld(new Vector3(0, .74 / 2, -.5));
-                if (Collision.obbIntersectsSphere(
-                    unit1.visual,
-                    new Vector3(-.3, 0, -1),
-                    new Vector3(.3, .74, 1),
-                    vehicle2Sphere1Pos,
-                    .3
-                )) {
-                    return true;
-                }
-                if (Collision.obbIntersectsSphere(
-                    unit1.visual,
-                    new Vector3(-.3, 0, -1),
-                    new Vector3(.3, .74, 1),
-                    vehicle2Sphere2Pos,
-                    .3
-                )) {
-                    return true;
-                }
-                return false;
-            }
-        }
+        }        
 
         if (unit.collidable) {
             const neighbors = getUnitNeighbors(unit, 2);
@@ -430,11 +378,10 @@ export class UnitMotion {
                     continue;
                 }
 
-                if (collides(unit, neighbor)) {
+                if (UnitUtils.collides(unit, neighbor)) {
                     unit.isColliding = true;
                     neighbor.isColliding = true;
 
-                    // const interpenetration = separation - dist;
                     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
                     const length = awayDirection3.length();
                     if (length > 0) {
@@ -443,35 +390,25 @@ export class UnitMotion {
                         awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
                     }
 
-                    if (UnitUtils.isVehicle(unit)) {
-                        if (unit.motionId > 0) {
+                    // if (UnitUtils.isVehicle(unit)) {
 
-                            if (UnitUtils.isVehicle(neighbor)) {
-                                // keep moving, but slow down a bit
-                                unit.acceleration.multiplyScalar(.2);
-                            }
+                    //     const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .05;
+                    //     lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
+                    //     unit.acceleration
+                    //         .addScaledVector(awayDirection3.projectOnVector(lookDirection), maxForce * forceFactor);                            
 
-                        } else {
-
-                            const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .05;
-                            lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
-                            unit.acceleration
-                                .set(0, 0, 0)
-                                .addScaledVector(awayDirection3, maxForce * forceFactor)
-                                .projectOnVector(lookDirection);
-                        }
-                    } else {
+                    // } else {
                         unit.acceleration
                             .multiplyScalar(.4)
                             .addScaledVector(awayDirection3, maxForce * .6)
                             .clampLength(0, maxForce);
-                    }
+                    // }
 
                     if (unit.motionId > 0) {
                         unit.onCollidedWhileMoving(neighbor);                        
                     }
                 }
-            }            
+            }
         }
     }
 
@@ -581,7 +518,7 @@ export class UnitMotion {
                     awayDirection3.set(awayDirection.x, 0, awayDirection.y).cross(GameUtils.vec3.up);
                     lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
                     unit.velocity.lerp(lookDirection, .5).projectOnVector(awayDirection3).normalize().multiplyScalar(maxSpeed);
-                    unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
+                    // unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
                     nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
                     GameUtils.worldToMap(nextPos, nextMapCoords);
                     const nextCell = GameUtils.getCell(nextMapCoords);
@@ -602,11 +539,14 @@ export class UnitMotion {
         if (unit.arriving) {
             const { arrivalDamping } = unitConfig[unit.type];
             mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
-            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            // mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();
             }
+        } else if (!isMoving) {
+            const { arrivalDamping } = unitConfig[unit.type];
+            mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
         }
     }
 }
