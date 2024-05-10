@@ -3,7 +3,6 @@ import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
-import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
@@ -15,7 +14,6 @@ import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./IUnit";
 import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
-import { unitConfig } from "../config/UnitConfig";
 import { ICharacterUnit } from "./ICharacterUnit";
 
 const cellDirection = new Vector2();

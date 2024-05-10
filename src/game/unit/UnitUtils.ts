@@ -15,6 +15,7 @@ const deltaPos = new Vector3();
 const matrix = new Matrix4();
 
 const { separations } = config.steering;
+const { truckScale } = config.game;
 
 const baseRotations = {
     "shoot": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12)),
@@ -28,7 +29,7 @@ const truckCollisionSphere2 = new Vector3(0, .74 / 2, -.5);
 const truckCollisionSphere1World = new Vector3();
 const truckCollisionSphere2World = new Vector3();
 function truckCollidesWithUnit(truck: ITruckUnit, unit: IUnit) {
-    return Collision.obbIntersectsSphere(truck.visual, truckMin, truckMax, unit.visual.position, separations[unit.type] / 2);
+    return Collision.obbIntersectsSphere(truck.visual, truckMin, truckMax, unit.visual.position, separations[unit.type]);
 }
 
 export class UnitUtils {
@@ -60,10 +61,10 @@ export class UnitUtils {
         if (unit1IsTruck && unit2IsTruck) {
             unit2.visual.localToWorld(truckCollisionSphere1World.copy(truckCollisionSphere1));
             unit2.visual.localToWorld(truckCollisionSphere2World.copy(truckCollisionSphere2));
-            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere1World, 1)) {
+            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere1World, .3 * truckScale)) {
                 return true;
             }
-            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere2World, 1)) {
+            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere2World, .3 * truckScale)) {
                 return true;
             }
             return false;
