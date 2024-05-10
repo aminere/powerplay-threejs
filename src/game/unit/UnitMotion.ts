@@ -364,7 +364,6 @@ export class UnitMotion {
 
     public applyForces(unit: IUnit) {
 
-        unit.acceleration.set(0, 0, 0);
         if (unit.motionId > 0) {
             if (!unit.arriving) {
                 applyFlowfieldForce(unit, maxForce);
@@ -390,19 +389,31 @@ export class UnitMotion {
                         awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
                     }
 
-                    // if (UnitUtils.isVehicle(unit)) {
+                    const canBeAffectedByNeighbor = (() => {
+                        if (UnitUtils.isVehicle(unit) && !UnitUtils.isVehicle(neighbor)) {
+                            return false;
+                        }
+                        return true;
+                    })();
 
-                    //     const forceFactor = UnitUtils.isVehicle(neighbor) ? .8 : .05;
-                    //     lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
-                    //     unit.acceleration
-                    //         .addScaledVector(awayDirection3.projectOnVector(lookDirection), maxForce * forceFactor);                            
+                    if (canBeAffectedByNeighbor) {
 
-                    // } else {
+                        const forceFactor = (() => {
+                            if (unit.motionId > 0 && neighbor.motionId === 0) {
+                                return .2;
+                            }
+                            return .8
+                        })();
+
                         unit.acceleration
-                            .multiplyScalar(.4)
-                            .addScaledVector(awayDirection3, maxForce * .6)
+                            .multiplyScalar(1 - forceFactor)
+                            .addScaledVector(awayDirection3, maxForce * forceFactor)
                             .clampLength(0, maxForce);
-                    // }
+                    } else {
+                        unit.acceleration                            
+                            .addScaledVector(awayDirection3, maxForce * .1)
+                            .clampLength(0, maxForce);
+                    }
 
                     if (unit.motionId > 0) {
                         unit.onCollidedWhileMoving(neighbor);                        
@@ -518,7 +529,7 @@ export class UnitMotion {
                     awayDirection3.set(awayDirection.x, 0, awayDirection.y).cross(GameUtils.vec3.up);
                     lookDirection.set(0, 0, 1).applyQuaternion(unit.visual.quaternion);
                     unit.velocity.lerp(lookDirection, .5).projectOnVector(awayDirection3).normalize().multiplyScalar(maxSpeed);
-                    // unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
+                    unit.acceleration.copy(unit.velocity).clampLength(0, maxForce);
                     nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
                     GameUtils.worldToMap(nextPos, nextMapCoords);
                     const nextCell = GameUtils.getCell(nextMapCoords);
@@ -539,7 +550,7 @@ export class UnitMotion {
         if (unit.arriving) {
             const { arrivalDamping } = unitConfig[unit.type];
             mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
-            // mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
             if (unit.velocity.length() < 0.01) {
                 endMotion(unit);
                 unit.onArrived();
@@ -547,6 +558,7 @@ export class UnitMotion {
         } else if (!isMoving) {
             const { arrivalDamping } = unitConfig[unit.type];
             mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+            mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
         }
     }
 }
