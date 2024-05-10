@@ -439,14 +439,7 @@ export class UnitMotion {
         const nextCell = GameUtils.getCell(nextMapCoords);
 
         if (nextCell?.isWalkable) {
-
-            if (UnitUtils.isVehicle(unit)) {
-                if (unit.motionId > 0) {
-                    this.updateRotation(unit, unit.visual.position, nextPos);
-                }
-            } else {
-                this.updateRotation(unit, unit.visual.position, nextPos);
-            }
+            this.updateRotation(unit, unit.visual.position, nextPos);
             
             unit.visual.position.copy(nextPos);
 
