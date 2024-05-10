@@ -21,6 +21,7 @@ const noOutput = "no output";
 interface PropertyProps {
     name: string;
     value?: string;
+    progress?: number;
 }
 
 function Property(props: React.PropsWithChildren<PropertyProps>) {    
@@ -54,7 +55,20 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
             >
                 {props.value}
             </div>
-        }        
+        }
+
+        {
+            props.progress !== undefined
+            &&
+            <div style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: "100%"
+            }}>
+                <ProgressBar progress={props.progress} />
+            </div>
+        }
 
         {props.children}
     </div>
@@ -66,23 +80,7 @@ interface SingleSelectionProps {
     amount: number;
     capacity: number;
     properties: { name: string, value: string }[] | null;
-}
-
-function SingleSelectionPanelHeader({ children }: React.PropsWithChildren<{}>) {
-    return <div
-        style={{
-            position: "absolute",
-            width: "100%",
-            backgroundColor: uiconfig.backgroundColor,
-            padding: `${uiconfig.paddingRem}rem`,
-            top: `-${uiconfig.gapRem}rem`,
-            transformOrigin: "bottom",
-            transform: "translateY(-100%)",
-            textAlign: "center"
-        }}
-    >
-        {children}
-    </div>
+    progress?: number;
 }
 
 function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
@@ -116,7 +114,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
             {
                 props.subtype
                 &&
-                <Property name={props.subtype} />
+                <Property name={props.subtype} progress={props.progress} />
             }
         </div>        
 
@@ -247,22 +245,16 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     }
                                 });
 
+                                const progress = state.productionTimer / productionTime;
                                 return <SingleSelectionPanel
                                     type={type}
                                     subtype={state.output}
                                     amount={hitpoints}
                                     capacity={maxHitpoints}
                                     properties={properties}
-                                >
-                                    {(() => {
-                                        if (state.active) {
-                                            const progress = state.productionTimer / productionTime;
-                                            return <SingleSelectionPanelHeader>
-                                                <ProgressBar progress={progress} />
-                                            </SingleSelectionPanelHeader>
-                                        }
-                                    })()}
-                                </SingleSelectionPanel>
+                                    progress={progress}
+                                />
+                                
                             } else {
                                 return <SingleSelectionPanel
                                     type={type}
@@ -270,7 +262,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     amount={hitpoints}
                                     capacity={maxHitpoints}
                                     properties={null}
-                                />;
+                                />
                             }
                         }
                     }
