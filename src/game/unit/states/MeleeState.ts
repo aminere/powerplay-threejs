@@ -15,10 +15,9 @@ export class MeleeState extends State<ICharacterUnit> {
     private _hitTimer = 0;
 
     override enter(_unit: IUnit) {
-        console.log(`MeleeState enter`);
-    }    
+    }
+
     override exit(unit: ICharacterUnit) {
-        console.log(`MeleeState exit`);
         unit.isIdle = true;
         unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
     }

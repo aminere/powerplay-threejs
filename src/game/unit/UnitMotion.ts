@@ -538,7 +538,7 @@ export class UnitMotion {
 
         if (unit.arriving) {
             UnitUtils.slowDown(unit);
-            if (unit.velocity.length() < 0.01) {
+            if (unit.velocity.length() < 0.1) {
                 endMotion(unit);
                 unit.onArrived();
             }
