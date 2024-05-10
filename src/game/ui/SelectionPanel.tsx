@@ -12,6 +12,7 @@ import { IUnit } from "../unit/IUnit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { ProgressBar } from "./ProgressBar";
 import { GridFiller } from "./GridFiller";
+import { Icon } from "./Icon";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -34,8 +35,7 @@ function Property(props: React.PropsWithChildren<PropertyProps>) {
             padding: `${2 * uiconfig.gapRem}rem`
         }}
     >
-        <img src={`/images/icons/${props.name}.png`} />
-
+        <Icon name={props.name} />
         <div
             dir="ltr"
             style={{

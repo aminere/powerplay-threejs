@@ -7,6 +7,7 @@ import { Factories } from "../buildings/Factories";
 import { SelectedElems } from "../../Events";
 import gsap from "gsap";
 import { GridFiller } from "./GridFiller";
+import { Icon } from "./Icon";
 
 interface FactoryOutputPanelProps {
     open: boolean;
@@ -117,7 +118,7 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
                         props.onOutputSelected();
                     }}
                 >
-                    <img src={`/images/icons/${resource}.png`} />
+                    <Icon name={resource} />
                 </ActionButton>
             })}
         </div>
