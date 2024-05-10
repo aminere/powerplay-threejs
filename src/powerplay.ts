@@ -1,6 +1,7 @@
 
 export { Component } from "./engine/ecs/Component";
 export { ComponentProps }  from "./engine/ecs/ComponentProps";
+export type { IComponentState } from "./engine/ecs/Component";
 export { serialization } from "./engine/serialization/Serialization";
 export { TArray } from "./engine/serialization/TArray";
 
@@ -28,4 +29,7 @@ export { Animator } from "./engine/components/Animator";
 export { Particles } from "./engine/components/Particles";
 export { trees } from "./game/Trees";
 export { terrain } from "./game/Terrain";
+
+export { Collider } from "./engine/collision/Collider"
+export { SphereCollider } from "./engine/collision/SphereCollider"
 

@@ -1,4 +1,4 @@
-import { Color, Vector2 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 import { TArray } from "../serialization/TArray";
 
 export class ComponentProps {
@@ -13,10 +13,13 @@ export class ComponentProps {
                     continue;
                 }
                 const vec2 = instance as Vector2;
+                const vec3 = instance as Vector3;
                 const color = instance as Color;
                 const array = instance as TArray<any>;            
                 if (vec2?.isVector2) {
                     vec2.copy(value as Vector2);
+                } else if (vec3?.isVector3) {
+                    vec3.copy(value as Vector3);
                 } else if (color?.isColor) {
                     color.set(value as Color);
                 } else if (array?.isArray) {
