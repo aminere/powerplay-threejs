@@ -15,16 +15,17 @@ import { InventoryItem } from "./InventoryItem";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
-const noOutput = "no output";
 
 interface SingleSelectionProps {
     type: string;
-    subtype?: string;
-    amount: number;
-    capacity: number;
+    title?: string    
+    health: number;
     properties: { name: string, value: string }[] | null;
-    progress?: number;
-    stack?: number;
+    output?: {
+        type: string;
+        progress?: number;
+        stack?: number;
+    }
 }
 
 function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
@@ -41,8 +42,8 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                 gap: `${uiconfig.gapRem}rem`
             }}
         >
-            <GridFiller slots={props.subtype ? 2 : 1} columns={props.subtype ? 2 : 1} />    
-            <InventoryItem name={props.type} value={`${props.amount} / ${props.capacity}`}>
+            <GridFiller slots={props.output ? 2 : 1} columns={props.output ? 2 : 1} />    
+            <InventoryItem name={props.type}>
                 <div
                     style={{
                         position: "absolute",
@@ -51,14 +52,18 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                         textAlign: "center"
                     }}
                 >
-                    {(props.subtype && props.subtype !== noOutput) ? `${props.subtype} ${props.type}` : props.type}
+                    {props.title ?? props.type}
                 </div>
             </InventoryItem>
 
             {
-                props.subtype
+                props.output
                 &&
-                <InventoryItem name={props.subtype} progress={props.progress} value={`${props.stack !== undefined ? props.stack : ""}`} />
+                <InventoryItem
+                    name={props.output.type}
+                    progress={props.output.progress}
+                    value={props.output.stack !== undefined ? `${props.output.stack}` : undefined}
+                />
             }
         </div>        
 
@@ -161,12 +166,13 @@ export function SelectionPanel(props: SelectionPanelProps) {
 
                             return <SingleSelectionPanel
                                 type={type}
-                                amount={hitpoints}
-                                capacity={maxHitpoints}
+                                health={hitpoints / maxHitpoints}
                                 properties={properties}
-                                subtype="worker"
-                                progress={state.active ? (state.productionTimer / productionTime) : undefined}
-                                stack={state.active ? (state.spawnRequests + 1) : undefined}
+                                output={state.active ? {
+                                    type: "worker",
+                                    progress: state.productionTimer / productionTime,
+                                    stack: state.spawnRequests + 1
+                                } : undefined}
                             />;
                         }
 
@@ -178,9 +184,8 @@ export function SelectionPanel(props: SelectionPanelProps) {
                             }] : null;
                             return <SingleSelectionPanel
                                 type={type}
-                                subtype={state.type ?? undefined}
-                                amount={hitpoints}
-                                capacity={maxHitpoints}
+                                health={hitpoints / maxHitpoints}
+                                title={state.type ? `${state.type} ${type}` : undefined}
                                 properties={properties}
                             />;
                         }
@@ -201,20 +206,23 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                 const progress = state.productionTimer / productionTime;
                                 return <SingleSelectionPanel
                                     type={type}
-                                    subtype={state.output}
-                                    amount={hitpoints}
-                                    capacity={maxHitpoints}
+                                    health={hitpoints / maxHitpoints}
+                                    title={state.output ? `${state.output} ${type}` : undefined}
                                     properties={properties}
-                                    progress={progress}
+                                    output={{
+                                        type: state.output,
+                                        progress: state.active ? progress : undefined
+                                    }}
                                 />
                                 
                             } else {
                                 return <SingleSelectionPanel
                                     type={type}
-                                    subtype={noOutput}
-                                    amount={hitpoints}
-                                    capacity={maxHitpoints}
+                                    health={hitpoints / maxHitpoints}
                                     properties={null}
+                                    output={{
+                                        type: uiconfig.noOutput
+                                    }}
                                 />
                             }
                         }
@@ -255,8 +263,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                         })();
                         return <SingleSelectionPanel
                             type={unit.type}
-                            amount={Math.round(unit.hitpoints)}
-                            capacity={hitpoints}
+                            health={unit.hitpoints / hitpoints}
                             properties={properties}
                         />
                     } else if (units.length > 0) {
@@ -271,15 +278,13 @@ export function SelectionPanel(props: SelectionPanelProps) {
                         const { capacity } = resourceConfig[cell.resource.type];
                         return <SingleSelectionPanel
                             type={cell.resource.type}
-                            amount={cell.resource.amount}
-                            capacity={capacity}
+                            health={cell.resource.amount / capacity}
                             properties={null}
                         />
                     } else if (cell.conveyor) {
                         return <SingleSelectionPanel
                             type={"conveyor"}
-                            amount={10}
-                            capacity={10}
+                            health={1}
                             properties={null}
                         />
                     }
