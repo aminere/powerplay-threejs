@@ -38,6 +38,9 @@ export const config = {
         productionTime: 2,
         inputAccepFrequency: 1
     },
+    mines: {
+        productionTime: 2,    
+    },
     conveyors: {
         itemSize: .5, // relative to the cell
         itemScale: .7,

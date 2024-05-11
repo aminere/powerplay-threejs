@@ -38,7 +38,7 @@ export class Factories {
             output,
             outputFull: false,
             outputCheckTimer: -1,
-            autoOutput: false
+            autoOutput: true
         };
 
         instance.state = factoryState;
@@ -98,7 +98,7 @@ export class Factories {
                     state.outputCheckTimer -= time.deltaTime;
                 }
             } else {
-                if (state.outputRequests > 0) {                    
+                if (state.outputRequests > 0) {
                     state.productionTimer = 0;                    
                     state.active = true;
                     evtBuildingStateChanged.post(instance);

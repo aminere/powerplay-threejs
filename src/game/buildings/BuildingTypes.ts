@@ -1,7 +1,6 @@
 
 import { Object3D, Vector2 } from "three";
-import { ResourceType, RawResourceType } from "../GameDefinitions";
-import { ICell } from "../GameTypes";
+import { ResourceType, RawResourceType, MineralType } from "../GameDefinitions";
 
 export const BuildingTypes = [
     "mine",
@@ -40,8 +39,8 @@ export interface IFactoryState {
     reserve: Map<RawResourceType | ResourceType, number>;    
     inputTimer: number;
     inputFull: boolean;
-    outputRequests: number;    
 
+    outputRequests: number;
     output: ResourceType | null;
     outputFull: boolean;
     outputCheckTimer: number;
@@ -49,15 +48,17 @@ export interface IFactoryState {
 }
 
 export interface IMineState {
-    resourceCells: Vector2[];
-    currentResourceCell: number;
     active: boolean;
-    depleted: boolean;    
-    timer: number;
-    outputConveyorIndex: number;
-    outputFull: boolean;
-    minedCell?: ICell;
+    productionTimer: number;
+
+    outputRequests: number;
+    outputFull: boolean;    
     outputCheckTimer: number;
+    autoOutput: boolean;
+
+    depleted: boolean;
+    resourceCells: Vector2[];
+    minedResource: MineralType | null;
 }
 
 export interface IDepotState {
@@ -67,7 +68,6 @@ export interface IDepotState {
     inputTimer: number;
     outputTimer: number;
 }
-
 
 export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState;
 

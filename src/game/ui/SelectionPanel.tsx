@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState, IMineState } from "../buildings/BuildingTypes";
 import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
@@ -12,6 +12,8 @@ import { IUnit } from "../unit/IUnit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { GridFiller } from "./GridFiller";
 import { InventoryItem } from "./InventoryItem";
+import { GameUtils } from "../GameUtils";
+import { Mines } from "../buildings/Mines";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -225,9 +227,43 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                 return <SingleSelectionPanel
                                     type={type}
                                     health={hitpoints / maxHitpoints}
-                                    properties={null}                                    
+                                    properties={null}
                                 />
                             }
+                        }
+
+                        case "mine": {
+                            const state = building.state as IMineState;
+                            const properties = state.resourceCells.map(mapCoords => {
+                                const cell = GameUtils.getCell(mapCoords)!;
+                                const resourceType = cell.resource!.type;
+                                const amount = cell.resource!.amount;
+                                const { capacity } = resourceConfig[resourceType];
+                                return {
+                                    name: resourceType,
+                                    value: `${amount} / ${capacity}`
+                                }
+                            });
+                            return <SingleSelectionPanel
+                                type={type}
+                                title={state.depleted ? `depleted ${type}` : undefined}
+                                health={hitpoints / maxHitpoints}
+                                properties={properties}
+                                output={(() => {                                    
+                                    if (state.active || state.outputFull) {
+                                        const resourceType = Mines.getResourceType(building);
+                                        if (resourceType) {
+                                            const { productionTime } = config.mines;
+                                            return {
+                                                type: resourceType,
+                                                progress: state.productionTimer / productionTime,
+                                                stack: state.outputRequests,
+                                                full: state.outputFull
+                                            }
+                                        }
+                                    }
+                                })()}
+                            />
                         }
                     }
                     return null;
@@ -278,11 +314,14 @@ export function SelectionPanel(props: SelectionPanelProps) {
                 case "cell": {
                     const cell = selectedElems.cell;
                     if (cell.resource) {
-                        const { capacity } = resourceConfig[cell.resource.type];
+                        const { capacity } = resourceConfig[cell.resource.type];                        
                         return <SingleSelectionPanel
                             type={cell.resource.type}
                             health={cell.resource.amount / capacity}
-                            properties={null}
+                            properties={[{
+                                name: cell.resource.type,
+                                value: `${cell.resource.amount} / ${capacity}`
+                            }]}
                         />
                     } else if (cell.conveyor) {
                         return <SingleSelectionPanel

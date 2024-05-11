@@ -6,11 +6,26 @@ import { IBuildingInstance, IMineState } from "./BuildingTypes";
 import { BuildingUtils } from "./BuildingUtils";
 import { buildings } from "./Buildings";
 import { MineralType } from "../GameDefinitions";
-import { ICell } from "../GameTypes";
 import { buildingConfig } from "../config/BuildingConfig";
+import { evtBuildingStateChanged } from "../../Events";
+import { config } from "../config/config";
 
 const cellCoords = new Vector2();
-const miningFrequency = 2;
+const { productionTime } = config.mines;
+
+function consumeResource(instance: IBuildingInstance) {
+    const state = instance.state as IMineState;
+    const minedCell = GameUtils.getCell(state.resourceCells[0])!;
+    const resource = minedCell.resource!;
+    resource!.amount -= 1;
+    if (resource.amount === 0) {
+        minedCell.resource = undefined;
+        utils.fastDelete(state.resourceCells, 0);
+        if (state.resourceCells.length === 0) {
+            state.depleted = true;
+        }
+    }
+}
 
 export class Mines {
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -32,34 +47,77 @@ export class Mines {
 
         const depleted = resourceCells.length === 0;
         const mineState: IMineState = {
-            resourceCells,
-            currentResourceCell: 0,
-            active: !depleted,
-            depleted,
-            timer: 0,
-            outputConveyorIndex: -1,
+            active: false,
+            productionTimer: 0,
+            outputRequests: 0,
             outputFull: false,
-            outputCheckTimer: -1
+            outputCheckTimer: -1,
+            autoOutput: true,
+            resourceCells,
+            minedResource: null,
+            depleted
         };
 
         instance.state = mineState;
     }
 
     public static update(instance: IBuildingInstance) {
-        const state = instance.state as IMineState;
-        if (state.depleted) {
-            return;
-        }
+        const state = instance.state as IMineState;        
+        if (state.active) {
 
-        if (!state.active) {
+            let isDone = false;
+            state.productionTimer += time.deltaTime;
+            if (state.productionTimer > productionTime) {
+                state.productionTimer = productionTime;
+                isDone = true;
+            }
+
+            if (isDone) {
+                console.assert(state.minedResource);
+                if (BuildingUtils.produceResource(instance, state.minedResource!)) {
+                    state.outputRequests--;
+                    consumeResource(instance);
+                    if (state.outputRequests > 0) {
+                        const minedCell = GameUtils.getCell(state.resourceCells[0])!;
+                        state.minedResource = minedCell.resource!.type as MineralType;                      
+                        state.productionTimer = 0;
+                    } else {
+                        if (state.autoOutput) {
+                            const status = Mines.output(instance);
+                            switch (status) {
+                                case "ok": state.productionTimer = 0; break;
+                                default: {
+                                    state.active = false;
+                                    state.minedResource = null;
+                                }
+                            }
+                            
+                        } else {
+                            state.active = false;
+                            state.minedResource = null;
+                        }
+                    }
+
+                } else {
+                    state.active = false;
+                    state.outputFull = true;
+                    state.outputCheckTimer = 1;
+                }
+            }
+
+            evtBuildingStateChanged.post(instance);
+
+        } else {
 
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
-                    console.assert(state.minedCell !== undefined);
-                    const resourceType = state.minedCell!.resource!.type;
-                    if (BuildingUtils.tryFillAdjacentCells(instance, resourceType as MineralType)) {
-                        Mines.consumeResource(state, state.minedCell!);
+                    console.assert(state.minedResource);                    
+                    if (BuildingUtils.tryFillAdjacentCells(instance, state.minedResource!)) {
+                        state.outputRequests--;
+                        consumeResource(instance);
                         state.outputFull = false;
+                        state.minedResource = null;
+                        evtBuildingStateChanged.post(instance);
                     } else {
                         state.outputCheckTimer = 1;
                     }
@@ -67,44 +125,66 @@ export class Mines {
                     state.outputCheckTimer -= time.deltaTime;
                 }
             } else {
-                state.minedCell = undefined;
-                state.active = true;
-                state.timer = 0;
-            }
-            
-        } else {
 
-            if (state.timer >= miningFrequency) {
-                const minedCell = GameUtils.getCell(state.resourceCells[state.currentResourceCell])!;
-                if (BuildingUtils.produceResource(instance, minedCell.resource!.type as MineralType)) {
-                    Mines.consumeResource(state, minedCell);
-                    state.timer = 0;
+                if (state.outputRequests > 0) {   
+                    const minedCell = GameUtils.getCell(state.resourceCells[0])!;
+                    state.minedResource = minedCell.resource!.type as MineralType;
+                    state.productionTimer = 0;
+                    state.active = true;
+                    evtBuildingStateChanged.post(instance);                                       
 
-                } else {
-                    state.active = false;
-                    state.outputFull = true;
-                    state.minedCell = minedCell;
-                    state.outputCheckTimer = 1;
+                } else if (state.autoOutput) {
+                    Mines.output(instance);
                 }
-
-            } else {
-                state.timer += time.deltaTime;
             }
         }
     }
 
-    public static consumeResource(state: IMineState, cell: ICell) {
-        const resource = cell.resource!;
-        resource.amount -= 1;
-        if (resource.amount === 0) {
-            cell.resource = undefined;
-            utils.fastDelete(state.resourceCells, state.currentResourceCell);
-            if (state.currentResourceCell < state.resourceCells.length - 1) {
-                state.currentResourceCell++;
-            } else {
-                state.depleted = true;
-            }
+    public static output(instance: IBuildingInstance) {
+        const state = instance.state as IMineState;
+        if (state.depleted) {
+            return "depleted";
         }
+
+        if (state.outputFull) {
+            return "output-full";
+        }
+
+        const totalResources = state.resourceCells.reduce((prev, cur) => {
+            const cell = GameUtils.getCell(cur)!;
+            return prev + (cell.resource?.amount ?? 0);
+        }, 0);
+        
+        if (state.outputRequests >= totalResources) {
+            return "not-enough";
+        }
+        
+        state.outputRequests++;
+        evtBuildingStateChanged.post(instance);
+        return "ok";
+    }
+
+    public static toggleAutoOutput(instance: IBuildingInstance) {
+        const state = instance.state as IMineState;
+        state.autoOutput = !state.autoOutput;
+        evtBuildingStateChanged.post(instance);
+    }
+
+    public static getResourceType(instance: IBuildingInstance) {
+        // assumes all resources under the mine are of the same type
+        // good enough for the conference
+        // TODO return multiple action buttons, one per resource type under the mine
+        const state = instance.state as IMineState;
+        if (state.depleted) {
+            return null;
+        }
+
+        if (state.minedResource) {
+            return state.minedResource;
+        }
+
+        const resourceCell = GameUtils.getCell(state.resourceCells[0])!;
+        return resourceCell.resource!.type;
     }
 }
 

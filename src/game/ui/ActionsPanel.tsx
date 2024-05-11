@@ -5,7 +5,7 @@ import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
-import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState, IMineState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { IUnit } from "../unit/IUnit";
@@ -16,6 +16,7 @@ import { GridFiller } from "./GridFiller";
 import { Icon } from "./Icon";
 import { Factories } from "../buildings/Factories";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
+import { Mines } from "../buildings/Mines";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -218,7 +219,36 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 >
                                                     <Icon name={state.output} />
                                                 </ActionButton>
-                                            }                                            
+                                            }
+                                        </>
+                                    }
+
+                                    case "mine": {
+                                        const resourceType = Mines.getResourceType(building);
+                                        const state = building.state as IMineState;
+                                        return <>
+                                            {
+                                                resourceType
+                                                &&
+                                                <ActionButton
+                                                    selectedAnim={state.autoOutput}
+                                                    onClick={() => {
+                                                        const status = Mines.output(building);
+                                                        switch (status) {
+                                                            case "depleted": {
+                                                                evtBuildError.post(`Mine is depleted`);
+                                                            }
+                                                                break;
+                                                            case "output-full": {
+                                                                evtBuildError.post(`Not enough space to eject`);
+                                                            }
+                                                        }
+                                                    }}
+                                                    onContextMenu={() => Mines.toggleAutoOutput(building)}
+                                                >
+                                                    <Icon name={resourceType} />
+                                                </ActionButton>
+                                            }
                                         </>
                                     }
 
