@@ -40,11 +40,12 @@ export interface IFactoryState {
     reserve: Map<RawResourceType | ResourceType, number>;    
     inputTimer: number;
     inputFull: boolean;
-    outputRequests: number;
-    
+    outputRequests: number;    
+
     output: ResourceType | null;
     outputFull: boolean;
     outputCheckTimer: number;
+    autoOutput: boolean;
 }
 
 export interface IMineState {

@@ -199,8 +199,8 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 state.output
                                                 &&
                                                 <ActionButton
+                                                    selectedAnim={state.autoOutput}
                                                     onClick={() => {
-
                                                         const status = Factories.output(building);
                                                         switch (status) {
                                                             case "not-enough": {
@@ -214,9 +214,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             }
                                                         }
                                                     }}
-                                                    onContextMenu={() => {
-                                                        console.log("right click");
-                                                    }}
+                                                    onContextMenu={() => Factories.toggleAutoOutput(building)}
                                                 >
                                                     <Icon name={state.output} />
                                                 </ActionButton>

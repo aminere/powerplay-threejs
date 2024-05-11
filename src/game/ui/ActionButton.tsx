@@ -5,11 +5,12 @@ interface ActionButtonProps {
     onContextMenu?: () => void;
     selected?: boolean;
     selectedColor?: "yellow" | "white";
+    selectedAnim?: boolean;
 }
 
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
     return <div
-        className="icon clickable"
+        className={`icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
@@ -19,7 +20,15 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             justifyContent: "center",
             textAlign: "center",
             cursor: "pointer",
-            border: props.selected ? `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}` : "1px outset gray",
+            border: (() => {
+                if (props.selectedAnim) {
+                    return undefined
+                }
+                if (props.selected) {
+                    return `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}`;
+                }
+                return "1px outset gray";
+            })(),
             backgroundColor: uiconfig.slotBackgroundColor,
             padding: `${2 * uiconfig.gapRem}rem`
         }}

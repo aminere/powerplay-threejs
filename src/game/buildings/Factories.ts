@@ -37,7 +37,8 @@ export class Factories {
             outputRequests: 0,            
             output,
             outputFull: false,
-            outputCheckTimer: -1
+            outputCheckTimer: -1,
+            autoOutput: false
         };
 
         instance.state = factoryState;
@@ -60,7 +61,17 @@ export class Factories {
                     if (state.outputRequests > 0) {
                         state.productionTimer = 0;
                     } else {
-                        state.active = false;
+
+                        if (state.autoOutput) {
+                            const status = Factories.output(instance);
+                            switch (status) {
+                                case "ok": state.productionTimer = 0; break;
+                                default: state.active = false;
+                            }
+                            
+                        } else {
+                            state.active = false;
+                        }
                     }
 
                 } else {
@@ -79,18 +90,21 @@ export class Factories {
                     if (BuildingUtils.tryFillAdjacentCells(instance, state.output!)) {
                         state.outputRequests--;
                         state.outputFull = false;
+                        evtBuildingStateChanged.post(instance);
                     } else {
                         state.outputCheckTimer = 1;
                     }
                 } else {
                     state.outputCheckTimer -= time.deltaTime;
                 }
-            } else {                
+            } else {
                 if (state.outputRequests > 0) {                    
                     state.productionTimer = 0;                    
                     state.active = true;
                     evtBuildingStateChanged.post(instance);
-                }                
+                } else if (state.autoOutput) {
+                    Factories.output(instance);
+                }
             }
         }
 
@@ -154,6 +168,12 @@ export class Factories {
         return "ok";
     }
 
+    public static toggleAutoOutput(instance: IBuildingInstance) {
+        const state = instance.state as IFactoryState;
+        state.autoOutput = !state.autoOutput;
+        evtBuildingStateChanged.post(instance);
+    }
+
     public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IFactoryState;
         if (state.output) {
@@ -189,6 +209,7 @@ export class Factories {
         state.reserve.clear();
         state.active = false;
         state.outputRequests = 0;
+        state.outputFull = false;
         state.inputFull = false;
         evtBuildingStateChanged.post(instance);
     }

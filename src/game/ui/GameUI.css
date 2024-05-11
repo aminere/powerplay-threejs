@@ -6,14 +6,24 @@ img {
     filter: drop-shadow(2px 4px 4px black) brightness(1.1);
 }
 
-@keyframes inventory-item-full-anim {
+@keyframes item-full-anim {
     0% { outline-color: red; }
     100% { outline-color: transparent; }
 }
 
-.inventory-item-full {
-    outline-width: 4px;
-    outline-style: solid;    
-    animation: inventory-item-full-anim .8s infinite;
+.item-full {
+    outline-width: 2px;
+    outline-style: double;
+    animation: item-full-anim .8s infinite;
 }
 
+@keyframes item-auto-output-anim {
+    0% { outline-color: yellow; }
+    100% { outline-color: transparent; }
+}
+
+.item-auto-output {
+    outline-width: 2px;
+    outline-style: double;    
+    animation: item-auto-output-anim .8s infinite;
+}
