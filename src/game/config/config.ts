@@ -30,6 +30,13 @@ export const config = {
         inputAccepFrequency: 1,
         inputs: ["water"] as const
     },
+    assemblies: {
+        inputCapacity: 5,
+        workerCost: [["water", 1]] as const,
+        productionTime: 2,
+        inputAccepFrequency: 1,
+        inputs: ["water"] as const
+    },
     depots: {
         range: 10,
     },

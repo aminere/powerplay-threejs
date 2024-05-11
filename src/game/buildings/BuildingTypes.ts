@@ -1,6 +1,6 @@
 
 import { Object3D, Vector2 } from "three";
-import { ResourceType, RawResourceType, MineralType } from "../GameDefinitions";
+import { ResourceType, RawResourceType, MineralType, VehicleType } from "../GameDefinitions";
 
 export const BuildingTypes = [
     "mine",
@@ -69,7 +69,17 @@ export interface IDepotState {
     outputTimer: number;
 }
 
-export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState;
+export interface IAssemblyState {
+    active: boolean;
+    productionTimer: number;
+    reserve: Map<RawResourceType | ResourceType, number>;    
+    inputTimer: number;
+    inputFull: boolean;
+    output: VehicleType | null;
+    outputRequests: number;    
+}
+
+export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState | IAssemblyState;
 
 export interface IBuildingInstance {
     id: string;

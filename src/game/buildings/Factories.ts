@@ -4,15 +4,15 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
-import { FactoryDefinitions } from "./FactoryDefinitions";
 import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
+import { resourceConfig } from "../config/ResourceConfig";
 
 const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 
 function canProduce(state: IFactoryState) {
     if (state.output) {
-        const inputs = FactoryDefinitions[state.output];
+        const inputs = resourceConfig.factoryProduction[state.output];
         for (const input of inputs) {
             const amount = state.reserve.get(input) ?? 0;
             if (amount < 1) {
@@ -114,7 +114,7 @@ export class Factories {
                     let accepted = false;
                     let fullInputs = 0;
 
-                    const inputs = FactoryDefinitions[state.output];
+                    const inputs = resourceConfig.factoryProduction[state.output];
                     for (const input of inputs) {
                         const currentAmount = state.reserve.get(input);
                         if ((currentAmount ?? 0) < inputCapacity) {
@@ -158,7 +158,7 @@ export class Factories {
         }
 
         state.outputRequests++;        
-        const inputs = FactoryDefinitions[state.output!];
+        const inputs = resourceConfig.factoryProduction[state.output!];
         for (const input of inputs) {
             const amount = state.reserve.get(input)!;
             state.reserve.set(input, amount - 1);
@@ -177,11 +177,13 @@ export class Factories {
     public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
         const state = instance.state as IFactoryState;
         if (state.output) {
-            const inputs = FactoryDefinitions[state.output];
-            if (inputs.includes(type)) {
-                const currentAmount = state.reserve.get(type);
-                if ((currentAmount ?? 0) < inputCapacity) {
-                    return true;
+            const inputs = resourceConfig.factoryProduction[state.output];
+            for (const input of inputs) {
+                if (input === type) {
+                    const currentAmount = state.reserve.get(type);
+                    if ((currentAmount ?? 0) < inputCapacity) {
+                        return true;
+                    }
                 }
             }
         }

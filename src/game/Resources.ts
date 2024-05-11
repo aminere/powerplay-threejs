@@ -24,7 +24,7 @@ class Resources {
             mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
             GameUtils.mapToWorld(mapCoords, worldPos);
             worldPos.y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z);
-            const { capacity } = resourceConfig[type];
+            const { capacity } = resourceConfig.rawResources[type];
 
             switch (type) {
                 case "wood": {                    

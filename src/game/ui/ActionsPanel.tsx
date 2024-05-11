@@ -15,8 +15,8 @@ import { unitMotion } from "../unit/UnitMotion";
 import { GridFiller } from "./GridFiller";
 import { Icon } from "./Icon";
 import { Factories } from "../buildings/Factories";
-import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { Mines } from "../buildings/Mines";
+import { resourceConfig } from "../config/ResourceConfig";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -205,7 +205,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                         const status = Factories.output(building);
                                                         switch (status) {
                                                             case "not-enough": {
-                                                                const inputs = FactoryDefinitions[state.output!]
+                                                                const inputs = resourceConfig.factoryProduction[state.output!]
                                                                 const requirements = inputs.map((type) => `${1} ${type}`).join(" + ");
                                                                 evtBuildError.post(`Not enough resources to produce ${state.output} (Requires ${requirements})`);
                                                             }

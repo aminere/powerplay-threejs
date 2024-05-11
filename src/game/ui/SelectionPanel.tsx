@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState, IMineState } from "../buildings/BuildingTypes";
+import { IAssemblyState, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState, IMineState } from "../buildings/BuildingTypes";
 import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
@@ -9,7 +9,6 @@ import { config } from "../config/config";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { ITruckUnit } from "../unit/TruckUnit";
 import { IUnit } from "../unit/IUnit";
-import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 import { GridFiller } from "./GridFiller";
 import { InventoryItem } from "./InventoryItem";
 import { GameUtils } from "../GameUtils";
@@ -197,7 +196,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                         case "factory": {
                             const state = building.state as IFactoryState;
                             if (state.output) {
-                                const inputs = FactoryDefinitions[state.output];
+                                const inputs = resourceConfig.factoryProduction[state.output];
                                 const { inputCapacity, productionTime } = config.factories;
                                 const properties = inputs.map(input => {
                                     const amount = state.reserve.get(input) ?? 0;
@@ -238,7 +237,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                 const cell = GameUtils.getCell(mapCoords)!;
                                 const resourceType = cell.resource!.type;
                                 const amount = cell.resource!.amount;
-                                const { capacity } = resourceConfig[resourceType];
+                                const { capacity } = resourceConfig.rawResources[resourceType];
                                 return {
                                     name: resourceType,
                                     value: `${amount} / ${capacity}`
@@ -264,6 +263,29 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                     }
                                 })()}
                             />
+                        }
+
+                        case "assembly": {
+                            const state = building.state as IAssemblyState;
+                            const { inputs, inputCapacity, productionTime } = config.assemblies;
+                            const properties = inputs.map(input => {
+                                const amount = state.reserve.get(input) ?? 0;
+                                return {
+                                    name: input,
+                                    value: `${amount} / ${inputCapacity}`
+                                };
+                            });
+
+                            return <SingleSelectionPanel
+                                type={type}
+                                health={hitpoints / maxHitpoints}
+                                properties={properties}
+                                output={state.active ? {
+                                    type: "worker",
+                                    progress: state.productionTimer / productionTime,
+                                    stack: state.outputRequests
+                                } : undefined}
+                            />;
                         }
                     }
                     return null;
@@ -314,7 +336,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                 case "cell": {
                     const cell = selectedElems.cell;
                     if (cell.resource) {
-                        const { capacity } = resourceConfig[cell.resource.type];                        
+                        const { capacity } = resourceConfig.rawResources[cell.resource.type];                        
                         return <SingleSelectionPanel
                             type={cell.resource.type}
                             health={cell.resource.amount / capacity}
