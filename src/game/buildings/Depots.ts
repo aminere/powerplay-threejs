@@ -1,11 +1,18 @@
 import { MathUtils, Vector2, Vector3 } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
-import { IBuildingInstance, IDepotState } from "./BuildingTypes";
+import { BuildableType, IBuildingInstance, IDepotState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { BuildingUtils } from "./BuildingUtils";
 import { time } from "../../engine/core/Time";
-import { evtBuildingStateChanged } from "../../Events";
+import { evtBuildError, evtBuildingStateChanged } from "../../Events";
+import { buildingConfig } from "../config/BuildingConfig";
+import { GameMapState } from "../components/GameMapState";
+import { config } from "../config/config";
+
+const { mapRes } = config.game;
+const cellCoords = new Vector2();
+const neighborSectorCoords = new Vector2();
 
 const depotsConfig = {
     slotCount: 9,
@@ -26,12 +33,12 @@ export class Depots {
 
         const capacity = slotCount * resourcesPerSlot;
         const depotState: IDepotState = {
-            type: null, 
+            type: null,
             amount: 0,
             capacity,
             inputTimer: depotsConfig.inputFrequency,
             outputTimer: depotsConfig.outputFrequency
-     };
+        };
         instance.state = depotState;
     }
 
@@ -65,12 +72,12 @@ export class Depots {
             const [_mesh] = meshes.loadImmediate(`/models/resources/${type}.glb`);
             const mesh = _mesh.clone();
             mesh.castShadow = true;
-            
+
             const row = Math.floor(newSlot / slotsPerRow);
             const col = newSlot % slotsPerRow;
             mesh.position.set(
                 slotStart.x + col * slotSize,
-                slotStart.y, 
+                slotStart.y,
                 slotStart.z + row * slotSize
             );
 
@@ -92,7 +99,7 @@ export class Depots {
         const currentSlot = Math.floor((oldAmount - 1) / resourcesPerSlot);
         const newSlot = Math.floor((newAmount - 1) / resourcesPerSlot);
         const slotProgress = (newAmount / resourcesPerSlot) - newSlot;
-        if (currentSlot === newSlot || newSlot < 0) {            
+        if (currentSlot === newSlot || newSlot < 0) {
             if (newAmount === 0) {
                 instance.visual.clear();
                 state.type = null;
@@ -118,7 +125,7 @@ export class Depots {
         state.amount = 0;
         state.type = null;
         instance.visual.clear();
-        evtBuildingStateChanged.post(instance);      
+        evtBuildingStateChanged.post(instance);
     }
 
     public static update(instance: IBuildingInstance) {
@@ -142,12 +149,83 @@ export class Depots {
                 const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, state.type);
                 if (resourceType) {
                     Depots.tryDepositResource(instance, resourceType);
-                    state.inputTimer = depotsConfig.inputFrequency;                    
+                    state.inputTimer = depotsConfig.inputFrequency;
                 }
             } else {
                 state.inputTimer -= time.deltaTime;
             }
-        }        
+        }
+    }
+
+    public static getDepotsInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildableType) {
+        const { size, buildCost } = buildingConfig[buildingType];
+        const { depotsCache } = GameMapState.instance;
+        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+        const { range } = config.depots;
+
+        const validDepots = buildCost.reduce((prev, cur) => {
+            const [required] = cur;
+            return {
+                ...prev,
+                [required]: null!
+            }
+        }, {} as Record<RawResourceType | ResourceType, IBuildingInstance>);
+
+        for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+            neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
+            const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
+            const list = depotsCache.get(sectorId);
+            if (!list) {
+                continue;
+            }
+            for (const depot of list) {
+                const startX = depot.mapCoords.x - range;
+                const startY = depot.mapCoords.y - range;
+                const endX = startX + range * 2 + (size?.x ?? 1);
+                const endY = startY + range * 2 + (size?.z ?? 1);
+                if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
+                    const state = depot.state as IDepotState;
+
+                    for (const [required, amount] of buildCost) {
+                        const alreadyFound = validDepots[required] !== null;
+                        if (alreadyFound) {
+                            continue;
+                        }
+                        if (state.type === required && state.amount >= amount) {
+                            validDepots[required] = depot;
+                        }
+                    }
+                }
+            }
+        }
+
+        return Object.values(validDepots).filter(Boolean);
+    }
+
+    public static testDepots(depots: IBuildingInstance[], buildingType: BuildableType) {
+        if (buildingType === "depot") {
+            const { depotsCache } = GameMapState.instance;
+            if (depotsCache.size === 0) {
+                //first depot is free
+                return true;
+            }
+        }
+        const { buildCost } = buildingConfig[buildingType];
+        if (Object.keys(depots).length < buildCost.length) {
+            const requirements = buildCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
+            evtBuildError.post(`${buildingType} must be built near depots. (Requires ${requirements})`);
+            return false;
+        }
+        return true;
+    }
+
+    public static removeFromDepots(depots: IBuildingInstance[], buildingType: BuildableType) {
+        const { buildCost } = buildingConfig[buildingType];
+        for (const depot of depots) {
+            const depotState = depot.state as IDepotState;
+            const [, cost] = buildCost.find(([type]) => type === depotState.type!)!;
+            Depots.removeResource(depot, cost);
+        }
     }
 }
 

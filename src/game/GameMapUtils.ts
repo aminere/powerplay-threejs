@@ -17,7 +17,7 @@ import { Train } from "./components/Train";
 import { GameMapProps } from "./components/GameMapProps";
 import { GameMapState } from "./components/GameMapState";
 import { unitsManager } from "./unit/UnitsManager";
-import { BuildingType, IBuildingInstance, IDepotState } from "./buildings/BuildingTypes";
+import { IBuildingInstance } from "./buildings/BuildingTypes";
 import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { Depots } from "./buildings/Depots";
@@ -27,7 +27,6 @@ import { buildingConfig } from "./config/BuildingConfig";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
-const neighborSectorCoords = new Vector2();
 const localCoords = new Vector2();
 const plane = new Plane();
 const triangle = new Triangle();
@@ -195,12 +194,12 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
         }
             break;
 
-        case "conveyor": {
-            state.previousConveyors.forEach(cell => conveyors.clear(cell));
-            state.previousConveyors.length = 0;
-            conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
-        }
-            break;
+        // case "conveyor": {
+        //     state.previousConveyors.forEach(cell => conveyors.clear(cell));
+        //     state.previousConveyors.length = 0;
+        //     conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
+        // }
+        //     break;
 
         case "elevation": {
             onElevation(current, 0);
@@ -315,12 +314,12 @@ function onWater(mapCoords: Vector2, button: number) {
     }    
 }
 
-function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
+function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
     if (button === 0) {        
         const empty = (() => {
             for (let i = 0; i < cellsPerRoadBlock; ++i) {
                 for (let j = 0; j < cellsPerRoadBlock; ++j) {
-                    cellCoords.set(mapCoords.x + j, mapCoords.y + i);
+                    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x + j, _sectorCoords.y * mapRes + _localCoords.y + i);
                     const roadPatchCell = GameUtils.getCell(cellCoords)!;
                     if (!roadPatchCell.isEmpty) {
                         return false;
@@ -331,14 +330,28 @@ function onRoad(mapCoords: Vector2, cell: ICell, button: number) {
         })();
 
         if (empty) {
-            roads.create(mapCoords);
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            const buildingType = "road";
+            const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+            if (!Depots.testDepots(depotsInRange, buildingType)) {
+                return false;
+            }            
+            
+            conveyors.createAndFit(cell, cellCoords);
+            Depots.removeFromDepots(depotsInRange, buildingType);
+            roads.create(cellCoords);
+            return true;
         }
 
     } else if (button === 2) {
         if (cell.roadTile !== undefined) {
-            roads.clear(mapCoords);
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            roads.clear(cellCoords);
+            return true;
         }
     }
+
+    return false;
 }
 
 function onBuildingAccepted() {
@@ -350,42 +363,14 @@ function rejectBuilding(error: string) {
     evtBuildError.post(error);
 };
 
-function getDepotInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildingType) {
-    const { size, buildCost } = buildingConfig[buildingType];
-    const { depotsCache } = GameMapState.instance;
-    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-    const { range } = config.depots;
-    for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
-        neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
-        const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
-        const list = depotsCache.get(sectorId);
-        if (!list) {
-            continue;
-        }
-        for (const depot of list) {
-            const startX = depot.mapCoords.x - range;
-            const startY = depot.mapCoords.y - range;
-            const endX = startX + range * 2 + size.x;
-            const endY = startY + range * 2 + size.z;
-            if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
-                const state = depot.state as IDepotState;
-                if (state.type === "stone" && state.amount >= buildCost) {
-                    return depot;
-                }
-            }
-        }
-    }
-    return null;
-}
-
 function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
     const props = GameMapProps.instance;
     const { buildingType } = props;
 
     if (button === 0) {
-        const { size, buildCost } = buildingConfig[buildingType];
+        const { size } = buildingConfig[buildingType];
 
-        let depotInRange: IBuildingInstance | null = null;
+        let depotsInRange: IBuildingInstance[] | null = null;
 
         // TODO if units under the structure, move them away
         const allowed = (() => {
@@ -432,12 +417,10 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                         return false;
                     }
 
-                    // depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
-                    // if (!depotInRange) {
-                    //     rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
-                    //     return false;
-                    // }
-
+                    depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                    if (!Depots.testDepots(depotsInRange, buildingType)) {
+                        return false;
+                    }
                     return true;
                 }
             }
@@ -448,18 +431,10 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 return false;
             }
 
-            depotInRange = getDepotInRange(_sectorCoords, _localCoords, buildingType);
-            // if (!depotInRange) {
-            //     if (buildingType === "depot") {
-            //         const { depotsCache } = GameMapState.instance;
-            //         if (depotsCache.size === 0) {
-            //             //first depot is free
-            //             return true;
-            //         }
-            //     }
-            //     rejectBuilding(`${buildingType} must be built near a stone depot. (Requires ${buildCost} stone)`);
-            //     return false;
-            // }
+            depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);            
+            if (!Depots.testDepots(depotsInRange, buildingType)) {
+                return false;
+            }
 
             return true;
         })();
@@ -473,8 +448,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
-            if (depotInRange) {
-                Depots.removeResource(depotInRange, buildCost);
+            if (depotsInRange) {
+                Depots.removeFromDepots(depotsInRange, buildingType);                
             }
             
             onBuildingAccepted();
@@ -513,21 +488,29 @@ function onTerrain(mapCoords: Vector2, tileType: TileType) {
     Sector.updateCellTexture(sector, localCoords, tileIndex);
 }
 
-function onConveyor(mapCoords: Vector2, cell: ICell, button: number) {
-    let executed = false;
+function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
+    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x , _sectorCoords.y * mapRes + _localCoords.y);
+
     if (button === 0) {
         if (cell.isEmpty) {
-            conveyors.createAndFit(cell, mapCoords);
-            executed = true;
+
+            const buildingType = "conveyor";
+            const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+            if (!Depots.testDepots(depotsInRange, buildingType)) {
+                return false;
+            }            
+            conveyors.createAndFit(cell, cellCoords);
+            Depots.removeFromDepots(depotsInRange, buildingType);
+            return true;
         }
     } else if (button === 2) {
         if (cell.conveyor !== undefined) {
-            conveyors.clear(mapCoords);
-            conveyors.clearLooseCorners(mapCoords);
-            executed = true;
+            conveyors.clear(cellCoords);
+            conveyors.clearLooseCorners(cellCoords);
+            return true;
         }
     }
-    return executed;
+    return false;
 }
 
 export function createSector(coords: Vector2) {
@@ -641,9 +624,8 @@ export function onAction(touchButton: number) {
                 break;
 
             case "road": {
-                onRoad(mapCoords, cell, touchButton);
+                return onRoad(sectorCoords, localCoords, cell, touchButton);
             }
-                break;
 
             case "building": {
                 onBuilding(sectorCoords, localCoords, cell, touchButton);
@@ -675,7 +657,7 @@ export function onAction(touchButton: number) {
                 break;
 
             case "conveyor": {
-                return onConveyor(mapCoords, cell, touchButton);
+                return onConveyor(sectorCoords, localCoords, cell, touchButton);
             }
 
             case "unit": {

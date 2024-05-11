@@ -5,12 +5,11 @@ import { Unit } from "./Unit";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
-import { config } from "../config/config";
 import { TruckState } from "./states/TruckState";
 import { IUnit } from "./IUnit";
 
-const { resourcesPerSlot, slotCount } = config.trucks;
-const truckCapacity = resourcesPerSlot * slotCount;
+// const { resourcesPerSlot, slotCount } = config.trucks;
+// const truckCapacity = resourcesPerSlot * slotCount;
 
 interface ITruckResources {
     type: RawResourceType | ResourceType;

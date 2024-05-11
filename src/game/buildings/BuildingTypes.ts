@@ -12,7 +12,15 @@ export const BuildingTypes = [
     "train-factory"
 ] as const;
 
+export const BuildableTypes = [
+    ...BuildingTypes,
+    "road",
+    "conveyor",
+    "rail"
+] as const;
+
 export type BuildingType = typeof BuildingTypes[number];
+export type BuildableType = typeof BuildableTypes[number];
 
 export interface IFactoryState {
     output: ResourceType | null;
