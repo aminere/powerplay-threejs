@@ -5,7 +5,7 @@ import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
-import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { IUnit } from "../unit/IUnit";
@@ -13,6 +13,8 @@ import { Depots } from "../buildings/Depots";
 import { UnitUtils } from "../unit/UnitUtils";
 import { unitMotion } from "../unit/UnitMotion";
 import { GridFiller } from "./GridFiller";
+import { Icon } from "./Icon";
+import { InventoryItemInfo } from "./InventoryItemInfo";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -168,15 +170,17 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             {(() => {
                                 switch (building.buildingType) {
                                     case "incubator": {
+
                                         return <ActionButton
                                             onClick={() => {
                                                 if (!Incubators.spawn(building)) {
                                                     const { workerCost } = config.incubators;
-                                                    evtBuildError.post(`Not enough resources, requires ${workerCost.water} water and ${workerCost.coal} coal`);
+                                                    const requirements = workerCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
+                                                    evtBuildError.post(`Not enough resources to incubate (Requires ${requirements})`);
                                                 }
                                             }}
                                         >
-                                            incubate
+                                            <Icon name={"incubate"} />
                                         </ActionButton>
                                     }
 

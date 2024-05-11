@@ -16,13 +16,13 @@ const { inputAccepFrequency, inputs } = config.incubators;
 
 function canIncubate(incubator: IIncubatorState) {
     const { workerCost } = config.incubators;
-    if (incubator.reserve.water < workerCost.water) {
-        return false;
-    }
-    if (incubator.reserve.coal < workerCost.coal) {
-        return false;
-    }
-    return true
+    for (const [type, amount] of workerCost) {
+        const reserve = incubator.reserve.get(type) ?? 0;
+        if (reserve < amount) {
+            return false;
+        }
+    }    
+    return true;
 }
 
 export class Incubators {
@@ -32,10 +32,7 @@ export class Incubators {
         const state: IIncubatorState = {            
             active: false,
             productionTimer: 0,
-            reserve: {
-                water: 0,
-                coal: 0
-            },
+            reserve: new Map(),
             inputFull: false,
             inputTimer: -1,
             water: null!,
@@ -84,6 +81,7 @@ export class Incubators {
 
             let isDone = false;
             state.productionTimer += time.deltaTime;
+
             let progress = state.productionTimer / productionTime;
             if (state.productionTimer > productionTime) {
                 progress = 1;
@@ -91,23 +89,21 @@ export class Incubators {
             }
 
             state.worker.scale.setScalar(progress * unitScale);
-            const water = state.reserve["water"];
+            const water = state.reserve.get("water")!;
             const waterSrcProgress = water / inputCapacity;
             const waterDestProgress = (water - 1) / inputCapacity;
             state.water.scale.setY(MathUtils.lerp(waterSrcProgress, waterDestProgress, progress));
 
             if (isDone) {
-                state.active = false;
-                for (const input of inputs) {
-                    state.reserve[input]--;
-                }
+                state.active = false;                
                 const progress = waterDestProgress;
                 state.water.scale.setY(progress);
                 state.worker.visible = false;                
                 state.inputFull = false;
                 cmdSpawnUnit.post(instance);
-                evtBuildingStateChanged.post(instance);
             }
+
+            evtBuildingStateChanged.post(instance);
 
         } else {
             if (state.spawnRequests > 0) {
@@ -116,6 +112,7 @@ export class Incubators {
                 state.worker.visible = true;
                 state.worker.scale.setScalar(0);
                 state.active = true;
+                evtBuildingStateChanged.post(instance);
             }
         }
 
@@ -125,10 +122,10 @@ export class Incubators {
                 let fullInputs = 0;
 
                 for (const input of inputs) {
-                    const currentAmount = state.reserve[input];
+                    const currentAmount = state.reserve.get(input) ?? 0;
                     if (currentAmount < inputCapacity) {
                         if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
-                            state.reserve[input] = currentAmount + 1;
+                            state.reserve.set(input, currentAmount + 1);
                             accepted = true;
                         }
                     } else {
@@ -158,14 +155,15 @@ export class Incubators {
             return false;
         }
 
-        if (state.reserve[type] === inputCapacity) {            
+        const currentAmount = state.reserve.get(type) ?? 0;
+        if (currentAmount === inputCapacity) {            
             return false;
         }
 
-        state.reserve[type]++;
+        state.reserve.set(type, currentAmount + 1);
 
         if (type === "water") {
-            const progress = state.reserve["water"] / inputCapacity;
+            const progress = state.reserve.get(type)! / inputCapacity;
             state.water.scale.setY(progress);
         }
 
@@ -179,6 +177,11 @@ export class Incubators {
             return false;
         }
         state.spawnRequests++;
+        evtBuildingStateChanged.post(instance);
+        for (const input of inputs) {
+            const amount = state.reserve.get(input)!;
+            state.reserve.set(input, amount - 1);
+        }
         return true;
     }
 }

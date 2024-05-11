@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface IconProps {
     name: string;
@@ -7,20 +7,14 @@ interface IconProps {
 const loadErrors: Record<string, boolean> = {};
 
 export function Icon(props: IconProps) {
-    const { name } = props;
-    const rootRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (!rootRef.current) {
-            return;
-        }
-        if (rootRef.current.firstChild) {
-            rootRef.current!.removeChild(rootRef.current.firstChild);
-        }
+    const loading = useRef(true);
+    const [loaded, setLoaded] = useState<boolean>(false);
 
+    const { name } = props;
+    useEffect(() => {
         const onError = () => {
-            const desc = document.createElement("span");
-            desc.innerText = name;
-            rootRef.current!.appendChild(desc);
+            loading.current = false;
+            setLoaded(false);
         };
 
         const error = loadErrors[name];
@@ -33,13 +27,23 @@ export function Icon(props: IconProps) {
                 onError();
             };
             img.onload = () => {
-                rootRef.current!.appendChild(img);
+                loading.current = false;
+                setLoaded(true);
             };
+            loading.current = true;
+            setLoaded(false);
             img.src = `/images/icons/${name}.png`;
         }
-
     }, [name]);
 
-    return <div ref={rootRef} />
+    if (loading.current) {
+        return null;
+    }
+
+    if (loaded) {
+        return <img src={`/images/icons/${name}.png`} />
+    }
+
+    return <>{name}</>;
 }
 

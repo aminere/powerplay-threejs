@@ -25,13 +25,10 @@ export const config = {
     },
     incubators: {
         inputCapacity: 5,
-        workerCost: {
-            water: 1,
-            coal: 1
-        },
+        workerCost: [["water", 1]] as const,
         productionTime: 2,
         inputAccepFrequency: 1,
-        inputs: ["coal", "water"] as const
+        inputs: ["water"] as const
     },
     depots: {
         range: 10,

@@ -10,69 +10,12 @@ import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { ITruckUnit } from "../unit/TruckUnit";
 import { IUnit } from "../unit/IUnit";
 import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
-import { ProgressBar } from "./ProgressBar";
 import { GridFiller } from "./GridFiller";
-import { Icon } from "./Icon";
+import { InventoryItem } from "./InventoryItem";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
 const noOutput = "no output";
-
-interface PropertyProps {
-    name: string;
-    value?: string;
-    progress?: number;
-}
-
-function Property(props: React.PropsWithChildren<PropertyProps>) {    
-    return <div
-        className="icon"
-        style={{
-            position: "relative",
-            height: `${uiconfig.buttonSizeRem}rem`,
-            width: `${uiconfig.buttonSizeRem}rem`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: `${2 * uiconfig.gapRem}rem`,
-            textAlign: "center"
-        }}
-    >
-        <Icon name={props.name} />
-
-        {
-            props.value
-            &&
-            <div
-                dir="ltr"
-                style={{
-                    position: "absolute",
-                    right: "0",
-                    bottom: "0",
-                    backgroundColor: "black",
-                    fontSize: "0.8rem"
-                }}
-            >
-                {props.value}
-            </div>
-        }
-
-        {
-            props.progress !== undefined
-            &&
-            <div style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                width: "100%"
-            }}>
-                <ProgressBar progress={props.progress} />
-            </div>
-        }
-
-        {props.children}
-    </div>
-}
 
 interface SingleSelectionProps {
     type: string;
@@ -81,6 +24,7 @@ interface SingleSelectionProps {
     capacity: number;
     properties: { name: string, value: string }[] | null;
     progress?: number;
+    stack?: number;
 }
 
 function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
@@ -98,7 +42,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
             }}
         >
             <GridFiller slots={props.subtype ? 2 : 1} columns={props.subtype ? 2 : 1} />    
-            <Property name={props.type} value={`${props.amount} / ${props.capacity}`}>
+            <InventoryItem name={props.type} value={`${props.amount} / ${props.capacity}`}>
                 <div
                     style={{
                         position: "absolute",
@@ -109,12 +53,12 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                 >
                     {(props.subtype && props.subtype !== noOutput) ? `${props.subtype} ${props.type}` : props.type}
                 </div>
-            </Property>
+            </InventoryItem>
 
             {
                 props.subtype
                 &&
-                <Property name={props.subtype} progress={props.progress} />
+                <InventoryItem name={props.subtype} progress={props.progress} value={`${props.stack !== undefined ? props.stack : ""}`} />
             }
         </div>        
 
@@ -138,7 +82,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                 }}
             >
                 <GridFiller slots={4} columns={2} />
-                {props.properties?.map((prop, i) => <Property key={i} name={prop.name} value={prop.value} />)}
+                {props.properties?.map((prop, i) => <InventoryItem key={i} name={prop.name} value={prop.value} />)}
 
             </div>
         </div>
@@ -206,15 +150,24 @@ export function SelectionPanel(props: SelectionPanelProps) {
                     switch (type) {
                         case "incubator": {
                             const state = building.state as IIncubatorState;
-                            const { inputs, inputCapacity } = config.incubators;
+                            const { inputs, inputCapacity, productionTime } = config.incubators;
                             const properties = inputs.map(input => {
-                                const amount = state.reserve[input];
+                                const amount = state.reserve.get(input) ?? 0;
                                 return {
                                     name: input,
                                     value: `${amount} / ${inputCapacity}`
                                 };
                             });
-                            return <SingleSelectionPanel type={type} amount={hitpoints} capacity={maxHitpoints} properties={properties} />;
+
+                            return <SingleSelectionPanel
+                                type={type}
+                                amount={hitpoints}
+                                capacity={maxHitpoints}
+                                properties={properties}
+                                subtype="worker"
+                                progress={state.active ? (state.productionTimer / productionTime) : undefined}
+                                stack={state.active ? (state.spawnRequests + 1) : undefined}
+                            />;
                         }
 
                         case "depot": {

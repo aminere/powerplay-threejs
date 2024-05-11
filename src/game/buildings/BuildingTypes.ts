@@ -58,7 +58,7 @@ export interface IDepotState {
 export interface IIncubatorState {
     active: boolean;
     productionTimer: number;
-    reserve: Record<"coal" | "water", number>;
+    reserve: Map<RawResourceType | ResourceType, number>;
     inputTimer: number;
     inputFull: boolean;
     water: Object3D;
