@@ -7,11 +7,12 @@ interface InventoryItemProps {
     name: string;
     value?: string;
     progress?: number;
+    full?: boolean;
 }
 
 export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) {    
     return <div
-        className="icon"
+        className={`icon ${props.full ? "inventory-item-full" : ""}`}
         style={{
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,

@@ -44,7 +44,7 @@ export const config = {
         width: .8,
         height: .34,
         maxCount: 500,
-        speed: 3,
+        speed: 1,
     },
     trains: {
         maxSpeed: 40,

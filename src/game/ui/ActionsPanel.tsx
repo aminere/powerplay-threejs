@@ -5,7 +5,7 @@ import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
-import { IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
+import { IBuildingInstance, IDepotState, IFactoryState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { IUnit } from "../unit/IUnit";
@@ -14,7 +14,8 @@ import { UnitUtils } from "../unit/UnitUtils";
 import { unitMotion } from "../unit/UnitMotion";
 import { GridFiller } from "./GridFiller";
 import { Icon } from "./Icon";
-import { InventoryItemInfo } from "./InventoryItemInfo";
+import { Factories } from "../buildings/Factories";
+import { FactoryDefinitions } from "../buildings/FactoryDefinitions";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -173,7 +174,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                                         return <ActionButton
                                             onClick={() => {
-                                                if (!Incubators.spawn(building)) {
+                                                if (!Incubators.output(building)) {
                                                     const { workerCost } = config.incubators;
                                                     const requirements = workerCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
                                                     evtBuildError.post(`Not enough resources to incubate (Requires ${requirements})`);
@@ -186,13 +187,41 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                                     case "factory": {
                                         const state = building.state as IFactoryState;
-                                        return <ActionButton
-                                            selected={props.factoryOutputsOpen}
-                                            selectedColor="white"
-                                            onClick={props.onShowFactoryOutputs}
-                                        >
-                                            {state.output ? "Change Output" : "Select Output"}
-                                        </ActionButton>
+                                        return <>
+                                            <ActionButton
+                                                selected={props.factoryOutputsOpen}
+                                                selectedColor="white"
+                                                onClick={props.onShowFactoryOutputs}
+                                            >
+                                                {state.output ? "Change Output" : "Select Output"}
+                                            </ActionButton>
+                                            {
+                                                state.output
+                                                &&
+                                                <ActionButton
+                                                    onClick={() => {
+
+                                                        const status = Factories.output(building);
+                                                        switch (status) {
+                                                            case "not-enough": {
+                                                                const inputs = FactoryDefinitions[state.output!]
+                                                                const requirements = inputs.map((type) => `${1} ${type}`).join(" + ");
+                                                                evtBuildError.post(`Not enough resources to produce ${state.output} (Requires ${requirements})`);
+                                                            }
+                                                            break;
+                                                            case "output-full": {
+                                                                evtBuildError.post(`Not enough space to eject`);
+                                                            }
+                                                        }
+                                                    }}
+                                                    onContextMenu={() => {
+                                                        console.log("right click");
+                                                    }}
+                                                >
+                                                    <Icon name={state.output} />
+                                                </ActionButton>
+                                            }                                            
+                                        </>
                                     }
 
                                     case "depot": {

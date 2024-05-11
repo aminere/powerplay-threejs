@@ -8,7 +8,7 @@ export function ProgressBar(props: ProgressBarProps) {
     return <div 
         style={{
             backgroundColor: "black",
-            height: "5px",
+            height: "4px",
             width: "100%",
             position: "relative"
         }}

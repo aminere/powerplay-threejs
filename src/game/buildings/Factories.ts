@@ -24,30 +24,18 @@ function canProduce(state: IFactoryState) {
     return false;
 }
 
-function removeResource(instance: IBuildingInstance) {
-    const state = instance.state as IFactoryState;
-    console.assert(state.output);
-    const inputs = FactoryDefinitions[state.output!];
-    for (const input of inputs) {
-        const amount = state.reserve.get(input)!;
-        console.assert(amount !== undefined);
-        state.reserve.set(input, amount - 1);
-    }
-    evtBuildingStateChanged.post(instance);
-    state.inputFull = false;
-}
-
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, output: ResourceType | null) {
 
         const instance = buildings.create("factory", sectorCoords, localCoords);
         const factoryState: IFactoryState = {
-            output,
             active: false,
-            reserve: new Map(),
-            inputTimer: -1,
             productionTimer: 0,
-            inputFull: false,
+            reserve: new Map(),
+            inputFull: false,            
+            inputTimer: -1,
+            outputRequests: 0,            
+            output,
             outputFull: false,
             outputCheckTimer: -1
         };
@@ -57,51 +45,53 @@ export class Factories {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IFactoryState;
-        if (!state.active) {
+        if (state.active) {
 
-            if (state.outputFull) {
-                if (state.outputCheckTimer < 0) {
-                    if (BuildingUtils.tryFillAdjacentCells(instance, state.output!)) {
-                        removeResource(instance);
-                        state.outputFull = false;
-
-                    } else {
-                        state.outputCheckTimer = 1;
-                    }
-                } else {
-                    state.outputCheckTimer -= time.deltaTime;
-                }
-            } else {
-                if (canProduce(state)) {
-                    state.active = true;
-                    state.productionTimer = 0;
-                    evtBuildingStateChanged.post(instance); 
-                }
+            let isDone = false;
+            state.productionTimer += time.deltaTime;
+            if (state.productionTimer > productionTime) {
+                state.productionTimer = productionTime;
+                isDone = true;
             }
 
-        } else {
-
-            if (state.productionTimer >= productionTime) {
+            if (isDone) {
                 if (BuildingUtils.produceResource(instance, state.output!)) {
-                    removeResource(instance);
-
-                    if (canProduce(state)) {
+                    state.outputRequests--;
+                    if (state.outputRequests > 0) {
                         state.productionTimer = 0;
                     } else {
                         state.active = false;
-                        evtBuildingStateChanged.post(instance);
                     }
 
                 } else {
                     state.active = false;
                     state.outputFull = true;
                     state.outputCheckTimer = 1;
-                    evtBuildingStateChanged.post(instance);
                 }
-            } else {
-                state.productionTimer += time.deltaTime;
-                evtBuildingStateChanged.post(instance);
-            }            
+            }
+
+            evtBuildingStateChanged.post(instance);
+            
+        } else {
+
+            if (state.outputFull) {
+                if (state.outputCheckTimer < 0) {
+                    if (BuildingUtils.tryFillAdjacentCells(instance, state.output!)) {
+                        state.outputRequests--;
+                        state.outputFull = false;
+                    } else {
+                        state.outputCheckTimer = 1;
+                    }
+                } else {
+                    state.outputCheckTimer -= time.deltaTime;
+                }
+            } else {                
+                if (state.outputRequests > 0) {                    
+                    state.productionTimer = 0;                    
+                    state.active = true;
+                    evtBuildingStateChanged.post(instance);
+                }                
+            }
         }
 
         if (state.output) {
@@ -109,7 +99,7 @@ export class Factories {
                 if (state.inputTimer < 0) {
                     let accepted = false;
                     let fullInputs = 0;
-    
+
                     const inputs = FactoryDefinitions[state.output];
                     for (const input of inputs) {
                         const currentAmount = state.reserve.get(input);
@@ -123,24 +113,45 @@ export class Factories {
                                 accepted = true;
                             }
                         } else {
-                            fullInputs++;                        
+                            fullInputs++;
                         }
                     }
-    
-                    if (accepted) {                        
+
+                    if (accepted) {
                         evtBuildingStateChanged.post(instance);
                     }
 
                     state.inputTimer = inputAccepFrequency;
                     if (fullInputs === inputs.length) {
                         state.inputFull = true;
-                    }                    
-                    
+                    }
+
                 } else {
                     state.inputTimer -= time.deltaTime;
                 }
-            }            
-        }        
+            }
+        }
+    }
+
+    public static output(instance: IBuildingInstance) {
+        const state = instance.state as IFactoryState;
+        if (state.outputFull) {
+            return "output-full";
+        }
+
+        if (!canProduce(state)) {
+            return "not-enough";
+        }
+
+        state.outputRequests++;        
+        const inputs = FactoryDefinitions[state.output!];
+        for (const input of inputs) {
+            const amount = state.reserve.get(input)!;
+            state.reserve.set(input, amount - 1);
+        }
+        state.inputFull = false;
+        evtBuildingStateChanged.post(instance);
+        return "ok";
     }
 
     public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
@@ -149,9 +160,9 @@ export class Factories {
             const inputs = FactoryDefinitions[state.output];
             if (inputs.includes(type)) {
                 const currentAmount = state.reserve.get(type);
-                if ((currentAmount ?? 0) < inputCapacity) {                    
+                if ((currentAmount ?? 0) < inputCapacity) {
                     return true;
-                }    
+                }
             }
         }
         return false;
@@ -177,6 +188,8 @@ export class Factories {
         state.output = type;
         state.reserve.clear();
         state.active = false;
+        state.outputRequests = 0;
+        state.inputFull = false;
         evtBuildingStateChanged.post(instance);
     }
 }

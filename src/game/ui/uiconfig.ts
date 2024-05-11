@@ -11,7 +11,6 @@ export const uiconfig = {
     actionColumns: 3,
     outputRows: 2,
     outputColumns: 8,
-    selectedBorderSizePx: 2,
-    noOutput: "no output",
+    selectedBorderSizePx: 2
 }
 

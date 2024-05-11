@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { uiconfig } from "./uiconfig";
 
 interface IconProps {
     name: string;
@@ -18,11 +17,6 @@ export function Icon(props: IconProps) {
             loading.current = false;
             setLoaded(false);
         };
-
-        if (name === uiconfig.noOutput) {
-            onError();
-            return;
-        }
 
         const error = loadErrors[name];
         if (error) {

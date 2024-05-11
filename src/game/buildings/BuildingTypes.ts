@@ -22,15 +22,27 @@ export const BuildableTypes = [
 export type BuildingType = typeof BuildingTypes[number];
 export type BuildableType = typeof BuildableTypes[number];
 
-export interface IFactoryState {
-    output: ResourceType | null;
-    reserve: Map<RawResourceType | ResourceType, number>;
-    
-    inputTimer: number;
+export interface IIncubatorState {
     active: boolean;
     productionTimer: number;
+    reserve: Map<RawResourceType | ResourceType, number>;
+    inputTimer: number;
+    inputFull: boolean;    
+    outputRequests: number;
 
+    water: Object3D;
+    worker: Object3D;
+}
+
+export interface IFactoryState {
+    active: boolean;
+    productionTimer: number;
+    reserve: Map<RawResourceType | ResourceType, number>;    
+    inputTimer: number;
     inputFull: boolean;
+    outputRequests: number;
+    
+    output: ResourceType | null;
     outputFull: boolean;
     outputCheckTimer: number;
 }
@@ -55,16 +67,6 @@ export interface IDepotState {
     outputTimer: number;
 }
 
-export interface IIncubatorState {
-    active: boolean;
-    productionTimer: number;
-    reserve: Map<RawResourceType | ResourceType, number>;
-    inputTimer: number;
-    inputFull: boolean;
-    water: Object3D;
-    worker: Object3D;
-    spawnRequests: number;
-}
 
 export type TBuildingState = IFactoryState | IMineState | IDepotState | IIncubatorState;
 

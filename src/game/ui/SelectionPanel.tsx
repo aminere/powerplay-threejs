@@ -25,6 +25,7 @@ interface SingleSelectionProps {
         type: string;
         progress?: number;
         stack?: number;
+        full?: boolean;
     }
 }
 
@@ -63,6 +64,7 @@ function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProp
                     name={props.output.type}
                     progress={props.output.progress}
                     value={props.output.stack !== undefined ? `${props.output.stack}` : undefined}
+                    full={props.output.full}
                 />
             }
         </div>        
@@ -171,7 +173,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                 output={state.active ? {
                                     type: "worker",
                                     progress: state.productionTimer / productionTime,
-                                    stack: state.spawnRequests + 1
+                                    stack: state.outputRequests
                                 } : undefined}
                             />;
                         }
@@ -202,27 +204,28 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                         value: `${amount} / ${inputCapacity}`
                                     }
                                 });
-
-                                const progress = state.productionTimer / productionTime;
                                 return <SingleSelectionPanel
                                     type={type}
                                     health={hitpoints / maxHitpoints}
                                     title={state.output ? `${state.output} ${type}` : undefined}
                                     properties={properties}
-                                    output={{
-                                        type: state.output,
-                                        progress: state.active ? progress : undefined
-                                    }}
+                                    output={(() => {
+                                        if (state.active || state.outputFull) {
+                                            return {
+                                                type: state.output,
+                                                progress: state.productionTimer / productionTime,
+                                                stack: state.outputRequests,
+                                                full: state.outputFull
+                                            }
+                                        }
+                                    })()}
                                 />
                                 
                             } else {
                                 return <SingleSelectionPanel
                                     type={type}
                                     health={hitpoints / maxHitpoints}
-                                    properties={null}
-                                    output={{
-                                        type: uiconfig.noOutput
-                                    }}
+                                    properties={null}                                    
                                 />
                             }
                         }

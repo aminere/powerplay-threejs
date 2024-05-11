@@ -2,6 +2,7 @@ import { uiconfig } from "./uiconfig";
 
 interface ActionButtonProps {
     onClick: () => void;
+    onContextMenu?: () => void;
     selected?: boolean;
     selectedColor?: "yellow" | "white";
 }
@@ -25,6 +26,11 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         onClick={e => {
             e.stopPropagation();
             props.onClick();
+        }}
+        onContextMenu={e => {
+            e.stopPropagation();
+            e.preventDefault();
+            props.onContextMenu?.();
         }}
     >
         {props.children}
