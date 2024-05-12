@@ -1,12 +1,24 @@
-import { DataTexture, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
+import { DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
 import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog } from "../Events";
+import { trees } from "./Trees";
+import { ICell } from "./GameTypes";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
 const circlePos = new Vector2();
+
+function tryRevealTree(cell: ICell) {
+    if (cell.resource) {
+        const { visual, instanceIndex, type } = cell.resource;
+        if (instanceIndex !== undefined) {
+            console.assert(type === "wood");
+            trees.revealTree(visual as InstancedMesh, instanceIndex);
+        }
+    }    
+}
 
 class FogOfWar {
 
@@ -50,7 +62,7 @@ class FogOfWar {
         plane.position.y = .01;
         const uvFactor = texResPow2 / texRes;
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
-        plane.visible = false;
+        // plane.visible = false;
         engine.scene!.add(plane);
         
         // bad hack do not bring back!
@@ -116,6 +128,7 @@ class FogOfWar {
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 0;
                     cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
+                    tryRevealTree(cell);
                 }
             }
         }
@@ -196,8 +209,12 @@ class FogOfWar {
                     if (newCell.viewCount === 1) {
                         const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
+                        const firstTimeReveal = this._textureData[stride + 3] === 255;
                         this._textureData[stride + 3] = 0;
                         cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
+                        if (firstTimeReveal) {
+                            tryRevealTree(newCell);
+                        }
                     }                
                 }
             }

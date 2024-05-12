@@ -1,4 +1,4 @@
-import { Box2, BufferAttribute, BufferGeometry, Camera, Line3, Mesh, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
+import { Box2, BufferAttribute, BufferGeometry, Camera, InstancedMesh, Line3, Mesh, OrthographicCamera, Plane, Triangle, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
@@ -25,6 +25,7 @@ import { Incubators } from "./buildings/Incubators";
 import { evtActionCleared, evtBuildError } from "../Events";
 import { buildingConfig } from "./config/BuildingConfig";
 import { Assemblies } from "./buildings/Assemblies";
+import { trees } from "./Trees";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -491,6 +492,10 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 const units = cell.units?.length ?? 0;
                 if (cell.isEmpty && units === 0) {
                     resources.create(sector, _sectorCoords, _localCoords, cell, type);
+                    if (type === "wood") {
+                        const { visual, instanceIndex } = cell.resource!;
+                        trees.revealTree(visual as InstancedMesh, instanceIndex!);
+                    }
                 }
             } else if (button === 2) {
                 if (cell.resource) {

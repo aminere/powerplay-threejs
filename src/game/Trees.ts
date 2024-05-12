@@ -36,12 +36,12 @@ const treeMapRes = Math.floor(mapRes * cellSize / treeCellSize);
 const treeMapSize = treeMapRes * treeCellSize;
 const maxTreesPerSector = treeMapRes * treeMapRes;
 
-function getRandomTreeMatrix(worldPos: Vector3) {
-    const minScale = 0.3;
-    const maxScale = 0.5;
+const minScale = 0.3;
+const maxScale = 0.5;
+function getRandomTreeMatrix(_worldPos: Vector3) {
     scale.setScalar(minScale + (maxScale - minScale) * Math.random());
     quaternion.setFromAxisAngle(GameUtils.vec3.up, MathUtils.randFloat(0, Math.PI * 2));
-    return matrix.compose(worldPos, quaternion, scale);
+    return matrix.compose(_worldPos, quaternion, scale);
 }
 
 class Trees {
@@ -151,7 +151,7 @@ class Trees {
         const treeIndex = MathUtils.randInt(0, this._instancedMeshes.length - 1);
         const instancedMesh = this._instancedMeshes[treeIndex];
         const count = instancedMesh.count;
-        const matrix = getRandomTreeMatrix(worldPos);
+        matrix.compose(worldPos, quaternion, scale.setScalar(0)); // will be lazily revealed by fog of war
         instancedMesh.setMatrixAt(count, matrix);
         instancedMesh.instanceMatrix.needsUpdate = true;
         instancedMesh.count = count + 1;
@@ -178,6 +178,13 @@ class Trees {
         }
 
         instancedMesh.count = newCount;
+        instancedMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    public revealTree(instancedMesh: InstancedMesh, instanceIndex: number) {
+        instancedMesh.getMatrixAt(instanceIndex, matrix);
+        worldPos.setFromMatrixPosition(matrix);
+        instancedMesh.setMatrixAt(instanceIndex, getRandomTreeMatrix(worldPos));
         instancedMesh.instanceMatrix.needsUpdate = true;
     }
 

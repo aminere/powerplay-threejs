@@ -292,7 +292,7 @@ export function Minimap() {
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />
             <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />            
             <canvas ref={unitsRef} style={{ ...crispCanvasStyle, zIndex: 3 }} />
-            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4, display: "none" }} />
+            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4, display: "block" }} />
             <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />            
         </div>
         {/* <canvas
