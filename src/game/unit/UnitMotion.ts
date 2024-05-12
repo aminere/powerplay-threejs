@@ -74,10 +74,12 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
             return new Vector2(parseInt(x), parseInt(y));
         });
 
+        const { path } = GameMapState.instance.debug;
         if (GameMapProps.instance.debugPathfinding) {
-            GameMapState.instance.debug.path.update(cellPath);
+            path.setPath(cellPath);
+            path.visible = true;
         } else {
-            GameMapState.instance.debug.path.visible = false;
+            path.visible = false;
         }
 
         return out;

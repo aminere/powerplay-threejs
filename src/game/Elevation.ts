@@ -88,7 +88,8 @@ class Elevation {
             for (let x = mapCoords.x - 1; x < mapCoords.x + size + 1; ++x) {
                 cellCoords.set(x, y);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
-                if (cell) {                    
+                const units = cell?.units?.length ?? 0;
+                if (cell?.isEmpty && units === 0) {
                     const sector = GameUtils.getSector(sectorCoords)!;
                     resources.create(sector, sectorCoords, localCoords, cell, type);
                 }

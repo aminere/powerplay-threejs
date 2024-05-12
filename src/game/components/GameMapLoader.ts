@@ -236,8 +236,10 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await railFactory.preload();
         await preloadAnimations();
         await unitsManager.preload();
+        // other resources are loaded on demand
         await meshes.load(`/models/resources/wood.glb`);
         await meshes.load(`/models/resources/water.glb`);
+        await meshes.load(`/models/resources/oil.glb`);
     }
 
     private init(size: number, owner: Object3D) {

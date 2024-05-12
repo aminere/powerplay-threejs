@@ -29,8 +29,8 @@ import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeState } from "./states/MeleeState";
 
 const screenPos = new Vector3();
-const spawnCoords = new Vector2();
-const { unitScale, truckScale, tankScale } = config.game;
+const cellCoords = new Vector2();
+const { unitScale, truckScale, tankScale, cellSize } = config.game;
 
 function getBoundingBox(mesh: Mesh) {
     if (mesh.geometry.boundingBox) {
@@ -245,6 +245,9 @@ class UnitsManager {
     }
 
     public setSelection(selection: SelectedElems | null) {
+
+        const { depotRange } = GameMapState.instance.debug;
+        depotRange.visible = false;
         if (selection) {
             switch (selection.type) {
                 case "units": {
@@ -256,21 +259,22 @@ class UnitsManager {
                     const buildingType = selection.building.buildingType;
                     switch (buildingType) {
                         case "depot": {
-                            const { depotRange } = GameMapState.instance.debug;
                             const { range } = config.depots;
                             const { size } = buildingConfig[buildingType];
                             const startX = selection.building.mapCoords.x - range;
                             const startY = selection.building.mapCoords.y - range;
-                            const endX = startX + range * 2 + (size?.x ?? 1);
-                            const endY = startY + range * 2 + (size?.z ?? 1);
-                            
-                            depotRange.update([
-                                new Vector2(startX, startY),
-                                new Vector2(endX, startY),
-                                new Vector2(endX, endY),
-                                new Vector2(startX, endY),
-                                new Vector2(startX, startY),
-                            ]);
+                            const endX = startX + range * 2 + size!.x;
+                            const endY = startY + range * 2 + size!.z;
+                            const c1 = GameUtils.mapToWorld(cellCoords.set(startX, startY), new Vector3());
+                            c1.x -= cellSize / 2; c1.z -= cellSize / 2;
+                            const c2 = GameUtils.mapToWorld(cellCoords.set(endX, startY), new Vector3());
+                            c2.x += cellSize / 2; c2.z -= cellSize / 2;
+                            const c3 = GameUtils.mapToWorld(cellCoords.set(endX, endY), new Vector3());
+                            c3.x += cellSize / 2; c3.z += cellSize / 2;
+                            const c4 = GameUtils.mapToWorld(cellCoords.set(startX, endY), new Vector3());
+                            c4.x -= cellSize / 2; c4.z += cellSize / 2;
+                            depotRange.setPoints([c1, c2, c3, c4, c1.clone()]);
+                            depotRange.visible = true;
                         }
                         break;
                     }
@@ -297,12 +301,12 @@ class UnitsManager {
 
         const [building, unitType] = spawnUnitRequest;
         const { buildingType, mapCoords } = building;
-        spawnCoords.copy(mapCoords);
+        cellCoords.copy(mapCoords);
         const size = buildingConfig[buildingType].size;
-        spawnCoords.x += size.x / 2;
-        spawnCoords.y += size.z;
+        cellCoords.x += size.x / 2;
+        cellCoords.y += size.z;
 
-        this.spawn(spawnCoords, unitType);
+        this.spawn(cellCoords, unitType);
         this._spawnUnitRequest = null;
     }
 

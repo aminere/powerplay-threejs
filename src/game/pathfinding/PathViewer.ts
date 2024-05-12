@@ -11,12 +11,15 @@ export class PathViewer extends Object3D {
         this.visible = false;
     }
 
-    public update(path: Vector2[]) {
-        this.visible = true;
+    public setPath(mapCoords: Vector2[]) {
         const lines = this.children[0] as Line;
-        lines.geometry.setFromPoints(path.map(p => {
-            return GameUtils.mapToWorld(p, new Vector3());
-        }));
+        lines.geometry.setFromPoints(mapCoords.map(p => GameUtils.mapToWorld(p, new Vector3())));
+        lines.geometry.computeBoundingSphere();
+    }
+
+    public setPoints(worldPos: Vector3[]) {
+        const lines = this.children[0] as Line;
+        lines.geometry.setFromPoints(worldPos);
         lines.geometry.computeBoundingSphere();
     }
 }

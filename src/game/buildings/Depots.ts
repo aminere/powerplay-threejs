@@ -172,9 +172,9 @@ export class Depots {
         const { range } = config.depots;
         cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
         const minX = cellCoords.x;
-        const maxX = cellCoords.x + size.x;
+        const maxX = cellCoords.x + (size?.x ?? 0);
         const minY = cellCoords.y;
-        const maxY = cellCoords.y + size.z;
+        const maxY = cellCoords.y + (size?.z ?? 0);
         const { depotsCache } = GameMapState.instance;
         for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
             neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);

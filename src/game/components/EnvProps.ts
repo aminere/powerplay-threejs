@@ -29,8 +29,8 @@ const localCoords = new Vector2();
 const worldPos = new Vector3();
 const scale = new Vector3();
 const quaternion = new Quaternion();
-const minScale = .25;
-const maxScale = .4;
+const minScale = .35;
+const maxScale = .45;
 
 export class EnvProps extends Component<EnvPropsProps> {
 

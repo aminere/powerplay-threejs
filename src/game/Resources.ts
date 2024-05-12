@@ -1,4 +1,4 @@
-import { InstancedMesh, Vector2, Vector3 } from "three";
+import { InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
 import { config } from "./config/config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
@@ -18,6 +18,10 @@ const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
 };
 
 class Resources {
+
+    private _oilMaterial = new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .7 });
+    private _oilGeometry = new PlaneGeometry(cellSize, cellSize).rotateX(-Math.PI / 2);
+
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
 
         const resourceInstance = (() => {
@@ -38,26 +42,36 @@ class Resources {
                     return resourceInstance;
                 }
 
-                case "water":
-                case "oil": {
+                case "water":{                
                     const resourceInstance: IRawResource = { type, amount: capacity };
                     return resourceInstance;
                 }
 
-                default: {
+                case "oil": {
+                    const visual = new Mesh(this._oilGeometry, this._oilMaterial);
+                    visual.name = "oil";
                     const localX = localCoords.x * cellSize + cellSize / 2;
-                    const localZ = localCoords.y * cellSize + cellSize / 2;            
+                    const localZ = localCoords.y * cellSize + cellSize / 2;
+                    visual.position.set(localX, -.1, localZ);
+                    sector.layers.resources.add(visual);
+                    const resourceInstance: IRawResource = { visual, type, amount: capacity };                    
+                    return resourceInstance;
+                }
+
+                default: {
                     const visual = utils.createObject(sector.layers.resources, type);
                     meshes.load(`/models/resources/${type}.glb`)
-                            .then((_meshes) => {
-                                for (const _mesh of _meshes) {
-                                    const mesh = _mesh.clone();
-                                    mesh.scale.setScalar(cellSize);
-                                    mesh.castShadow = true;
-                                    visual.add(mesh);
-                                }
-                            });
+                        .then((_meshes) => {
+                            for (const _mesh of _meshes) {
+                                const mesh = _mesh.clone();
+                                mesh.scale.setScalar(cellSize);
+                                mesh.castShadow = true;
+                                visual.add(mesh);
+                            }
+                        });
 
+                    const localX = localCoords.x * cellSize + cellSize / 2;
+                    const localZ = localCoords.y * cellSize + cellSize / 2;
                     visual.position.set(localX, worldPos.y, localZ);
                     const resourceInstance: IRawResource = { visual, type, amount: capacity };
                     return resourceInstance;
