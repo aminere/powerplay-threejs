@@ -1,4 +1,4 @@
-import { DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
+import { ClampToEdgeWrapping, DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, MeshStandardMaterial, NearestFilter, PlaneGeometry, RGBAFormat, Vector2 } from "three";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
@@ -33,8 +33,10 @@ class FogOfWar {
         const pixelCount = texResPow2 * texResPow2;
         const textureData = new Uint8Array(pixelCount * 4);
         const texture = new DataTexture(textureData, texResPow2, texResPow2, RGBAFormat);        
-        texture.minFilter = LinearFilter;
+        // texture.minFilter = LinearFilter;
         texture.magFilter = LinearFilter;
+        texture.wrapS = ClampToEdgeWrapping;
+        texture.wrapT = ClampToEdgeWrapping;
         for (let i = 0; i < texRes; ++i) {
             for (let j = 0; j < texRes; ++j) {
                 const cellIndex = i * texResPow2 + j;
@@ -46,7 +48,7 @@ class FogOfWar {
             }
         }
         texture.needsUpdate = true;        
-        const material = new MeshBasicMaterial({ 
+        const material = new MeshStandardMaterial({ 
             map: texture, 
             transparent: true,
             depthTest: false
@@ -57,9 +59,10 @@ class FogOfWar {
         geometry.translate(.5, 0, .5);
         const plane = new Mesh(geometry, material);
         plane.name = "fogOfWar";
+        plane.renderOrder = 2;
         const offset = -mapRes / 2;
         plane.position.set(offset, 0, offset + texResPow2).multiplyScalar(cellSize);
-        plane.position.y = .01;
+        // plane.position.y = .01;
         const uvFactor = texResPow2 / texRes;
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
         // plane.visible = false;

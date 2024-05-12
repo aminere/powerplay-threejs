@@ -266,7 +266,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         // mapCoords = (cameraPos / cellSize) + mapRes / 2;
         const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
         const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
-        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: mapRes / 2 });
+        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });
 
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
