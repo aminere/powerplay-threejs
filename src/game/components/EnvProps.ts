@@ -1,12 +1,11 @@
 
-import { BufferAttribute, InstancedMesh, MathUtils, Matrix4, Mesh, MeshStandardMaterial, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { InstancedMesh, MathUtils, Matrix4, MeshStandardMaterial, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { textures } from "../../engine/resources/Textures";
 import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
-import { GameMapState } from "./GameMapState";
 
 export class EnvPropsProps extends ComponentProps {
 
@@ -18,9 +17,16 @@ export class EnvPropsProps extends ComponentProps {
     }
 }
 
-const { mapRes, cellSize, elevationStep } = config.game;
+const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
+const sectorCoords = new Vector2();
+const matrix = new Matrix4();
+const mapCoords = new Vector2();
+const localCoords = new Vector2();
+const worldPos = new Vector3();
+const scale = new Vector3();
+const quaternion = new Quaternion();
 
 export class EnvProps extends Component<EnvPropsProps> {
 
@@ -49,14 +55,6 @@ export class EnvProps extends Component<EnvPropsProps> {
                 const propCellSize = cellSize * 8;
                 const propMapRes = Math.floor(mapRes * cellSize / propCellSize);
                 const propMapSize = propMapRes * propCellSize;
-                const worldPos = new Vector3();
-                const scale = new Vector3();
-                const quaternion = new Quaternion();
-                const up = new Vector3(0, 1, 0);
-                const matrix = new Matrix4();
-                const mapCoords = new Vector2();
-                const localCoords = new Vector2();
-                const verticesPerRow = mapRes + 1;
 
                 const geometries = propMeshes.map(m => m[0].geometry);
                 const { sectorRes } = this.props;
@@ -77,15 +75,10 @@ export class EnvProps extends Component<EnvPropsProps> {
                     };
                 });
 
-                const { sectors } = GameMapState.instance;
                 for (let i = 0; i < sectorRes; ++i) {
                     for (let j = 0; j < sectorRes; ++j) {
                         const sectorX = j;
                         const sectorY = i;
-                        const sector = sectors.get(`${sectorX},${sectorY}`);
-                        const terrain = sector?.layers.terrain as Mesh;
-                        const position = terrain.geometry.getAttribute("position") as BufferAttribute;
-
                         for (let k = 0; k < propMapRes; ++k) {
                             for (let l = 0; l < propMapRes; ++l) {
                                 const localX = MathUtils.randFloat(0, propCellSize);
@@ -96,30 +89,23 @@ export class EnvProps extends Component<EnvPropsProps> {
                                 const propWorldY = propSectorY + l * propCellSize + sectorOffset + localY;
                                 worldPos.set(propWorldX, 0, propWorldY);
                                 GameUtils.worldToMap(worldPos, mapCoords);
-                                const cell = GameUtils.getCell(mapCoords, undefined, localCoords);
+                                const cell = GameUtils.getCell(mapCoords, sectorCoords, localCoords);
                                 if (!cell) {
                                     continue;
-                                }
-                                const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
-                                const _height1 = position.getY(startVertexIndex);
-                                const _height2 = position.getY(startVertexIndex + 1);
-                                const _height3 = position.getY(startVertexIndex + verticesPerRow);
-                                const _height4 = position.getY(startVertexIndex + verticesPerRow + 1);
-                                const _maxHeight = Math.max(_height1, _height2, _height3, _height4);
-                                const _minHeight = Math.min(_height1, _height2, _height3, _height4);
-                                if (_minHeight === _maxHeight && _minHeight >= 0 && _minHeight <= 1) {
-                                    const propIndex = MathUtils.randInt(0, instancedMeshes.length - 1);                                    
-                                    worldPos.setY(_minHeight * elevationStep);
-                                    const minScale = 0.002;
-                                    const maxScale = 0.007;
-                                    scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
-                                    quaternion.setFromAxisAngle(up, MathUtils.randFloat(0, Math.PI * 2));
-                                    matrix.compose(worldPos, quaternion, scale);
-                                    const propMesh = instancedMeshes[propIndex];
-                                    const count = propMesh.count;
-                                    propMesh.instancedMesh.setMatrixAt(count, matrix);
-                                    propMesh.count = count + 1;
-                                }
+                                }                                
+                                const sector = GameUtils.getSector(sectorCoords)!;
+                                const y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z)
+                                worldPos.setY(y);
+                                const propIndex = MathUtils.randInt(0, instancedMeshes.length - 1);
+                                const minScale = 0.002;
+                                const maxScale = 0.007;
+                                scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
+                                quaternion.setFromAxisAngle(GameUtils.vec3.up, MathUtils.randFloat(0, Math.PI * 2));
+                                matrix.compose(worldPos, quaternion, scale);
+                                const propMesh = instancedMeshes[propIndex];
+                                const count = propMesh.count;
+                                propMesh.instancedMesh.setMatrixAt(count, matrix);
+                                propMesh.count = count + 1;                               
                             }
                         }
                     }
