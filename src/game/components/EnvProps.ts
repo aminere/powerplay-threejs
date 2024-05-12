@@ -2,7 +2,6 @@
 import { InstancedMesh, MathUtils, Matrix4, MeshStandardMaterial, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { textures } from "../../engine/resources/Textures";
 import { meshes } from "../../engine/resources/Meshes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
@@ -18,6 +17,9 @@ export class EnvPropsProps extends ComponentProps {
 }
 
 const { mapRes, cellSize } = config.game;
+const propCellSize = cellSize * 10;
+const propMapRes = Math.floor(mapRes * cellSize / propCellSize);
+const propMapSize = propMapRes * propCellSize;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const sectorCoords = new Vector2();
@@ -27,6 +29,8 @@ const localCoords = new Vector2();
 const worldPos = new Vector3();
 const scale = new Vector3();
 const quaternion = new Quaternion();
+const minScale = .25;
+const maxScale = .4;
 
 export class EnvProps extends Component<EnvPropsProps> {
 
@@ -37,32 +41,23 @@ export class EnvProps extends Component<EnvPropsProps> {
     override start(owner: Object3D) {        
 
         const props = [
-            `/models/props/grass-clumb.fbx`,
-            `/models/props/rocks-small_brown.fbx`,
-            `/models/props/cactus-medium.fbx`,
-            `/models/props/stone-oval_brown.fbx`,
-            `/models/props/stone-small_brown.fbx`
+            `/models/props/grass-clumb.glb`,
+            `/models/props/rocks-small_brown.glb`,
+            `/models/props/cactus-medium.glb`,
+            `/models/props/stone-oval_brown.glb`,
+            `/models/props/stone-small_brown.glb`
         ];
-
-        const atlas = textures.load(`/models/atlas-albedo-LPUP.png`);
-        const plantMaterial = new MeshStandardMaterial({
-            map: atlas,
-            flatShading: true
-        });
 
         Promise.all(props.map(s => meshes.load(s)))
             .then(propMeshes => {
-                const propCellSize = cellSize * 8;
-                const propMapRes = Math.floor(mapRes * cellSize / propCellSize);
-                const propMapSize = propMapRes * propCellSize;
-
+                const material = propMeshes[0][0].material as MeshStandardMaterial;
                 const geometries = propMeshes.map(m => m[0].geometry);
                 const { sectorRes } = this.props;
                 const sectorCount = sectorRes * sectorRes;
                 const maxPropsPerSector = propMapRes * propMapRes;
                 const maxProps = maxPropsPerSector * sectorCount;
                 const instancedMeshes = geometries.map((geometry, index) => {
-                    const instancedMesh = new InstancedMesh(geometry, plantMaterial, maxProps);
+                    const instancedMesh = new InstancedMesh(geometry, material, maxProps);
                     instancedMesh.name = `props-${index}`;
                     instancedMesh.castShadow = true;
                     instancedMesh.frustumCulled = false;
@@ -97,8 +92,6 @@ export class EnvProps extends Component<EnvPropsProps> {
                                 const y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z)
                                 worldPos.setY(y);
                                 const propIndex = MathUtils.randInt(0, instancedMeshes.length - 1);
-                                const minScale = 0.002;
-                                const maxScale = 0.007;
                                 scale.setScalar(minScale + (maxScale - minScale) *  Math.random());
                                 quaternion.setFromAxisAngle(GameUtils.vec3.up, MathUtils.randFloat(0, Math.PI * 2));
                                 matrix.compose(worldPos, quaternion, scale);
