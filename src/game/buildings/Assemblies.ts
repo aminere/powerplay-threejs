@@ -48,9 +48,9 @@ export class Assemblies {
             active: false,
             productionTimer: 0,
             reserve: new Map([
-                ["steel", 1],
-                ["engine", 1],
-                ["tire", 4]
+                ["steel", 10],
+                ["engine", 10],
+                ["tire", 40]
             ]),
             inputFull: false,            
             inputTimer: -1,

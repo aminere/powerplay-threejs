@@ -278,6 +278,7 @@ export function SelectionPanel(props: SelectionPanelProps) {
                                         value: `${amount} / ${inputCapacity}`
                                     }
                                 });
+
                                 return <SingleSelectionPanel
                                     type={type}
                                     health={hitpoints / maxHitpoints}

@@ -11,6 +11,7 @@ import { Depots } from "./Depots";
 import { Incubators } from "./Incubators";
 import { utils } from "../../engine/Utils";
 import { buildingConfig } from "../config/BuildingConfig";
+import { Assemblies } from "./Assemblies";
 
 const { cellSize, mapRes } = config.game;
 const mapSize = mapRes * cellSize;
@@ -218,6 +219,7 @@ class Buildings {
                 case "factory": Factories.update(instance); break;
                 case "depot": Depots.update(instance); break;
                 case "incubator": Incubators.update(instance); break;
+                case "assembly": Assemblies.update(instance); break;
             }
         });
     }

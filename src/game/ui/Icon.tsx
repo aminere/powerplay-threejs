@@ -7,16 +7,18 @@ interface IconProps {
 const loadErrors: Record<string, boolean> = {};
 
 export function Icon(props: IconProps) {
+
     const loading = useRef(true);
     const [loaded, setLoaded] = useState<boolean | null>(null);
-    const { name } = props;
 
     const onError = () => {
         loading.current = false;
         setLoaded(false);
     };
 
+    const { name } = props;
     useEffect(() => {
+
         const error = loadErrors[name];
         if (error) {
             onError();
@@ -33,8 +35,9 @@ export function Icon(props: IconProps) {
             loading.current = true;
             setLoaded(false);
             img.src = `/images/icons/${name}.png`;
-        }
-    }, [name]);
+        }        
+
+    }, []);
 
     if (loading.current) {
         return null;
@@ -44,7 +47,6 @@ export function Icon(props: IconProps) {
         return <img src={`/images/icons/${name}.png`} />
     }
 
-    console.log(`Icon render() ${name}`);
-    return <>{name}</>;
+    return <span>{name}</span>;
 }
 

@@ -10,7 +10,8 @@ interface InventoryItemProps {
     full?: boolean;
 }
 
-export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) {    
+export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) { 
+    
     return <div
         className={`icon ${props.full ? "item-full" : ""}`}
         style={{
