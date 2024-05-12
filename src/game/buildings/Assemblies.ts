@@ -48,9 +48,9 @@ export class Assemblies {
             active: false,
             productionTimer: 0,
             reserve: new Map([
-                ["steel", 10],
-                ["engine", 10],
-                ["tire", 40]
+                // ["steel", 10],
+                // ["engine", 10],
+                // ["tire", 40]
             ]),
             inputFull: false,            
             inputTimer: -1,
@@ -159,7 +159,7 @@ export class Assemblies {
     public static setOutput(instance: IBuildingInstance, type: VehicleType) {
         const state = instance.state as IAssemblyState;
         state.output = type;
-        // state.reserve.clear();
+        state.reserve.clear();
         state.active = false;
         state.outputRequests = 0;
         state.inputFull = false;

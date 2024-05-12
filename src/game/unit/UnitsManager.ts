@@ -252,6 +252,31 @@ class UnitsManager {
                 }
                 break;
 
+                case "building": {
+                    const buildingType = selection.building.buildingType;
+                    switch (buildingType) {
+                        case "depot": {
+                            const { depotRange } = GameMapState.instance.debug;
+                            const { range } = config.depots;
+                            const { size } = buildingConfig[buildingType];
+                            const startX = selection.building.mapCoords.x - range;
+                            const startY = selection.building.mapCoords.y - range;
+                            const endX = startX + range * 2 + (size?.x ?? 1);
+                            const endY = startY + range * 2 + (size?.z ?? 1);
+                            
+                            depotRange.update([
+                                new Vector2(startX, startY),
+                                new Vector2(endX, startY),
+                                new Vector2(endX, endY),
+                                new Vector2(startX, endY),
+                                new Vector2(startX, startY),
+                            ]);
+                        }
+                        break;
+                    }
+                }
+                break;
+
                 default: {
                     this._selectedUnits.length = 0;
                 }

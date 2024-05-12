@@ -159,9 +159,6 @@ export class Depots {
 
     public static getDepotsInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildableType) {
         const { size, buildCost } = buildingConfig[buildingType];
-        const { depotsCache } = GameMapState.instance;
-        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-        const { range } = config.depots;
 
         const validDepots = buildCost.reduce((prev, cur) => {
             const [required] = cur;
@@ -171,6 +168,14 @@ export class Depots {
             }
         }, {} as Record<RawResourceType | ResourceType, IBuildingInstance>);
 
+        const { size: depotSize } = buildingConfig["depot"];
+        const { range } = config.depots;
+        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+        const minX = cellCoords.x;
+        const maxX = cellCoords.x + size.x;
+        const minY = cellCoords.y;
+        const maxY = cellCoords.y + size.z;
+        const { depotsCache } = GameMapState.instance;
         for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
             neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
             const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
@@ -181,19 +186,19 @@ export class Depots {
             for (const depot of list) {
                 const startX = depot.mapCoords.x - range;
                 const startY = depot.mapCoords.y - range;
-                const endX = startX + range * 2 + (size?.x ?? 1);
-                const endY = startY + range * 2 + (size?.z ?? 1);
-                if (cellCoords.x >= startX && cellCoords.x < endX && cellCoords.y >= startY && cellCoords.y < endY) {
-                    const state = depot.state as IDepotState;
-
-                    for (const [required, amount] of buildCost) {
-                        const alreadyFound = validDepots[required] !== null;
-                        if (alreadyFound) {
-                            continue;
-                        }
-                        if (state.type === required && state.amount >= amount) {
-                            validDepots[required] = depot;
-                        }
+                const endX = startX + range * 2 + depotSize.x;
+                const endY = startY + range * 2 + depotSize.z;
+                if (endX < minX || startX > maxX || endY < minY || startY > maxY) {
+                    continue;
+                }
+                const state = depot.state as IDepotState;
+                for (const [required, amount] of buildCost) {
+                    const alreadyFound = validDepots[required] !== null;
+                    if (alreadyFound) {
+                        continue;
+                    }
+                    if (state.type === required && state.amount >= amount) {
+                        validDepots[required] = depot;
                     }
                 }
             }
