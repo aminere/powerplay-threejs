@@ -1,7 +1,7 @@
 import { Vector2 } from "three";
 import { Axis, IConveyorConfig, IRail, IRailConfig } from "./GameTypes";
-import { BuildingType, IBuildingInstance, IFactoryState } from "./buildings/BuildingTypes";
-import { RawResourceType, ResourceType, UnitType } from "./GameDefinitions";
+import { BuildingType, IAssemblyState, IBuildingInstance, IFactoryState } from "./buildings/BuildingTypes";
+import { RawResourceType, ResourceType, UnitType, VehicleType } from "./GameDefinitions";
 import { BufferAttribute, BufferGeometry, Mesh } from "three";
 import { GameMapState } from "./components/GameMapState";
 
@@ -32,7 +32,11 @@ export interface ISerializedFactory extends ISerializedBuilding {
     output: ResourceType | null;
 }
 
-export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory;
+export interface ISerializedAssembly extends ISerializedBuilding {
+    output: VehicleType | null;
+}
+
+export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory | ISerializedAssembly;
 
 interface ISerializedRail {
     config: IRailConfig;
@@ -52,6 +56,15 @@ export interface ISerializedGameMap {
 function serializeFactory(instance: IBuildingInstance) {
     const state = instance.state as IFactoryState;
     const serialized: ISerializedFactory = {
+        mapCoords: instance.mapCoords.clone(),
+        output: state.output
+    };
+    return serialized;
+}
+
+function serializeAssembly(instance: IBuildingInstance) {
+    const state = instance.state as IAssemblyState;
+    const serialized: ISerializedAssembly = {
         mapCoords: instance.mapCoords.clone(),
         output: state.output
     };
@@ -129,6 +142,7 @@ export function serializeGameMap() {
         const serialized = (() => {
             switch (buildingType) {
                 case "factory": return serializeFactory(instance);
+                case "assembly": return serializeAssembly(instance);
                 default: return serializeBuilding(instance);
             }
         })();

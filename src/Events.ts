@@ -1,5 +1,5 @@
 import { AsyncEvent, SyncEvent } from "ts-events";
-import { UIType } from "./game/GameDefinitions";
+import { UIType, UnitType } from "./game/GameDefinitions";
 import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/IUnit";
@@ -45,7 +45,7 @@ export const cmdFogAddCircle = new SyncEvent<{ mapCoords: Vector2; radius: numbe
 export const cmdFogMoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number; dx: number; dy: number; }>();
 export const cmdFogRemoveCircle = new SyncEvent<{ mapCoords: Vector2; radius: number;}>();
 
-export const cmdSpawnUnit = new AsyncEvent<IBuildingInstance>();
+export const cmdSpawnUnit = new AsyncEvent<[IBuildingInstance, UnitType]>();
 
 export const evtScreenResized = new AsyncEvent<void>();
 export const evtUnitKilled = new SyncEvent<IUnit>();

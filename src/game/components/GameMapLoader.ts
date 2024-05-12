@@ -2,7 +2,7 @@
 import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
+import { ISerializedAssembly, ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
 import { utils } from "../../engine/Utils";
 import { engineState } from "../../engine/EngineState";
 import { resources } from "../Resources";
@@ -34,6 +34,7 @@ import { Depots } from "../buildings/Depots";
 import { BuildingType } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { Factories } from "../buildings/Factories";
+import { Assemblies } from "../buildings/Assemblies";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -191,6 +192,14 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
                 case "incubator":
                     createBuildings(instances, (sectorCoords, localCoords) => Incubators.create(sectorCoords, localCoords));
+                    break;
+                
+                case "assembly": {
+                    createBuildings(instances, (sectorCoords, localCoords, instance) => {
+                        const assembly = instance as ISerializedAssembly;
+                        Assemblies.create(sectorCoords, localCoords, assembly.output);
+                    });
+                }
                     break;
 
                 default:

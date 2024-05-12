@@ -24,22 +24,15 @@ export const config = {
         tankScale: 2
     },
     incubators: {
-        inputCapacity: 5,
-        workerCost: [["water", 1]] as const,
+        inputCapacity: 5,        
         productionTime: 2,
-        inputAccepFrequency: 1,
-        inputs: ["water"] as const
+        inputAccepFrequency: 1        
     },
     assemblies: {
-        inputCapacity: 5,
-        workerCost: [["water", 1]] as const,
+        inputCapacity: 5,        
         productionTime: 2,
-        inputAccepFrequency: 1,
-        inputs: ["water"] as const
-    },
-    depots: {
-        range: 10,
-    },
+        inputAccepFrequency: 1
+    },    
     factories: {
         inputCapacity: 5,
         productionTime: 2,
@@ -47,6 +40,9 @@ export const config = {
     },
     mines: {
         productionTime: 2,    
+    },
+    depots: {
+        range: 10,
     },
     conveyors: {
         itemSize: .5, // relative to the cell

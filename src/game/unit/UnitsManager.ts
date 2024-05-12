@@ -9,7 +9,6 @@ import { GameMapState } from "../components/GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { config } from "../config/config";
 import { UnitType } from "../GameDefinitions";
-import { GameMapProps } from "../components/GameMapProps";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit } from "./CharacterUnit";
 import { Unit } from "./Unit";
@@ -63,7 +62,7 @@ class UnitsManager {
     private _selectedUnits: IUnit[]  = [];
     private _selectionStart: Vector2 = new Vector2();
     private _dragStarted: boolean = false;
-    private _spawnUnitRequest: IBuildingInstance | null = null;
+    private _spawnUnitRequest: [IBuildingInstance, UnitType] | null = null;
     private _selection: SelectedElems | null = null;
 
     async preload() {
@@ -270,14 +269,15 @@ class UnitsManager {
         if (!spawnUnitRequest) {
             return;
         }
-        spawnCoords.copy(spawnUnitRequest.mapCoords);
-        const buildingType = spawnUnitRequest.buildingType;
+
+        const [building, unitType] = spawnUnitRequest;
+        const { buildingType, mapCoords } = building;
+        spawnCoords.copy(mapCoords);
         const size = buildingConfig[buildingType].size;
         spawnCoords.x += size.x / 2;
         spawnCoords.y += size.z;
 
-        const props = GameMapProps.instance;
-        this.spawn(spawnCoords, props.unit);
+        this.spawn(spawnCoords, unitType);
         this._spawnUnitRequest = null;
     }
 
@@ -355,8 +355,8 @@ class UnitsManager {
         utils.fastDelete(this._units, index);
     }
 
-    private onSpawnUnit(building: IBuildingInstance) {
-        this._spawnUnitRequest = building;
+    private onSpawnUnit(request: [IBuildingInstance, UnitType]) {
+        this._spawnUnitRequest = request;
     }
 }
 

@@ -9,15 +9,14 @@ const loadErrors: Record<string, boolean> = {};
 export function Icon(props: IconProps) {
     const loading = useRef(true);
     const [loaded, setLoaded] = useState<boolean | null>(null);
-
     const { name } = props;
-    useEffect(() => {
-        
-        const onError = () => {
-            loading.current = false;
-            setLoaded(false);
-        };
 
+    const onError = () => {
+        loading.current = false;
+        setLoaded(false);
+    };
+
+    useEffect(() => {
         const error = loadErrors[name];
         if (error) {
             onError();
@@ -45,6 +44,7 @@ export function Icon(props: IconProps) {
         return <img src={`/images/icons/${name}.png`} />
     }
 
+    console.log(`Icon render() ${name}`);
     return <>{name}</>;
 }
 

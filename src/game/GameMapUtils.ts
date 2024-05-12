@@ -24,6 +24,7 @@ import { Depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
 import { evtActionCleared, evtBuildError } from "../Events";
 import { buildingConfig } from "./config/BuildingConfig";
+import { Assemblies } from "./buildings/Assemblies";
 
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -445,6 +446,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 case "mine": Mines.create(_sectorCoords, _localCoords); break;
                 case "depot": Depots.create(_sectorCoords, _localCoords); break;
                 case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
+                case "assembly": Assemblies.create(_sectorCoords, _localCoords, null); break;
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
@@ -498,9 +500,10 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
             if (!Depots.testDepots(depotsInRange, buildingType)) {
                 return false;
-            }            
-            conveyors.createAndFit(cell, cellCoords);
+            }
             Depots.removeFromDepots(depotsInRange, buildingType);
+
+            conveyors.createAndFit(cell, cellCoords);
             return true;
         }
     } else if (button === 2) {

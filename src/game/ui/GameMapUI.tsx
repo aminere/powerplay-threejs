@@ -18,6 +18,7 @@ import { ActionsPanel } from "./ActionsPanel";
 import { ActionSection } from "./ActionSection";
 import gsap from "gsap";
 import { FactoryOutputPanel } from "./FactoryOutputPanel";
+import { AssemblyOutputPanel } from "./AssemblyOutputPanel";
 
 
 function InGameUI({ children }: { children: React.ReactNode }) {
@@ -163,9 +164,11 @@ export function GameMapUI(_props: IGameUIProps) {
 
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
+    const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
     useEffect(() => {
         const onSelectedElems = (elems: SelectedElems | null) => {
             setSelectedElems(elems);
+            setShowFactoryOutputs(false);
             setShowFactoryOutputs(false);
         }
         cmdSetSelectedElems.attach(onSelectedElems);
@@ -251,16 +254,21 @@ export function GameMapUI(_props: IGameUIProps) {
                 gap: `${uiconfig.paddingRem}rem`,
             }}>
                 <SelectionPanel selectedElems={selectedElems} />
-                <ActionsPanel 
+                <ActionsPanel
                     factoryOutputsOpen={showFactoryOutputs}
+                    assemblyOutputsOpen={showAssemblyOutputs}
                     onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
+                    onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
                 >
                     <FactoryOutputPanel
                         open={showFactoryOutputs}
                         selectedElems={selectedElems}
-                        onOutputSelected={() => {
-                            setShowFactoryOutputs(false);
-                        }}
+                        onOutputSelected={() => setShowFactoryOutputs(false)}
+                    />
+                    <AssemblyOutputPanel
+                        open={showAssemblyOutputs}
+                        selectedElems={selectedElems}
+                        onOutputSelected={() => setShowAssemblyOutputs(false)}
                     />
                 </ActionsPanel>
             </div>

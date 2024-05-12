@@ -10,7 +10,7 @@ import { resourceConfig } from "../config/ResourceConfig";
 
 const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 
-function canProduce(state: IFactoryState) {
+function canOutput(state: IFactoryState) {
     if (state.output) {
         const inputs = resourceConfig.factoryProduction[state.output];
         for (const input of inputs) {
@@ -20,6 +20,22 @@ function canProduce(state: IFactoryState) {
             }
         }
         return true;
+    }
+    return false;
+}
+
+function canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+    const state = instance.state as IFactoryState;
+    if (state.output) {
+        const inputs = resourceConfig.factoryProduction[state.output];
+        for (const input of inputs) {
+            if (input === type) {
+                const currentAmount = state.reserve.get(type);
+                if ((currentAmount ?? 0) < inputCapacity) {
+                    return true;
+                }
+            }
+        }
     }
     return false;
 }
@@ -153,7 +169,7 @@ export class Factories {
             return "output-full";
         }
 
-        if (!canProduce(state)) {
+        if (!canOutput(state)) {
             return "not-enough";
         }
 
@@ -174,24 +190,8 @@ export class Factories {
         evtBuildingStateChanged.post(instance);
     }
 
-    public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
-        const state = instance.state as IFactoryState;
-        if (state.output) {
-            const inputs = resourceConfig.factoryProduction[state.output];
-            for (const input of inputs) {
-                if (input === type) {
-                    const currentAmount = state.reserve.get(type);
-                    if ((currentAmount ?? 0) < inputCapacity) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
-        if (Factories.canAcceptResource(instance, type)) {
+        if (canAcceptResource(instance, type)) {
             const state = instance.state as IFactoryState;
             const currentAmount = state.reserve.get(type);
             if (currentAmount === undefined) {

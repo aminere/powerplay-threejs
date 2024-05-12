@@ -3,26 +3,41 @@ import { buildings } from "./Buildings";
 import { IBuildingInstance, IIncubatorState } from "./BuildingTypes";
 import { meshes } from "../../engine/resources/Meshes";
 import { config } from "../config/config";
-import { RawResourceType } from "../GameDefinitions";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { time } from "../../engine/core/Time";
 import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { BuildingUtils } from "./BuildingUtils";
+import { resourceConfig } from "../config/ResourceConfig";
 
 const { unitScale } = config.game;
 const { inputCapacity, productionTime } = config.incubators;
 const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: AdditiveBlending, transparent: true });
-const { inputAccepFrequency, inputs } = config.incubators;
+const { inputAccepFrequency } = config.incubators;
 
-function canIncubate(incubator: IIncubatorState) {
-    const { workerCost } = config.incubators;
-    for (const [type, amount] of workerCost) {
+function canOutput(incubator: IIncubatorState) {
+    const inputs = resourceConfig.incubatorProduction["worker"];
+    for (const [type, amount] of inputs) {
         const reserve = incubator.reserve.get(type) ?? 0;
         if (reserve < amount) {
             return false;
         }
     }    
     return true;
+}
+
+function canAcceptResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+    const state = instance.state as IIncubatorState;
+    const inputs = resourceConfig.incubatorProduction["worker"];
+    for (const [input] of inputs) {
+        if (input === type) {
+            const currentAmount = state.reserve.get(type) ?? 0;
+            if (currentAmount < inputCapacity) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 export class Incubators {
@@ -90,20 +105,20 @@ export class Incubators {
             }
 
             state.worker.scale.setScalar(progress * unitScale);
-            const water = state.reserve.get("water")!;
-            const waterSrcProgress = water / inputCapacity;
-            const waterDestProgress = (water - 1) / inputCapacity;
+            const waterAmount = state.outputRequests + state.reserve.get("water")!;
+            const waterSrcProgress = waterAmount / inputCapacity;
+            const waterDestProgress = (waterAmount - 1) / inputCapacity;
             state.water.scale.setY(MathUtils.lerp(waterSrcProgress, waterDestProgress, progress));
 
             if (isDone) {
-                state.water.scale.setY(waterDestProgress);
-                state.worker.visible = false;
-                cmdSpawnUnit.post(instance);
+                state.water.scale.setY(waterDestProgress);                
+                cmdSpawnUnit.post([instance, "worker"]);
 
                 state.outputRequests--;
                 if (state.outputRequests > 0) {
                     state.productionTimer = 0;
                 } else {
+                    state.worker.visible = false;
                     state.active = false;                    
                 }
             }
@@ -125,7 +140,8 @@ export class Incubators {
                 let accepted = false;
                 let fullInputs = 0;
 
-                for (const input of inputs) {
+                const inputs = resourceConfig.incubatorProduction["worker"];
+                for (const [input] of inputs) {
                     const currentAmount = state.reserve.get(input) ?? 0;
                     if (currentAmount < inputCapacity) {
                         if (BuildingUtils.tryGetFromAdjacentCells(instance, input)) {
@@ -152,38 +168,31 @@ export class Incubators {
         }        
     }
 
-    public static tryDepositResource(instance: IBuildingInstance, _type: RawResourceType) {
-        const state = instance.state as IIncubatorState;
-        const type = _type as typeof inputs[number];
-        if (!inputs.includes(type)) {            
-            return false;
+    public static tryDepositResource(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+        if (canAcceptResource(instance, type)) {
+            const state = instance.state as IIncubatorState;
+            const currentAmount = state.reserve.get(type) ?? 0;
+            state.reserve.set(type, currentAmount + 1);
+            if (type === "water") {
+                const progress = state.reserve.get(type)! / inputCapacity;
+                state.water.scale.setY(progress);
+            }
+            evtBuildingStateChanged.post(instance);
+            return true;
         }
-
-        const currentAmount = state.reserve.get(type) ?? 0;
-        if (currentAmount === inputCapacity) {            
-            return false;
-        }
-
-        state.reserve.set(type, currentAmount + 1);
-
-        if (type === "water") {
-            const progress = state.reserve.get(type)! / inputCapacity;
-            state.water.scale.setY(progress);
-        }
-
-        evtBuildingStateChanged.post(instance);
-        return true;
+        return false;
     }
 
     public static output(instance: IBuildingInstance) {        
         const state = instance.state as IIncubatorState;
-        if (!canIncubate(state)) {
+        if (!canOutput(state)) {
             return false;
         }
-        state.outputRequests++;        
-        for (const input of inputs) {
-            const amount = state.reserve.get(input)!;
-            state.reserve.set(input, amount - 1);
+        state.outputRequests++;
+        const inputs = resourceConfig.incubatorProduction["worker"];
+        for (const [input, amount] of inputs) {
+            const reserve = state.reserve.get(input)!;
+            state.reserve.set(input, reserve - amount);
         }
         state.inputFull = false;
         evtBuildingStateChanged.post(instance);

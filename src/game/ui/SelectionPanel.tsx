@@ -158,8 +158,9 @@ export function SelectionPanel(props: SelectionPanelProps) {
                     switch (type) {
                         case "incubator": {
                             const state = building.state as IIncubatorState;
-                            const { inputs, inputCapacity, productionTime } = config.incubators;
-                            const properties = inputs.map(input => {
+                            const { inputCapacity, productionTime } = config.incubators;
+                            const inputs = resourceConfig.incubatorProduction["worker"];
+                            const properties = inputs.map(([input]) => {
                                 const amount = state.reserve.get(input) ?? 0;
                                 return {
                                     name: input,
@@ -267,25 +268,39 @@ export function SelectionPanel(props: SelectionPanelProps) {
 
                         case "assembly": {
                             const state = building.state as IAssemblyState;
-                            const { inputs, inputCapacity, productionTime } = config.assemblies;
-                            const properties = inputs.map(input => {
-                                const amount = state.reserve.get(input) ?? 0;
-                                return {
-                                    name: input,
-                                    value: `${amount} / ${inputCapacity}`
-                                };
-                            });
+                            if (state.output) {
+                                const inputs = resourceConfig.assemblyProduction[state.output];
+                                const { inputCapacity, productionTime } = config.assemblies;
+                                const properties = inputs.map(([input]) => {
+                                    const amount = state.reserve.get(input) ?? 0;
+                                    return {
+                                        name: input,
+                                        value: `${amount} / ${inputCapacity}`
+                                    }
+                                });
+                                return <SingleSelectionPanel
+                                    type={type}
+                                    health={hitpoints / maxHitpoints}
+                                    title={state.output ? `${state.output} ${type}` : undefined}
+                                    properties={properties}
+                                    output={(() => {
+                                        if (state.active) {
+                                            return {
+                                                type: state.output,
+                                                progress: state.productionTimer / productionTime,
+                                                stack: state.outputRequests
+                                            }
+                                        }
+                                    })()}
+                                />
 
-                            return <SingleSelectionPanel
-                                type={type}
-                                health={hitpoints / maxHitpoints}
-                                properties={properties}
-                                output={state.active ? {
-                                    type: "worker",
-                                    progress: state.productionTimer / productionTime,
-                                    stack: state.outputRequests
-                                } : undefined}
-                            />;
+                            } else {
+                                return <SingleSelectionPanel
+                                    type={type}
+                                    health={hitpoints / maxHitpoints}
+                                    properties={null}
+                                />
+                            }
                         }
                     }
                     return null;

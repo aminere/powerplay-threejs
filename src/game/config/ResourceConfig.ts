@@ -39,6 +39,22 @@ export const resourceConfig = {
         "ak47": ["iron-ore", "bullets"] as const,
         "gasoline": ["oil"] as const,
         "tire": ["rubber", "iron-ore"] as const
+    },
+
+    assemblyProduction: {
+        "truck": [            
+            ["steel", 1],
+            ["engine", 1],
+            ["tire", 4]
+        ] as const,
+        "tank": [
+            ["steel", 1],
+            ["engine", 1]
+        ] as const
+    },
+
+    incubatorProduction: {
+        "worker": [["water", 1]] as const
     }
 }
 

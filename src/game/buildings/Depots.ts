@@ -25,6 +25,16 @@ const depotsConfig = {
     outputFrequency: 1
 };
 
+function canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
+    const state = instance.state as IDepotState;
+    if (state.type !== type) {
+        if (state.type !== null) {
+            return false;
+        }
+    }
+    return state.amount < state.capacity;
+}
+
 export class Depots {
 
     public static create(sectorCoords: Vector2, localCoords: Vector2) {
@@ -42,18 +52,8 @@ export class Depots {
         instance.state = depotState;
     }
 
-    public static canAcceptResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
-        const state = instance.state as IDepotState;
-        if (state.type !== type) {
-            if (state.type !== null) {
-                return false;
-            }
-        }
-        return state.amount < state.capacity;
-    }
-
     public static tryDepositResource(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
-        if (!Depots.canAcceptResource(instance, type)) {
+        if (!canAcceptResource(instance, type)) {
             return false;
         }
 

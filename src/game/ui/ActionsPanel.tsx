@@ -4,8 +4,7 @@ import { uiconfig } from "./uiconfig";
 import { ActionButton } from "./ActionButton";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "../components/GameMapState";
-import { config } from "../config/config";
-import { IBuildingInstance, IDepotState, IFactoryState, IMineState } from "../buildings/BuildingTypes";
+import { IAssemblyState, IBuildingInstance, IDepotState, IFactoryState, IMineState } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { IUnit } from "../unit/IUnit";
@@ -17,6 +16,7 @@ import { Icon } from "./Icon";
 import { Factories } from "../buildings/Factories";
 import { Mines } from "../buildings/Mines";
 import { resourceConfig } from "../config/ResourceConfig";
+import { Assemblies } from "../buildings/Assemblies";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -33,6 +33,8 @@ function FooterActions({ children }: { children: React.ReactNode }) {
 interface ActionsPanelProps {
     factoryOutputsOpen: boolean;
     onShowFactoryOutputs: () => void;
+    assemblyOutputsOpen: boolean;
+    onShowAssemblyOutputs: () => void;
 }
 
 export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) {
@@ -176,8 +178,8 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         return <ActionButton
                                             onClick={() => {
                                                 if (!Incubators.output(building)) {
-                                                    const { workerCost } = config.incubators;
-                                                    const requirements = workerCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
+                                                    const inputs = resourceConfig.incubatorProduction["worker"];
+                                                    const requirements = inputs.map(([type, amount]) => `${amount} ${type}`).join(" + ");
                                                     evtBuildError.post(`Not enough resources to incubate (Requires ${requirements})`);
                                                 }
                                             }}
@@ -259,6 +261,37 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 clear
                                             </ActionButton>
                                         }
+                                    }
+                                    break;
+
+                                    case "assembly": {
+                                        const state = building.state as IAssemblyState;
+                                        return <>
+                                            <ActionButton
+                                                selected={props.assemblyOutputsOpen}
+                                                selectedColor="white"
+                                                onClick={props.onShowAssemblyOutputs}
+                                            >
+                                                {state.output ? "Change Output" : "Select Output"}
+                                            </ActionButton>
+                                            {
+                                                state.output
+                                                &&
+                                                <ActionButton
+                                                    // selectedAnim={state.autoOutput}
+                                                    onClick={() => {
+                                                        if (!Assemblies.output(building)) {
+                                                            const inputs = resourceConfig.assemblyProduction[state.output!]
+                                                            const requirements = inputs.map(([type, amount]) => `${amount} ${type}`).join(" + ");
+                                                            evtBuildError.post(`Not enough resources to produce ${state.output} (Requires ${requirements})`);
+                                                        }
+                                                    }}
+                                                    // onContextMenu={() => Factories.toggleAutoOutput(building)}
+                                                >
+                                                    <Icon name={state.output} />
+                                                </ActionButton>
+                                            }
+                                        </>
                                     }
                                 }
                             })()}
