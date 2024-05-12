@@ -16,7 +16,7 @@ const rightCoords = new Vector2();
 
 const { mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
-const { waterDepth } = config.terrain;
+const { liquidDepths } = config.terrain;
 
 function applyVertexOperations(vertexOperations: Map<ISector, Map<number, number>>) {
     for (const [sector, operations] of vertexOperations) {
@@ -70,14 +70,15 @@ class Elevation {
         // }
     }
 
-    public createWaterPatch(mapCoords: Vector2, size: number) {
+    public createLiquidPatch(mapCoords: Vector2, size: number, type: "water" | "oil") {
         this._vertexOperations.clear();
         for (let i = 0; i < size; ++i) {
             for (let j = 0; j < size; ++j) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
-                    this.elevateCell(sectorCoords, localCoords, -waterDepth, false);
+                    const depth = liquidDepths[type];
+                    this.elevateCell(sectorCoords, localCoords, -depth, false);
                 }
             }
         }
@@ -89,13 +90,13 @@ class Elevation {
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {                    
                     const sector = GameUtils.getSector(sectorCoords)!;
-                    resources.create(sector, sectorCoords, localCoords, cell, "water");
+                    resources.create(sector, sectorCoords, localCoords, cell, type);
                 }
             }
         }
     }
 
-    public clearWaterPatch(mapCoords: Vector2, size: number) {
+    public clearLiquidPatch(mapCoords: Vector2, size: number) {
         this._vertexOperations.clear();
         for (let i = 0; i < size; ++i) {
             for (let j = 0; j < size; ++j) {

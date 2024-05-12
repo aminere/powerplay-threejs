@@ -12,7 +12,10 @@ export const config = {
     },
     terrain: {
         atlasTileCount: 35,
-        waterDepth: 10
+        liquidDepths: {
+            "water": 10,
+            "oil": 4
+        }
     },
     game: {
         cellSize: 1,

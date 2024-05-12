@@ -208,6 +208,13 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
         }
             break;
 
+        case "flatten": {
+            const { brushSize } = GameMapProps.instance;
+            elevation.elevate(current, brushSize, 0, false);
+            state.tileSelector.fit(current.x, current.y, state.sectors);
+        }
+        break;
+
         case "water": {
             onWater(current, 0);
             state.tileSelector.fit(current.x, current.y, state.sectors);
@@ -215,8 +222,9 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "resource": {
+            const { resourceType } = GameMapProps.instance;
             const cell = GameUtils.getCell(current, sectorCoords, localCoords)!;
-            onResource(sectorCoords, localCoords, cell, 0, GameMapProps.instance.resourceType);
+            onResource(sectorCoords, localCoords, cell, 0, resourceType);
         }
         break;
     }
@@ -309,9 +317,9 @@ function onElevation(mapCoords: Vector2, button: number) {
 function onWater(mapCoords: Vector2, button: number) {
     const { brushSize } = GameMapProps.instance;
     if (button === 0) {
-        elevation.createWaterPatch(mapCoords, brushSize);
+        elevation.createLiquidPatch(mapCoords, brushSize, "water");
     } else if (button === 2) {
-        elevation.clearWaterPatch(mapCoords, brushSize);
+        elevation.clearLiquidPatch(mapCoords, brushSize);
     }    
 }
 
@@ -465,18 +473,32 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 }
 
 function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number, type: RawResourceType) {
-    const { sectors } = GameMapState.instance;
-    const sector = sectors.get(`${_sectorCoords.x},${_sectorCoords.y}`)!;
-    if (button === 0) {
-        const units = cell.units?.length ?? 0;
-        if (cell.isEmpty && units === 0) {
-            resources.create(sector, _sectorCoords, _localCoords, cell, type);
+    switch (type) {
+        case "oil": {
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            if (button === 0) {
+                elevation.createLiquidPatch(cellCoords, 1, type);
+            } else if (button === 2) {
+                elevation.clearLiquidPatch(cellCoords, 1);
+            }    
         }
-    } else if (button === 2) {
-        if (cell.resource) {
-            cell.resource = undefined;
+        break;
+
+        default: {
+            const { sectors } = GameMapState.instance;
+            const sector = sectors.get(`${_sectorCoords.x},${_sectorCoords.y}`)!;
+            if (button === 0) {
+                const units = cell.units?.length ?? 0;
+                if (cell.isEmpty && units === 0) {
+                    resources.create(sector, _sectorCoords, _localCoords, cell, type);
+                }
+            } else if (button === 2) {
+                if (cell.resource) {
+                    cell.resource = undefined;
+                }
+            }
         }
-    }
+    }    
 }
 
 function onTerrain(mapCoords: Vector2, tileType: TileType) {
@@ -600,7 +622,6 @@ export function onAction(touchButton: number) {
                 clearCell(mapCoords);
             }
             break;
-
 
             case "elevation": {
                 onElevation(mapCoords, touchButton);

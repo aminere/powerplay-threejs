@@ -33,15 +33,21 @@ export class MiningState extends State<ICharacterUnit> {
             const cell = getCellFromAddr(this._targetResource);
             if (cell.resource && cell.resource.amount > 0) {
                 const resourceType = cell.resource.type as RawResourceType;
-                if (resourceType === "water") {
-                    // TODO deal with water differently, must lower the water level in the surrounding water patch
-                    // clear the entire water patch when level reaches 0
-                } else {
-                    cell.resource.amount -= 1;
-                    if (cell.resource.amount === 0) {
-                        cell.resource = undefined;
-                    }
+                switch (resourceType) {
+                    case "water":
+                    case "oil":
+                        // Infinite for now
+                        // TODO deal with liquids differently, spread the cost across the surrounding cells using flood fill
+                        // clear when the entire patch reaches 0
+                        break;
+
+                    default:
+                        cell.resource.amount -= 1;
+                        if (cell.resource.amount === 0) {
+                            cell.resource = undefined;
+                        }
                 }
+                
                 Workers.pickResource(unit, resourceType, this._targetResource.mapCoords);
 
             } else {

@@ -38,11 +38,12 @@ class Resources {
                     return resourceInstance;
                 }
 
-                case "water": {
+                case "water":
+                case "oil": {
                     const resourceInstance: IRawResource = { type, amount: capacity };
                     return resourceInstance;
                 }
-    
+
                 default: {
                     const localX = localCoords.x * cellSize + cellSize / 2;
                     const localZ = localCoords.y * cellSize + cellSize / 2;            
