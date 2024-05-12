@@ -1,4 +1,4 @@
-import { Vector2 } from "three";
+import { Vector2, Vector3 } from "three";
 import { Axis, IConveyorConfig, IRail, IRailConfig } from "./GameTypes";
 import { BuildingType, IAssemblyState, IBuildingInstance, IFactoryState } from "./buildings/BuildingTypes";
 import { RawResourceType, ResourceType, UnitType, VehicleType } from "./GameDefinitions";
@@ -51,6 +51,7 @@ export interface ISerializedGameMap {
     sectors: ISerializedSector[];
     buildings: Record<BuildingType, TSerializedBuilding[]>;
     rails: ISerializedRail[];
+    cameraPos: Vector3;
 }
 
 function serializeFactory(instance: IBuildingInstance) {
@@ -167,7 +168,8 @@ export function serializeGameMap() {
                 endAxis: rail.endCell?.rail?.axis ?? undefined
             };
             return serializedRail;
-        })
+        }),
+        cameraPos: state.cameraRoot.position.clone()
     };
 
     return result;

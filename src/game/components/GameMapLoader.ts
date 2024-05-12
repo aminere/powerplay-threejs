@@ -1,5 +1,5 @@
 
-import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2 } from "three";
+import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { ISerializedAssembly, ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
@@ -9,7 +9,7 @@ import { resources } from "../Resources";
 import { config } from "../config/config";
 import { buildings } from "../buildings/Buildings";
 import { GameUtils } from "../GameUtils";
-import { createSector, createSectors, updateCameraSize } from "../GameMapUtils";
+import { createSector, createSectors, setCameraPos, updateCameraSize } from "../GameMapUtils";
 import { conveyors } from "../Conveyors";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
@@ -52,7 +52,7 @@ export class GameMapLoaderProps extends ComponentProps {
     }
 }
 
-const { mapRes } = config.game;
+const { mapRes, cellSize } = config.game;
 function calcLocalCoords(cellIndex: number, localCoordsOut: Vector2) {
     const cellY = Math.floor(cellIndex / mapRes);
     const cellX = cellIndex - cellY * mapRes;
@@ -102,7 +102,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             this.preload()
                 .then(() => {
                     trees.init(sectorRes);
-                    this.init(sectorRes, owner)
+                    this.init(sectorRes, GameUtils.vec3.zero, owner)
                 });
         }
     }
@@ -163,7 +163,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             }
         }
 
-        this.init(data.size, owner);
+        this.init(data.size, data.cameraPos, owner);
 
         // create units and structure after all sectors are created and fogOfWar is initialized
         for (const [coords, units] of unitsToSpawn) {
@@ -242,11 +242,10 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/resources/oil.glb`);
     }
 
-    private init(size: number, owner: Object3D) {
+    private init(size: number, cameraPos: Vector3, owner: Object3D) {
         this.state.sectorRes = size;
 
         fogOfWar.init(size);
-        cmdFogAddCircle.post({ mapCoords: new Vector2(mapRes / 2, mapRes / 2), radius: mapRes / 2 });
 
         const water = utils.createObject(root(), "water");
         water.matrixAutoUpdate = false;
@@ -260,6 +259,14 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         unitsManager.owner = owner;
         updateCameraSize();
+        setCameraPos(cameraPos);
+
+        // reveal wherever the camera is
+        // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
+        // mapCoords = (cameraPos / cellSize) + mapRes / 2;
+        const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
+        const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
+        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: mapRes / 2 });
 
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);

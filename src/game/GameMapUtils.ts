@@ -340,15 +340,17 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
         })();
 
         if (empty) {
-            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-            const buildingType = "road";
-            const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-            if (!Depots.testDepots(depotsInRange, buildingType)) {
-                return false;
+
+            if (!GameMapProps.instance.debugFreeBuilding) {
+                const buildingType = "road";
+                const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                    return false;
+                }            
+                Depots.removeFromDepots(depotsInRange, buildingType);
             }            
-            
-            conveyors.createAndFit(cell, cellCoords);
-            Depots.removeFromDepots(depotsInRange, buildingType);
+
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
             roads.create(cellCoords);
             return true;
         }
@@ -427,10 +429,13 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                         return false;
                     }
 
-                    depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                    if (!Depots.testDepots(depotsInRange, buildingType)) {
-                        return false;
+                    if (!GameMapProps.instance.debugFreeBuilding) {
+                        depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                        if (!Depots.testDepots(depotsInRange, buildingType)) {
+                            return false;
+                        }
                     }
+                    
                     return true;
                 }
             }
@@ -441,10 +446,12 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 return false;
             }
 
-            depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);            
-            if (!Depots.testDepots(depotsInRange, buildingType)) {
-                return false;
-            }
+            if (!GameMapProps.instance.debugFreeBuilding) {
+                depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                    return false;
+                }
+            }            
 
             return true;
         })();
@@ -523,12 +530,14 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     if (button === 0) {
         if (cell.isEmpty) {
 
-            const buildingType = "conveyor";
-            const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-            if (!Depots.testDepots(depotsInRange, buildingType)) {
-                return false;
-            }
-            Depots.removeFromDepots(depotsInRange, buildingType);
+            if (!GameMapProps.instance.debugFreeBuilding) {
+                const buildingType = "conveyor";
+                const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                    return false;
+                }
+                Depots.removeFromDepots(depotsInRange, buildingType);
+            }            
 
             conveyors.createAndFit(cell, cellCoords);
             return true;

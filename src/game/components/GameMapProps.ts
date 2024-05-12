@@ -20,6 +20,10 @@ export class GameMapProps extends ComponentProps {
         GameMapProps._instance = null;
     }
 
+    debugFreeBuilding = false;
+    debugPathfinding = false;
+    debugCells = false;
+
     @Attributes.enumOptions(TileTypes)
     tileType: TileType = "sand";
 
@@ -77,8 +81,5 @@ export class GameMapProps extends ComponentProps {
         new Vector2(.5, 10),
         new Vector2(1, 30)
     ]);
-
-    debugPathfinding = false;
-    debugCells = false;
 }
 
