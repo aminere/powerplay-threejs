@@ -30,11 +30,9 @@ interface SingleSelectionProps {
     }
 }
 
-function SingleSelectionPanel(props: React.PropsWithChildren<SingleSelectionProps>) {
+function SingleSelectionPanel(props: SingleSelectionProps) {
     
     return <>
-        {props.children}    
-
         <div
             style={{
                 position: "relative",
