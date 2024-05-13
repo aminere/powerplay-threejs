@@ -10,6 +10,7 @@ import { config } from "../config/config";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { BuildingUtils } from "./BuildingUtils";
+import { time } from "../../engine/core/Time";
 
 const { mapRes } = config.game;
 const cellCoords = new Vector2();
@@ -23,7 +24,7 @@ const depotsConfig = {
     slotSize: .83,
     slotScaleRange: [.8, 1.3],
     inputFrequency: 1,
-    outputFrequency: 1
+    outputFrequency: 1,
 };
 
 function getFreeSpot(instance: IBuildingInstance, type: RawResourceType | ResourceType) {
@@ -60,8 +61,9 @@ export class Depots {
 
         const depotState: IDepotState = {
             output: null,
-            inputTimer: depotsConfig.inputFrequency,
+            inputTimer: depotsConfig.inputFrequency,            
             outputTimer: depotsConfig.outputFrequency,
+            autoOutput: false,
             slots: {
                 root: slotsRoot,
                 slots: [...Array(slotCount)].map(() => {
@@ -180,32 +182,44 @@ export class Depots {
     }
 
     public static update(instance: IBuildingInstance) {
-        // const state = instance.state as IDepotState;
-        // if (state.amount > 0) {
-        //     if (state.outputTimer < 0) {
-        //         console.assert(state.type !== null);
-        //         if (BuildingUtils.tryFillAdjacentCells(instance, state.type!)) {
-        //             Depots.removeResource(instance);
-        //             state.outputTimer = depotsConfig.outputFrequency;
-        //         }
-        //     } else {
-        //         state.outputTimer -= time.deltaTime;
-        //     }
-        // }
+        const state = instance.state as IDepotState;
+        const reserve = state.slots.slots.reduce((prev, cur) => prev + cur.amount, 0);
 
-        // const { resourcesPerSlot, slotCount } = depotsConfig;
-        // const capacity = slotCount * resourcesPerSlot;
-        // if (state.amount < capacity) {
-        //     if (state.inputTimer < 0) {
-        //         const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, state.type);
-        //         if (resourceType) {
-        //             Depots.tryDepositResource(instance, resourceType);
-        //             state.inputTimer = depotsConfig.inputFrequency;
-        //         }
-        //     } else {
-        //         state.inputTimer -= time.deltaTime;
-        //     }
-        // }
+        if (state.autoOutput) {
+            if (reserve > 0) {
+                if (state.outputTimer < 0) {
+                    const output = (() => {
+                        if (state.output) {
+                            return state.output;
+                        }
+                        return state.slots.slots.find(slot => slot.amount > 0)!.type!;
+                    })();
+                    console.assert(output);
+                    if (Depots.output(instance, output)) {
+                        state.outputTimer = depotsConfig.outputFrequency;
+                    }
+                } else {
+                    state.outputTimer -= time.deltaTime;
+                }
+            }
+        }
+
+        const { resourcesPerSlot, slotCount } = depotsConfig;
+        const capacity = slotCount * resourcesPerSlot;
+        if (reserve < capacity) {
+            if (state.inputTimer < 0) {
+                for (const slot of state.slots.slots) {
+                    const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, slot.type);
+                    if (resourceType) {
+                        Depots.tryDepositResource(instance, resourceType);
+                        state.inputTimer = depotsConfig.inputFrequency;
+                        break;
+                    }
+                }                
+            } else {
+                state.inputTimer -= time.deltaTime;
+            }
+        }
     }
 
     public static getDepotsInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildableType) {
@@ -310,6 +324,12 @@ export class Depots {
             .filter(slot => slot.type)
             .reduce((prev, cur) => prev.add(cur.type!), new Set<ResourceType | RawResourceType>());
         return Array.from(resourceTypes);
+    }
+
+    public static toggleAutoOutput(instance: IBuildingInstance) {
+        const state = instance.state as IDepotState;
+        state.autoOutput = !state.autoOutput;
+        evtBuildingStateChanged.post(instance);
     }
 }
 

@@ -63,8 +63,9 @@ export interface IMineState {
 
 export interface IDepotState {
     output: RawResourceType | ResourceType | null;
-    inputTimer: number;
+    inputTimer: number;    
     outputTimer: number;
+    autoOutput: boolean;
     slots: { 
         root: Object3D;
         slots: Array<{

@@ -259,16 +259,20 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                                     case "depot": {
                                         if (depotResources!.length > 0) {
+                                            const state = building.state as IDepotState;
                                             if (depotResources!.length === 1) {
-                                                return <ActionButton onClick={() => {
-                                                    if (!Depots.output(building, depotResources![0])) {
-                                                        evtBuildError.post(`Not enough space to eject`);
-                                                    }
-                                                }}>
+                                                return <ActionButton
+                                                    selectedAnim={state.autoOutput}
+                                                    onClick={() => {
+                                                        if (!Depots.output(building, depotResources![0])) {
+                                                            evtBuildError.post(`Not enough space to eject`);
+                                                        }
+                                                    }}
+                                                    onContextMenu={() => Depots.toggleAutoOutput(building)}
+                                                >
                                                     <Icon name={depotResources![0]} />
                                                 </ActionButton>
                                             } else {
-                                                const state = building.state as IDepotState;
                                                 return <>
                                                     <ActionButton
                                                         selected={props.depotOutputsOpen}
@@ -281,13 +285,13 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                         state.output
                                                         &&
                                                         <ActionButton
-                                                            // selectedAnim={state.autoOutput}
+                                                            selectedAnim={state.autoOutput}
                                                             onClick={() => {
                                                                 if (!Depots.output(building, state.output!)) {
                                                                     evtBuildError.post(`Not enough space to eject`);
                                                                 }                                                               
                                                             }}
-                                                            // onContextMenu={() => Factories.toggleAutoOutput(building)}
+                                                            onContextMenu={() => Depots.toggleAutoOutput(building)}
                                                         >
                                                             <Icon name={state.output} />
                                                         </ActionButton>
