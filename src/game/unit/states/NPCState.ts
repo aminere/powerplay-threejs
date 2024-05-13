@@ -85,9 +85,7 @@ export class NPCState extends State<ICharacterUnit> {
         if (target?.isAlive) {
             if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                 // target didn't move since last detection, so start attacking
-                unitMotion.endMotion(unit);
-                this._step = NpcStep.Attack;
-                unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
+                this.startAttack(unit);
             } else {
                 // keep following
                 unitMotion.moveUnit(unit, target.coords.mapCoords);
@@ -98,6 +96,22 @@ export class NPCState extends State<ICharacterUnit> {
             unit.isIdle = true;
             this._step = NpcStep.Idle;
         }
+    }
+
+    public onColliding(unit: ICharacterUnit) {
+        if (this._step === NpcStep.Attack || unit.motionId === 0) {
+            return;
+        }
+        const withTarget = unit.collidingWith.includes(this._target!);
+        if (withTarget) {
+            this.startAttack(unit);
+        }
+    }
+
+    private startAttack(unit: ICharacterUnit) {
+        unitMotion.endMotion(unit);
+        this._step = NpcStep.Attack;
+        unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
     }
 }
 

@@ -33,7 +33,7 @@ export class Unit implements IUnit {
     public get motionId() { return this._motionId; }
     public get motionCommandId() { return this._motionCommandId; }
     public get lastCompletedMotionCommandId() { return this._lastCompletedMotionCommandId; }
-    public get isColliding() { return this._isColliding; }
+    public get collidingWith() { return this._collidingWith; }
     public get isAlive() { return this._isAlive; }
     public get isIdle() { return this._isIdle; }
     public get collidable() { return this._collidable; }
@@ -64,7 +64,6 @@ export class Unit implements IUnit {
         this._motionCommandId = value; 
     }
 
-    public set isColliding(value: boolean) { this._isColliding = value; }
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
@@ -79,7 +78,7 @@ export class Unit implements IUnit {
     private _motionId = 0;
     private _lastCompletedMotionCommandId = 0;
     private _motionCommandId = 0;
-    private _isColliding = false;
+    private _collidingWith: IUnit[] = [];
     private _isAlive = true;
     private _isIdle = true;
     private _collidable = true;
@@ -125,7 +124,7 @@ export class Unit implements IUnit {
                 this._isAlive = false;
                 this._collidable = false;
                 this._motionId = 0;
-                this._isColliding = false;
+                this._collidingWith.length = 0;
                 this.onDeath();
     
                 const cell = getCellFromAddr(this._coords);

@@ -21,7 +21,7 @@ export interface IUnit {
     motionId: number;
     motionCommandId: number;
     lastCompletedMotionCommandId: number;
-    isColliding: boolean;
+    collidingWith: IUnit[];
     isAlive: boolean;
     isIdle: boolean;
     collidable: boolean;

@@ -24,6 +24,7 @@ import { MiningState } from "./states/MiningState";
 import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit";
 import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
+import { NPCState } from "./states/NPCState";
 
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
@@ -131,11 +132,18 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onColliding() {
-        const collisionAnim = utils.getComponent(UnitCollisionAnim, this.visual);
-        if (collisionAnim) {
-            collisionAnim.reset();
-        } else {
-            engineState.setComponent(this.visual, new UnitCollisionAnim({ unit: this }));
+        if (this.motionId === 0) {
+            const collisionAnim = utils.getComponent(UnitCollisionAnim, this.visual);
+            if (collisionAnim) {
+                collisionAnim.reset();
+            } else {
+                engineState.setComponent(this.visual, new UnitCollisionAnim({ unit: this }));
+            }
+        }
+
+        const npcState = this.fsm.getState(NPCState);
+        if (npcState) {
+            npcState.onColliding(this);
         }
     }
 

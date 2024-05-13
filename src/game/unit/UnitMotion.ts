@@ -239,7 +239,10 @@ function getUnitNeighbors(unit: IUnit, radius: number) {
     return unitNeighbors;
 }
 
-export class UnitMotion {
+export class UnitMotion {    
+
+    private _motionCommandId = 1;
+    private _collisionResults = new Map<string, boolean>();
 
     public createMotionCommandId() {
         const commandId = this._motionCommandId;
@@ -247,7 +250,9 @@ export class UnitMotion {
         return commandId;
     }
 
-    private _motionCommandId = 1;    
+    public resetCollisionResults() {
+        this._collisionResults.clear();
+    }
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
         const destCell = GameUtils.getCell(destMapCoords)!;
@@ -364,10 +369,25 @@ export class UnitMotion {
                     continue;
                 }
 
-                if (UnitUtils.collides(unit, neighbor)) {
-                    unit.isColliding = true;
-                    neighbor.isColliding = true;
+                const collisionTestId = `${unit.id},${neighbor.id}`;
+                const isColliding = (() => {
+                    const cachedResult = this._collisionResults.get(collisionTestId);
+                    if (cachedResult === undefined) {
+                        const newResult = UnitUtils.collides(unit, neighbor);
+                        this._collisionResults.set(collisionTestId, newResult);
+                        const collisionTestId2 = `${neighbor.id},${unit.id}`;
+                        this._collisionResults.set(collisionTestId2, newResult);
+                        if (newResult) {
+                            unit.collidingWith.push(neighbor);
+                            neighbor.collidingWith.push(unit);
+                        }
+                        return newResult;
+                    } else {
+                        return cachedResult;
+                    }
+                })();
 
+                if (isColliding) {
                     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
                     const length = awayDirection3.length();
                     if (length > 0) {
@@ -413,7 +433,7 @@ export class UnitMotion {
     public steer(unit: IUnit) {
 
         const isMoving = unit.motionId > 0;
-        const needsMotion = isMoving || unit.isColliding;
+        const needsMotion = isMoving || unit.collidingWith.length > 0;
         if (!needsMotion) {
             return;
         }
@@ -529,11 +549,9 @@ export class UnitMotion {
             }
         }
 
-        if (unit.isColliding) {
-            if (!isMoving) {
-                unit.onColliding();
-            }
-            unit.isColliding = false;
+        if (unit.collidingWith.length > 0) {
+            unit.onColliding();
+            unit.collidingWith.length = 0;
         }
 
         if (unit.arriving) {

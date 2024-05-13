@@ -107,6 +107,7 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
+        unitMotion.resetCollisionResults();
         for (const unit of this._units) {
             if (unit.isAlive) {
                 unit.fsm.update();
