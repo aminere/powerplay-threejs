@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface IconProps {
     name: string;
+    onError?: () => void;
 }
 
 const loadErrors: Record<string, boolean> = {};
@@ -14,6 +15,7 @@ export function Icon(props: IconProps) {
     const onError = () => {
         loading.current = false;
         setLoaded(false);
+        props.onError?.();
     };
 
     const { name } = props;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Icon } from "./Icon";
 import { InventoryItemInfo } from "./InventoryItemInfo";
 import { ProgressBar } from "./ProgressBar";
@@ -10,8 +11,10 @@ interface InventoryItemProps {
     full?: boolean;
 }
 
-export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) { 
+export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) {     
     
+    const [_, setTimestamp] = useState(0);
+
     return <div
         className={`icon ${props.full ? "item-full" : ""}`}
         style={{
@@ -25,7 +28,7 @@ export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>
             textAlign: "center"
         }}
     >
-        <Icon name={props.name} />
+        <Icon name={props.name} onError={() => setTimestamp(Date.now())} />
 
         {
             props.value
