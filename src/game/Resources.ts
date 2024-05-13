@@ -1,4 +1,4 @@
-import { InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
+import { AdditiveBlending, InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
 import { config } from "./config/config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
@@ -19,8 +19,11 @@ const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
 
 class Resources {
 
+    public get glassMaterial() { return this._glassMaterial; }
+
     private _oilMaterial = new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .7 });
     private _oilGeometry = new PlaneGeometry(cellSize, cellSize).rotateX(-Math.PI / 2);
+    private _glassMaterial = new MeshBasicMaterial({ blending: AdditiveBlending, transparent: true, opacity: .4 });
 
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
 
@@ -92,6 +95,11 @@ class Resources {
             switch (type) {
                 case "ak47": {
                     mesh.scale.multiplyScalar(1.2);
+                }
+                break;
+
+                case "glass": {
+                    mesh.material = this._glassMaterial;
                 }
                 break;
             }

@@ -310,9 +310,7 @@ class UnitsManager {
         const { buildingType, mapCoords } = building;
         cellCoords.copy(mapCoords);
         const size = buildingConfig[buildingType].size;
-        cellCoords.x += size.x / 2;
-        cellCoords.y += size.z;
-
+        cellCoords.set(Math.round(cellCoords.x + size.x / 2), cellCoords.y + size.z);
         this.spawn(cellCoords, unitType);
         this._spawnUnitRequest = null;
     }

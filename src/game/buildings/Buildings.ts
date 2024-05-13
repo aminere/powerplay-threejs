@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
@@ -91,8 +91,8 @@ class Buildings {
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
         
-        const box3Helper = new Box3Helper(instance.boundingBox);
-        visual.add(box3Helper);
+        // const box3Helper = new Box3Helper(instance.boundingBox);
+        // visual.add(box3Helper);
         // box3Helper.visible = false;
 
         const { size, hitpoints } = buildingConfig[buildingType];

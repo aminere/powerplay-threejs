@@ -20,7 +20,7 @@ export class GameMapProps extends ComponentProps {
         GameMapProps._instance = null;
     }
 
-    debugFreeBuilding = false;
+    debugFreeCosts = false;
     debugPathfinding = false;    
 
     saveToDisk = false;

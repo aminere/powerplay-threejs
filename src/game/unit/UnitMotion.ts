@@ -410,6 +410,10 @@ export class UnitMotion {
                             return false;
                         }
 
+                        // if (beingAttacked) {
+                            // return false;
+                        // }
+
                         return true;
                     })();
 

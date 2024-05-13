@@ -9,6 +9,7 @@ import { cmdSpawnUnit, evtBuildingStateChanged } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { BuildingUtils } from "./BuildingUtils";
 import { resourceConfig } from "../config/ResourceConfig";
+import { GameMapProps } from "../components/GameMapProps";
 
 const { unitScale } = config.game;
 const { inputCapacity, productionTime } = config.incubators;
@@ -16,6 +17,11 @@ const incubatorWater = new MeshBasicMaterial({ color: 0x084EBF, blending: Additi
 const { inputAccepFrequency } = config.incubators;
 
 function canOutput(incubator: IIncubatorState) {
+    const { debugFreeCosts } = GameMapProps.instance;
+    if (debugFreeCosts) {
+        return true;
+    }
+
     const inputs = resourceConfig.incubatorProduction["worker"];
     for (const [type, amount] of inputs) {
         const reserve = incubator.reserve.get(type) ?? 0;

@@ -341,7 +341,7 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
 
         if (empty) {
 
-            if (!GameMapProps.instance.debugFreeBuilding) {
+            if (!GameMapProps.instance.debugFreeCosts) {
                 const buildingType = "road";
                 const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
                 if (!Depots.testDepots(depotsInRange, buildingType)) {
@@ -429,7 +429,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                         return false;
                     }
 
-                    if (!GameMapProps.instance.debugFreeBuilding) {
+                    if (!GameMapProps.instance.debugFreeCosts) {
                         depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
                         if (!Depots.testDepots(depotsInRange, buildingType)) {
                             return false;
@@ -446,7 +446,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 return false;
             }
 
-            if (!GameMapProps.instance.debugFreeBuilding) {
+            if (!GameMapProps.instance.debugFreeCosts) {
                 depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
                 if (!Depots.testDepots(depotsInRange, buildingType)) {
                     return false;
@@ -530,7 +530,7 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     if (button === 0) {
         if (cell.isEmpty) {
 
-            if (!GameMapProps.instance.debugFreeBuilding) {
+            if (!GameMapProps.instance.debugFreeCosts) {
                 const buildingType = "conveyor";
                 const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
                 if (!Depots.testDepots(depotsInRange, buildingType)) {

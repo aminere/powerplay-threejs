@@ -9,6 +9,7 @@ import { evtBuildError, evtBuildingStateChanged } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
+import { resources } from "../Resources";
 
 const { mapRes } = config.game;
 const cellCoords = new Vector2();
@@ -71,6 +72,11 @@ export class Depots {
             console.assert(instance.visual.children.length === currentSlot + 1);
             const [_mesh] = meshes.loadImmediate(`/models/resources/${type}.glb`);
             const mesh = _mesh.clone();
+
+            if (type === "glass") {
+                mesh.material = resources.glassMaterial;
+            }
+
             mesh.castShadow = true;
 
             const row = Math.floor(newSlot / slotsPerRow);

@@ -11,12 +11,12 @@ interface IBuildingConfig {
 export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
     "mine": {
         size: new Vector3(3, 2, 3),
-        buildCost: [["stone", 3], ["wood", 3]],
+        buildCost: [["wood", 10]],
         hitpoints: 20
     },
     "factory": {
         size: new Vector3(5, 3, 4),
-        buildCost: [["stone", 5], ["wood", 5]],
+        buildCost: [["stone", 10]],
         hitpoints: 30
     },
     "assembly": {
@@ -26,12 +26,12 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
     },
     "incubator": {
         size: new Vector3(1, 3, 1),
-        buildCost: [["stone", 3], ["glass", 3]],
+        buildCost: [["glass", 5]],
         hitpoints: 10
     },
     "depot": {
         size: new Vector3(4, 1, 4),
-        buildCost: [["stone", 3]],
+        buildCost: [["stone", 5]],
         hitpoints: 10
     },
     "train-factory": {
@@ -41,12 +41,12 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
     },
     "road": {
         size: null!,
-        buildCost: [["concrete", 1]],
+        buildCost: [["stone", 1]],
         hitpoints: -1
     },
     "conveyor": {
         size: null!,
-        buildCost: [["iron-ore", 1]],
+        buildCost: [["wood", 1]],
         hitpoints: 10
     },
     "rail": {
