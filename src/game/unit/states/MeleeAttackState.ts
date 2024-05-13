@@ -5,15 +5,24 @@ import { IUnit } from "../IUnit";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
+import { unitMotion } from "../UnitMotion";
+import { NPCState } from "./NPCState";
+import { config } from "../../config/config";
 
 const hitFrequency = .5;
 const damage = .1;
+const { separations } = config.steering;
+
+enum MeleeAttackStateStep {
+    Follow,
+    Attack
+}
 
 export class MeleeAttackState extends State<ICharacterUnit> {
 
     private _target: IUnit | null = null;
     private _hitTimer = 0;
-
+    private _step = MeleeAttackStateStep.Follow;    
 
     override exit(unit: ICharacterUnit) {
         unit.isIdle = true;
@@ -24,26 +33,85 @@ export class MeleeAttackState extends State<ICharacterUnit> {
 
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, 1)) {
-                unit.fsm.switchState(null);
-            } else {
-                UnitUtils.rotateToTarget(unit, target!);
-                if (this._hitTimer < 0) {
-                    target!.setHitpoints(target!.hitpoints - damage);
-                    this._hitTimer = hitFrequency;
+            if (!target.isAlive) {
+                this.endAttack(unit);
+                return;
+            }
+        }
+
+        switch (this._step) {
+            case MeleeAttackStateStep.Attack: {
+                const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separations[unit.type] * 1.5;
+                if (outOfRange) {
+                    this._step = MeleeAttackStateStep.Follow;
+                    unitMotion.moveUnit(unit, target!.coords.mapCoords, false);
+                    unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
+
                 } else {
-                    this._hitTimer -= time.deltaTime;
+                    UnitUtils.rotateToTarget(unit, target!);
+                    if (this._hitTimer < 0) {
+                        target!.setHitpoints(target!.hitpoints - damage);
+                        this._hitTimer = hitFrequency;
+                    } else {
+                        this._hitTimer -= time.deltaTime;
+                    }
                 }
             }
-        } else {
-            unit.fsm.switchState(null);
+        }        
+    }
+
+    public attackTarget(unit: ICharacterUnit, target: IUnit) {
+        this._target = target;
+        unit.isIdle = false;
+    }    
+
+    public onColliding(unit: ICharacterUnit) {
+        if (this._step === MeleeAttackStateStep.Attack || unit.motionId === 0) {
+            return;
+        }
+        const withTarget = unit.collidingWith.includes(this._target!);
+        if (withTarget) {
+            this.startAttack(unit);
         }
     }
 
-    public startAttack(unit: ICharacterUnit, target: ICharacterUnit) {
-        this._target = target;
-        unit.isIdle = false;
+    public onReachedTarget(unit: ICharacterUnit) {
+        const target = this._target;
+        if (target?.isAlive) {
+            if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
+                // target didn't move since last detection, so start attacking
+                this.startAttack(unit);
+            } else {
+                (() => {
+                    const npcState = target.fsm.getState(NPCState);
+                    if (npcState) {
+                        if (npcState.target === unit) {
+                            // avoid orbiting into each other
+                            this.endAttack(unit);
+                            return;
+                        }
+                    }
+
+                    // keep following
+                    unitMotion.moveUnit(unit, target.coords.mapCoords);
+                })();
+            }
+        } else {
+            this.endAttack(unit);
+        }
+    }
+
+    private startAttack(unit: ICharacterUnit) {
+        unitMotion.endMotion(unit);
+        this._step = MeleeAttackStateStep.Attack;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
+    }
+
+    private endAttack(unit: IUnit) {
+        if (unit.motionId > 0) {
+            unitMotion.endMotion(unit);
+        }
+        unit.fsm.switchState(null);
     }
 }
 

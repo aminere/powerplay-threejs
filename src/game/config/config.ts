@@ -70,7 +70,7 @@ export const config = {
         transferFrequency: 1
     },
     steering: {
-        maxForce: 40,
+        maxForce: 80,
         maxSpeed: 5,
         separations: {
             "worker": .7,

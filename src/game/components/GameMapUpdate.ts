@@ -21,6 +21,8 @@ import { GameMapProps } from "./GameMapProps";
 import { UnitUtils } from "../unit/UnitUtils";
 import { ICell } from "../GameTypes";
 import { getCellFromAddr } from "../unit/UnitAddr";
+import { MeleeAttackState } from "../unit/states/MeleeAttackState";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -30,8 +32,9 @@ const normalizedPos = new Vector2();
 const intersection = new Vector3();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
 const localRay = new Ray();
+const worldRay = new Ray();
 const inverseMatrix = new Matrix4();
-const { rayCaster } = GameUtils;
+const intersections: Array<{ unit?: IUnit; building?: IBuildingInstance; distance: number; }> = [];
 
 const enemiesAroundCell = new Array<IUnit>();
 function getEnemiesAroundCell(mapCoords: Vector2, radius: number) {
@@ -64,6 +67,7 @@ function raycastOnUnit(worldRay: Ray, unit: IUnit, intersectionOut: Vector3) {
 
 function getWorldRay(worldRayOut: Ray) {
     const { width, height } = engine.screenRect;
+    const { rayCaster } = GameUtils;
     normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
     rayCaster.setFromCamera(normalizedPos, GameMapState.instance.camera);
     worldRayOut.copy(rayCaster.ray);
@@ -337,33 +341,27 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                         } else {
 
-                            getWorldRay(rayCaster.ray);
-                            const intersections: Array<{
-                                unit?: IUnit;
-                                building?: IBuildingInstance;
-                                distance: number;
-                            }> = [];
-
                             const units = unitsManager.units;
-
+                            getWorldRay(worldRay);                            
+                            intersections.length = 0;
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
                                 if (!unit.isAlive) {
                                     continue;
                                 }
                                 inverseMatrix.copy(unit.visual.matrixWorld).invert();
-                                if (raycastOnUnit(rayCaster.ray, unit, intersection)) {
-                                    intersections.push({ unit, distance: rayCaster.ray.origin.distanceTo(intersection) });
+                                if (raycastOnUnit(worldRay, unit, intersection)) {
+                                    intersections.push({ unit, distance: worldRay.origin.distanceTo(intersection) });
                                 }
                             }
 
                             for (const [, building] of state.buildings) {
                                 inverseMatrix.copy(building.visual.matrixWorld).invert();
-                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
+                                localRay.copy(worldRay).applyMatrix4(inverseMatrix);
                                 const boundingBox = buildings.getBoundingBox(building.buildingType);
                                 if (localRay.intersectBox(boundingBox, intersection)) {
                                     intersection.applyMatrix4(building.visual.matrixWorld); // convert intersection to world space
-                                    intersections.push({ building, distance: rayCaster.ray.origin.distanceTo(intersection) });
+                                    intersections.push({ building, distance: worldRay.origin.distanceTo(intersection) });
                                 }
                             }
 
@@ -426,11 +424,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             const targetEnemy = (() => {
                                 const enemies = getEnemiesAroundCell(mapCoords, 2);
                                 if (enemies.length > 0) {
-                                    getWorldRay(rayCaster.ray);
-                                    const intersections: Array<{ unit: IUnit; distance: number; }> = [];
+                                    intersections.length = 0;
+                                    getWorldRay(worldRay);
                                     for (const enemy of enemies) {
-                                        if (raycastOnUnit(rayCaster.ray, enemy, intersection)) {
-                                            intersections.push({ unit: enemy, distance: rayCaster.ray.origin.distanceTo(intersection) });
+                                        if (raycastOnUnit(worldRay, enemy, intersection)) {
+                                            intersections.push({ unit: enemy, distance: worldRay.origin.distanceTo(intersection) });
                                         }
                                     }
                                     if (intersections.length > 0) {
@@ -442,7 +440,15 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                             if (targetEnemy) {
                                 moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));
-                                // TODO MeleeAttackState
+                                
+                                for (const unit of unitsManager.selectedUnits) {
+                                    if (!UnitUtils.isWorker(unit)) {
+                                        continue;
+                                    }
+                                    const attack = unit.fsm.switchState(MeleeAttackState);
+                                    attack.attackTarget(unit as ICharacterUnit, targetEnemy);
+                                }
+
                             } else {
                                 moveCommand(mapCoords, targetCell);
                             }

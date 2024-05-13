@@ -39,7 +39,7 @@ export class MeleeDefendState extends State<ICharacterUnit> {
         }
     }
 
-    public startAttack(unit: ICharacterUnit, target: ICharacterUnit) {
+    public startAttack(unit: ICharacterUnit, target: IUnit) {
         this._target = target;
         unit.isIdle = false;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });

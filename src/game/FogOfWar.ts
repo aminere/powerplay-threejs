@@ -1,4 +1,4 @@
-import { ClampToEdgeWrapping, DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshBasicMaterial, MeshStandardMaterial, NearestFilter, PlaneGeometry, RGBAFormat, Vector2 } from "three";
+import { ClampToEdgeWrapping, DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";

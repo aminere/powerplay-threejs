@@ -20,6 +20,8 @@ const damage = .1;
 
 export class NPCState extends State<ICharacterUnit> {
 
+    public get target() { return this._target; }
+
     private _target: IUnit | null = null;
     private _hitTimer = 1;
     private _step = NpcStep.Idle;
@@ -72,7 +74,7 @@ export class NPCState extends State<ICharacterUnit> {
 
                         this._hitTimer = hitFrequency;
                     } else {
-                        this._hitTimer -= time.deltaTime;                
+                        this._hitTimer -= time.deltaTime;
                     }
                 }
             }

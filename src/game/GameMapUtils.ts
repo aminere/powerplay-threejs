@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
-import { MineralType, MineralTypes, RawResourceType, TileType, TileTypes } from "./GameDefinitions";
+import { MineralType, MineralTypes, RawResourceType } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";

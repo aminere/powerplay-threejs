@@ -25,6 +25,7 @@ import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit
 import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { NPCState } from "./states/NPCState";
+import { MeleeAttackState } from "./states/MeleeAttackState";
 
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
@@ -121,7 +122,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     
     public override onArriving() {
         if (this.isIdle) {
-            unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true })
+            unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
         }
     }
 
@@ -135,10 +136,18 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             }
         }
 
-        const npcState = this.fsm.getState(NPCState);
-        if (npcState) {
-            npcState.onColliding(this);
-        }
+        (() => {
+            const npcState = this.fsm.getState(NPCState);
+            if (npcState) {
+                npcState.onColliding(this);
+                return;
+            }
+            const meleeAttackState = this.fsm.getState(MeleeAttackState);
+            if (meleeAttackState) {
+                meleeAttackState.onColliding(this);
+                return;
+            }
+        })();
     }
 
     public override onReachedBuilding(cell: ICell) {
@@ -262,6 +271,11 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
             const targetCell = getCellFromAddr(this.targetCell);
             if (targetCell.building) {
+                return; // keep going
+            }
+
+            const meleeAttackState = this.fsm.getState(MeleeAttackState);
+            if (meleeAttackState) {
                 return; // keep going
             }
 

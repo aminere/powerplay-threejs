@@ -15,6 +15,7 @@ import { IUnit } from "./IUnit";
 import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
+import { MeleeAttackState } from "./states/MeleeAttackState";
 
 const cellDirection = new Vector2();
 const destSectorCoords = new Vector2();
@@ -397,9 +398,18 @@ export class UnitMotion {
                     }
 
                     const canBeAffectedByNeighbor = (() => {
+
                         if (UnitUtils.isVehicle(unit) && !UnitUtils.isVehicle(neighbor)) {
+                            // prevent small units from pushing away vehicles
                             return false;
                         }
+
+                        if (!unit.isIdle && UnitUtils.isEnemy(unit)) {
+                            // prevent units from pushing away npcs that are currently attacking
+                            // this allows for surrounding the npc
+                            return false;
+                        }
+
                         return true;
                     })();
 
@@ -407,15 +417,16 @@ export class UnitMotion {
 
                         const forceFactor = (() => {
                             if (unit.motionId > 0 && neighbor.motionId === 0) {
-                                return .2;
+                                return .4;
                             }
-                            return .8
+                            return .6;
                         })();
 
                         unit.acceleration
                             .multiplyScalar(1 - forceFactor)
                             .addScaledVector(awayDirection3, maxForce * forceFactor)
                             .clampLength(0, maxForce);
+
                     } else {
                         unit.acceleration                            
                             .addScaledVector(awayDirection3, maxForce * .1)
@@ -494,13 +505,22 @@ export class UnitMotion {
                 if (isMoving) {
                     const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
                     if (reachedTarget) {
-                        const npcState = unit.fsm.getState(NPCState);
-                        if (npcState) {
-                            npcState.onReachedTarget(unit as ICharacterUnit);
-                        } else {
+                        (() => {
+                            const npcState = unit.fsm.getState(NPCState);
+                            if (npcState) {
+                                npcState.onReachedTarget(unit as ICharacterUnit);
+                                return;
+                            }
+
+                            const meleeAttackState = unit.fsm.getState(MeleeAttackState);
+                            if (meleeAttackState) {
+                                meleeAttackState.onReachedTarget(unit as ICharacterUnit);
+                                return;
+                            } 
+
                             unit.arriving = true;
                             unit.onArriving();
-                        }
+                        })();
                     }
                 }
             }

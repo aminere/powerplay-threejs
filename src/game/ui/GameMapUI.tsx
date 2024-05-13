@@ -24,8 +24,20 @@ import { AssemblyOutputPanel } from "./AssemblyOutputPanel";
 function InGameUI({ children }: { children: React.ReactNode }) {
     return <div
         style={{ pointerEvents: "all" }}
-        onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
-        onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
+        onPointerEnter={() => {
+            const state = GameMapState.instance;
+            if (!state) {
+                return;
+            }
+            state.cursorOverUI = true;
+        }}
+        onPointerLeave={() => {
+            const state = GameMapState.instance;
+            if (!state) {
+                return;
+            }
+            state.cursorOverUI = false
+        }}
     >
         {children}
     </div>
