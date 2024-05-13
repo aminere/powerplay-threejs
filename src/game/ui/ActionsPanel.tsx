@@ -254,15 +254,15 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         </>
                                     }
 
-                                    case "depot": {
-                                        const state = building.state as IDepotState;
-                                        if (state.amount > 0) {
-                                            return <ActionButton onClick={() => Depots.clear(building)}>
-                                                clear
-                                            </ActionButton>
-                                        }
-                                    }
-                                    break;
+                                    // case "depot": {
+                                    //     const state = building.state as IDepotState;
+                                    //     if (state.amount > 0) {
+                                    //         return <ActionButton onClick={() => Depots.clear(building)}>
+                                    //             clear
+                                    //         </ActionButton>
+                                    //     }
+                                    // }
+                                    // break;
 
                                     case "assembly": {
                                         const state = building.state as IAssemblyState;

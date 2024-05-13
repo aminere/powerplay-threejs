@@ -2,7 +2,7 @@
 import { SkinnedMesh, Vector2 } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { Unit } from "./Unit";
-import { RawResourceType } from "../GameDefinitions";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { engineState } from "../../engine/EngineState";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { Fadeout } from "../components/Fadeout";
@@ -194,18 +194,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 if (validSource) {
                     this._targetBuilding = this.targetCell.mapCoords.clone();
                     unitMotion.moveUnit(this, sourceCell);
-                }                
-
-            } else {
-
-                if (instance.buildingType === "depot") {
-                    // if the depot is of a different type than the carried resource, pick from it (discard the carried resource)
-                    const state = instance.state as IDepotState;
-                    if (state.amount > 0 && state.type !== this.resource!.type) {
-                        console.assert(state.type !== null);
-                        Workers.pickResource(this, state.type!, this.targetCell.mapCoords);
-                        Depots.removeResource(instance);
-                    }
                 }
             }
 
@@ -213,16 +201,28 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
             switch (instance.buildingType) {
                 case "depot": {
-                    const state = instance.state as IDepotState;
-                    if (state.amount > 0) {
-                        console.assert(state.type !== null);
-                        Workers.pickResource(this, state.type!, this.targetCell.mapCoords);
-                        Depots.removeResource(instance);
-
+                    const pick = (type: RawResourceType | ResourceType) => {
+                        Workers.pickResource(this, type, this.targetCell.mapCoords);
+                        Depots.removeResource(instance, type, 1);
                         if (this._targetBuilding) {
                             unitMotion.moveUnit(this, this._targetBuilding);
                         }
-                    }
+                    };
+
+                    const state = instance.state as IDepotState;
+                    if (state.output) {
+                        pick(state.output);
+
+                    } else {
+                        // pick the first available resource
+                        for (const slot of state.slots.slots) {
+                            if (slot.type) {
+                                console.assert(slot.amount > 0);
+                                pick(slot.type);
+                                break;
+                            }
+                        }
+                    }                    
                 }
                 break;
             }

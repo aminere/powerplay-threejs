@@ -15,48 +15,48 @@ export class TruckState extends State<ITruckUnit> {
     private _timer = 0;
 
     override update(unit: ITruckUnit): void { 
-        if (this._targetDepot) {
-            if (this._timer < 0) {
-                const depotState = this._targetDepot.state as IDepotState;
+        // if (this._targetDepot) {
+        //     if (this._timer < 0) {
+        //         const depotState = this._targetDepot.state as IDepotState;
                 
-                if (this._getFromDepot) {
+        //         if (this._getFromDepot) {
 
-                    const transferred = (() => {
-                        if (depotState.amount > 0) {
-                            console.assert(depotState.type !== null);
-                            if (Trucks.tryDepositResource(unit, depotState.type!)) {
-                                Depots.removeResource(this._targetDepot);
-                                return true;
-                            }
-                        }
-                        return false;
-                    })();
+        //             const transferred = (() => {
+        //                 if (depotState.amount > 0) {
+        //                     console.assert(depotState.type !== null);
+        //                     if (Trucks.tryDepositResource(unit, depotState.type!)) {
+        //                         Depots.removeResource(this._targetDepot);
+        //                         return true;
+        //                     }
+        //                 }
+        //                 return false;
+        //             })();
 
-                    if (!transferred) {
-                        this.stopTransfer();
-                    }
+        //             if (!transferred) {
+        //                 this.stopTransfer();
+        //             }
                     
-                } else {
+        //         } else {
 
-                    const transferred = (() => {
-                        if ((unit.resources?.amount ?? 0) > 0) {
-                            if (Depots.tryDepositResource(this._targetDepot, unit.resources!.type)) {
-                                Trucks.removeResource(unit);
-                                return true;
-                            }                      
-                        }
-                        return false;
-                    })();
+        //             const transferred = (() => {
+        //                 if ((unit.resources?.amount ?? 0) > 0) {
+        //                     if (Depots.tryDepositResource(this._targetDepot, unit.resources!.type)) {
+        //                         Trucks.removeResource(unit);
+        //                         return true;
+        //                     }                      
+        //                 }
+        //                 return false;
+        //             })();
 
-                    if (!transferred) {
-                        this.stopTransfer();
-                    }                    
-                }
-                this._timer = transferFrequency;
-            } else {
-                this._timer -= time.deltaTime;
-            }
-        }
+        //             if (!transferred) {
+        //                 this.stopTransfer();
+        //             }                    
+        //         }
+        //         this._timer = transferFrequency;
+        //     } else {
+        //         this._timer -= time.deltaTime;
+        //     }
+        // }
     }
 
     public startTransfer(instance: IBuildingInstance, getFromDepot: boolean) {

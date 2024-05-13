@@ -62,11 +62,16 @@ export interface IMineState {
 }
 
 export interface IDepotState {
-    type: RawResourceType | ResourceType | null;
-    amount: number;
-    capacity: number;
+    output: RawResourceType | ResourceType | null;
     inputTimer: number;
     outputTimer: number;
+    slots: { 
+        root: Object3D;
+        slots: Array<{
+            type: RawResourceType | ResourceType | null;
+            amount: number;
+        }>;
+    };
 }
 
 export interface IAssemblyState {

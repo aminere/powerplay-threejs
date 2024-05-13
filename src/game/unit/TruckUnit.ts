@@ -45,52 +45,44 @@ export class TruckUnit extends Unit implements ITruckUnit {
     public override onReachedBuilding(cell: ICell) {
         const instance = GameMapState.instance.buildings.get(cell.building!)!;
         switch (instance.buildingType) {
-            case "depot": {
+            case "depot": {         
                 const state = instance.state as IDepotState;
-
+                const truckResourceType = this.resources?.type ?? null;
+                const depotAmount = state.slots.slots.reduce((acc, slot) => {
+                    const slotAmount = (() => {                        
+                        if (truckResourceType === null || slot.type === truckResourceType) {
+                            return slot.amount;
+                        }
+                        return 0;
+                    })();
+                    return acc + slotAmount;
+                }, 0);
                 const truckAmount = this.resources?.amount ?? 0;
-                const totalResources = state.amount + truckAmount;
+                const totalResources = depotAmount + truckAmount;
                 if (totalResources > 0) {
                     const truckState = this.fsm.getState(TruckState)!;
                     if (truckAmount > 0) {
-                        if (state.type === this.resources!.type) {
-                            truckState.startTransfer(instance, false);
-                        } else {
-                            truckState.startTransfer(instance, true);    
-                        }
-
+                        truckState.startTransfer(instance, false);
                     } else {
                         truckState.startTransfer(instance, true);
                     }
-                }                
-
+                }
+                
+                // const state = instance.state as IDepotState;
                 // const totalResources = state.amount + truckAmount;
                 // if (totalResources > 0) {
-
-                //     const getFromDepot = (() => {
-                //         if (this.resources) {
-                //             if (state.type === this.resources.type) {
-                //                 // return this.resources.amount === 0;
-                //                 const depotPercentFull = state.amount / state.capacity;
-                //                 const truckPercentFull = this.resources.amount / truckCapacity;
-                //                 if (depotPercentFull >= truckPercentFull) {                                    
-                //                     return true;
-                //                 } else {
-                //                     return false;
-                //                 }
-                //             } else {
-                //                 // existing resources are lost
-                //                 return true;
-                //             }
-                //         } else {
-                //             return true;
-                //         }
-                //     })();         
-                    
                 //     const truckState = this.fsm.getState(TruckState)!;
-                //     truckState.startTransfer(instance, getFromDepot);
-                // }
+                //     if (truckAmount > 0) {
+                //         if (state.type === this.resources!.type) {
+                //             truckState.startTransfer(instance, false);
+                //         } else {
+                //             truckState.startTransfer(instance, true);    
+                //         }
 
+                //     } else {
+                //         truckState.startTransfer(instance, true);
+                //     }
+                // }
             }
             break;
         }

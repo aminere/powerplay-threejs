@@ -263,6 +263,7 @@ class UnitsManager {
                 break;
 
                 case "building": {
+                    this._selectedUnits.length = 0;
                     const buildingType = selection.building.buildingType;
                     switch (buildingType) {
                         case "depot": {

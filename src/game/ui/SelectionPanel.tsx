@@ -13,6 +13,7 @@ import { GridFiller } from "./GridFiller";
 import { InventoryItem } from "./InventoryItem";
 import { GameUtils } from "../GameUtils";
 import { Mines } from "../buildings/Mines";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -180,14 +181,22 @@ export function SelectionPanel(props: SelectionPanelProps) {
 
                         case "depot": {
                             const state = building.state as IDepotState;
-                            const properties = state.type ? [{
-                                name: state.type,
-                                value: `${state.amount} / ${state.capacity}`
-                            }] : null;
+                            const resourceMap = state.slots.slots
+                                .filter(slot => slot.type)
+                                .reduce((prev, cur) => {
+                                    const amount = prev[cur.type!] ?? 0;
+                                    prev[cur.type!] = amount + cur.amount;
+                                    return prev;
+                                }, {} as Record<ResourceType | RawResourceType, number>);
+                            const properties = Object.entries(resourceMap).map(([type, amount]) => {
+                                return {
+                                    name: type,
+                                    value: `${amount}`
+                                }
+                            });
                             return <SingleSelectionPanel
                                 type={type}
                                 health={hitpoints / maxHitpoints}
-                                title={state.type ? `${state.type} ${type}` : undefined}
                                 properties={properties}
                             />;
                         }

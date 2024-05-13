@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
-import { MineralType, MineralTypes, RawResourceType } from "./GameDefinitions";
+import { MineralType, MineralTypes, RawResourceType, ResourceType } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -382,7 +382,10 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     if (button === 0) {
         const { size } = buildingConfig[buildingType];
 
-        let depotsInRange: IBuildingInstance[] | null = null;
+        let depotsInRange: Array<{
+            type: RawResourceType | ResourceType;
+            depot: IBuildingInstance;
+        }> | null = null;
 
         // TODO if units under the structure, move them away
         const allowed = (() => {
