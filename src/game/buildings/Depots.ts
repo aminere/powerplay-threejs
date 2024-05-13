@@ -166,7 +166,7 @@ export class Depots {
         for (let i = 0; i < _amount; i++) {
             removeOne();
         }
-        
+
         evtBuildingStateChanged.post(instance);        
     }
 
@@ -184,10 +184,10 @@ export class Depots {
     }
 
     public static update(instance: IBuildingInstance) {
-        const state = instance.state as IDepotState;
-        const reserve = state.slots.slots.reduce((prev, cur) => prev + (cur?.amount ?? 0), 0);
+        const state = instance.state as IDepotState;        
 
         if (state.autoOutput) {
+            const reserve = state.slots.slots.reduce((prev, cur) => prev + (cur?.amount ?? 0), 0);
             if (reserve > 0) {
                 if (state.outputTimer < 0) {
                     const output = (() => {
@@ -205,23 +205,22 @@ export class Depots {
                 }
             }
         }
-
-        const { resourcesPerSlot, slotCount } = depotsConfig;
-        const capacity = slotCount * resourcesPerSlot;
-        if (reserve < capacity) {
-            if (state.inputTimer < 0) {
-                for (const slot of state.slots.slots) {
+        
+        if (state.inputTimer < 0) {
+            const { resourcesPerSlot } = depotsConfig;
+            for (const slot of state.slots.slots) {
+                if (slot.amount < resourcesPerSlot) {
                     const resourceType = BuildingUtils.tryGetFromAdjacentCells(instance, slot.type);
                     if (resourceType) {
                         Depots.tryDepositResource(instance, resourceType);
                         state.inputTimer = depotsConfig.inputFrequency;
                         break;
                     }
-                }                
-            } else {
-                state.inputTimer -= time.deltaTime;
-            }
-        }
+                }
+            }                
+        } else {
+            state.inputTimer -= time.deltaTime;
+        }        
     }
 
     public static getDepotsInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildableType) {

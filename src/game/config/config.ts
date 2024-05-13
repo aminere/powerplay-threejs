@@ -28,7 +28,7 @@ export const config = {
     },
     incubators: {
         inputCapacity: 5,        
-        productionTime: 2,
+        productionTime: 10,
         inputAccepFrequency: 1        
     },
     assemblies: {
