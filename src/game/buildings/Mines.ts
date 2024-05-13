@@ -112,7 +112,7 @@ export class Mines {
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
                     console.assert(state.minedResource);                    
-                    if (BuildingUtils.tryFillAdjacentCells(instance, state.minedResource!)) {
+                    if (BuildingUtils.produceResource(instance, state.minedResource!)) {
                         state.outputRequests--;
                         consumeResource(instance);
                         state.outputFull = false;

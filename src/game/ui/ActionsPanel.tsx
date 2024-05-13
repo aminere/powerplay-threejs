@@ -35,6 +35,8 @@ interface ActionsPanelProps {
     onShowFactoryOutputs: () => void;
     assemblyOutputsOpen: boolean;
     onShowAssemblyOutputs: () => void;
+    depotOutputsOpen: boolean;
+    onShowDepotOutputs: () => void;
 }
 
 export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) {
@@ -140,20 +142,20 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                             stop
                                         </ActionButton>
                                     }
-                                })()}
-                                {(() => {
-                                    switch (unit.type) {
-                                        case "worker": {
-                                            const character = unit as ICharacterUnit;
-                                            if (character.resource) {
-                                                return <ActionButton onClick={() => character.clearResource()}>
-                                                    drop
-                                                </ActionButton>
+                                })()}                                
+                                <FooterActions>
+                                    {(() => {
+                                        switch (unit.type) {
+                                            case "worker": {
+                                                const character = unit as ICharacterUnit;
+                                                if (character.resource) {
+                                                    return <ActionButton onClick={() => character.clearResource()}>
+                                                        clear
+                                                    </ActionButton>
+                                                }
                                             }
                                         }
-                                    }
-                                })()}
-                                <FooterActions>
+                                    })()}
                                     <ActionButton
                                         onClick={() => {
                                             killedThroughUI.current = true;
@@ -170,6 +172,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                     case "building": {
                         const building = selectedElems.building;
+                        const depotResources = building.buildingType === "depot" ? Depots.getResourceTypes(building) : null;
                         return <>
                             {(() => {
                                 switch (building.buildingType) {
@@ -254,15 +257,46 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         </>
                                     }
 
-                                    // case "depot": {
-                                    //     const state = building.state as IDepotState;
-                                    //     if (state.amount > 0) {
-                                    //         return <ActionButton onClick={() => Depots.clear(building)}>
-                                    //             clear
-                                    //         </ActionButton>
-                                    //     }
-                                    // }
-                                    // break;
+                                    case "depot": {
+                                        if (depotResources!.length > 0) {
+                                            if (depotResources!.length === 1) {
+                                                return <ActionButton onClick={() => {
+                                                    if (!Depots.output(building, depotResources![0])) {
+                                                        evtBuildError.post(`Not enough space to eject`);
+                                                    }
+                                                }}>
+                                                    <Icon name={depotResources![0]} />
+                                                </ActionButton>
+                                            } else {
+                                                const state = building.state as IDepotState;
+                                                return <>
+                                                    <ActionButton
+                                                        selected={props.depotOutputsOpen}
+                                                        selectedColor="white"
+                                                        onClick={props.onShowDepotOutputs}
+                                                    >
+                                                        {state.output ? "Change Output" : "Select Output"}
+                                                    </ActionButton>
+                                                    {
+                                                        state.output
+                                                        &&
+                                                        <ActionButton
+                                                            // selectedAnim={state.autoOutput}
+                                                            onClick={() => {
+                                                                if (!Depots.output(building, state.output!)) {
+                                                                    evtBuildError.post(`Not enough space to eject`);
+                                                                }                                                               
+                                                            }}
+                                                            // onContextMenu={() => Factories.toggleAutoOutput(building)}
+                                                        >
+                                                            <Icon name={state.output} />
+                                                        </ActionButton>
+                                                    }
+                                                </>
+                                            }
+                                        }
+                                    }
+                                    break;
 
                                     case "assembly": {
                                         const state = building.state as IAssemblyState;
@@ -296,6 +330,13 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 }
                             })()}
                             <FooterActions>
+                                {
+                                    (depotResources && depotResources.length > 0)
+                                    &&
+                                    <ActionButton onClick={() => Depots.clear(building)}>
+                                        clear
+                                    </ActionButton>
+                                }
                                 <ActionButton
                                     onClick={() => {
                                         killedThroughUI.current = true;

@@ -19,6 +19,7 @@ import { ActionSection } from "./ActionSection";
 import gsap from "gsap";
 import { FactoryOutputPanel } from "./FactoryOutputPanel";
 import { AssemblyOutputPanel } from "./AssemblyOutputPanel";
+import { DepotOutputPanel } from "./DepotOutputPanel";
 
 
 function InGameUI({ children }: { children: React.ReactNode }) {
@@ -177,11 +178,13 @@ export function GameMapUI(_props: IGameUIProps) {
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
+    const [showDepotOutputs, setShowDepotOutputs] = useState(false);
     useEffect(() => {
         const onSelectedElems = (elems: SelectedElems | null) => {
             setSelectedElems(elems);
             setShowFactoryOutputs(false);
-            setShowFactoryOutputs(false);
+            setShowAssemblyOutputs(false);
+            setShowDepotOutputs(false);
         }
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
@@ -269,8 +272,10 @@ export function GameMapUI(_props: IGameUIProps) {
                 <ActionsPanel
                     factoryOutputsOpen={showFactoryOutputs}
                     assemblyOutputsOpen={showAssemblyOutputs}
+                    depotOutputsOpen={showDepotOutputs}
                     onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
                     onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
+                    onShowDepotOutputs={() => setShowDepotOutputs(prev => !prev)}
                 >
                     <FactoryOutputPanel
                         open={showFactoryOutputs}
@@ -281,6 +286,11 @@ export function GameMapUI(_props: IGameUIProps) {
                         open={showAssemblyOutputs}
                         selectedElems={selectedElems}
                         onOutputSelected={() => setShowAssemblyOutputs(false)}
+                    />
+                    <DepotOutputPanel
+                        open={showDepotOutputs}
+                        selectedElems={selectedElems}
+                        onOutputSelected={() => setShowDepotOutputs(false)}
                     />
                 </ActionsPanel>
             </div>

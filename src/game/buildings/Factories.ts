@@ -103,7 +103,7 @@ export class Factories {
 
             if (state.outputFull) {
                 if (state.outputCheckTimer < 0) {
-                    if (BuildingUtils.tryFillAdjacentCells(instance, state.output!)) {
+                    if (BuildingUtils.produceResource(instance, state.output!)) {
                         state.outputRequests--;
                         state.outputFull = false;
                         evtBuildingStateChanged.post(instance);

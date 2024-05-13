@@ -9,6 +9,7 @@ import { GameMapState } from "../components/GameMapState";
 import { config } from "../config/config";
 import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
+import { BuildingUtils } from "./BuildingUtils";
 
 const { mapRes } = config.game;
 const cellCoords = new Vector2();
@@ -292,6 +293,23 @@ export class Depots {
             console.assert(depot);
             Depots.removeResource(depot.depot, type, amount);
         }
+    }
+
+    public static output(instance: IBuildingInstance, type: ResourceType | RawResourceType) {
+        if (BuildingUtils.produceResource(instance, type)) {
+            Depots.removeResource(instance, type, 1);
+            evtBuildingStateChanged.post(instance);
+            return true;
+        }
+        return false;
+    }
+
+    public static getResourceTypes(instance: IBuildingInstance) {
+        const state = instance.state as IDepotState;
+        const resourceTypes = state.slots.slots
+            .filter(slot => slot.type)
+            .reduce((prev, cur) => prev.add(cur.type!), new Set<ResourceType | RawResourceType>());
+        return Array.from(resourceTypes);
     }
 }
 
