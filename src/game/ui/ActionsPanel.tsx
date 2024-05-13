@@ -17,6 +17,7 @@ import { Factories } from "../buildings/Factories";
 import { Mines } from "../buildings/Mines";
 import { resourceConfig } from "../config/ResourceConfig";
 import { Assemblies } from "../buildings/Assemblies";
+import { ResourceType } from "../GameDefinitions";
 
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
@@ -172,7 +173,8 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                     case "building": {
                         const building = selectedElems.building;
-                        const depotResources = building.buildingType === "depot" ? Depots.getResourceTypes(building) : null;
+                        const _depotResources = building.buildingType === "depot" ? Depots.getReservesPerType(building) : null;
+                        const depotResources = _depotResources ? Object.keys(_depotResources!) : null;
                         return <>
                             {(() => {
                                 switch (building.buildingType) {
@@ -261,16 +263,17 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         if (depotResources!.length > 0) {
                                             const state = building.state as IDepotState;
                                             if (depotResources!.length === 1) {
+                                                const type = depotResources![0] as ResourceType;
                                                 return <ActionButton
                                                     selectedAnim={state.autoOutput}
-                                                    onClick={() => {
-                                                        if (!Depots.output(building, depotResources![0])) {
+                                                    onClick={() => {                                                        
+                                                        if (!Depots.output(building, type)) {
                                                             evtBuildError.post(`Not enough space to eject`);
                                                         }
                                                     }}
                                                     onContextMenu={() => Depots.toggleAutoOutput(building)}
                                                 >
-                                                    <Icon name={depotResources![0]} />
+                                                    <Icon name={type} />
                                                 </ActionButton>
                                             } else {
                                                 return <>

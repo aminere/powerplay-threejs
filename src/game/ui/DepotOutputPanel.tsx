@@ -42,16 +42,17 @@ export function DepotOutputPanel(props: DepotOutputPanelProps) {
         return null;
     }
 
-    const depotResources = Depots.getResourceTypes(depot);
+    const depotResources = Depots.getReservesPerType(depot);
     return <OutputPanel open={props.open}>
-        {depotResources.map(type => {
+        {Object.keys(depotResources).map(type => {
+            const resourceType = type as ResourceType;
                 return <ActionButton
                     key={type}
                     selected={output === type}
                     onClick={() => {
                         const state = depot.state as IDepotState;
-                        state.output = type;
-                        setOutput(type);
+                        state.output = resourceType;
+                        setOutput(resourceType);
                         props.onOutputSelected();
                     }}
                 >

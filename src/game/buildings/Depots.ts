@@ -116,55 +116,57 @@ export class Depots {
     }
 
     public static hasResource(instance: IBuildingInstance, type: RawResourceType | ResourceType, amount: number) {
-        const state = instance.state as IDepotState;
-        for (const slot of state.slots.slots) {
-            if (slot.type === type) {
-                if (slot.amount >= amount) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        const reserves = Depots.getReservesPerType(instance);
+        const reserve = reserves[type] ?? 0;
+        return reserve >= amount;
     }
 
-    public static removeResource(instance: IBuildingInstance, type: RawResourceType | ResourceType, amount: number) {
+    public static removeResource(instance: IBuildingInstance, type: RawResourceType | ResourceType, _amount: number) {
         const state = instance.state as IDepotState;
         const { slots, root: slotsRoot } = state.slots;
-        const slotIndex = (() => {
-            for (let i = 0; i < slots.length; i++) {
-                const slot = slots[i];
-                if (slot.type === type && slot.amount >= amount) {
-                    return i;
+
+        const removeOne = () => {
+            const amount = 1;
+            const slotIndex = (() => {
+                for (let i = 0; i < slots.length; i++) {
+                    const slot = slots[i];
+                    if (slot.type === type && slot.amount >= amount) {
+                        return i;
+                    }
+                }
+                return -1;
+            })();
+    
+            console.assert(slotIndex >= 0);
+            const slot = slots[slotIndex];
+            const slotRoot = slotsRoot.children[slotIndex];
+            slot.amount -= amount;
+            console.assert(slot.amount >= 0);
+            if (slot.amount === 0) {
+                slot.type = null;
+                slotRoot.clear();
+            } else {
+                const mesh = slotRoot.children[0];
+                const slotProgress = slot.amount / depotsConfig.resourcesPerSlot;
+                mesh.scale.setScalar(MathUtils.lerp(depotsConfig.slotScaleRange[0], depotsConfig.slotScaleRange[1], slotProgress));
+            }
+    
+            // clear output if no more resources of that type
+            if (type === state.output) {
+                const remaining = slots.reduce((acc, slot) => {
+                    const slotAmount = slot.type === state.output ? slot.amount : 0;            
+                    return acc + slotAmount;
+                }, 0);
+                if (remaining === 0) {
+                    state.output = null;
                 }
             }
-            return -1;
-        })();
-
-        console.assert(slotIndex >= 0);
-        const slot = slots[slotIndex];
-        const slotRoot = slotsRoot.children[slotIndex];
-        slot.amount -= amount;
-        console.assert(slot.amount >= 0);
-        if (slot.amount === 0) {
-            slot.type = null;
-            slotRoot.clear();
-        } else {
-            const mesh = slotRoot.children[0];
-            const slotProgress = slot.amount / depotsConfig.resourcesPerSlot;
-            mesh.scale.setScalar(MathUtils.lerp(depotsConfig.slotScaleRange[0], depotsConfig.slotScaleRange[1], slotProgress));
         }
-
-        // clear output if no more resources of that type
-        if (type === state.output) {
-            const remaining = slots.reduce((acc, slot) => {
-                const slotAmount = slot.type === state.output ? slot.amount : 0;            
-                return acc + slotAmount;
-            }, 0);
-            if (remaining === 0) {
-                state.output = null;
-            }
+        
+        for (let i = 0; i < _amount; i++) {
+            removeOne();
         }
-
+        
         evtBuildingStateChanged.post(instance);        
     }
 
@@ -183,7 +185,7 @@ export class Depots {
 
     public static update(instance: IBuildingInstance) {
         const state = instance.state as IDepotState;
-        const reserve = state.slots.slots.reduce((prev, cur) => prev + cur.amount, 0);
+        const reserve = state.slots.slots.reduce((prev, cur) => prev + (cur?.amount ?? 0), 0);
 
         if (state.autoOutput) {
             if (reserve > 0) {
@@ -318,12 +320,15 @@ export class Depots {
         return false;
     }
 
-    public static getResourceTypes(instance: IBuildingInstance) {
+    public static getReservesPerType(instance: IBuildingInstance) {
         const state = instance.state as IDepotState;
-        const resourceTypes = state.slots.slots
-            .filter(slot => slot.type)
-            .reduce((prev, cur) => prev.add(cur.type!), new Set<ResourceType | RawResourceType>());
-        return Array.from(resourceTypes);
+        return state.slots.slots
+            .filter(slot => slot.type !== null)
+            .reduce((prev, cur) => {
+                const amount = prev[cur.type!] ?? 0;
+                prev[cur.type!] = amount + cur.amount;
+                return prev;
+            }, {} as Record<ResourceType | RawResourceType, number>);
     }
 
     public static toggleAutoOutput(instance: IBuildingInstance) {
