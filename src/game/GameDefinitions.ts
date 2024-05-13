@@ -7,7 +7,7 @@ export const TransportActions = [
 
 export const Actions = [
     "elevation",     
-    "terrain",
+    // "terrain",
     "water",
     "flatten",
     "building", 

@@ -513,16 +513,16 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     }    
 }
 
-function onTerrain(mapCoords: Vector2, tileType: TileType) {
-    GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
-    const terrainTileIndex = TileTypes.indexOf(tileType);
-    console.assert(terrainTileIndex >= 0);
-    const baseTerrainTileIndex = 32;
-    const tileIndex = baseTerrainTileIndex + terrainTileIndex;
-    const { sectors } = GameMapState.instance;
-    const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-    Sector.updateCellTexture(sector, localCoords, tileIndex);
-}
+// function onTerrain(mapCoords: Vector2, tileType: TileType) {
+//     GameUtils.getCell(mapCoords, sectorCoords, localCoords)!;
+//     const terrainTileIndex = TileTypes.indexOf(tileType);
+//     console.assert(terrainTileIndex >= 0);
+//     const baseTerrainTileIndex = 32;
+//     const tileIndex = baseTerrainTileIndex + terrainTileIndex;
+//     const { sectors } = GameMapState.instance;
+//     const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+//     Sector.updateCellTexture(sector, localCoords, tileIndex);
+// }
 
 function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
     cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x , _sectorCoords.y * mapRes + _localCoords.y);
@@ -656,10 +656,10 @@ export function onAction(touchButton: number) {
             }
             break;
 
-            case "terrain": {
-                onTerrain(mapCoords, props.tileType);
-            }
-                break;
+            // case "terrain": {
+            //     onTerrain(mapCoords, props.tileType);
+            // }
+            //     break;
 
             case "road": {
                 return onRoad(sectorCoords, localCoords, cell, touchButton);

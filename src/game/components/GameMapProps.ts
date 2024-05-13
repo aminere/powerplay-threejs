@@ -1,4 +1,4 @@
-import { type TileType, TileTypes, RawResourceTypes, type RawResourceType, type ResourceType, ResourceTypes, type UnitType, UnitTypes } from "../GameDefinitions";
+import { RawResourceTypes, type RawResourceType, type UnitType, UnitTypes } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
@@ -21,11 +21,14 @@ export class GameMapProps extends ComponentProps {
     }
 
     debugFreeBuilding = false;
-    debugPathfinding = false;
-    debugCells = false;
+    debugPathfinding = false;    
 
-    @Attributes.enumOptions(TileTypes)
-    tileType: TileType = "sand";
+    saveToDisk = false;
+    @Attributes.command("save")
+    saveCommand = true;
+
+    // @Attributes.enumOptions(TileTypes)
+    // tileType: TileType = "sand";
 
     @Attributes.enumOptions(RawResourceTypes)
     resourceType: RawResourceType = "wood";
@@ -33,19 +36,15 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(BuildingTypes)
     buildingType: BuildingType = "depot";
 
-    @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
-    depotType: RawResourceType | ResourceType = "wood";
+    // @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
+    // depotType: RawResourceType | ResourceType = "wood";
 
     brushSize = 1;
     brushHeight = 1;
     relativeBrush = false;
 
     @Attributes.enumOptions(UnitTypes)
-    unit: UnitType = "worker";
-
-    saveToDisk = false;
-    @Attributes.command("save")
-    saveCommand = true;
+    unit: UnitType = "worker";    
 
     @Attributes.command("trees")
     treesCommand = true;
@@ -81,5 +80,7 @@ export class GameMapProps extends ComponentProps {
         new Vector2(.5, 10),
         new Vector2(1, 30)
     ]);
+    
+    debugCells = false;
 }
 

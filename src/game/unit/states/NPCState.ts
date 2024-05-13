@@ -6,7 +6,7 @@ import { IUnit } from "../IUnit";
 import { spiralFind } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
-import { MeleeState } from "./MeleeState";
+import { MeleeDefendState } from "./MeleeDefendState";
 
 enum NpcStep {
     Idle,
@@ -65,7 +65,7 @@ export class NPCState extends State<ICharacterUnit> {
                         if (target!.isAlive && UnitUtils.isWorker(target!)) {
                             const worker = target as ICharacterUnit;
                             if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                                const meleeState = target!.fsm.getState(MeleeState) ?? target!.fsm.switchState(MeleeState);
+                                const meleeState = target!.fsm.getState(MeleeDefendState) ?? target!.fsm.switchState(MeleeDefendState);
                                 meleeState.startAttack(target as ICharacterUnit, unit);
                             }
                         }
@@ -78,7 +78,7 @@ export class NPCState extends State<ICharacterUnit> {
             }
             break;
         }
-    }    
+    }
 
     public onReachedTarget(unit: ICharacterUnit) {
         const target = this._target;

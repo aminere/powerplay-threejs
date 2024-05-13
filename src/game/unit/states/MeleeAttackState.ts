@@ -9,13 +9,11 @@ import { unitAnimation } from "../UnitAnimation";
 const hitFrequency = .5;
 const damage = .1;
 
-export class MeleeState extends State<ICharacterUnit> {
+export class MeleeAttackState extends State<ICharacterUnit> {
 
     private _target: IUnit | null = null;
     private _hitTimer = 0;
 
-    override enter(_unit: IUnit) {
-    }
 
     override exit(unit: ICharacterUnit) {
         unit.isIdle = true;

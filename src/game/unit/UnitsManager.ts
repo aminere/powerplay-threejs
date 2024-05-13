@@ -26,7 +26,8 @@ import { buildings } from "../buildings/Buildings";
 import { conveyors } from "../Conveyors";
 import { IUnit } from "./IUnit";
 import { ICharacterUnit } from "./ICharacterUnit";
-import { MeleeState } from "./states/MeleeState";
+import { MeleeDefendState } from "./states/MeleeDefendState";
+import { MeleeAttackState } from "./states/MeleeAttackState";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -182,7 +183,12 @@ class UnitsManager {
                     type, 
                     states: (() => {
                         switch (type) {
-                            case "worker": return [new MiningState(), new SoldierState(), new MeleeState()];
+                            case "worker": return [
+                                new MiningState(), 
+                                new SoldierState(),
+                                new MeleeDefendState(), 
+                                new MeleeAttackState()
+                            ];
                             case "enemy-melee": return [new NPCState()]
                             default: return [];
                         }

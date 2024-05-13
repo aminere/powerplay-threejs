@@ -19,7 +19,10 @@ import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { trees } from "../Trees";
 import { GameMapProps } from "./GameMapProps";
 import { UnitUtils } from "../unit/UnitUtils";
+import { ICell } from "../GameTypes";
+import { getCellFromAddr } from "../unit/UnitAddr";
 
+const mapCoords = new Vector2();
 const cellCoords = new Vector2();
 const deltaPos = new Vector3();
 const oldPos = new Vector3();
@@ -29,6 +32,71 @@ const { zoomSpeed, zoomRange, orthoSize } = config.camera;
 const localRay = new Ray();
 const inverseMatrix = new Matrix4();
 const { rayCaster } = GameUtils;
+
+const enemiesAroundCell = new Array<IUnit>();
+function getEnemiesAroundCell(mapCoords: Vector2, radius: number) {
+    enemiesAroundCell.length = 0;
+    for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
+        for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
+            cellCoords.set(x, y);
+            const units = GameUtils.getCell(cellCoords)?.units;
+            if (units) {
+                for (const unit of units) {
+                    if (unit.isAlive && UnitUtils.isEnemy(unit)) {
+                        enemiesAroundCell.push(unit);
+                    }
+                }
+            }
+        }
+    }
+    return enemiesAroundCell;
+}
+
+function raycastOnUnit(worldRay: Ray, unit: IUnit, intersectionOut: Vector3) {
+    inverseMatrix.copy(unit.visual.matrixWorld).invert();
+    localRay.copy(worldRay).applyMatrix4(inverseMatrix);
+    if (localRay.intersectBox(unit.boundingBox, intersectionOut)) {
+        intersectionOut.applyMatrix4(unit.visual.matrixWorld); // convert intersection to world space
+        return true;
+    }
+    return false;
+}
+
+function getWorldRay(worldRayOut: Ray) {
+    const { width, height } = engine.screenRect;
+    normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
+    rayCaster.setFromCamera(normalizedPos, GameMapState.instance.camera);
+    worldRayOut.copy(rayCaster.ray);
+}
+
+function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
+    // group units per sector
+    const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
+        if (UnitUtils.isEnemy(cur)) {
+            return prev;
+        }
+
+        const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
+        const units = prev[key];
+        const isVehicle = UnitUtils.isVehicle(cur);
+        if (!units) {
+            prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
+        } else {
+            units[isVehicle ? "vehicle" : "character"].push(cur);
+        }
+        return prev;
+    }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
+
+    const commandId = unitMotion.createMotionCommandId();
+    for (const group of Object.values(groups)) {
+        if (group.character.length > 0) {
+            unitMotion.moveGroup(commandId, group.character, _mapCoords, targetCell);
+        }
+        if (group.vehicle.length > 0) {
+            unitMotion.moveGroup(commandId, group.vehicle, _mapCoords, targetCell, true);
+        }
+    }
+}
 
 export class GameMapUpdate extends Component<ComponentProps> {
 
@@ -151,10 +219,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                     } else {
                         if (!cellCoords.equals(state.highlightedCellCoords)) {
-                            state.highlightedCellCoords.copy(cellCoords!);                            
+                            state.highlightedCellCoords.copy(cellCoords!);
                         }
                     }
-                }             
+                }
             }
         }
 
@@ -183,7 +251,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (input.touchButton === 0) {
                         state.touchStartCoords.copy(state.selectedCellCoords);
                     }
-                } else {                    
+                } else {
                     if (GameMapProps.instance.debugCells) {
                         if (input.touchButton === 0) {
                             const cell = GameUtils.getCell(state.highlightedCellCoords);
@@ -269,10 +337,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                         } else {
 
-                            const { width, height } = engine.screenRect;                            
-                            normalizedPos.set((input.touchPos.x / width) * 2 - 1, -(input.touchPos.y / height) * 2 + 1);
-                            rayCaster.setFromCamera(normalizedPos, state.camera);
-
+                            getWorldRay(rayCaster.ray);
                             const intersections: Array<{
                                 unit?: IUnit;
                                 building?: IBuildingInstance;
@@ -280,17 +345,15 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }> = [];
 
                             const units = unitsManager.units;
-                           
+
                             for (let i = 0; i < units.length; ++i) {
                                 const unit = units[i];
                                 if (!unit.isAlive) {
                                     continue;
                                 }
                                 inverseMatrix.copy(unit.visual.matrixWorld).invert();
-                                localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
-
-                                if (localRay.intersectBox(unit.boundingBox, intersection)) {
-                                    intersections.push({ unit, distance: localRay.origin.distanceTo(intersection) });
+                                if (raycastOnUnit(rayCaster.ray, unit, intersection)) {
+                                    intersections.push({ unit, distance: rayCaster.ray.origin.distanceTo(intersection) });
                                 }
                             }
 
@@ -299,7 +362,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 localRay.copy(rayCaster.ray).applyMatrix4(inverseMatrix);
                                 const boundingBox = buildings.getBoundingBox(building.buildingType);
                                 if (localRay.intersectBox(boundingBox, intersection)) {
-                                    intersections.push({ building, distance: localRay.origin.distanceTo(intersection) });
+                                    intersection.applyMatrix4(building.visual.matrixWorld); // convert intersection to world space
+                                    intersections.push({ building, distance: rayCaster.ray.origin.distanceTo(intersection) });
                                 }
                             }
 
@@ -312,13 +376,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                     unitsManager.setSelection({ type: "building", building })
                                 }
 
-                            } else {                               
+                            } else {
                                 const cell = GameUtils.getCell(state.highlightedCellCoords);
                                 if (!cell || cell.isEmpty) {
                                     unitsManager.setSelection(null);
                                 } else {
                                     unitsManager.setSelection({ type: "cell", cell, mapCoords: state.highlightedCellCoords.clone() });
-                                }                                
+                                }
                             }
                         }
 
@@ -334,56 +398,54 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             if (!executed && !state.touchDragged) {
                                 state.action = null;
                                 evtActionCleared.post();
-                            }                            
+                            }
                         }
                             break;
 
                         case "water": {
                             onAction(2);
                         }
-                        break;
+                            break;
 
                         default: {
                             state.action = null;
                             evtActionCleared.post();
                         }
-                    }     
-                    
+                    }
+
                     if (state.touchDragged) {
                         state.touchDragged = false;
                     }
 
                 } else {
                     if (unitsManager.selectedUnits.length > 0) {
-                        const targetCell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, mapCoords, resolution);
                         if (targetCell) {
 
-                            // group units per sector
-                            const groups = unitsManager.selectedUnits.reduce((prev, cur) => {                                
-                                if (UnitUtils.isEnemy(cur)) {
-                                    return prev;
+                            // check if right click on enemy
+                            const targetEnemy = (() => {
+                                const enemies = getEnemiesAroundCell(mapCoords, 2);
+                                if (enemies.length > 0) {
+                                    getWorldRay(rayCaster.ray);
+                                    const intersections: Array<{ unit: IUnit; distance: number; }> = [];
+                                    for (const enemy of enemies) {
+                                        if (raycastOnUnit(rayCaster.ray, enemy, intersection)) {
+                                            intersections.push({ unit: enemy, distance: rayCaster.ray.origin.distanceTo(intersection) });
+                                        }
+                                    }
+                                    if (intersections.length > 0) {
+                                        intersections.sort((a, b) => a.distance - b.distance);
+                                        return intersections[0].unit;
+                                    }
                                 }
+                            })();
 
-                                const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-                                const units = prev[key];
-                                const isVehicle = UnitUtils.isVehicle(cur);
-                                if (!units) {
-                                    prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
-                                } else {
-                                    units[isVehicle ? "vehicle" : "character"].push(cur);
-                                }
-                                return prev;
-                            }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
-
-                            const commandId = unitMotion.createMotionCommandId();
-                            for (const group of Object.values(groups)) {
-                                if (group.character.length > 0) {
-                                    unitMotion.moveGroup(commandId, group.character, cellCoords, targetCell);
-                                }
-                                if (group.vehicle.length > 0) {
-                                    unitMotion.moveGroup(commandId, group.vehicle, cellCoords, targetCell, true);
-                                }
-                            }                            
+                            if (targetEnemy) {
+                                moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));
+                                // TODO MeleeAttackState
+                            } else {
+                                moveCommand(mapCoords, targetCell);
+                            }
                         }
                     }
                 }

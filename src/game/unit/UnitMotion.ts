@@ -363,7 +363,7 @@ export class UnitMotion {
         }        
 
         if (unit.collidable) {
-            const neighbors = getUnitNeighbors(unit, 2);
+            const neighbors = getUnitNeighbors(unit, 1);
             for (const neighbor of neighbors) {
                 if (!neighbor.collidable) {
                     continue;
