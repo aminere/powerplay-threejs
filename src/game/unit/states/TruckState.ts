@@ -1,20 +1,20 @@
-import { time } from "../../../engine/core/Time";
-import { IBuildingInstance, IDepotState } from "../../buildings/BuildingTypes";
-import { config } from "../../config/config";
+// import { time } from "../../../engine/core/Time";
+import { IBuildingInstance } from "../../buildings/BuildingTypes";
+// import { config } from "../../config/config";
 import { State } from "../../fsm/StateMachine";
 import { ITruckUnit } from "../TruckUnit";
-import { Trucks } from "../Trucks";
-import { Depots } from "../../buildings/Depots";
+// import { Trucks } from "../Trucks";
+// import { Depots } from "../../buildings/Depots";
 
-const { transferFrequency } = config.trucks;
+// const { transferFrequency } = config.trucks;
 
 export class TruckState extends State<ITruckUnit> {
 
     private _targetDepot: IBuildingInstance | null = null;
-    private _getFromDepot = false;
-    private _timer = 0;
+    // private _getFromDepot = false;
+    // private _timer = 0;
 
-    override update(unit: ITruckUnit): void { 
+    override update(_unit: ITruckUnit): void { 
         // if (this._targetDepot) {
         //     if (this._timer < 0) {
         //         const depotState = this._targetDepot.state as IDepotState;
@@ -59,10 +59,10 @@ export class TruckState extends State<ITruckUnit> {
         // }
     }
 
-    public startTransfer(instance: IBuildingInstance, getFromDepot: boolean) {
+    public startTransfer(instance: IBuildingInstance, _getFromDepot: boolean) {
         this._targetDepot = instance;
-        this._getFromDepot = getFromDepot;
-        this._timer = transferFrequency;
+        // this._getFromDepot = getFromDepot;
+        // this._timer = transferFrequency;
     }
 
     public tryStopTransfer() {

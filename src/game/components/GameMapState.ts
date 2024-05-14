@@ -59,6 +59,11 @@ export class GameMapState {
     public rails = new Map<string, Object3D>();
     public initialDragAxis: "x" | "z" | null= null;
     public bounds: Box2 | null = null;
+    public liquidPatches = new Map<string, {
+        id: string;
+        cells: Vector2[];
+        resourceAmount: number;
+    }>();
     
     public debug = {
         path: new PathViewer(),

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { IAssemblyState, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState, IMineState } from "../buildings/BuildingTypes";
-import { SelectedElems, evtBuildingStateChanged, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, evtBuildingStateChanged, evtCellStateChanged, evtUnitStateChanged } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { buildingConfig } from "../config/BuildingConfig";
 import { unitConfig } from "../config/UnitConfig";
@@ -14,6 +14,8 @@ import { InventoryItem } from "./InventoryItem";
 import { GameUtils } from "../GameUtils";
 import { Mines } from "../buildings/Mines";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { resources } from "../Resources";
+import { ICell } from "../GameTypes";
 
 const { resourcesPerSlot, slotCount } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -124,11 +126,24 @@ export function SelectionPanel(props: SelectionPanelProps) {
             }
         }
 
+        const onCellStateChanged = (cell: ICell) => {
+            const selectedCell = selectedElems?.type === "cell" ? selectedElems.cell : null;
+            if (selectedCell === cell) {
+                setTimestamp(Date.now());
+            } else if (cell.resource?.liquidPatchId) {
+                if (cell.resource!.liquidPatchId === selectedCell?.resource?.liquidPatchId) {
+                    setTimestamp(Date.now());
+                }
+            }
+        }
+
         evtBuildingStateChanged.attach(onBuildingStateChanged);
         evtUnitStateChanged.attach(onUnitStateChanged);
+        evtCellStateChanged.attach(onCellStateChanged);
         return () => {
             evtBuildingStateChanged.detach(onBuildingStateChanged);
             evtUnitStateChanged.detach(onUnitStateChanged);
+            evtCellStateChanged.detach(onCellStateChanged);
         }
     }, [selectedElems]);
 
@@ -357,17 +372,36 @@ export function SelectionPanel(props: SelectionPanelProps) {
                     }
                 }
                 case "cell": {
-                    const cell = selectedElems.cell;
+                    const { cell, mapCoords } = selectedElems;
                     if (cell.resource) {
                         const { capacity } = resourceConfig.rawResources[cell.resource.type];                        
-                        return <SingleSelectionPanel
-                            type={cell.resource.type}
-                            health={cell.resource.amount / capacity}
-                            properties={[{
-                                name: cell.resource.type,
-                                value: `${cell.resource.amount} / ${capacity}`
-                            }]}
-                        />
+                        switch (cell.resource.type) {
+                            case "oil":
+                            case "water": {
+                                const liquidPatch = resources.getLiquidPatch(cell, mapCoords);
+                                const totalCapacity = capacity * liquidPatch.cells.length;
+                                return <SingleSelectionPanel
+                                    type={cell.resource.type}
+                                    health={liquidPatch.resourceAmount / totalCapacity}
+                                    properties={[{
+                                        name: cell.resource.type,
+                                        value: `${liquidPatch.resourceAmount} / ${totalCapacity}`
+                                    }]}
+                                />
+                            }
+
+                            default: {
+                                return <SingleSelectionPanel
+                                    type={cell.resource.type}
+                                    health={cell.resource.amount / capacity}
+                                    properties={[{
+                                        name: cell.resource.type,
+                                        value: `${cell.resource.amount} / ${capacity}`
+                                    }]}
+                                />
+                            }
+                        }
+
                     } else if (cell.conveyor) {
                         return <SingleSelectionPanel
                             type={"conveyor"}

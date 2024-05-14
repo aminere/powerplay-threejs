@@ -14,7 +14,7 @@ export const resourceConfig = {
             capacity: 100
         },
         "oil": {
-            capacity: 100
+            capacity: 1
         },
         "copper": {
             capacity: 100
@@ -23,7 +23,7 @@ export const resourceConfig = {
             capacity: 100
         },
         "water": {
-            capacity: 100
+            capacity: 1
         } 
     },
 

@@ -6,6 +6,12 @@ import { copyUnitAddr, getCellFromAddr, makeUnitAddr } from "../UnitAddr";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
 import { Workers } from "../Workers";
+import { GameUtils } from "../../GameUtils";
+import { resources } from "../../Resources";
+import { evtCellStateChanged } from "../../../Events";
+import { resourceConfig } from "../../config/ResourceConfig";
+import { config } from "../../config/config";
+import { GameMapState } from "../../components/GameMapState";
 
 export class MiningState extends State<ICharacterUnit> {
     private _timer = 0;
@@ -36,9 +42,28 @@ export class MiningState extends State<ICharacterUnit> {
                 switch (resourceType) {
                     case "water":
                     case "oil":
-                        // Infinite for now
-                        // TODO deal with liquids differently, spread the cost across the surrounding cells using flood fill
-                        // clear when the entire patch reaches 0
+                        const liquidPatch = resources.getLiquidPatch(cell, this._targetResource.mapCoords);
+                        liquidPatch.resourceAmount -= 1;
+
+                        const { capacity: perCell } = resourceConfig.rawResources[resourceType];
+                        const capacity = perCell * liquidPatch.cells.length;
+                        const level = liquidPatch.resourceAmount / capacity;
+                        const [depth, surface] = config.terrain.liquidDepths[resourceType];
+                        const { elevationStep } = config.game;
+                        const worldDepth = depth * elevationStep;
+                        const newDepth = worldDepth + (surface - worldDepth) * level;
+                        for (const cellCoords of liquidPatch.cells) {
+                            const _cell = GameUtils.getCell(cellCoords)!;
+                            _cell.resource?.visual!.position.setY(-newDepth);
+                        }
+
+                        if (liquidPatch.resourceAmount === 0) {
+                            GameMapState.instance.liquidPatches.delete(liquidPatch.id);
+                            for (const cellCoords of liquidPatch.cells) {
+                                const _cell = GameUtils.getCell(cellCoords)!;
+                                _cell.resource = undefined;
+                            }
+                        }
                         break;
 
                     default:
@@ -49,6 +74,7 @@ export class MiningState extends State<ICharacterUnit> {
                 }
                 
                 Workers.pickResource(unit, resourceType, this._targetResource.mapCoords);
+                evtCellStateChanged.post(cell);
 
             } else {
                 // depleted resource

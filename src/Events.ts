@@ -53,3 +53,5 @@ export const evtActionCleared = new AsyncEvent<void>();
 export const evtBuildError = new AsyncEvent<string>();
 export const evtBuildingStateChanged = new AsyncEvent<IBuildingInstance>();
 export const evtUnitStateChanged = new AsyncEvent<IUnit>();
+export const evtCellStateChanged = new AsyncEvent<ICell>();
+

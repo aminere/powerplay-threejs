@@ -77,7 +77,7 @@ class Elevation {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
-                    const depth = liquidDepths[type];
+                    const [depth] = liquidDepths[type];
                     this.elevateCell(sectorCoords, localCoords, -depth, false);
                 }
             }

@@ -36,6 +36,7 @@ export interface IRawResource {
     instanceIndex?: number;
     type: RawResourceType;
     amount: number;
+    liquidPatchId?: string;
 }
 
 export interface ICarriedResource {
