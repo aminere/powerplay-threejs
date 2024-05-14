@@ -17,42 +17,20 @@ img {
     animation: item-full-anim .8s infinite;
 }
 
+.item-auto-output svg {
+    position: absolute;
+}
+
+.item-auto-output rect {
+    stroke-dasharray: 4rem;
+    stroke-width: 2px;
+    fill: transparent;
+    stroke: yellow;
+    animation: item-auto-output-anim 10s linear infinite;
+}
+
 @keyframes item-auto-output-anim {
-    0% { outline-color: yellow; }
-    100% { outline-color: transparent; }
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 1000; }
 }
-
-.item-auto-output {
-    outline-width: 2px;
-    outline-style: double;    
-    animation: item-auto-output-anim .8s infinite;
-}
-
-/* 
-.border-anim {
-    overflow: hidden;
-}
-
-@keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.border-anim::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 200%;
-    background: linear-gradient(#000, #ff0);
-    animation: rotate 4s linear infinite;
-    z-index: -2;
-}
-
-.border-anim::after {
-    content: "";
-    position: absolute;
-    background: #000;
-    inset: 2px;
-    z-index: -3;
-} */
 

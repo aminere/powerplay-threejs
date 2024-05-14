@@ -1,4 +1,5 @@
 import { uiconfig } from "./uiconfig";
+import React from "react";
 
 interface ActionButtonProps {
     onClick: () => void;
@@ -42,6 +43,14 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             props.onContextMenu?.();
         }}
     >
+        {
+            props.selectedAnim
+            &&
+            <svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" />
+            </svg>
+        }
+
         {props.children}
     </div>
 }

@@ -5,6 +5,7 @@ import { GameUtils } from "./GameUtils";
 import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog } from "../Events";
 import { trees } from "./Trees";
 import { ICell } from "./GameTypes";
+import { UnitUtils } from "./unit/UnitUtils";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -166,6 +167,15 @@ class FogOfWar {
                     const cellIndex = circlePos.y * this._texRes + circlePos.x;
                     const stride = cellIndex * 4;
                     this._textureData[stride + 3] = 128;
+
+                    if (cell.units) {
+                        for (const unit of cell.units) {
+                            if (UnitUtils.isEnemy(unit)) {
+                                unit.visual.visible = false;
+                            }
+                        }
+                    }
+
                     cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: false });
                 }
             }
@@ -198,6 +208,15 @@ class FogOfWar {
                         const cellIndex = circlePos.y * this._texRes + circlePos.x;
                         const stride = cellIndex * 4;
                         this._textureData[stride + 3] = 128;
+
+                        if (oldCell.units) {
+                            for (const unit of oldCell.units) {
+                                if (UnitUtils.isEnemy(unit)) {
+                                    unit.visual.visible = false;
+                                }
+                            }
+                        }
+
                         cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: false });
                     }
                 }
@@ -217,6 +236,14 @@ class FogOfWar {
                         cmdUpdateMinimapFog.post({ x: circlePos.x, y: circlePos.y, visible: true });
                         if (firstTimeReveal) {
                             tryRevealTree(newCell);
+                        }
+
+                        if (newCell.units) {
+                            for (const unit of newCell.units) {
+                                if (UnitUtils.isEnemy(unit)) {
+                                    unit.visual.visible = true;
+                                }
+                            }
                         }
                     }                
                 }

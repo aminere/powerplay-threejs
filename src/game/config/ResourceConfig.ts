@@ -54,7 +54,7 @@ export const resourceConfig = {
     },
 
     incubatorProduction: {
-        "worker": [["water", 1]] as const
+        "worker": [["water", 5]] as const
     }
 }
 
