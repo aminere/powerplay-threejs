@@ -102,6 +102,9 @@ export interface ICell {
 
 export interface ISector {
     cells: ICell[];
+    cells2x2: Array<{
+        units: IUnit[];
+    }>;
 
     root: Object3D;
     layers: {

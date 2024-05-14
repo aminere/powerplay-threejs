@@ -34,6 +34,7 @@ export interface IUnit {
 
     setHitpoints: (value: number) => void;
     clearAction: () => void;
+    getCoords2x2: () => IUnitAddr;
     onDeath: () => void;
     onMove: (bindSkeleton: boolean) => void;
     onArrived: () => void;

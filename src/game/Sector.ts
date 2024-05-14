@@ -6,6 +6,7 @@ import { utils } from "../engine/Utils";
 import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
 import { Cell } from "./Cell";
 import { GameMapState } from "./components/GameMapState";
+import { IUnit } from "./unit/IUnit";
 
 export class Sector {
     public static create(coords: Vector2) {
@@ -24,6 +25,7 @@ export class Sector {
 
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map((_, i) => new Cell(`${x}${y}${i}`));
+        const cells2x2 = [...Array((mapRes / 2) * (mapRes / 2))].map(() => ({ units: [] as IUnit[] }));
 
         // terrain
         const { mesh, cellTextureData, highlightTextureData } = terrain.createPatch(coords);
@@ -33,6 +35,7 @@ export class Sector {
         const { sectors } = GameMapState.instance;
         const sector: ISector = {
             cells,
+            cells2x2,
             root: sectorRoot,
             layers: {
                 terrain: mesh,

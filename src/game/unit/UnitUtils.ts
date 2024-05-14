@@ -11,7 +11,7 @@ import { time } from "../../engine/core/Time";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { unitConfig } from "../config/UnitConfig";
 
-const deltaPos = new Vector3();
+const direction = new Vector3();
 const matrix = new Matrix4();
 
 const { separations } = config.steering;
@@ -82,28 +82,25 @@ export class UnitUtils {
         }
     }
 
-    public static updateRotation(unit: IUnit, fromPos: Vector3, toPos: Vector3) {
-        deltaPos.subVectors(toPos, fromPos);
-        const deltaPosLen = deltaPos.length();
-        if (deltaPosLen > 0.01) {
-            deltaPos.divideScalar(deltaPosLen);
-            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, deltaPos.negate(), GameUtils.vec3.up));
+    public static updateRotation(unit: IUnit, _direction: Vector3) {
+        if (_direction.lengthSq() > 0.001) {
+            direction.copy(_direction).normalize().negate();
+            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, direction, GameUtils.vec3.up));
             const rotationDamp = 0.1;
             mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
         }
     }
 
     public static rotateToTarget(unit: IUnit, target: IUnit) {
-        deltaPos.subVectors(target!.visual.position, unit.visual.position);
+        direction.subVectors(target!.visual.position, unit.visual.position);
 
         const animation = ((unit as ICharacterUnit)?.animation?.name ?? "") as keyof typeof baseRotations;
         const baseRotation = baseRotations[animation];
         if (baseRotation) {
-            deltaPos.applyQuaternion(baseRotation);
+            direction.normalize().applyQuaternion(baseRotation);
         }
         
-        const targetPos = deltaPos.add(unit.visual.position);
-        UnitUtils.updateRotation(unit, unit.visual.position, targetPos);
+        UnitUtils.updateRotation(unit, direction);
     }
 
     public static slowDown(unit: IUnit) {

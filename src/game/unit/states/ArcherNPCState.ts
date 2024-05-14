@@ -30,6 +30,7 @@ interface IArrow {
 }
 
 const targetPos = new Vector3();
+const toTarget = new Vector3();
 export class ArcherNPCState extends State<IUnit> {
 
     private _step = NpcStep.Idle;
@@ -82,7 +83,9 @@ export class ArcherNPCState extends State<IUnit> {
                     const dist = target.visual.position.distanceTo(unit.visual.position);
                     const inRange = dist < vision + 1;
                     if (inRange) {
-                        UnitUtils.updateRotation(unit, unit.visual.position, target.visual.position);
+
+                        toTarget.subVectors(target.visual.position, unit.visual.position);
+                        UnitUtils.updateRotation(unit, toTarget);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               

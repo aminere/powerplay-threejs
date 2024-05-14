@@ -13,6 +13,7 @@ import { resourceConfig } from "../../config/ResourceConfig";
 import { config } from "../../config/config";
 import { GameMapState } from "../../components/GameMapState";
 
+const { elevationStep } = config.game;
 export class MiningState extends State<ICharacterUnit> {
     private _timer = 0;
     private _targetResource = makeUnitAddr();
@@ -44,24 +45,22 @@ export class MiningState extends State<ICharacterUnit> {
                     case "oil":
                         const liquidPatch = resources.getLiquidPatch(cell, this._targetResource.mapCoords);
                         liquidPatch.resourceAmount -= 1;
-
-                        const { capacity: perCell } = resourceConfig.rawResources[resourceType];
-                        const capacity = perCell * liquidPatch.cells.length;
-                        const level = liquidPatch.resourceAmount / capacity;
-                        const [depth, surface] = config.terrain.liquidDepths[resourceType];
-                        const { elevationStep } = config.game;
-                        const worldDepth = depth * elevationStep;
-                        const newDepth = worldDepth + (surface - worldDepth) * level;
-                        for (const cellCoords of liquidPatch.cells) {
-                            const _cell = GameUtils.getCell(cellCoords)!;
-                            _cell.resource?.visual!.position.setY(-newDepth);
-                        }
-
                         if (liquidPatch.resourceAmount === 0) {
                             GameMapState.instance.liquidPatches.delete(liquidPatch.id);
                             for (const cellCoords of liquidPatch.cells) {
                                 const _cell = GameUtils.getCell(cellCoords)!;
                                 _cell.resource = undefined;
+                            }
+                        } else {
+                            const { capacity: perCell } = resourceConfig.rawResources[resourceType];
+                            const capacity = perCell * liquidPatch.cells.length;
+                            const level = liquidPatch.resourceAmount / capacity;
+                            const [depth, surface] = config.terrain.liquidDepths[resourceType];
+                            const worldDepth = depth * elevationStep;
+                            const newDepth = worldDepth + (surface - worldDepth) * level;
+                            for (const cellCoords of liquidPatch.cells) {
+                                const _cell = GameUtils.getCell(cellCoords)!;
+                                _cell.resource!.visual!.position.setY(-newDepth);
                             }
                         }
                         break;
@@ -78,6 +77,7 @@ export class MiningState extends State<ICharacterUnit> {
 
             } else {
                 // depleted resource
+                // TODO find nearby resources of the same type
             }
 
             if (unit.targetBuilding) {

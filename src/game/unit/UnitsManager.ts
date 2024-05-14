@@ -84,6 +84,7 @@ class UnitsManager {
     private _selectionStart: Vector2 = new Vector2();
     private _dragStarted: boolean = false;
     private _spawnUnitRequest: [IBuildingInstance, UnitType] | null = null;
+    private _unitsToKill: IUnit[] = [];
     private _selection: SelectedElems | null = null;
 
     async preload() {
@@ -128,6 +129,7 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
+        this._unitsToKill.length = 0;
         unitMotion.resetCollisionResults();
         for (const unit of this._units) {
             if (unit.isAlive) {
@@ -139,10 +141,15 @@ class UnitsManager {
             }
         }  
         
+        for (const unit of this._unitsToKill) {
+            const index = this._units.indexOf(unit);
+            console.assert(index >= 0, `unit ${unit.id} not found`);
+            utils.fastDelete(this._units, index);    
+        }
+
         for (const unit of this._units) {
-            if (unit.isAlive) {
-                unitMotion.steer(unit);
-            }
+            console.assert(unit.isAlive);
+            unitMotion.steer(unit);
         }
     }
 
@@ -403,9 +410,7 @@ class UnitsManager {
     }
 
     private onUnitKilled(unit: IUnit) {
-        const index = this._units.indexOf(unit as Unit);
-        console.assert(index >= 0, `unit ${unit.id} not found`);
-        utils.fastDelete(this._units, index);
+        this._unitsToKill.push(unit);
     }
 
     private onSpawnUnit(request: [IBuildingInstance, UnitType]) {

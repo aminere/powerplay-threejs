@@ -1,12 +1,13 @@
 
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { Unit } from "./Unit";
+import { IUnitProps, Unit } from "./Unit";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { TruckState } from "./states/TruckState";
 import { IUnit } from "./IUnit";
+import { computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
 
 // const { resourcesPerSlot, slotCount } = config.trucks;
 // const truckCapacity = resourcesPerSlot * slotCount;
@@ -22,6 +23,17 @@ export interface ITruckUnit extends IUnit {
 }
 
 export class TruckUnit extends Unit implements ITruckUnit {    
+
+    private _coords2x2 = makeUnitAddr();
+
+    constructor(props: IUnitProps, id: number) {
+        super(props, id);
+        
+        computeUnitAddr2x2(this.coords.mapCoords, this._coords2x2);
+        const cell2x2 = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
+        cell2x2.units.push(this);
+    }
+
     public get resources(): ITruckResources | null { return this._resources; }
     public set resources(value: ITruckResources | null) { 
         if (value === this._resources) {
@@ -42,6 +54,10 @@ export class TruckUnit extends Unit implements ITruckUnit {
         super.setHitpoints(value);
     }
     
+    public override getCoords2x2() {
+        return this._coords2x2;
+    }
+
     public override onReachedBuilding(cell: ICell) {
         const instance = GameMapState.instance.buildings.get(cell.building!)!;
         switch (instance.buildingType) {

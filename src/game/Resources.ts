@@ -166,7 +166,7 @@ class Resources {
         const { liquidPatchId } = cell.resource!;
         if (liquidPatchId) {
             const patch = GameMapState.instance.liquidPatches.get(liquidPatchId);
-            console.assert(patch, "MiningState: liquid patch not found");
+            console.assert(patch, "MiningState: liquid patch not found" + liquidPatchId);
             return patch!;
         }
         const patch = createLiquidPatch(cellCoords, cell.resource!.type as "oil" | "water");

@@ -2,7 +2,7 @@ import { MathUtils, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
+import { computeUnitAddr, computeUnitAddr2x2, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
@@ -16,6 +16,7 @@ import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeAttackState } from "./states/MeleeAttackState";
+import { ITruckUnit, TruckUnit } from "./TruckUnit";
 
 const cellDirection = new Vector2();
 const destSectorCoords = new Vector2();
@@ -37,7 +38,12 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
     unit.motionId = motionId;
     unit.motionCommandId = motionCommandId;
     unit.arriving = false;
-    computeUnitAddr(mapCoords, unit.targetCell);
+    if (unit.type === "truck") {
+        computeUnitAddr2x2(mapCoords, unit.targetCell);
+    } else {
+        computeUnitAddr(mapCoords, unit.targetCell);
+    }
+
     unit.onMove(bindSkeleton);
 }
 
@@ -240,6 +246,52 @@ function getUnitNeighbors(unit: IUnit, radius: number) {
     return unitNeighbors;
 }
 
+const unitNeighbors2x2 = new Array<IUnit>();
+function getUnitNeighbors2x2(unit: IUnit, radius: number) {
+    unitNeighbors2x2.length = 0;
+    const { mapCoords } = unit.getCoords2x2();
+    const { sectors } = GameMapState.instance;
+    for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
+        for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
+            const sectorX = Math.floor(x / (mapRes / 2));
+            const sectorY = Math.floor(y / (mapRes / 2));
+            const sector = sectors.get(`${sectorX},${sectorY}`);
+            if (sector) {
+                const sectorStartX = sectorX * (mapRes / 2);
+                const sectorStartY = sectorY * (mapRes / 2);
+                const localX = x - sectorStartX;
+                const localY = y - sectorStartY;
+                const cellIndex = localY * (mapRes / 2) + localX;
+                const cell = sector.cells2x2[cellIndex];
+                for (const neighbor of cell.units) {
+                    if (neighbor.isAlive && neighbor !== unit) {
+                        unitNeighbors2x2.push(neighbor);
+                    }
+                }
+            }
+        }
+    }
+    return unitNeighbors2x2;
+}
+
+function tryMoveTruck(truck: ITruckUnit, nextMapCoords: Vector2) {
+    const x = Math.floor(nextMapCoords.x / 2);
+    const y = Math.floor(nextMapCoords.y / 2);
+    const coords2x2 = truck.getCoords2x2();
+    if (coords2x2.mapCoords.x === x && coords2x2.mapCoords.y === y) {
+        return;
+    }
+
+    const currentCell = coords2x2.sector!.cells2x2[coords2x2.cellIndex];
+    const unitIndex = currentCell.units!.indexOf(truck);
+    console.assert(unitIndex >= 0);
+    utils.fastDelete(currentCell.units!, unitIndex);
+    computeUnitAddr2x2(nextMapCoords, coords2x2);
+    const nextCell = coords2x2.sector.cells2x2[coords2x2.cellIndex];
+    nextCell.units.push(truck);
+}
+
+
 export class UnitMotion {    
 
     private _motionCommandId = 1;
@@ -269,22 +321,6 @@ export class UnitMotion {
         moveTo(unit, commandId, motionId, destMapCoords, bindSkeleton);
         flowField.setMotionUnitCount(motionId, 1);
     }
-
-    // public moveUnitWithCommandId(unit: IUnit, commandId: number, destMapCoords: Vector2) {
-    //     const destCell = GameUtils.getCell(destMapCoords)!;
-    //     const sectors = getSectors(unit.coords.mapCoords, unit.coords.sectorCoords, destMapCoords, destCell);
-    //     if (!sectors) {
-    //         console.warn(`no sectors found for npcMove from ${unit.coords.mapCoords} to ${destMapCoords}`);
-    //         return;
-    //     }
-    //     const favorRoads = UnitUtils.isVehicle(unit);
-    //     const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
-    //     const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
-    //     console.assert(flowfields);
-    //     const motionId = flowField.register(flowfields);
-    //     moveTo(unit, commandId, motionId, destMapCoords);
-    //     flowField.setMotionUnitCount(motionId, 1);
-    // }
 
     public moveGroup(motionCommandId: number, units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads = false) {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
@@ -365,7 +401,9 @@ export class UnitMotion {
 
         if (unit.collidable) {
             const neighbors = getUnitNeighbors(unit, 1);
-            for (const neighbor of neighbors) {
+            const neighbors2x2 = getUnitNeighbors2x2(unit, 1);
+            const _neighbors = neighbors.concat(neighbors2x2);
+            for (const neighbor of _neighbors) {
                 if (!neighbor.collidable) {
                     continue;
                 }
@@ -470,8 +508,7 @@ export class UnitMotion {
         const nextCell = GameUtils.getCell(nextMapCoords);
 
         if (nextCell?.isWalkable) {
-            UnitUtils.updateRotation(unit, unit.visual.position, nextPos);
-            
+            UnitUtils.updateRotation(unit, unit.velocity);
             unit.visual.position.copy(nextPos);
 
             if (!nextMapCoords.equals(unit.coords.mapCoords)) {
@@ -486,7 +523,6 @@ export class UnitMotion {
                 const unitIndex = currentCell.units!.indexOf(unit);
                 console.assert(unitIndex >= 0);
                 utils.fastDelete(currentCell.units!, unitIndex);
-
                 if (nextCell.units) {
                     console.assert(!nextCell.units.includes(unit));
                     nextCell.units.push(unit);
@@ -501,13 +537,27 @@ export class UnitMotion {
                 if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                     // entered a new sector
                     computeUnitAddr(nextMapCoords, unit.coords);
+                    if (unit.type === "truck") {
+                        tryMoveTruck(unit as TruckUnit, nextMapCoords);
+                    }
                 } else {
                     unit.coords.mapCoords.copy(nextMapCoords);
                     unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
+                    if (unit.type === "truck") {
+                        tryMoveTruck(unit as TruckUnit, nextMapCoords);
+                    }
                 }
 
                 if (isMoving) {
-                    const reachedTarget = unit.targetCell.mapCoords.equals(nextMapCoords);
+                    const reachedTarget = (() => {
+                        if (unit.type === "truck") {
+                            const truck = unit as TruckUnit;
+                            const coords2x2 = truck.getCoords2x2();
+                            return truck.targetCell.mapCoords.equals(coords2x2.mapCoords);
+                        } else {
+                            return unit.targetCell.mapCoords.equals(nextMapCoords);
+                        }
+                    })();
                     if (reachedTarget) {
                         (() => {
                             const npcState = unit.fsm.getState(NPCState);
