@@ -1,4 +1,4 @@
-import { AdditiveBlending, InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
+import { AdditiveBlending, InstancedMesh, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector2, Vector3 } from "three";
 import { config } from "./config/config";
 import { ICell, IRawResource, ISector } from "./GameTypes";
 import { utils } from "../powerplay";
@@ -22,8 +22,9 @@ class Resources {
     public get glassMaterial() { return this._glassMaterial; }
 
     private _oilMaterial = new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .7 });
-    private _oilGeometry = new PlaneGeometry(cellSize, cellSize).rotateX(-Math.PI / 2);
+    private _oilGeometry = new PlaneGeometry(cellSize, cellSize).rotateX(-Math.PI / 2);    
     private _glassMaterial = new MeshBasicMaterial({ blending: AdditiveBlending, transparent: true, opacity: .4 });
+    private _waterMaterial = new MeshStandardMaterial({ color: 0x5BB0F1, transparent: true, opacity: .6 });
 
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
 
@@ -45,14 +46,20 @@ class Resources {
                     return resourceInstance;
                 }
 
-                case "water":{                
-                    const resourceInstance: IRawResource = { type, amount: capacity };
+                case "water":{
+                    const visual = new Mesh(this._oilGeometry, this._waterMaterial);
+                    visual.name = type;
+                    const localX = localCoords.x * cellSize + cellSize / 2;
+                    const localZ = localCoords.y * cellSize + cellSize / 2;
+                    visual.position.set(localX, -.2, localZ);
+                    sector.layers.resources.add(visual);
+                    const resourceInstance: IRawResource = { visual, type, amount: capacity };                    
                     return resourceInstance;
                 }
 
                 case "oil": {
                     const visual = new Mesh(this._oilGeometry, this._oilMaterial);
-                    visual.name = "oil";
+                    visual.name = type;
                     const localX = localCoords.x * cellSize + cellSize / 2;
                     const localZ = localCoords.y * cellSize + cellSize / 2;
                     visual.position.set(localX, -.1, localZ);

@@ -62,7 +62,7 @@ export class GameMapState {
     
     public debug = {
         path: new PathViewer(),
-        depotRange: new PathViewer()
+        selectedElem: new PathViewer()
     };
 
     public get cursorOverUI() { return this._cursorOverUI; }
@@ -109,7 +109,7 @@ export class GameMapState {
         this.tileSelector.visible = false;
         root().add(this.tileSelector);        
         root().add(this.debug.path);
-        root().add(this.debug.depotRange);
+        root().add(this.debug.selectedElem);
     }   
 
     public dispose() {

@@ -375,15 +375,17 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 }
 
                             } else {
-                                const cell = GameUtils.getCell(state.highlightedCellCoords);
-                                if (!cell || cell.isEmpty) {
-                                    unitsManager.setSelection(null);
-                                } else {
-                                    unitsManager.setSelection({ type: "cell", cell, mapCoords: state.highlightedCellCoords.clone() });
+                                if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
+                                    GameUtils.worldToMap(intersection, cellCoords);
+                                    const cell = GameUtils.getCell(cellCoords);
+                                    if (!cell || cell.isEmpty) {
+                                        unitsManager.setSelection(null);
+                                    } else {
+                                        unitsManager.setSelection({ type: "cell", cell, mapCoords: cellCoords.clone() });
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
             } else if (input.touchButton === 2) {

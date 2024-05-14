@@ -20,7 +20,6 @@ import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
 import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
-import { Water } from "./Water";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
 import gsap from "gsap";
@@ -247,12 +246,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         fogOfWar.init(size);
 
-        const water = utils.createObject(root(), "water");
-        water.matrixAutoUpdate = false;
-        water.matrixWorldAutoUpdate = false;
-        water.position.setY(-.2);
-        water.updateMatrix();
-        engineState.setComponent(water, new Water({ sectorRes: size }));
+        // const water = utils.createObject(root(), "water");
+        // water.matrixAutoUpdate = false;
+        // water.matrixWorldAutoUpdate = false;
+        // water.position.setY(-.2);
+        // water.updateMatrix();
+        // engineState.setComponent(water, new Water({ sectorRes: size }));
 
         const props = utils.createObject(root(), "env-props");
         engineState.setComponent(props, new EnvProps({ sectorRes: size }));

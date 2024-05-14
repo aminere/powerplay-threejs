@@ -31,6 +31,8 @@ import { MeleeAttackState } from "./states/MeleeAttackState";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
+const minCell = new Vector2();
+const maxCell = new Vector2();
 const { unitScale, truckScale, tankScale, cellSize } = config.game;
 
 function getBoundingBox(mesh: Mesh) {
@@ -49,6 +51,24 @@ async function loadVisual(type: UnitType) {
         child.userData.unserializable = true;
     });
     return visual;
+}
+
+function showSelectionLines(_minCell: Vector2, _maxCell: Vector2) {
+    const startX = _minCell.x;
+    const startY = _minCell.y;
+    const endX = Math.max(_maxCell.x - 1, startX);
+    const endY = Math.max(_maxCell.y - 1, startY);
+    const c1 = GameUtils.mapToWorld(cellCoords.set(startX, startY), new Vector3());
+    c1.x -= cellSize / 2; c1.z -= cellSize / 2;
+    const c2 = GameUtils.mapToWorld(cellCoords.set(endX, startY), new Vector3());
+    c2.x += cellSize / 2; c2.z -= cellSize / 2;
+    const c3 = GameUtils.mapToWorld(cellCoords.set(endX, endY), new Vector3());
+    c3.x += cellSize / 2; c3.z += cellSize / 2;
+    const c4 = GameUtils.mapToWorld(cellCoords.set(startX, endY), new Vector3());
+    c4.x -= cellSize / 2; c4.z += cellSize / 2;
+    const { selectedElem } = GameMapState.instance.debug;
+    selectedElem.setPoints([c1, c2, c3, c4, c1.clone()]);
+    selectedElem.visible = true;
 }
 
 class UnitsManager {
@@ -253,8 +273,8 @@ class UnitsManager {
 
     public setSelection(selection: SelectedElems | null) {
 
-        const { depotRange } = GameMapState.instance.debug;
-        depotRange.visible = false;
+        const { selectedElem } = GameMapState.instance.debug;
+        selectedElem.visible = false;
         if (selection) {
             switch (selection.type) {
                 case "units": {
@@ -265,33 +285,31 @@ class UnitsManager {
                 case "building": {
                     this._selectedUnits.length = 0;
                     const buildingType = selection.building.buildingType;
+                    const { size } = buildingConfig[buildingType];
                     switch (buildingType) {
                         case "depot": {
-                            const { range } = config.depots;
-                            const { size } = buildingConfig[buildingType];
-                            const startX = selection.building.mapCoords.x - range;
-                            const startY = selection.building.mapCoords.y - range;
-                            const endX = startX + range * 2 + size!.x;
-                            const endY = startY + range * 2 + size!.z;
-                            const c1 = GameUtils.mapToWorld(cellCoords.set(startX, startY), new Vector3());
-                            c1.x -= cellSize / 2; c1.z -= cellSize / 2;
-                            const c2 = GameUtils.mapToWorld(cellCoords.set(endX, startY), new Vector3());
-                            c2.x += cellSize / 2; c2.z -= cellSize / 2;
-                            const c3 = GameUtils.mapToWorld(cellCoords.set(endX, endY), new Vector3());
-                            c3.x += cellSize / 2; c3.z += cellSize / 2;
-                            const c4 = GameUtils.mapToWorld(cellCoords.set(startX, endY), new Vector3());
-                            c4.x -= cellSize / 2; c4.z += cellSize / 2;
-                            depotRange.setPoints([c1, c2, c3, c4, c1.clone()]);
-                            depotRange.visible = true;
+                            const { range } = config.depots;                            
+                            minCell.set(selection.building.mapCoords.x - range, selection.building.mapCoords.y - range);
+                            maxCell.set(minCell.x + range * 2 + size.x, minCell.y + range * 2 + size.z);
+                            showSelectionLines(minCell, maxCell);
+                        }
+                        break;
+                        default: {
+                            minCell.copy(selection.building.mapCoords);
+                            maxCell.set(minCell.x + size.x, minCell.y + size.z);
+                            showSelectionLines(minCell, maxCell);
                         }
                         break;
                     }
                 }
                 break;
 
-                default: {
+                case "cell": {
                     this._selectedUnits.length = 0;
+                    const { mapCoords } = selection;                    
+                    showSelectionLines(mapCoords, mapCoords);
                 }
+                break;
             }
         } else {
             this._selectedUnits.length = 0;
