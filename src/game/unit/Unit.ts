@@ -139,10 +139,6 @@ export class Unit implements IUnit {
         evtUnitStateChanged.post(this);
     }   
 
-    public getCoords2x2() {
-        return this._coords;
-    }
-
     public onDeath() {
         const fadeDuration = 1;
         engineState.setComponent(this._visual, new Fadeout({ duration: fadeDuration }));

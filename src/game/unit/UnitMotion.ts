@@ -2,7 +2,7 @@ import { MathUtils, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr, computeUnitAddr2x2, copyUnitAddr, getCellFromAddr, makeUnitAddr } from "./UnitAddr";
+import { computeUnitAddr, computeUnitAddr2x2, getCellFromAddr } from "./UnitAddr";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
@@ -226,33 +226,31 @@ function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
     }
 }
 
-const unitNeighbors = new Array<IUnit>();
-function getUnitNeighbors(unit: IUnit, radius: number) {
-    unitNeighbors.length = 0;
-    const { mapCoords } = unit.coords;
+const cellUnits = new Array<IUnit>();
+function getCellUnits(mapCoords: Vector2, radius: number) {
+    cellUnits.length = 0;
     for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
         for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
             cellCoords.set(x, y);
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const neighbor of units) {
-                    if (neighbor.isAlive && neighbor !== unit) {
-                        unitNeighbors.push(neighbor);
+                    if (neighbor.isAlive) {
+                        cellUnits.push(neighbor);
                     }
                 }
             }
         }
     }
-    return unitNeighbors;
+    return cellUnits;
 }
 
-const unitNeighbors2x2 = new Array<IUnit>();
-function getUnitNeighbors2x2(unit: IUnit, radius: number) {
-    unitNeighbors2x2.length = 0;
-    const { mapCoords } = unit.getCoords2x2();
+const cellUnits2x2 = new Array<IUnit>();
+function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
+    cellUnits2x2.length = 0;
     const { sectors } = GameMapState.instance;
-    for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
-        for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
+    for (let y = mapCoords2x2.y - radius; y <= mapCoords2x2.y + radius; y++) {
+        for (let x = mapCoords2x2.x - radius; x <= mapCoords2x2.x + radius; x++) {
             const sectorX = Math.floor(x / (mapRes / 2));
             const sectorY = Math.floor(y / (mapRes / 2));
             const sector = sectors.get(`${sectorX},${sectorY}`);
@@ -264,24 +262,23 @@ function getUnitNeighbors2x2(unit: IUnit, radius: number) {
                 const cellIndex = localY * (mapRes / 2) + localX;
                 const cell = sector.cells2x2[cellIndex];
                 for (const neighbor of cell.units) {
-                    if (neighbor.isAlive && neighbor !== unit) {
-                        unitNeighbors2x2.push(neighbor);
+                    if (neighbor.isAlive) {
+                        cellUnits2x2.push(neighbor);
                     }
                 }
             }
         }
     }
-    return unitNeighbors2x2;
+    return cellUnits2x2;
 }
 
 function tryMoveTruck(truck: ITruckUnit, nextMapCoords: Vector2) {
     const x = Math.floor(nextMapCoords.x / 2);
     const y = Math.floor(nextMapCoords.y / 2);
-    const coords2x2 = truck.getCoords2x2();
+    const coords2x2 = truck.coords2x2;
     if (coords2x2.mapCoords.x === x && coords2x2.mapCoords.y === y) {
         return;
     }
-
     const currentCell = coords2x2.sector!.cells2x2[coords2x2.cellIndex];
     const unitIndex = currentCell.units!.indexOf(truck);
     console.assert(unitIndex >= 0);
@@ -290,7 +287,6 @@ function tryMoveTruck(truck: ITruckUnit, nextMapCoords: Vector2) {
     const nextCell = coords2x2.sector.cells2x2[coords2x2.cellIndex];
     nextCell.units.push(truck);
 }
-
 
 export class UnitMotion {    
 
@@ -400,11 +396,26 @@ export class UnitMotion {
         }        
 
         if (unit.collidable) {
-            const neighbors = getUnitNeighbors(unit, 1);
-            const neighbors2x2 = getUnitNeighbors2x2(unit, 1);
-            const _neighbors = neighbors.concat(neighbors2x2);
+
+            const neighbors = (() => {
+                if (unit.type === "truck") {
+                    const truck = unit as ITruckUnit;
+                    const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
+                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
+                    return _neighbors.concat(neighbors2x2);
+                } else {
+                    const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
+                    const neighbors2x2 = getCellUnits2x2(unit.coords.mapCoords, 1);
+                    return _neighbors.concat(neighbors2x2);
+                }
+            })();
+
+            const _neighbors = Array.from(new Set(neighbors));
             for (const neighbor of _neighbors) {
                 if (!neighbor.collidable) {
+                    continue;
+                }
+                if (neighbor === unit) {
                     continue;
                 }
 
@@ -552,8 +563,7 @@ export class UnitMotion {
                     const reachedTarget = (() => {
                         if (unit.type === "truck") {
                             const truck = unit as TruckUnit;
-                            const coords2x2 = truck.getCoords2x2();
-                            return truck.targetCell.mapCoords.equals(coords2x2.mapCoords);
+                            return truck.targetCell.mapCoords.equals(truck.coords2x2.mapCoords);
                         } else {
                             return unit.targetCell.mapCoords.equals(nextMapCoords);
                         }

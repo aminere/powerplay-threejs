@@ -7,7 +7,7 @@ import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { TruckState } from "./states/TruckState";
 import { IUnit } from "./IUnit";
-import { computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
+import { IUnitAddr, computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
 
 // const { resourcesPerSlot, slotCount } = config.trucks;
 // const truckCapacity = resourcesPerSlot * slotCount;
@@ -20,9 +20,12 @@ interface ITruckResources {
 
 export interface ITruckUnit extends IUnit {
     resources: ITruckResources | null;    
+    coords2x2: IUnitAddr;
 }
 
 export class TruckUnit extends Unit implements ITruckUnit {    
+
+    public get coords2x2() { return this._coords2x2; }
 
     private _coords2x2 = makeUnitAddr();
 
@@ -52,10 +55,6 @@ export class TruckUnit extends Unit implements ITruckUnit {
             this.resources = null;
         }
         super.setHitpoints(value);
-    }
-    
-    public override getCoords2x2() {
-        return this._coords2x2;
     }
 
     public override onReachedBuilding(cell: ICell) {
