@@ -11,10 +11,8 @@ function scan(startX: number, startY: number, sx: number, sy: number, iterations
         const cell = GameUtils.getCell(cellCoords);
         if (cell && cell.units) {
             for (const other of cell.units) {
-                if (!other.isAlive) {
-                    continue;
-                }
                 if (filter(other)) {
+                    console.assert(other.isAlive);
                     return other;
                 }
             }
@@ -62,10 +60,8 @@ export function spiralFind(unit: IUnit, radius: number, filter: (unit: IUnit) =>
             if (other === unit) {
                 continue;
             }
-            if (!other.isAlive) {
-                continue;
-            }
             if (filter(other)) {
+                console.assert(other.isAlive);
                 return other;
             }
         }

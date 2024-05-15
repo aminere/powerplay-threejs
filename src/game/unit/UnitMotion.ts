@@ -235,9 +235,7 @@ function getCellUnits(mapCoords: Vector2, radius: number) {
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const neighbor of units) {
-                    if (neighbor.isAlive) {
-                        cellUnits.push(neighbor);
-                    }
+                    cellUnits.push(neighbor);
                 }
             }
         }
@@ -262,9 +260,7 @@ function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
                 const cellIndex = localY * (mapRes / 2) + localX;
                 const cell = sector.cells2x2[cellIndex];
                 for (const neighbor of cell.units) {
-                    if (neighbor.isAlive) {
-                        cellUnits2x2.push(neighbor);
-                    }
+                    cellUnits2x2.push(neighbor);
                 }
             }
         }
@@ -400,12 +396,13 @@ export class UnitMotion {
             const neighbors = (() => {
                 if (unit.type === "truck") {
                     const truck = unit as ITruckUnit;
-                    const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
                     const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
-                    return _neighbors.concat(neighbors2x2);
+                    return neighbors2x2;
                 } else {
                     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
-                    const neighbors2x2 = getCellUnits2x2(unit.coords.mapCoords, 1);
+                    const { x, y } = unit.coords.mapCoords;
+                    cellCoords.set(Math.floor(x / 2), Math.floor(y / 2));
+                    const neighbors2x2 = getCellUnits2x2(cellCoords, 1);
                     return _neighbors.concat(neighbors2x2);
                 }
             })();

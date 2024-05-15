@@ -45,7 +45,7 @@ function getEnemiesAroundCell(mapCoords: Vector2, radius: number) {
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const unit of units) {
-                    if (unit.isAlive && UnitUtils.isEnemy(unit)) {
+                    if (UnitUtils.isEnemy(unit)) {
                         enemiesAroundCell.push(unit);
                     }
                 }

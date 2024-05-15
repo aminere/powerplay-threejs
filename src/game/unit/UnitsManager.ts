@@ -129,7 +129,6 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
-        this._unitsToKill.length = 0;
         unitMotion.resetCollisionResults();
         for (const unit of this._units) {
             if (unit.isAlive) {
@@ -141,10 +140,13 @@ class UnitsManager {
             }
         }  
         
-        for (const unit of this._unitsToKill) {
-            const index = this._units.indexOf(unit);
-            console.assert(index >= 0, `unit ${unit.id} not found`);
-            utils.fastDelete(this._units, index);    
+        if (this._unitsToKill.length > 0) {
+            for (const unit of this._unitsToKill) {
+                const index = this._units.indexOf(unit);
+                console.assert(index >= 0, `unit ${unit.id} not found`);
+                utils.fastDelete(this._units, index);    
+            }
+            this._unitsToKill.length = 0;
         }
 
         for (const unit of this._units) {
