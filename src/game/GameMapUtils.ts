@@ -469,7 +469,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
-            if (depotsInRange) {
+            if (depotsInRange && depotsInRange.length > 0) {
                 Depots.removeFromDepots(depotsInRange, buildingType);                
             }
             

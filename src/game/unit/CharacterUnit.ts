@@ -259,6 +259,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         if (neighbor.lastCompletedMotionCommandId === this.motionCommandId) {
 
             const isMining = (() => {
+                if (UnitUtils.isVehicle(this)) {
+                    return false;
+                }
                 const targetCell = getCellFromAddr(this.targetCell);
                 if (targetCell.resource) {
                     return true;

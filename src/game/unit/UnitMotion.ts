@@ -38,10 +38,10 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
     unit.motionId = motionId;
     unit.motionCommandId = motionCommandId;
     unit.arriving = false;
+    computeUnitAddr(mapCoords, unit.targetCell);
     if (unit.type === "truck") {
-        computeUnitAddr2x2(mapCoords, unit.targetCell);
-    } else {
-        computeUnitAddr(mapCoords, unit.targetCell);
+        const truck = unit as ITruckUnit;
+        computeUnitAddr2x2(mapCoords, truck.targetCell2x2);
     }
 
     unit.onMove(bindSkeleton);
@@ -560,7 +560,7 @@ export class UnitMotion {
                     const reachedTarget = (() => {
                         if (unit.type === "truck") {
                             const truck = unit as TruckUnit;
-                            return truck.targetCell.mapCoords.equals(truck.coords2x2.mapCoords);
+                            return truck.targetCell2x2.mapCoords.equals(truck.coords2x2.mapCoords);
                         } else {
                             return unit.targetCell.mapCoords.equals(nextMapCoords);
                         }
@@ -598,11 +598,12 @@ export class UnitMotion {
                 if (isMoving) {
                     if (nextCell.building) {
                         const targetCell = getCellFromAddr(unit.targetCell);
-                        if (nextCell.building === targetCell.building) {
-                            this.endMotion(unit);
-                            unit.onReachedBuilding(targetCell);                            
-                            isObstacle = false;
-                        }
+                            if (nextCell.building === targetCell.building) {
+                                this.endMotion(unit);
+                                unit.onReachedBuilding(targetCell);                            
+                                isObstacle = false;
+                            }
+                        
                     } else if (nextCell.resource) {
                         const targetCell = getCellFromAddr(unit.targetCell);
                         if (nextCell.resource.type === targetCell.resource?.type) {
