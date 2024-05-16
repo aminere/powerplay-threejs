@@ -11,10 +11,13 @@ import { resources } from "../Resources";
 import { utils } from "../../engine/Utils";
 import { BuildingUtils } from "./BuildingUtils";
 import { time } from "../../engine/core/Time";
+import { GameUtils } from "../GameUtils";
+import gsap from "gsap";
 
-const { mapRes } = config.game;
+const { mapRes, cellSize } = config.game;
 const cellCoords = new Vector2();
 const neighborSectorCoords = new Vector2();
+const worldPos = new Vector3();
 
 const depotsConfig = {
     slotCount: 9,
@@ -121,7 +124,11 @@ export class Depots {
         return reserve >= amount;
     }
 
-    public static removeResource(instance: IBuildingInstance, type: RawResourceType | ResourceType, _amount: number) {
+    public static removeResource(
+        instance: IBuildingInstance, 
+        type: RawResourceType | ResourceType, 
+        _amount: number,
+    ) {
         const state = instance.state as IDepotState;
         const { slots, root: slotsRoot } = state.slots;
 
@@ -167,7 +174,7 @@ export class Depots {
             removeOne();
         }
 
-        evtBuildingStateChanged.post(instance);        
+        evtBuildingStateChanged.post(instance);
     }
 
     public static clear(instance: IBuildingInstance) {
@@ -300,13 +307,45 @@ export class Depots {
 
     public static removeFromDepots(
         depots: Array<{ type: ResourceType | RawResourceType; depot: IBuildingInstance }>, 
-        buildingType: BuildableType
+        buildingType: BuildableType,
+        buildingCoords: Vector2
     ) {
         const { buildCost } = buildingConfig[buildingType];
+        const { flyingItems } = GameMapState.instance.layers;
         for (const [type, amount] of buildCost) {
             const depot = depots.find(d => d.type === type)!;
             console.assert(depot);
+
             Depots.removeResource(depot.depot, type, amount);
+            
+            // animation effect, send resource to the top of the building            
+            const { size } = buildingConfig[buildingType];            
+            const sizeX = size?.x ?? 0;
+            const sizeZ = size?.z ?? 0;
+            cellCoords.set(Math.round(buildingCoords.x + sizeX / 2), Math.round(buildingCoords.y + sizeZ / 2));
+            GameUtils.mapToWorld(cellCoords, worldPos);
+            worldPos.setY(size?.y ?? .2);
+            
+            const [_mesh] = meshes.loadImmediate(`/models/resources/${type}.glb`);            
+            const tl = gsap.timeline();
+            const { size: depotSize } = buildingConfig.depot;
+            for (let i = 0; i < amount; ++i) {
+                const mesh = _mesh.clone();
+                const { position } = depot.depot.visual;
+                mesh.position.set(
+                    position.x + (depotSize.x * cellSize) / 2,
+                    position.y + depotsConfig.slotStart.y,
+                    position.z + (depotSize.z * cellSize) / 2
+                );
+                flyingItems.add(mesh);
+                tl.to(mesh!.position, { 
+                    ...worldPos, 
+                    duration: .4,
+                    onComplete: () => {
+                        mesh.removeFromParent();
+                    }
+                }, "<.2");
+            }
         }
     }
 

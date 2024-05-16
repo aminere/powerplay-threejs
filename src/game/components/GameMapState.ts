@@ -52,7 +52,8 @@ export class GameMapState {
         buildings: utils.createObject(root(), "buildings"),
         conveyors: utils.createObject(root(), "conveyors"),
         pickedItems: utils.createObject(root(), "pickedItems"),
-        trees: utils.createObject(root(), "trees")
+        trees: utils.createObject(root(), "trees"),
+        flyingItems: utils.createObject(root(), "flyingItems")
     };
     public buildings = new Map<string, IBuildingInstance>();
     public depotsCache = new Map<string, IBuildingInstance[]>();

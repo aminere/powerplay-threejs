@@ -347,7 +347,9 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
                 if (!Depots.testDepots(depotsInRange, buildingType)) {
                     return false;
                 }            
-                Depots.removeFromDepots(depotsInRange, buildingType);
+
+                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }            
 
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
@@ -470,7 +472,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             }
 
             if (depotsInRange && depotsInRange.length > 0) {
-                Depots.removeFromDepots(depotsInRange, buildingType);                
+                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }
             
             onBuildingAccepted();
@@ -539,7 +542,9 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 if (!Depots.testDepots(depotsInRange, buildingType)) {
                     return false;
                 }
-                Depots.removeFromDepots(depotsInRange, buildingType);
+
+                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }            
 
             conveyors.createAndFit(cell, cellCoords);

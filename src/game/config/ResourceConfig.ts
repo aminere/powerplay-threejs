@@ -36,7 +36,7 @@ export const resourceConfig = {
         "concrete": ["stone", "iron-ore"] as const,
         "glass": ["stone"] as const,
         "engine": ["steel", "copper"] as const,
-        "ak47": ["iron-ore", "bullets"] as const,
+        "ak47": ["iron-ore"] as const,
         "gasoline": ["oil"] as const,
         "tire": ["rubber", "iron-ore"] as const
     },
