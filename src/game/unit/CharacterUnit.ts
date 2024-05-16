@@ -17,7 +17,7 @@ import { unitMotion } from "./UnitMotion";
 import { getCellFromAddr } from "./UnitAddr";
 import { UnitUtils } from "./UnitUtils";
 import { Workers } from "./Workers";
-import { Depots } from "../buildings/Depots";
+import { depots } from "../buildings/Depots";
 import { Factories } from "../buildings/Factories";
 import { Incubators } from "../buildings/Incubators";
 import { MiningState } from "./states/MiningState";
@@ -26,7 +26,6 @@ import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
-
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -165,7 +164,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     break;
 
                 case "depot": {
-                    if (Depots.tryDepositResource(instance, this.resource.type)) {
+                    if (depots.tryDepositResource(instance, this.resource.type)) {
                         this.resource = null;
                     }
                 }
@@ -203,7 +202,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 case "depot": {
                     const pick = (type: RawResourceType | ResourceType) => {
                         Workers.pickResource(this, type, this.targetCell.mapCoords);
-                        Depots.removeResource(instance, type, 1);
+                        depots.removeResource(instance, type, 1);
                         if (this._targetBuilding) {
                             unitMotion.moveUnit(this, this._targetBuilding);
                         }

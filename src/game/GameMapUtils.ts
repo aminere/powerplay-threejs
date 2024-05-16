@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
-import { MineralType, MineralTypes, RawResourceType, ResourceType } from "./GameDefinitions";
+import { MineralType, MineralTypes, RawResourceType } from "./GameDefinitions";
 import { ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -20,7 +20,7 @@ import { unitsManager } from "./unit/UnitsManager";
 import { IBuildingInstance } from "./buildings/BuildingTypes";
 import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
-import { Depots } from "./buildings/Depots";
+import { depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
 import { evtActionCleared, evtBuildError } from "../Events";
 import { buildingConfig } from "./config/BuildingConfig";
@@ -343,13 +343,13 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
 
             if (!GameMapProps.instance.debugFreeCosts) {
                 const buildingType = "road";
-                const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!depots.testDepots(depotsInRange, buildingType)) {
                     return false;
                 }            
 
                 cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
+                depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }            
 
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
@@ -432,8 +432,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                     }
 
                     if (!GameMapProps.instance.debugFreeCosts) {
-                        depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                        if (!Depots.testDepots(depotsInRange, buildingType)) {
+                        depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                        if (!depots.testDepots(depotsInRange, buildingType)) {
                             return false;
                         }
                     }
@@ -449,8 +449,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             }
 
             if (!GameMapProps.instance.debugFreeCosts) {
-                depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!depots.testDepots(depotsInRange, buildingType)) {
                     return false;
                 }
             }            
@@ -462,16 +462,15 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             switch (buildingType) {
                 case "factory": Factories.create(_sectorCoords, _localCoords, null); break;
                 case "mine": Mines.create(_sectorCoords, _localCoords); break;
-                case "depot": Depots.create(_sectorCoords, _localCoords); break;
+                case "depot": depots.create(_sectorCoords, _localCoords); break;
                 case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
                 case "assembly": Assemblies.create(_sectorCoords, _localCoords, null); break;
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
-            if (depotsInRange) {
-                console.assert(depotsInRange.length > 0);
+            if (depotsInRange && depotsInRange.length > 0) {
                 cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
+                depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }
             
             onBuildingAccepted();
@@ -536,13 +535,13 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 
             if (!GameMapProps.instance.debugFreeCosts) {
                 const buildingType = "conveyor";
-                const depotsInRange = Depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                if (!Depots.testDepots(depotsInRange, buildingType)) {
+                const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+                if (!depots.testDepots(depotsInRange, buildingType)) {
                     return false;
                 }
 
                 cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
+                depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }            
 
             conveyors.createAndFit(cell, cellCoords);

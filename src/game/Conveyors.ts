@@ -5,7 +5,6 @@ import { Axis, ICell } from "./GameTypes";
 import { time } from "../engine/core/Time";
 import { conveyorUtils } from "./ConveyorUtils";
 import { conveyorItems } from "./ConveyorItems";
-import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
 import { textures } from "../engine/resources/Textures";
 import { meshes } from "../engine/resources/Meshes";
@@ -17,6 +16,11 @@ const worldPos = new Vector3();
 const rotation = new Quaternion();
 const { cellSize } = config.game;
 const { width, height, speed } = config.conveyors;
+const mapCoords = new Vector2();
+const offset2 = new Vector2();
+const start2 = new Vector2();
+const dir = new Vector2();
+const cornerDir = new Vector2();
 
 const scale = new Vector3(1, 1, 1).multiplyScalar(cellSize);
 const neighborCoords = new Vector2();
@@ -402,8 +406,7 @@ class Conveyors {
         conveyorItems.update();
     }
 
-    public onDrag(start: Vector2, end: Vector2, dragAxis: Axis, cellsOut: Vector2[]) {
-        const [mapCoords, offset2, start2, dir, cornerDir] = pools.vec2.get(5);
+    public onDrag(start: Vector2, end: Vector2, dragAxis: Axis, cellsOut: Vector2[]) {       
 
         // const isPerpendicularEdge = (cell: ICell, coords: Vector2, axis: Axis) => {
         //     if (!cell?.conveyor) {

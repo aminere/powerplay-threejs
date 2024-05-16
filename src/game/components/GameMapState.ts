@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
-import { Depots } from "../buildings/Depots";
+import { depots } from "../buildings/Depots";
 
 const root = () => engine.scene!;
 
@@ -89,7 +89,7 @@ export class GameMapState {
             this.tileSelector.resolution = 1;
             switch (previousAction) {
                 case "building": {
-                    Depots.highlightDepotRanges(false);
+                    depots.highlightDepotRanges(false);
                 }
             }
         }

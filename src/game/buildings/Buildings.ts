@@ -7,7 +7,7 @@ import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState } from "./BuildingTypes";
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
-import { Depots } from "./Depots";
+import { depots } from "./Depots";
 import { Incubators } from "./Incubators";
 import { utils } from "../../engine/Utils";
 import { buildingConfig } from "../config/BuildingConfig";
@@ -217,7 +217,7 @@ class Buildings {
             switch (instance.buildingType) {
                 case "mine": Mines.update(instance); break;
                 case "factory": Factories.update(instance); break;
-                case "depot": Depots.update(instance); break;
+                case "depot": depots.update(instance); break;
                 case "incubator": Incubators.update(instance); break;
                 case "assembly": Assemblies.update(instance); break;
             }

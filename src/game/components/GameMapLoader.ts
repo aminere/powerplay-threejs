@@ -29,7 +29,7 @@ import { UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
 import { meshes } from "../../powerplay";
 import { Mines } from "../buildings/Mines";
-import { Depots } from "../buildings/Depots";
+import { depots } from "../buildings/Depots";
 import { BuildingType } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { Factories } from "../buildings/Factories";
@@ -186,7 +186,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                     break;
 
                 case "depot":
-                    createBuildings(instances, (sectorCoords, localCoords) => Depots.create(sectorCoords, localCoords));
+                    createBuildings(instances, (sectorCoords, localCoords) => depots.create(sectorCoords, localCoords));
                     break;
 
                 case "incubator":

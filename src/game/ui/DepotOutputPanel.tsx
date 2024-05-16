@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { SelectedElems } from "../../Events";
 import { Icon } from "./Icon";
 import { OutputPanel } from "./OutputPanel";
-import { Depots } from "../buildings/Depots";
+import { depots } from "../buildings/Depots";
 
 interface DepotOutputPanelProps {
     open: boolean;
@@ -42,7 +42,7 @@ export function DepotOutputPanel(props: DepotOutputPanelProps) {
         return null;
     }
 
-    const depotResources = Depots.getReservesPerType(depot);
+    const depotResources = depots.getReservesPerType(depot);
     return <OutputPanel open={props.open}>
         {Object.keys(depotResources).map(type => {
             const resourceType = type as ResourceType;

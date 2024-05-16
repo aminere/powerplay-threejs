@@ -8,7 +8,7 @@ import { IAssemblyState, IBuildingInstance, IDepotState, IFactoryState, IMineSta
 import { Incubators } from "../buildings/Incubators";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { IUnit } from "../unit/IUnit";
-import { Depots } from "../buildings/Depots";
+import { depots } from "../buildings/Depots";
 import { UnitUtils } from "../unit/UnitUtils";
 import { unitMotion } from "../unit/UnitMotion";
 import { GridFiller } from "./GridFiller";
@@ -173,7 +173,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
 
                     case "building": {
                         const building = selectedElems.building;
-                        const _depotResources = building.buildingType === "depot" ? Depots.getReservesPerType(building) : null;
+                        const _depotResources = building.buildingType === "depot" ? depots.getReservesPerType(building) : null;
                         const depotResources = _depotResources ? Object.keys(_depotResources!) : null;
                         return <>
                             {(() => {
@@ -267,11 +267,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 return <ActionButton
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {                                                        
-                                                        if (!Depots.output(building, type)) {
+                                                        if (!depots.output(building, type)) {
                                                             evtBuildError.post(`Not enough space to eject`);
                                                         }
                                                     }}
-                                                    onContextMenu={() => Depots.toggleAutoOutput(building)}
+                                                    onContextMenu={() => depots.toggleAutoOutput(building)}
                                                 >
                                                     <Icon name={type} />
                                                 </ActionButton>
@@ -290,11 +290,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                         <ActionButton
                                                             selectedAnim={state.autoOutput}
                                                             onClick={() => {
-                                                                if (!Depots.output(building, state.output!)) {
+                                                                if (!depots.output(building, state.output!)) {
                                                                     evtBuildError.post(`Not enough space to eject`);
                                                                 }                                                               
                                                             }}
-                                                            onContextMenu={() => Depots.toggleAutoOutput(building)}
+                                                            onContextMenu={() => depots.toggleAutoOutput(building)}
                                                         >
                                                             <Icon name={state.output} />
                                                         </ActionButton>
@@ -340,7 +340,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 {
                                     (depotResources && depotResources.length > 0)
                                     &&
-                                    <ActionButton onClick={() => Depots.clear(building)}>
+                                    <ActionButton onClick={() => depots.clear(building)}>
                                         clear
                                     </ActionButton>
                                 }
