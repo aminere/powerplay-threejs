@@ -26,7 +26,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
                     return undefined
                 }
                 if (props.selected) {
-                    return `${uiconfig.selectedBorderSizePx}px double ${props.selectedColor ?? "yellow"}`;
+                    return `${uiconfig.selectedBorderSizePx}px solid ${props.selectedColor ?? "yellow"}`;
                 }
                 return "1px outset gray";
             })(),

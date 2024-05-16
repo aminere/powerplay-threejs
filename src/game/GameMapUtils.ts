@@ -196,12 +196,12 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
         }
             break;
 
-        // case "conveyor": {
-        //     state.previousConveyors.forEach(cell => conveyors.clear(cell));
-        //     state.previousConveyors.length = 0;
-        //     conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
-        // }
-        //     break;
+        case "conveyor": {
+            state.previousConveyors.forEach(cell => conveyors.clear(cell));
+            state.previousConveyors.length = 0;
+            conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
+        }
+            break;
 
         case "elevation": {
             onElevation(current, 0);
@@ -384,10 +384,7 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     if (button === 0) {
         const { size } = buildingConfig[buildingType];
 
-        let depotsInRange: Array<{
-            type: RawResourceType | ResourceType;
-            depot: IBuildingInstance;
-        }> | null = null;
+        let depotsInRange: Array<IBuildingInstance> | null = null;
 
         // TODO if units under the structure, move them away
         const allowed = (() => {
@@ -471,7 +468,8 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 default: buildings.create(buildingType, _sectorCoords, _localCoords);
             }
 
-            if (depotsInRange && depotsInRange.length > 0) {
+            if (depotsInRange) {
+                console.assert(depotsInRange.length > 0);
                 cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
                 Depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
             }

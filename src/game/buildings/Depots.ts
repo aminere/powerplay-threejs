@@ -238,26 +238,15 @@ export class Depots {
     }
 
     public static getDepotsInRange(_sectorCoords: Vector2, _localCoords: Vector2, buildingType: BuildableType) {
-        const { size, buildCost } = buildingConfig[buildingType];
-
-        const validDepots = buildCost.reduce((prev, cur) => {
-            const [required] = cur;
-            return {
-                ...prev,
-                [required]: null!
-            }
-        }, {} as Record<RawResourceType | ResourceType, {
-            type: ResourceType | RawResourceType;
-            depot: IBuildingInstance;
-        }>);
-
+        const { size } = buildingConfig[buildingType];
         const { size: depotSize } = buildingConfig["depot"];
+        const depots: IBuildingInstance[] = [];
         const { range } = config.depots;
         cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
         const minX = cellCoords.x;
-        const maxX = cellCoords.x + (size?.x ?? 0);
+        const maxX = cellCoords.x + (size?.x ?? 1) - 1;
         const minY = cellCoords.y;
-        const maxY = cellCoords.y + (size?.z ?? 0);
+        const maxY = cellCoords.y + (size?.z ?? 1) - 1;
         const { depotsCache } = GameMapState.instance;
         for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
             neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
@@ -269,33 +258,26 @@ export class Depots {
             for (const depot of list) {
                 const startX = depot.mapCoords.x - range;
                 const startY = depot.mapCoords.y - range;
-                const endX = startX + range * 2 + depotSize.x;
-                const endY = startY + range * 2 + depotSize.z;
+                const endX = startX + range * 2 + depotSize.x - 1;
+                const endY = startY + range * 2 + depotSize.z - 1;
                 if (endX < minX || startX > maxX || endY < minY || startY > maxY) {
                     continue;
                 }
-                for (const [required, amount] of buildCost) {
-                    const alreadyFound = validDepots[required] !== null;
-                    if (alreadyFound) {
-                        continue;
-                    }
-                    if (Depots.hasResource(depot, required, amount)) {
-                        validDepots[required] = {
-                            type: required,
-                            depot
-                        };
-                    }
-                }
+                depots.push(depot);
             }
         }
-
-        return Object.values(validDepots).filter(Boolean);
+        return depots;
     }
 
-    public static testDepots(
-        depots: Array<{ type: ResourceType | RawResourceType; depot: IBuildingInstance }>,
-        buildingType: BuildableType
-    ) {
+    public static testDepots(depots: IBuildingInstance[], buildingType: BuildableType) {
+
+        if (depots.length === 0) {
+            evtBuildError.post(`${buildingType} must be built near depots`);
+            Depots.highlightDepotRanges(true);
+            return false;
+        }
+
+        Depots.highlightDepotRanges(false);
         const { depotsCache } = GameMapState.instance;
         if (buildingType === "depot") {            
             if (depotsCache.size === 0) {
@@ -305,27 +287,39 @@ export class Depots {
         }
 
         const { buildCost } = buildingConfig[buildingType];
-        if (Object.keys(depots).length < buildCost.length) {
+        const validDepots = new Map<ResourceType | RawResourceType, IBuildingInstance>();
+
+        for (const [required, amount] of buildCost) {
+            const alreadyFound = validDepots.get(required) !== undefined;
+            if (alreadyFound) {
+                continue;
+            }
+            for (const depot of depots) {
+                if (Depots.hasResource(depot, required, amount)) {
+                    validDepots.set(required, depot);
+                }
+            }
+        }
+
+        if (validDepots.size < buildCost.length) {
             const requirements = buildCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
-            evtBuildError.post(`${buildingType} must be built near depots. (Requires ${requirements})`);
-            Depots.highlightDepotRanges(true);
+            evtBuildError.post(`Not enough resources in nearby depots to build ${buildingType}. (Requires ${requirements})`);
             return false;
         }
         return true;
     }
 
-    public static removeFromDepots(
-        depots: Array<{ type: ResourceType | RawResourceType; depot: IBuildingInstance }>, 
-        buildingType: BuildableType,
-        buildingCoords: Vector2
-    ) {
+    public static removeFromDepots(depots: IBuildingInstance[], buildingType: BuildableType, buildingCoords: Vector2) {
         const { buildCost } = buildingConfig[buildingType];
         const { flyingItems } = GameMapState.instance.layers;
         for (const [type, amount] of buildCost) {
-            const depot = depots.find(d => d.type === type)!;
+            const depot = depots.find(d => {
+                const state = d.state as IDepotState;
+                return state.output === type;
+            })!;
             console.assert(depot);
 
-            Depots.removeResource(depot.depot, type, amount);
+            Depots.removeResource(depot, type, amount);
             
             // animation effect, send resource to the top of the building            
             const { size } = buildingConfig[buildingType];            
@@ -340,7 +334,7 @@ export class Depots {
             const { size: depotSize } = buildingConfig.depot;
             for (let i = 0; i < amount; ++i) {
                 const mesh = _mesh.clone();
-                const { position } = depot.depot.visual;
+                const { position } = depot.visual;
                 mesh.position.set(
                     position.x + (depotSize.x * cellSize) / 2,
                     position.y + depotsConfig.slotStart.y,

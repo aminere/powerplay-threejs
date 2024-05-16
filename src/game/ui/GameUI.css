@@ -13,7 +13,7 @@ img {
 
 .item-full {
     outline-width: 2px;
-    outline-style: double;
+    outline-style: solid;
     animation: item-full-anim .8s infinite;
 }
 
