@@ -19,7 +19,7 @@ export const config = {
     },
     game: {
         cellSize: 1,
-        cellsPerRoadBlock: 2,
+        cellsPerRoadBlock: 1,
         mapRes: 32,
         elevationStep: .2,
         unitScale: .7,

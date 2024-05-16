@@ -7,6 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
+import { Depots } from "../buildings/Depots";
 
 const root = () => engine.scene!;
 
@@ -81,10 +82,16 @@ export class GameMapState {
 
     public get action() { return this._action; }
     public set action(value: Action | null) {
+        const previousAction = this._action;
         this._action = value;
         if (!value) {
             this.tileSelector.visible = false;
             this.tileSelector.resolution = 1;
+            switch (previousAction) {
+                case "building": {
+                    Depots.highlightDepotRanges(false);
+                }
+            }
         }
     }
 

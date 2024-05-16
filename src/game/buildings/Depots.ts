@@ -1,4 +1,4 @@
-import { MathUtils, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Vector2, Vector3 } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { BuildableType, IBuildingInstance, IDepotState } from "./BuildingTypes";
@@ -13,11 +13,18 @@ import { BuildingUtils } from "./BuildingUtils";
 import { time } from "../../engine/core/Time";
 import { GameUtils } from "../GameUtils";
 import gsap from "gsap";
+import { Sector } from "../Sector";
 
 const { mapRes, cellSize } = config.game;
 const cellCoords = new Vector2();
 const neighborSectorCoords = new Vector2();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
 const worldPos = new Vector3();
+const minCell = new Vector2();
+const maxCell = new Vector2();
+const highlightColor = new Color(0, 1, 0);
+const white = new Color(1, 1, 1);
 
 const depotsConfig = {
     slotCount: 9,
@@ -289,17 +296,19 @@ export class Depots {
         depots: Array<{ type: ResourceType | RawResourceType; depot: IBuildingInstance }>,
         buildingType: BuildableType
     ) {
-        if (buildingType === "depot") {
-            const { depotsCache } = GameMapState.instance;
+        const { depotsCache } = GameMapState.instance;
+        if (buildingType === "depot") {            
             if (depotsCache.size === 0) {
                 //first depot is free
                 return true;
             }
         }
+
         const { buildCost } = buildingConfig[buildingType];
         if (Object.keys(depots).length < buildCost.length) {
             const requirements = buildCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
             evtBuildError.post(`${buildingType} must be built near depots. (Requires ${requirements})`);
+            Depots.highlightDepotRanges(true);
             return false;
         }
         return true;
@@ -374,5 +383,35 @@ export class Depots {
         state.autoOutput = !state.autoOutput;
         evtBuildingStateChanged.post(instance);
     }
+
+    public static highlightDepotRanges(highlight: boolean) {
+        const { range } = config.depots;
+        const { size: depotSize } = buildingConfig.depot;
+        const { depotsCache } = GameMapState.instance;
+        for (const [sectorId, depots] of depotsCache) {
+            const [sectorX, sectorY] = sectorId.split(",").map(Number);
+            sectorCoords.set(sectorX, sectorY);
+            for (const depot of depots) {
+                minCell.set(depot.mapCoords.x - range, depot.mapCoords.y - range);
+                maxCell.set(minCell.x + range * 2 + depotSize.x, minCell.y + range * 2 + depotSize.z);
+                for (let y = minCell.y; y < maxCell.y; y++) {
+                    for (let x = minCell.x; x < maxCell.x; x++) {
+                        cellCoords.set(x, y);
+                        if (GameUtils.getCell(cellCoords, sectorCoords, localCoords)) {
+                            const sector = GameUtils.getSector(sectorCoords)!;
+                            Sector.updateHighlightTexture(sector, localCoords, highlight ? highlightColor : white);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // public static showDepotSelection() {
+    //     const { range } = config.depots;
+    //     minCell.set(selection.building.mapCoords.x - range, selection.building.mapCoords.y - range);
+    //     maxCell.set(minCell.x + range * 2 + size.x, minCell.y + range * 2 + size.z);
+    //     showSelectionLines(minCell, maxCell);
+    // }
 }
 
