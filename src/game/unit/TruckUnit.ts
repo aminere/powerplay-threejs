@@ -94,23 +94,7 @@ export class TruckUnit extends Unit implements ITruckUnit {
                     } else {
                         truckState.startTransfer(instance, true);
                     }
-                }
-                
-                // const state = instance.state as IDepotState;
-                // const totalResources = state.amount + truckAmount;
-                // if (totalResources > 0) {
-                //     const truckState = this.fsm.getState(TruckState)!;
-                //     if (truckAmount > 0) {
-                //         if (state.type === this.resources!.type) {
-                //             truckState.startTransfer(instance, false);
-                //         } else {
-                //             truckState.startTransfer(instance, true);    
-                //         }
-
-                //     } else {
-                //         truckState.startTransfer(instance, true);
-                //     }
-                // }
+                }                
             }
             break;
         }

@@ -18,6 +18,7 @@ const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
+const localCoords = new Vector2();
 
 class Buildings {
 
@@ -82,7 +83,7 @@ class Buildings {
         return this._buildings.get(buildingType)!.boundingBox;
     }
 
-    public create(buildingType: BuildingType, sectorCoords: Vector2, localCoords: Vector2) {
+    public create(buildingType: BuildingType, _sectorCoords: Vector2, _localCoords: Vector2) {
         const instanceId = `${this._instanceId}`;
         this._instanceId++;
 
@@ -96,7 +97,7 @@ class Buildings {
         // box3Helper.visible = false;
 
         const { size, hitpoints } = buildingConfig[buildingType];
-        const mapCoords = new Vector2(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+        const mapCoords = new Vector2(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
         const buildingInstance: IBuildingInstance = {
             id: instanceId,
             buildingType,
@@ -112,7 +113,7 @@ class Buildings {
 
         if (buildingType === "depot") {
             const { depotsCache } = GameMapState.instance;
-            const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+            const sectorId = `${_sectorCoords.x},${_sectorCoords.y}`;
             const list = depotsCache.get(sectorId);
             if (list) {
                 list.push(buildingInstance);
@@ -124,15 +125,22 @@ class Buildings {
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                const cell = GameUtils.getCell(cellCoords)!;
+                const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
                 cell.building = instanceId;
+
+                const x = Math.floor(localCoords.x / 2);
+                const y = Math.floor(localCoords.y / 2);
+                const cellIndex2x2 = y * (mapRes / 2) + x;
+                const sector = GameUtils.getSector(sectorCoords)!;
+                const cell2x2 = sector.cells2x2[cellIndex2x2];
+                cell2x2.building = instanceId;
             }
         }
 
         visual.position.set(
-            sectorCoords.x * mapSize + localCoords.x * cellSize + sectorOffset,
+            _sectorCoords.x * mapSize + _localCoords.x * cellSize + sectorOffset,
             0,
-            sectorCoords.y * mapSize + localCoords.y * cellSize + sectorOffset
+            _sectorCoords.y * mapSize + _localCoords.y * cellSize + sectorOffset
         );
 
         layers.buildings.add(visual);
@@ -174,8 +182,15 @@ class Buildings {
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
-                const cell = GameUtils.getCell(cellCoords)!;
+                const cell = GameUtils.getCell(cellCoords, undefined, localCoords)!;
                 cell.building = undefined;
+
+                const x = Math.floor(localCoords.x / 2);
+                const y = Math.floor(localCoords.y / 2);
+                const cellIndex2x2 = y * (mapRes / 2) + x;
+                const sector = GameUtils.getSector(sectorCoords)!;
+                const cell2x2 = sector.cells2x2[cellIndex2x2];
+                cell2x2.building = undefined;
             }
         }
 

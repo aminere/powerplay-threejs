@@ -4,6 +4,7 @@ import { config } from "../config/config";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
+import { evtUnitStateChanged } from "../../Events";
 
 const { resourcesPerSlot, slotScaleRange, slotCount, slotStart, slotSpacing } = config.trucks;
 const truckCapacity = resourcesPerSlot * slotCount;
@@ -47,6 +48,7 @@ export class Trucks {
             truck.resources!.root.add(mesh);
         }
         truck.resources!.amount = newAmount;
+        evtUnitStateChanged.post(truck);
         return true;
     }
 
@@ -70,6 +72,7 @@ export class Trucks {
             newSlotMesh.scale.setScalar(MathUtils.lerp(slotScaleRange[0], slotScaleRange[1], slotProgress));
         }
         truck.resources!.amount = newAmount;
+        evtUnitStateChanged.post(truck);
     }
 }
 

@@ -258,8 +258,19 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 } else {
                     if (GameMapProps.instance.debugCells) {
                         if (input.touchButton === 0) {
-                            const cell = GameUtils.getCell(state.highlightedCellCoords);
+                            const sectorCoords = new Vector2();
+                            const localCoords = new Vector2();
+                            const cell = GameUtils.getCell(state.highlightedCellCoords, sectorCoords, localCoords);
+                            const _x = Math.floor(state.highlightedCellCoords.x / 2);
+                            const _y = Math.floor(state.highlightedCellCoords.y / 2);
+                            console.log(`mapCoords: ${state.highlightedCellCoords.x},${state.highlightedCellCoords.y}, mapCoords2x2: ${_x},${_y}`);
                             console.log(cell);
+                            const sector = GameUtils.getSector(sectorCoords)!;
+                            const x = Math.floor(localCoords.x / 2);
+                            const y = Math.floor(localCoords.y / 2);
+                            const cellIndex2x2 = y * (config.game.mapRes / 2) + x;
+                            const cell2x2 = sector.cells2x2[cellIndex2x2];
+                            console.log(cell2x2);
                         }
                     }
                 }

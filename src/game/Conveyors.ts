@@ -56,6 +56,7 @@ class Conveyors {
     private _invCurvedConveyor!: Mesh;
     private _curvedConveyorTop!: Mesh;
     private _invCurvedConveyorTop!: Mesh;
+    private _straightConveyor!: Mesh;
     private _straightCells: ICell[] = [];
     private _topTexture!: Texture;
     private _loaded = false;
@@ -107,6 +108,12 @@ class Conveyors {
         this._invCurvedConveyorTop = conveyorUtils.makeCurvedConveyor(curvedConveyorTop0, -1);
         this._curvedConveyorTop.material = topMaterial;
         this._invCurvedConveyorTop.material = topMaterial;
+
+        this._straightConveyor = conveyor.clone();
+        this._straightConveyor.castShadow = true;
+        const straightConveyorTop = conveyorTop.clone();
+        straightConveyorTop.position.setY(height * cellSize);
+        this._straightConveyor.add(straightConveyorTop);
 
         conveyorTopInstances.receiveShadow = true;
         this._curvedConveyorTop.receiveShadow = true;
@@ -168,7 +175,7 @@ class Conveyors {
             this._straightCells.push(cell);
             cell.conveyor!.visual.instanceIndex = count;
         }
-    }
+    }    
 
     private setStraightTransform(position: Vector3, direction: Vector2, instanceIndex: number) {
         const angle = conveyorUtils.getAngle(direction);
@@ -330,6 +337,37 @@ class Conveyors {
         }
     }
 
+    public clearPreview() {
+        GameMapState.instance.layers.conveyorsPreview.clear();
+    }
+
+    public createPreview(mapCoords: Vector2, direction: Vector2, startAxis: Axis, endAxis?: Axis) {
+        const mesh = (() => {
+            GameUtils.mapToWorld(mapCoords, worldPos);
+            if (endAxis !== undefined) {
+                const [invertedMesh, angle] = conveyorUtils.getConveyorTransform(direction, startAxis);
+                const baseMesh = invertedMesh ? this._invCurvedConveyor.clone() : this._curvedConveyor.clone();
+                const topMesh = invertedMesh ? this._invCurvedConveyorTop.clone() : this._curvedConveyorTop.clone();
+                baseMesh.position.copy(worldPos);
+                baseMesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);
+                baseMesh.scale.copy(scale);
+                baseMesh.add(topMesh);
+                topMesh.position.y = height;                
+                return baseMesh;    
+            } else {
+                const _mesh = this._straightConveyor.clone();
+                _mesh.position.copy(worldPos);
+                const angle = conveyorUtils.getAngle(direction);
+                _mesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);    
+                return _mesh;
+            }
+        })();
+        const { conveyorsPreview } = GameMapState.instance.layers;
+        conveyorsPreview.add(mesh);
+        const configId = `${direction.x},${direction.y},${startAxis},${endAxis ?? "none"}`;
+        mesh.name = configId;
+    }
+
     public clearLooseCorners(mapCoords: Vector2) {
         // Turn loose corners into straights
         for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
@@ -435,7 +473,7 @@ class Conveyors {
                 return;
             }
             cellsOut.push(coords.clone());
-            this.create(cell, coords, direction, axis, endAxis);
+            this.createPreview(coords, direction, axis, endAxis);
 
             // const fit = coords.equals(start) || coords.equals(end);
             // if (fit) {

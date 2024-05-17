@@ -52,3 +52,7 @@ export function getCellFromAddr(addr: IUnitAddr) {
     return addr.sector.cells[addr.cellIndex];
 }
 
+export function getCell2x2FromAddr(addr2x2: IUnitAddr) {
+    return addr2x2.sector.cells2x2[addr2x2.cellIndex];
+}
+

@@ -4,7 +4,7 @@ import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
 import { MineralType, MineralTypes, RawResourceType } from "./GameDefinitions";
-import { ICell } from "./GameTypes";
+import { Axis, ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
 import { resources } from "./Resources";
@@ -197,7 +197,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "conveyor": {
-            state.previousConveyors.forEach(cell => conveyors.clear(cell));
+            conveyors.clearPreview();
             state.previousConveyors.length = 0;
             conveyors.onDrag(start, current, state.initialDragAxis!, state.previousConveyors);
         }
@@ -291,7 +291,22 @@ export function onEndDrag() {
         gameMapState.previousRail.length = 0;
     }
 
-    if (gameMapState.previousConveyors.length > 0) {
+    const { previousConveyors } = gameMapState;
+    if (previousConveyors.length > 0) {
+        const { conveyorsPreview } = GameMapState.instance.layers;
+        console.assert(previousConveyors.length === conveyorsPreview.children.length);
+        for (let i = 0; i < conveyorsPreview.children.length; ++i) {
+            const mesh = conveyorsPreview.children[i] as Mesh;
+            const configId = mesh.name;
+            const [_dirX, _dirY, startAxis, _endAxis] = configId.split(",");
+            const dirX = parseInt(_dirX);
+            const dirY = parseInt(_dirY);
+            const endAxis = _endAxis === "none" ? undefined : (_endAxis as Axis);
+            const cell = GameUtils.getCell(previousConveyors[i])!;
+            const direction = cellCoords.set(dirX, dirY);
+            conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
+        }        
+        conveyors.clearPreview();
         gameMapState.previousConveyors.length = 0;
     }
 }
@@ -302,7 +317,7 @@ export function onCancelDrag() {
     gameMapState.previousRoad.length = 0;
     gameMapState.previousRail.forEach(Rails.clear);
     gameMapState.previousRail.length = 0;
-    gameMapState.previousConveyors.forEach(cell => conveyors.clear(cell));
+    conveyors.clearPreview();
     gameMapState.previousConveyors.length = 0;
 }
 

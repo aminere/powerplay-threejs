@@ -2,7 +2,7 @@ import { MathUtils, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr, computeUnitAddr2x2, getCellFromAddr } from "./UnitAddr";
+import { computeUnitAddr, computeUnitAddr2x2, getCell2x2FromAddr, getCellFromAddr } from "./UnitAddr";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
@@ -17,6 +17,7 @@ import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { ITruckUnit, TruckUnit } from "./TruckUnit";
+
 
 const cellDirection = new Vector2();
 const destSectorCoords = new Vector2();
@@ -556,11 +557,19 @@ export class UnitMotion {
                     }
                 }
 
-                if (isMoving) {
+                if (isMoving && !unit.arriving) {
                     const reachedTarget = (() => {
                         if (unit.type === "truck") {
                             const truck = unit as TruckUnit;
-                            return truck.targetCell2x2.mapCoords.equals(truck.coords2x2.mapCoords);
+                            if (truck.targetCell2x2.mapCoords.equals(truck.coords2x2.mapCoords)) {
+                                return true;
+                            }
+                            const targetCell2x2 = getCell2x2FromAddr(truck.targetCell2x2);
+                            const cell2x2 = getCell2x2FromAddr(truck.coords2x2);
+                            if (cell2x2.building && targetCell2x2.building === cell2x2.building) {
+                                return true;
+                            }
+                            return false;
                         } else {
                             return unit.targetCell.mapCoords.equals(nextMapCoords);
                         }
