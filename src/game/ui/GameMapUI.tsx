@@ -10,7 +10,7 @@ import { GameMapProps } from "../components/GameMapProps";
 import { BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { TransportAction, TransportActions } from "../GameDefinitions";
 import { config } from "../config/config";
-import { SelectedElems, cmdSetSelectedElems, evtActionCleared, evtBuildError } from "../../Events";
+import { SelectedElems, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -20,6 +20,8 @@ import gsap from "gsap";
 import { FactoryOutputPanel } from "./FactoryOutputPanel";
 import { AssemblyOutputPanel } from "./AssemblyOutputPanel";
 import { DepotOutputPanel } from "./DepotOutputPanel";
+import { ObjectivesPanel } from "./ObjectivePanel";
+import { Indicators } from "./Indicators";
 
 
 function InGameUI({ children }: { children: React.ReactNode }) {
@@ -192,9 +194,15 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);    
 
+    useEffect(() => {
+        evtGameMapUIMounted.post();
+    }, []);
+
     return <div className={styles.root}>
         <InGameUI>
-            <div
+            <ObjectivesPanel />
+
+            {/* <div
                 style={{
                     position: "absolute",
                     padding: `${uiconfig.paddingRem}rem`,
@@ -244,23 +252,10 @@ export function GameMapUI(_props: IGameUIProps) {
                     }}
                     onOpen={() => setOpenSection("transport")}
                     onClose={() => setOpenSection(null)}
-                />
-                {/* <ActionButton
-                    selected={openSection === "destroy"}
-                    selectedColor="red"
-                    onClick={() => {
-                        if (openSection === "destroy") {
-                            setOpenSection(null);
-                        } else {
-                            setOpenSection("destroy");
-                        }
-                    }}
-                >
-                    Destroy
-                </ActionButton> */}
-            </div>
+                />                
+            </div> */}
 
-            <div style={{
+            {/* <div style={{
                 position: "absolute",
                 bottom: "0px",                
                 left: "470px",
@@ -293,7 +288,7 @@ export function GameMapUI(_props: IGameUIProps) {
                         onOutputSelected={() => setShowDepotOutputs(false)}
                     />
                 </ActionsPanel>
-            </div>
+            </div> */}
 
             <div
                 ref={errorRef}
@@ -310,8 +305,10 @@ export function GameMapUI(_props: IGameUIProps) {
         </InGameUI>
 
         <HealthBars />
+        <Indicators />
         <SelectionRect />
-        <Minimap />
+        
+        {/* <Minimap /> */}
     </div>
 }
 

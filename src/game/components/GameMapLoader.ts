@@ -34,6 +34,7 @@ import { BuildingType } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
+import { MissionManager } from "./MissionManager";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -273,6 +274,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         const updator = utils.createObject(root(), "GameMapUpdate");
         engineState.setComponent(updator, new GameMapUpdate());
+        engineState.setComponent(updator, new MissionManager());
 
         // TODO remove
         // if (false) {

@@ -1,5 +1,6 @@
 img {
     max-width: 100%;
+    max-height: 100%;
 }
 
 .icon img {
@@ -32,5 +33,15 @@ img {
 @keyframes item-auto-output-anim {
     from { stroke-dashoffset: 0; }
     to { stroke-dashoffset: 1000; }
+}
+
+@keyframes float-anim {
+	0% { transform: translatey(0px); }
+	50% { transform: translatey(-20px); }
+	100% { transform: translatey(0px); }
+}
+
+.float {
+    animation: float-anim 3s infinite;
 }
 

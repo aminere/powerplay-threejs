@@ -8,6 +8,7 @@ import { config } from "../config/config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
+import { GameMapProps } from "./GameMapProps";
 
 const root = () => engine.scene!;
 
@@ -92,6 +93,12 @@ export class GameMapState {
             switch (value) {
                 case "building":
                 case "conveyor": {
+                    // const buildableType = (() => {
+                    //     if (value === "building") {
+                    //         return GameMapProps.instance.buildingType;
+                    //     }
+                    //     return value;
+                    // })();
                     depots.highlightDepotRanges(true);
                 }
                 break;

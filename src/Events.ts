@@ -54,4 +54,29 @@ export const evtBuildError = new AsyncEvent<string>();
 export const evtBuildingStateChanged = new AsyncEvent<IBuildingInstance>();
 export const evtUnitStateChanged = new AsyncEvent<IUnit>();
 export const evtCellStateChanged = new AsyncEvent<ICell>();
+export const evtGameMapUIMounted = new AsyncEvent<void>();
+
+interface IBuildingIndicator {
+    type: "building";
+    building: IBuildingInstance;
+}
+
+interface IUnitIndicator {
+    type: "unit",
+    unit: IUnit;
+}
+
+interface ICellIndicator {
+    type: "cell";
+    mapCoords: Vector2;
+}
+
+export type IndicatorType = IBuildingIndicator | IUnitIndicator | ICellIndicator;
+export interface SetIndicatorEvent {
+    indicator: IndicatorType;
+    control: string;
+    icon: string;
+}
+
+export const cmdSetIndicator = new AsyncEvent<SetIndicatorEvent | null>();
 
