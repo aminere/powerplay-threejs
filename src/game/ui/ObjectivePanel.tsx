@@ -20,6 +20,6 @@ export function ObjectivesPanel() {
         left: "0px",
         top: "25%"
     }}>
-        OBJECTIVE: Collect <InlineIcon><Icon name="stone"  /></InlineIcon> (1 / 5)
+        OBJECTIVE: Collect stone <InlineIcon><Icon name="stone"  /></InlineIcon> (1 / 5)
     </div>
 }

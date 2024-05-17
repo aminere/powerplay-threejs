@@ -8,6 +8,7 @@ import { ICharacterUnit } from "./ICharacterUnit";
 import { unitAnimation } from "./UnitAnimation";
 import { SoldierState } from "./states/SoldierState";
 import { time } from "../../engine/core/Time";
+import { evtResourceCollected } from "../../Events";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(
@@ -82,6 +83,7 @@ export class Workers {
     
         visual.visible = false;
         setTimeout(() => { visual.visible = true }, 100); 
+        evtResourceCollected.post(resourceType);
     }
 }
 

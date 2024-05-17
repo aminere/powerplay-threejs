@@ -2,8 +2,10 @@
 import { Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { SelectedElems, cmdSetIndicator, cmdSetSelectedElems, evtGameMapUIMounted } from "../../Events";
+import { SelectedElems, cmdSetIndicator, cmdSetSelectedElems, evtGameMapUIMounted, evtResourceCollected } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
+import { RawResourceType, ResourceType } from "../GameDefinitions";
+import { GameMapState } from "./GameMapState";
 
 export class MissionManagerProps extends ComponentProps {
     constructor(props?: Partial<MissionManagerProps>) {
@@ -14,7 +16,8 @@ export class MissionManagerProps extends ComponentProps {
 
 enum MissionStep {
     SelectUnit,
-    SelectStone
+    CollectResource,
+    DepositResource
 }
 
 export class MissionManager extends Component<MissionManagerProps> {
@@ -29,12 +32,14 @@ export class MissionManager extends Component<MissionManagerProps> {
     override start(_owner: Object3D) {
         this.onSelection = this.onSelection.bind(this);
         cmdSetSelectedElems.attach(this.onSelection);
-        evtGameMapUIMounted.attach(this.onGameMapUIMounted);
+        this.onGameMapUIMounted = this.onGameMapUIMounted.bind(this);
+        evtGameMapUIMounted.once(this.onGameMapUIMounted);
+        this.onResourceCollected = this.onResourceCollected.bind(this);
+        evtResourceCollected.once(this.onResourceCollected);
     }
 
     override dispose(_owner: Object3D) {
         cmdSetSelectedElems.detach(this.onSelection);
-        evtGameMapUIMounted.detach(this.onGameMapUIMounted);
     }
 
     override update(_owner: Object3D) {
@@ -44,14 +49,17 @@ export class MissionManager extends Component<MissionManagerProps> {
         switch (this._step) {
             case MissionStep.SelectUnit: {
                 if (selectedElem?.type === "units") {
-                    this._step = MissionStep.SelectStone;
+                    this._step = MissionStep.CollectResource;
                     cmdSetIndicator.post({
                         indicator: {
                             type: "cell",
                             mapCoords: new Vector2(33, 119)
                         },
-                        control: "Right click",
-                        icon: "mouse-right"
+                        props: {
+                            action: "Collect Resource",
+                            control: "Right click",
+                            icon: "mouse-right"
+                        }                        
                     });
                 }
             }
@@ -65,8 +73,32 @@ export class MissionManager extends Component<MissionManagerProps> {
                 type: "unit",
                 unit: unitsManager.units[0]
             },
-            control: "Left click",
-            icon: "mouse-left"
+            props: {
+                action: "Select Worker",
+                control: "Left click",
+                icon: "mouse-left"
+            }
+        });
+    }
+
+    private onResourceCollected(resource: RawResourceType | ResourceType) {       
+        console.assert(resource === "stone");
+        console.assert(this._step === MissionStep.CollectResource);
+        this._step = MissionStep.DepositResource;
+
+        const { depotsCache } = GameMapState.instance;
+        const depots = Array.from(depotsCache.values());
+        const depot = depots[0][0];
+        cmdSetIndicator.post({
+            indicator: {
+                type: "building",
+                building: depot
+            },
+            props: {
+                action: "Deposit Resource",
+                control: "Right click",
+                icon: "mouse-right"
+            }
         });
     }
 }

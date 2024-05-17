@@ -8,7 +8,6 @@ import { config } from "../config/config";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
-import { GameMapProps } from "./GameMapProps";
 
 const root = () => engine.scene!;
 

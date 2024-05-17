@@ -1,5 +1,5 @@
 import { AsyncEvent, SyncEvent } from "ts-events";
-import { UIType, UnitType } from "./game/GameDefinitions";
+import { RawResourceType, ResourceType, UIType, UnitType } from "./game/GameDefinitions";
 import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/IUnit";
@@ -72,11 +72,16 @@ interface ICellIndicator {
 }
 
 export type IndicatorType = IBuildingIndicator | IUnitIndicator | ICellIndicator;
-export interface SetIndicatorEvent {
-    indicator: IndicatorType;
+export interface IndicatorProps {
+    action: string;
     control: string;
     icon: string;
 }
 
-export const cmdSetIndicator = new AsyncEvent<SetIndicatorEvent | null>();
+export interface SetIndicatorEvent {
+    indicator: IndicatorType;
+    props: IndicatorProps;    
+}
 
+export const cmdSetIndicator = new AsyncEvent<SetIndicatorEvent | null>();
+export const evtResourceCollected = new AsyncEvent<RawResourceType | ResourceType>();
