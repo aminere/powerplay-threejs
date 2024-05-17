@@ -83,15 +83,18 @@ export class GameMapState {
 
     public get action() { return this._action; }
     public set action(value: Action | null) {
-        const previousAction = this._action;
         this._action = value;
         if (!value) {
             this.tileSelector.visible = false;
             this.tileSelector.resolution = 1;
-            switch (previousAction) {
-                case "building": {
-                    depots.highlightDepotRanges(false);
+            depots.highlightDepotRanges(false);
+        } else {
+            switch (value) {
+                case "building":
+                case "conveyor": {
+                    depots.highlightDepotRanges(true);
                 }
+                break;
             }
         }
     }

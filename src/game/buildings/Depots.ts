@@ -271,7 +271,7 @@ class Depots {
         return depots;
     }
 
-    public testDepots(depots: IBuildingInstance[], buildingType: BuildableType) {
+    public testDepots(depots: IBuildingInstance[], buildingType: BuildableType, showError = true) {
 
         const { depotsCache } = GameMapState.instance;
         if (buildingType === "depot") {            
@@ -282,12 +282,12 @@ class Depots {
         }
 
         if (depots.length === 0) {
-            evtBuildError.post(`${buildingType} must be built near depots`);
-            this.highlightDepotRanges(true);
+            if (showError) {
+                evtBuildError.post(`${buildingType} must be built near depots`);
+            }            
             return false;
         }
 
-        this.highlightDepotRanges(false);
         const { buildCost } = buildingConfig[buildingType];
         const validDepots = new Map<ResourceType | RawResourceType, IBuildingInstance>();
 
@@ -305,7 +305,9 @@ class Depots {
 
         if (validDepots.size < buildCost.length) {
             const requirements = buildCost.map(([type, amount]) => `${amount} ${type}`).join(" + ");
-            evtBuildError.post(`Not enough resources in nearby depots to build ${buildingType}. (Requires ${requirements})`);
+            if (showError) {
+                evtBuildError.post(`Not enough resources in nearby depots to build ${buildingType}. (Requires ${requirements})`);
+            }
             return false;
         }
         return true;
@@ -315,11 +317,11 @@ class Depots {
         const { buildCost } = buildingConfig[buildingType];
         const { flyingItems } = GameMapState.instance.layers;
         for (const [type, amount] of buildCost) {
-            const depot = depots.find(d => {
-                const state = d.state as IDepotState;
-                return state.output === type;
-            })!;
+            const depot = depots.find(depot => this.hasResource(depot, type, amount))!;            
             console.assert(depot);
+            if (!depot) {
+                continue;
+            }
 
             this.removeResource(depot, type, amount);
             

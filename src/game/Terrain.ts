@@ -306,7 +306,7 @@ class Terrain {
                         // vec4 highlightColor = yColor;
 
                         vec4 highlightColor = texture2D(highlightTexture, vec2(cx, cy));
-                        diffuseColor.rgb *= highlightColor.rgb;
+                        diffuseColor.rgb = mix(diffuseColor.rgb, highlightColor.rgb, .2);
     
                         if (showGrid) {
                             vec4 gridColor = texture2D(gridTexture, vec2(localUVx, localUVy));

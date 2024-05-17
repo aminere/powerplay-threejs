@@ -7,6 +7,7 @@ import { spiralFind } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
 import { MeleeDefendState } from "./MeleeDefendState";
+import { unitConfig } from "../../config/UnitConfig";
 
 enum NpcStep {
     Idle,
@@ -16,7 +17,6 @@ enum NpcStep {
 
 const vision = 4;
 const hitFrequency = .5;
-const damage = .1;
 
 export class NPCState extends State<ICharacterUnit> {
 
@@ -62,6 +62,7 @@ export class NPCState extends State<ICharacterUnit> {
 
                     UnitUtils.rotateToTarget(unit, target!);
                     if (this._hitTimer < 0) {
+                        const damage = unitConfig[unit.type].damage;
                         target!.setHitpoints(target!.hitpoints - damage);
 
                         if (target!.isAlive && UnitUtils.isWorker(target!)) {

@@ -13,9 +13,9 @@ import { serialization } from "../../../engine/serialization/Serialization";
 import { Component } from "../../../engine/ecs/Component";
 import { ComponentProps } from "../../../engine/ecs/ComponentProps";
 import { engineState } from "../../../engine/EngineState";
+import { unitConfig } from "../../config/UnitConfig";
 
 const shootRange = 10;
-const damage = .3;
 const splashRadius = 1;
 const attackDelay = .5;
 const attackFrequency = 1;
@@ -104,6 +104,7 @@ export class TankState extends State<ICharacterUnit> {
                                     if (units) {
                                         for (const unit of units) {
                                             if (UnitUtils.isEnemy(unit)) {
+                                                const damage = unitConfig[unit.type].damage;
                                                 unit.setHitpoints(unit!.hitpoints - damage);
                                             }
                                         }

@@ -302,9 +302,29 @@ export function onEndDrag() {
             const dirX = parseInt(_dirX);
             const dirY = parseInt(_dirY);
             const endAxis = _endAxis === "none" ? undefined : (_endAxis as Axis);
-            const cell = GameUtils.getCell(previousConveyors[i])!;
+            const cell = GameUtils.getCell(previousConveyors[i], sectorCoords, localCoords)!;
             const direction = cellCoords.set(dirX, dirY);
-            conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
+
+            const buildingType = "conveyor";
+            let depotsInRange: IBuildingInstance[] | null = null;
+            const allowed = (() => {
+                if (!GameMapProps.instance.debugFreeCosts) {                    
+                    depotsInRange = depots.getDepotsInRange(sectorCoords, localCoords, buildingType);
+                    if (!depots.testDepots(depotsInRange, buildingType, false)) {
+                        return false;
+                    }
+                }
+                return true;
+            })();
+            if (allowed) {
+                if (depotsInRange) {
+                    depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
+                }
+                conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
+            } else {
+                conveyors.clearLooseCorners(previousConveyors[i]);
+                break;
+            }           
         }        
         conveyors.clearPreview();
         gameMapState.previousConveyors.length = 0;
@@ -557,7 +577,7 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 
                 cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
                 depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
-            }            
+            }
 
             conveyors.createAndFit(cell, cellCoords);
             return true;

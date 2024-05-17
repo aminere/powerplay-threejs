@@ -5,9 +5,9 @@ import { IUnit } from "../IUnit";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
+import { unitConfig } from "../../config/UnitConfig";
 
 const hitFrequency = .5;
-const damage = .1;
 
 export class MeleeDefendState extends State<ICharacterUnit> {
 
@@ -28,6 +28,7 @@ export class MeleeDefendState extends State<ICharacterUnit> {
             } else {
                 UnitUtils.rotateToTarget(unit, target!);
                 if (this._hitTimer < 0) {
+                    const damage = unitConfig[unit.type].damage;
                     target!.setHitpoints(target!.hitpoints - damage);
                     this._hitTimer = hitFrequency;
                 } else {

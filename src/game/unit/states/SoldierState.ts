@@ -5,10 +5,10 @@ import { unitAnimation } from "../UnitAnimation";
 import { UnitSearch } from "../UnitSearch";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
+import { unitConfig } from "../../config/UnitConfig";
 
 const shootRange = 4;
 const hitFrequency = .5;
-const damage = .1;
 
 export class SoldierState extends State<ICharacterUnit> {
 
@@ -43,6 +43,8 @@ export class SoldierState extends State<ICharacterUnit> {
                         UnitUtils.rotateToTarget(unit, target!);
                         // attack
                         if (this._hitTimer < 0) {
+                            const ak47DamageFactor = 2;
+                            const damage = unitConfig[unit.type].damage * ak47DamageFactor;
                             target!.setHitpoints(target!.hitpoints - damage);
                             this._hitTimer = hitFrequency;
                         } else {

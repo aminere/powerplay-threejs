@@ -8,6 +8,7 @@ import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { UnitUtils } from "../UnitUtils";
+import { unitConfig } from "../../config/UnitConfig";
 
 enum NpcStep {
     Idle,
@@ -116,7 +117,8 @@ export class ArcherNPCState extends State<IUnit> {
                                             arrow!.tween = null;
                                             arrow!.obj.removeFromParent();
                                             if (this._target?.isAlive) {
-                                                this._target.setHitpoints(this._target.hitpoints - 0.5);
+                                                const damage = unitConfig[unit.type].damage;
+                                                this._target.setHitpoints(this._target.hitpoints - damage);
                                             }
                                         }
                                     });                                    
