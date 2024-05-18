@@ -8,6 +8,7 @@ import { IndicatorProps, SetIndicatorEvent, cmdSetIndicator } from "../../Events
 import { uiconfig } from "./uiconfig";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { buildingConfig } from "../config/BuildingConfig";
+import { InlineIcon } from "./InlineIcon";
 
 const screenPos = new Vector3();
 const { unitScale, cellSize } = config.game;
@@ -20,59 +21,50 @@ interface WorldIndicatorProps {
 function WorldIndicator(props: WorldIndicatorProps) {
     const camera = GameMapState.instance.camera;
     GameUtils.worldToScreen(props.worldPos, camera, screenPos);
-    const { action, control, icon } = props.props;
+    const { action, actionIcon, control, icon } = props.props;
     return <div
         className="float"
         style={{
             position: "absolute",
             left: `${screenPos.x}px`,
             top: `${screenPos.y}px`,
+            minWidth: "max-content",
+            pointerEvents: "none",
         }}>
-        <div style={{
-            position: "relative",
-        }}>
-            <img
-                style={{
-                    height: "3rem",
-                    transform: "translateX(-50%) translateY(-3rem)",
-                }}
-                src="/images/arrows.png"
-            />
+        <img
+            style={{
+                height: "3rem",
+                transform: "translateX(-50%) translateY(-3rem)",
+            }}
+            src="/images/arrows.png"
+        />
 
+        <div style={{
+            transform: "translateX(-50%) translateY(-11rem)",
+            display: "flex",
+            gap: `${uiconfig.gapRem}rem`,
+        }}>
             <div style={{
-                transform: "translateX(-50%) translateY(-11rem)",
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
                 display: "flex",
-                gap: `${uiconfig.gapRem}rem`,
+                gap: ".5rem",
+                alignItems: "flex-end"
             }}>
-                <div style={{
-                    padding: `${uiconfig.paddingRem}rem`,
-                    backgroundColor: `${uiconfig.backgroundColor}`,
-                    display: "flex",                    
-                    alignItems: "center",
-                    justifyContent: "center"
-                }}>
-                    {action}     
-                </div>
-                <div style={{
-                    position: "relative",
-                    padding: `${uiconfig.paddingRem}rem`,
-                    backgroundColor: `${uiconfig.backgroundColor}`,
-                    display: "flex",
-                    gap: "1rem",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}>
-                    <div>{control}</div>
-                    <img
-                        style={{
-                            height: "3rem",
-                        }}
-                        src={`/images/${icon}.png`}
-                    />                    
-                </div>                
+                {action} {actionIcon && <InlineIcon name={actionIcon} />}
+            </div>
+            <div style={{
+                position: "relative",
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
+                display: "flex",
+                gap: ".5rem",
+                alignItems: "flex-end"
+            }}>
+                {control}
+                <InlineIcon name={icon} />
             </div>
         </div>
-
     </div>
 }
 
@@ -111,20 +103,12 @@ export function Indicators() {
 
     }, []);
 
-    return <div
-        style={{
-            position: "absolute",
-            left: "0",
-            top: "0",
-            width: "100%",
-            height: "100%",
-        }}
-    >
+    return <>
         {(() => {
             if (!indicator) {
                 return null;
             }
-            
+
             const { indicator: _indicator, props } = indicator;
             switch (_indicator.type) {
                 case "unit": return <UnitIndicator unit={_indicator.unit} props={props} />;
@@ -132,6 +116,6 @@ export function Indicators() {
                 case "building": return <BuildingIndicator building={_indicator.building} props={props} />;
             }
         })()}
-    </div>
+    </>
 }
 

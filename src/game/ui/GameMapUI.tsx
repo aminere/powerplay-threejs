@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
-import styles from './GameMapUI.module.css';
 import { IGameUIProps } from "./GameUIProps";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
@@ -22,29 +20,6 @@ import { AssemblyOutputPanel } from "./AssemblyOutputPanel";
 import { DepotOutputPanel } from "./DepotOutputPanel";
 import { ObjectivesPanel } from "./ObjectivePanel";
 import { Indicators } from "./Indicators";
-
-
-function InGameUI({ children }: { children: React.ReactNode }) {
-    return <div
-        style={{ pointerEvents: "all" }}
-        onPointerEnter={() => {
-            const state = GameMapState.instance;
-            if (!state) {
-                return;
-            }
-            state.cursorOverUI = true;
-        }}
-        onPointerLeave={() => {
-            const state = GameMapState.instance;
-            if (!state) {
-                return;
-            }
-            state.cursorOverUI = false
-        }}
-    >
-        {children}
-    </div>
-}
 
 export function GameMapUI(_props: IGameUIProps) {
     // useEffect(() => {
@@ -190,125 +165,143 @@ export function GameMapUI(_props: IGameUIProps) {
         }
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);           
+            cmdSetSelectedElems.detach(onSelectedElems);
         }
-    }, []);    
+    }, []);
 
     useEffect(() => {
         evtGameMapUIMounted.post();
     }, []);
 
-    return <div className={styles.root}>
-        <InGameUI>
-            <ObjectivesPanel />
+    return <div
+        style={{
+            textShadow: "1px 1px 0px black",
+            textTransform: "uppercase"
+        }}
+        onPointerEnter={() => {
+            const state = GameMapState.instance;
+            if (!state) {
+                return;
+            }
+            state.cursorOverUI = true;
+        }}
+        onPointerLeave={() => {
+            const state = GameMapState.instance;
+            if (!state) {
+                return;
+            }
+            state.cursorOverUI = false
+        }}
+    >
 
-            {/* <div
-                style={{
-                    position: "absolute",
-                    padding: `${uiconfig.paddingRem}rem`,
-                    backgroundColor: `${uiconfig.backgroundColor}`,
-                    left: "0px",
-                    top: "50%",
-                    transform: "translateY(calc(-50% + .5px))",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: `${uiconfig.gapRem}rem`,
-                }}
-            >
-                <ActionSection
-                    name="build"
-                    actions={BuildingTypes}
-                    open={openSection === "build"}
-                    onSelected={action => {
-                        const buildingType = action as BuildingType;
-                        GameMapProps.instance.buildingType = buildingType;
-                        const size = buildingConfig[buildingType].size;
-                        const gameMapState = GameMapState.instance;
-                        gameMapState.action = "building";
-                        gameMapState.tileSelector.mode = "select";
-                        gameMapState.tileSelector.setSize(size.x, size.z);
-                        gameMapState.tileSelector.setBuilding(buildingType);
-                    }}
-                    onOpen={() => setOpenSection("build")}
-                    onClose={() => setOpenSection(null)}
-                />
-                <ActionSection
-                    name="transport"
-                    actions={TransportActions}
-                    open={openSection === "transport"}
-                    onSelected={action => {
-                        const transportType = action as TransportAction;
-                        const gameMapState = GameMapState.instance;
-                        gameMapState.action = transportType;
-                        gameMapState.tileSelector.mode = "select";
-                        if (transportType === "road") {
-                            const { cellsPerRoadBlock } = config.game;
-                            gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-                            gameMapState.tileSelector.resolution = cellsPerRoadBlock;
-                        } else {
-                            gameMapState.tileSelector.setSize(1, 1);
-                            gameMapState.tileSelector.resolution = 1;
-                        }
-                    }}
-                    onOpen={() => setOpenSection("transport")}
-                    onClose={() => setOpenSection(null)}
-                />                
-            </div> */}
+        <ObjectivesPanel />
 
-            {/* <div style={{
+        <div
+            style={{
                 position: "absolute",
-                bottom: "0px",                
-                left: "470px",
-                height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
+                left: "0px",
+                top: "50%",
+                transform: "translateY(calc(-50% + .5px))",
                 display: "flex",
-                gap: `${uiconfig.paddingRem}rem`,
-            }}>
-                <SelectionPanel selectedElems={selectedElems} />
-                <ActionsPanel
-                    factoryOutputsOpen={showFactoryOutputs}
-                    assemblyOutputsOpen={showAssemblyOutputs}
-                    depotOutputsOpen={showDepotOutputs}
-                    onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
-                    onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
-                    onShowDepotOutputs={() => setShowDepotOutputs(prev => !prev)}
-                >
-                    <FactoryOutputPanel
-                        open={showFactoryOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowFactoryOutputs(false)}
-                    />
-                    <AssemblyOutputPanel
-                        open={showAssemblyOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowAssemblyOutputs(false)}
-                    />
-                    <DepotOutputPanel
-                        open={showDepotOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowDepotOutputs(false)}
-                    />
-                </ActionsPanel>
-            </div> */}
-
-            <div
-                ref={errorRef}
-                style={{
-                    position: "absolute",
-                    bottom: "240px",
-                    left: "1rem",
-                    color: "red",
-                    opacity: 0
+                flexDirection: "column",
+                gap: `${uiconfig.gapRem}rem`,
+            }}
+        >
+            <ActionSection
+                name="build"
+                actions={BuildingTypes}
+                open={openSection === "build"}
+                onSelected={action => {
+                    const buildingType = action as BuildingType;
+                    GameMapProps.instance.buildingType = buildingType;
+                    const size = buildingConfig[buildingType].size;
+                    const gameMapState = GameMapState.instance;
+                    gameMapState.action = "building";
+                    gameMapState.tileSelector.mode = "select";
+                    gameMapState.tileSelector.setSize(size.x, size.z);
+                    gameMapState.tileSelector.setBuilding(buildingType);
                 }}
+                onOpen={() => setOpenSection("build")}
+                onClose={() => setOpenSection(null)}
+            />
+            <ActionSection
+                name="transport"
+                actions={TransportActions}
+                open={openSection === "transport"}
+                onSelected={action => {
+                    const transportType = action as TransportAction;
+                    const gameMapState = GameMapState.instance;
+                    gameMapState.action = transportType;
+                    gameMapState.tileSelector.mode = "select";
+                    if (transportType === "road") {
+                        const { cellsPerRoadBlock } = config.game;
+                        gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
+                        gameMapState.tileSelector.resolution = cellsPerRoadBlock;
+                    } else {
+                        gameMapState.tileSelector.setSize(1, 1);
+                        gameMapState.tileSelector.resolution = 1;
+                    }
+                }}
+                onOpen={() => setOpenSection("transport")}
+                onClose={() => setOpenSection(null)}
+            />
+        </div>
+
+        <div style={{
+            position: "absolute",
+            bottom: "0px",
+            left: "470px",
+            height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
+            display: "flex",
+            gap: `${uiconfig.paddingRem}rem`,
+        }}>
+            <SelectionPanel selectedElems={selectedElems} />
+            <ActionsPanel
+                factoryOutputsOpen={showFactoryOutputs}
+                assemblyOutputsOpen={showAssemblyOutputs}
+                depotOutputsOpen={showDepotOutputs}
+                onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
+                onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
+                onShowDepotOutputs={() => setShowDepotOutputs(prev => !prev)}
             >
-                {error ?? ""}
-            </div>
-        </InGameUI>
+                <FactoryOutputPanel
+                    open={showFactoryOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowFactoryOutputs(false)}
+                />
+                <AssemblyOutputPanel
+                    open={showAssemblyOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowAssemblyOutputs(false)}
+                />
+                <DepotOutputPanel
+                    open={showDepotOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowDepotOutputs(false)}
+                />
+            </ActionsPanel>
+        </div>
+
+        <div
+            ref={errorRef}
+            style={{
+                position: "absolute",
+                bottom: "240px",
+                left: "1rem",
+                color: "red",
+                opacity: 0
+            }}
+        >
+            {error ?? ""}
+        </div>
 
         <HealthBars />
         <Indicators />
         <SelectionRect />
-        
-        {/* <Minimap /> */}
+
+        <Minimap />
     </div>
 }
 

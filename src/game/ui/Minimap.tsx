@@ -273,8 +273,6 @@ export function Minimap() {
                 border: "1px solid white",
                 pointerEvents: "all"
             }}
-            onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
-            onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
             onPointerDown={e => {
                 const cameraCanvas = cameraRef.current!;
                 const size = cameraCanvas.width;

@@ -74,6 +74,7 @@ interface ICellIndicator {
 export type IndicatorType = IBuildingIndicator | IUnitIndicator | ICellIndicator;
 export interface IndicatorProps {
     action: string;
+    actionIcon?: string;
     control: string;
     icon: string;
 }

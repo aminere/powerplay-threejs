@@ -13,8 +13,6 @@ export function DebugUI() {
             top: ".5rem",
             right: ".5rem",
         }}
-        onPointerEnter={() => GameMapState.instance.cursorOverUI = true}
-        onPointerLeave={() => GameMapState.instance.cursorOverUI = false}
     >
         {Actions.map((_action, i) => {
             return <button

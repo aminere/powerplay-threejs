@@ -1,3 +1,4 @@
+
 img {
     max-width: 100%;
     max-height: 100%;
@@ -8,8 +9,13 @@ img {
 }
 
 @keyframes item-full-anim {
-    0% { outline-color: red; }
-    100% { outline-color: transparent; }
+    0% {
+        outline-color: red;
+    }
+
+    100% {
+        outline-color: transparent;
+    }
 }
 
 .item-full {
@@ -31,17 +37,43 @@ img {
 }
 
 @keyframes item-auto-output-anim {
-    from { stroke-dashoffset: 0; }
-    to { stroke-dashoffset: 1000; }
+    from {
+        stroke-dashoffset: 0;
+    }
+
+    to {
+        stroke-dashoffset: 1000;
+    }
 }
 
 @keyframes float-anim {
-	0% { transform: translatey(0px); }
-	50% { transform: translatey(-20px); }
-	100% { transform: translatey(0px); }
+    0% {
+        transform: translatey(0px);
+    }
+
+    50% {
+        transform: translatey(-20px);
+    }
+
+    100% {
+        transform: translatey(0px);
+    }
 }
 
 .float {
     animation: float-anim 3s infinite;
+}
+
+@keyframes highlight-anim {
+    0% {
+        background: yellow
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+.highlight {
+    animation: highlight-anim 1s;
 }
 

@@ -56,7 +56,8 @@ export class MissionManager extends Component<MissionManagerProps> {
                             mapCoords: new Vector2(33, 119)
                         },
                         props: {
-                            action: "Collect Resource",
+                            action: "Collect stone",
+                            actionIcon: "stone",
                             control: "Right click",
                             icon: "mouse-right"
                         }                        
@@ -75,6 +76,7 @@ export class MissionManager extends Component<MissionManagerProps> {
             },
             props: {
                 action: "Select Worker",
+                actionIcon: "worker",
                 control: "Left click",
                 icon: "mouse-left"
             }

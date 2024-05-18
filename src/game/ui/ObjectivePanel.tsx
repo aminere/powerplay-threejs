@@ -1,16 +1,5 @@
-import React from "react"
-import { Icon } from "./Icon"
+import { InlineIcon } from "./InlineIcon"
 import { uiconfig } from "./uiconfig"
-
-function InlineIcon({ children}: React.PropsWithChildren<{}>) {
-    return <div style={{
-        display: "inline-block",
-        transform: "translateY(8px)",
-        height: "2rem"
-    }}>
-        {children}
-    </div>
-}
 
 export function ObjectivesPanel() {
     return <div style={{
@@ -18,8 +7,11 @@ export function ObjectivesPanel() {
         padding: `${uiconfig.paddingRem}rem`,
         backgroundColor: `${uiconfig.backgroundColor}`,
         left: "0px",
-        top: "25%"
+        top: "25%",
+        display: "flex",
+        alignItems: "flex-end",
+        gap: ".5rem",
     }}>
-        OBJECTIVE: Collect stone <InlineIcon><Icon name="stone"  /></InlineIcon> (1 / 5)
+        OBJECTIVE: Collect stone <InlineIcon name="stone"/> (1 / 5)
     </div>
 }

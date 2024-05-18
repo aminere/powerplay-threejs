@@ -136,7 +136,8 @@ export function HealthBars() {
             top: "0",
             width: "100%",
             height: "100%",
-            imageRendering: "pixelated"
+            imageRendering: "pixelated",
+            pointerEvents: "none"
         }}
         width={width}
         height={height}
