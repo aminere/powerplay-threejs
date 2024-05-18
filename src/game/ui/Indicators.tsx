@@ -93,14 +93,10 @@ export function Indicators() {
     const [indicator, setIndicator] = useState<SetIndicatorEvent | null>();
 
     useEffect(() => {
-        const _setIndicator = (indicator: SetIndicatorEvent | null) => {
-            setIndicator(indicator);
-        };
-        cmdSetIndicator.attach(_setIndicator);
+        cmdSetIndicator.attach(setIndicator);
         return () => {
-            cmdSetIndicator.detach(_setIndicator);
+            cmdSetIndicator.detach(setIndicator);
         }
-
     }, []);
 
     return <>

@@ -68,6 +68,20 @@ export class GameMapState {
         resourceAmount: number;
     }>();
     
+    public enabled = {
+        minimap: false,
+        sideActions: {
+            self: false,
+            enabled: {
+                building: false,
+                transport: false
+            }
+        },
+        bottomPanels: false,
+        actionPanel: false,
+        cameraPan: false
+    };
+
     public debug = {
         path: new PathViewer(),
         selectedElem: new PathViewer()

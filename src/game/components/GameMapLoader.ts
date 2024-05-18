@@ -18,7 +18,7 @@ import { conveyorItems } from "../ConveyorItems";
 import { trees } from "../Trees";
 import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
-import { cmdFogAddCircle, cmdHideUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
+import { cmdFogAddCircle, cmdRotateMinimap, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
@@ -294,7 +294,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         document.removeEventListener("keyup", this.onKeyUp);
         document.removeEventListener("keydown", this.onKeyDown);
-        cmdHideUI.post("gamemap");
+        cmdShowUI.post(null);
 
         conveyors.dispose();
         conveyorItems.dispose();

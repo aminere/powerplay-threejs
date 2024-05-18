@@ -3,7 +3,7 @@ import { GameUtils } from "./GameUtils";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { elevation } from "./Elevation";
-import { MineralType, MineralTypes, RawResourceType } from "./GameDefinitions";
+import { MineralType, MineralTypes } from "./GameDefinitions";
 import { Axis, ICell } from "./GameTypes";
 import { roads } from "./Roads";
 import { Rails } from "./Rails";
@@ -223,9 +223,8 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "resource": {
-            const { resourceType } = GameMapProps.instance;
             const cell = GameUtils.getCell(current, sectorCoords, localCoords)!;
-            onResource(sectorCoords, localCoords, cell, 0, resourceType);
+            onResource(sectorCoords, localCoords, cell, 0);
         }
         break;
     }
@@ -518,7 +517,20 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     }
 }
 
-function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number, type: RawResourceType) {
+function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
+
+    const type = (() => {
+        if (button === 0) {
+            return  GameMapProps.instance.resourceType;
+        } else {
+            return cell.resource?.type;
+        }
+    })();
+
+    if (!type) {
+        return;
+    }
+
     switch (type) {
         case "oil": {
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
@@ -659,7 +671,6 @@ export function setCameraPos(pos: Vector3) {
 
 export function onAction(touchButton: number) {
     const state = GameMapState.instance;
-    const props = GameMapProps.instance;
 
     const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
     if (!cell) {
@@ -711,7 +722,7 @@ export function onAction(touchButton: number) {
                 break;
 
             case "resource": {
-                onResource(sectorCoords, localCoords, cell, touchButton, props.resourceType);
+                onResource(sectorCoords, localCoords, cell, touchButton);
             }
                 break;
 
@@ -741,7 +752,7 @@ export function onAction(touchButton: number) {
             case "unit": {
                 if (touchButton === 0) {
                     if (cell.isEmpty) {
-                        unitsManager.spawn(mapCoords, props.unit);
+                        unitsManager.spawn(mapCoords,  GameMapProps.instance.unit);
                     }
                 } else if (touchButton === 2) {
                     if (cell.units) {

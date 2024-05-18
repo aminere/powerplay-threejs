@@ -5,8 +5,7 @@ import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/IUnit";
 import { ICell } from "./game/GameTypes";
 
-export const cmdShowUI = new AsyncEvent<UIType>();
-export const cmdHideUI = new SyncEvent<UIType>();
+export const cmdShowUI = new AsyncEvent<UIType | null>();
 
 interface IBuildingSelection {
     type: "building";
@@ -85,4 +84,12 @@ export interface SetIndicatorEvent {
 }
 
 export const cmdSetIndicator = new AsyncEvent<SetIndicatorEvent | null>();
-export const evtResourceCollected = new AsyncEvent<RawResourceType | ResourceType>();
+
+export interface SetObjectiveEvent {
+    objective: string;
+    icon?: string;
+}
+
+export const cmdSetObjective = new AsyncEvent<SetObjectiveEvent | null>();
+export const cmdSetObjectiveStatus = new AsyncEvent<string>();
+
