@@ -5,7 +5,7 @@ import { Action } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
-import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { BuildableType, BuildableTypes, BuildingType, IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
 
@@ -73,8 +73,15 @@ export class GameMapState {
         sideActions: {
             self: false,
             enabled: {
-                building: false,
-                transport: false
+                build: {
+                    self: false,
+                    enabled: BuildableTypes.reduce((prev, cur) => {
+                        return {
+                            ...prev,
+                            [cur]: false
+                        }
+                    }, {} as Record<BuildableType, boolean>)
+                }                
             }
         },
         bottomPanels: false,
@@ -104,14 +111,7 @@ export class GameMapState {
             depots.highlightDepotRanges(false);
         } else {
             switch (value) {
-                case "building":
-                case "conveyor": {
-                    // const buildableType = (() => {
-                    //     if (value === "building") {
-                    //         return GameMapProps.instance.buildingType;
-                    //     }
-                    //     return value;
-                    // })();
+                case "building": {                    
                     depots.highlightDepotRanges(true);
                 }
                 break;

@@ -68,7 +68,7 @@ export function Indicators() {
             switch (_indicator.type) {
                 case "unit": return <UnitIndicator unit={_indicator.unit} props={props} />;
                 case "cell": return <CellIndicator cellCoords={_indicator.mapCoords} props={props} />;
-                case "building": return <BuildingIndicator building={_indicator.building} props={props} />;
+                case "build": return <BuildingIndicator building={_indicator.building} props={props} />;
                 case "ui": return <UIIndicator element={_indicator.element} />;
             }
         })()}

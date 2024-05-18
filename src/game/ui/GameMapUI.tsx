@@ -6,7 +6,7 @@ import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
 import { BuildableType, BuildableTypes, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
+import { SelectedElems, cmdRefreshUI, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -148,10 +148,17 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
+    const [, setTimestamp] = useState(Date.now());
     useEffect(() => {
+        const onRefresh = () => {
+            setTimestamp(Date.now());
+        }
         evtGameMapUIMounted.post();
+        cmdRefreshUI.attach(onRefresh);
+        return () => {
+            cmdRefreshUI.detach(onRefresh);
+        }
     }, []);
-
 
     const gameMapState = GameMapState.instance;
     return <div
