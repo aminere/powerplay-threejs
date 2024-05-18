@@ -144,13 +144,12 @@ export class GameMapUpdate extends Component<ComponentProps> {
     }
 
     private checkCameraPan(xNorm: number, yNorm: number) {
-
-        const disabled = true;
-        if (disabled) {
+        
+        const state = GameMapState.instance;
+        if (!state.enabled.cameraPan) {
             return;
         }
 
-        const state = GameMapState.instance;
         if (state.selectionInProgress) {
             return;
         }

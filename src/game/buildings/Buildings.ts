@@ -1,7 +1,7 @@
 import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
-import { cmdFogAddCircle, cmdFogRemoveCircle } from "../../Events";
+import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
 import { BuildingType, BuildingTypes, IBuildingInstance, IMineState } from "./BuildingTypes";
@@ -146,6 +146,7 @@ class Buildings {
         layers.buildings.add(visual);
         cellCoords.set(mapCoords.x + Math.round(size.x / 2), mapCoords.y + Math.round(size.z / 2));
         cmdFogAddCircle.post({ mapCoords: cellCoords, radius: 20 });
+        evtBuildingCreated.post(buildingInstance);
         return buildingInstance;
     }
 

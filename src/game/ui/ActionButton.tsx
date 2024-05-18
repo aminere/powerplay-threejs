@@ -1,7 +1,10 @@
+import { evtActionClicked } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import React from "react";
 
 interface ActionButtonProps {
+    id?: string;
+    visible?: boolean;
     onClick: () => void;
     onContextMenu?: () => void;
     selected?: boolean;
@@ -11,12 +14,13 @@ interface ActionButtonProps {
 
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
     return <div
+        id={props.id}
         className={`icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
             width: `${uiconfig.buttonSizeRem}rem`,
-            display: "flex",
+            display: props.visible ? "flex" : "none",
             alignItems: "center",
             justifyContent: "center",
             textAlign: "center",
@@ -36,6 +40,10 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         onClick={e => {
             e.stopPropagation();
             props.onClick();
+
+            if (props.id) {
+                evtActionClicked.post(props.id);
+            }
         }}
         onContextMenu={e => {
             e.stopPropagation();

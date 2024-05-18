@@ -9,6 +9,8 @@ interface IActionSectionProps {
     open: boolean;
     name: string;
     actions: readonly string[];
+    actionsVisible: Record<string, boolean>;
+    visible: boolean;
     onSelected: (action: string) => void;
     onOpen: () => void;
     onClose: () => void;
@@ -56,6 +58,8 @@ export function ActionSection(props: IActionSectionProps) {
     }, []);
 
     return <ActionButton
+        visible={props.visible}
+        id={props.name}
         selected={open}
         selectedColor="white"
         onClick={() => {
@@ -78,13 +82,15 @@ export function ActionSection(props: IActionSectionProps) {
                 left: `calc(${uiconfig.buttonSizeRem}rem + ${uiconfig.paddingRem}rem - ${uiconfig.selectedBorderSizePx}px)`,
                 flexDirection: "column",
                 gap: `${uiconfig.gapRem}rem`,
-                display: "none", //"flex",
+                display: "flex",
                 transform: "scaleY(0)",
                 opacity: 0,
             }}
         >
             {props.actions.map(_action => {
                 return <ActionButton
+                    id={_action}
+                    visible={props.actionsVisible[_action]}
                     key={_action}
                     selected={action === _action}
                     selectedColor="yellow"

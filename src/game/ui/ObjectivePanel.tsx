@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { InlineIcon } from "./InlineIcon"
 import { uiconfig } from "./uiconfig"
 import { SetObjectiveEvent, cmdSetObjective, cmdSetObjectiveStatus } from "../../Events";
@@ -10,12 +10,27 @@ export function ObjectivesPanel() {
 
     useEffect(() => {
         cmdSetObjective.attach(setObjective);
-        cmdSetObjectiveStatus.attach(setStatus);
+
+        const _setStatus = (status: string) => {
+            setStatus(status);
+            const elem = objectiveRef.current!;
+            if (elem) {
+                if (elem.classList.contains("highlight")) {
+                    elem.classList.remove("highlight");
+                    void elem.offsetWidth;
+                }
+                elem.classList.add("highlight");
+            }
+        }
+
+        cmdSetObjectiveStatus.attach(_setStatus);
         return () => {
             cmdSetObjective.detach(setObjective);
-            cmdSetObjectiveStatus.detach(setStatus);
+            cmdSetObjectiveStatus.detach(_setStatus);
         }
     }, []);
+
+    const objectiveRef = useRef<HTMLDivElement | null>(null);
 
     if (!objective) {
         return null;
@@ -36,16 +51,19 @@ export function ObjectivesPanel() {
         }}>
             OBJECTIVE
         </div>
-        <div style={{
-            padding: `${uiconfig.paddingRem}rem`,
-            backgroundColor: `${uiconfig.backgroundColor}`,
-            display: "flex",
-            alignItems: "flex-end",
-            gap: ".5rem",
-        }}>
+        <div
+            ref={objectiveRef}
+            style={{
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
+                display: "flex",
+                alignItems: "flex-end",
+                gap: ".5rem",
+            }}
+        >
             <span>{objective.objective}</span>
             {objective.icon && <InlineIcon name={objective.icon} />}
-            {status && <span>{status}</span>}
+            {status && <span>({status})</span>}
         </div>
     </div>
 }

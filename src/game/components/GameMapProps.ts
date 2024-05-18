@@ -3,7 +3,7 @@ import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { TArray } from "../../powerplay";
 import { Vector2 } from "three";
-import { type BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
+import { BuildableTypes, type BuildableType } from "../buildings/BuildingTypes";
 
 export class GameMapProps extends ComponentProps {
 
@@ -33,8 +33,8 @@ export class GameMapProps extends ComponentProps {
     @Attributes.enumOptions(RawResourceTypes)
     resourceType: RawResourceType = "wood";
 
-    @Attributes.enumOptions(BuildingTypes)
-    buildingType: BuildingType = "depot";
+    @Attributes.enumOptions(BuildableTypes)
+    buildableType: BuildableType = "depot";
 
     // @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
     // depotType: RawResourceType | ResourceType = "wood";

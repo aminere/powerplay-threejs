@@ -66,14 +66,14 @@ img {
 
 @keyframes highlight-anim {
     0% {
-        background: yellow
+        background: yellow;
     }
     100% {
-        background: transparent;
+        background: #373737b3;
     }
 }
 
 .highlight {
-    animation: highlight-anim 1s;
+    animation: highlight-anim .5s;
 }
 

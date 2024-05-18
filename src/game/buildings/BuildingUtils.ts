@@ -6,9 +6,12 @@ import { conveyorItems } from "../ConveyorItems";
 import { ICell } from "../GameTypes";
 import { IBuildingInstance } from "./BuildingTypes";
 import { buildingConfig } from "../config/BuildingConfig";
+import { config } from "../config/config";
 // import { config } from "../config";
 // import { resources } from "../Resources";
 
+const { itemSize } = config.conveyors;
+const halfItemSize = itemSize / 2;
 const cellCoords = new Vector2();
 // const sectorCoords = new Vector2();
 // const localCoords = new Vector2();
@@ -115,12 +118,16 @@ export class BuildingUtils {
                     for (let i = 0; i < cell.conveyor.items.length; i++) {
                         const item = cell.conveyor.items[i];
                         if (type === null) {
-                            itemToGet = i;
-                            break;
+                            if (item.localT >= 1 - halfItemSize - .01) {
+                                itemToGet = i;
+                                break;
+                            }                            
                         }
                         if (item.type === type) {
-                            itemToGet = i;
-                            break;
+                            if (item.localT >= 1 - halfItemSize - .01) {
+                                itemToGet = i;
+                                break;
+                            }
                         }
                     }
                     if (itemToGet >= 0) {

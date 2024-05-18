@@ -5,9 +5,7 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { TransportAction, TransportActions } from "../GameDefinitions";
-import { config } from "../config/config";
+import { BuildableType, BuildableTypes, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { SelectedElems, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
@@ -128,29 +126,9 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
-    const [openSection, setOpenSection] = useState<"build" | "transport" | "destroy" | null>(null);
+    const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
     useEffect(() => {
-        const gameMapState = GameMapState.instance;
-        if (openSection === "destroy") {
-            gameMapState.action = "destroy";
-            gameMapState.tileSelector.setSize(1, 1);
-            gameMapState.tileSelector.resolution = 1;
-            gameMapState.tileSelector.mode = "destroy";
-        } else {
-            gameMapState.action = null;
-        }
-
-        const onActionCleared = () => {
-            if (openSection === "destroy") {
-                setOpenSection(null);
-            }
-        }
-
-        evtActionCleared.attach(onActionCleared);
-        return () => {
-            evtActionCleared.detach(onActionCleared);
-        }
-
+        gameMapState.action = null;
     }, [openSection]);
 
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
@@ -199,62 +177,46 @@ export function GameMapUI(_props: IGameUIProps) {
 
         <ObjectivesPanel />
 
-        {
-            gameMapState.enabled.sideActions.self
-            &&
-            <div
-                style={{
-                    position: "absolute",
-                    padding: `${uiconfig.paddingRem}rem`,
-                    backgroundColor: `${uiconfig.backgroundColor}`,
-                    left: "0px",
-                    top: "50%",
-                    transform: "translateY(calc(-50% + .5px))",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: `${uiconfig.gapRem}rem`,
-                }}
-            >
-                <ActionSection
-                    name="build"
-                    actions={BuildingTypes}
-                    open={openSection === "build"}
-                    onSelected={action => {
-                        const buildingType = action as BuildingType;
-                        GameMapProps.instance.buildingType = buildingType;
-                        const size = buildingConfig[buildingType].size;
-                        const gameMapState = GameMapState.instance;
-                        gameMapState.action = "building";
-                        gameMapState.tileSelector.mode = "select";
+        <div
+            style={{
+                position: "absolute",
+                padding: `${uiconfig.paddingRem}rem`,
+                backgroundColor: `${uiconfig.backgroundColor}`,
+                left: "0px",
+                top: "50%",
+                transform: "translateY(calc(-50% + .5px))",
+                display: gameMapState.enabled.sideActions.self ? "flex" : "none",
+                flexDirection: "column",
+                gap: `${uiconfig.gapRem}rem`,
+            }}
+        >
+            <ActionSection
+                visible={gameMapState.enabled.sideActions.enabled.build.self}
+                name="build"
+                actions={BuildableTypes}
+                actionsVisible={gameMapState.enabled.sideActions.enabled.build.enabled}
+                open={openSection === "build"}
+                onSelected={action => {
+                    const type = action as BuildableType;
+                    GameMapProps.instance.buildableType = type;
+                    const gameMapState = GameMapState.instance;
+                    gameMapState.action = "building";
+                    gameMapState.tileSelector.mode = "select";
+                    const isBuilding = BuildingTypes.includes(type as BuildingType);
+                    if (isBuilding) {
+                        const size = buildingConfig[type].size;
                         gameMapState.tileSelector.setSize(size.x, size.z);
-                        gameMapState.tileSelector.setBuilding(buildingType);
-                    }}
-                    onOpen={() => setOpenSection("build")}
-                    onClose={() => setOpenSection(null)}
-                />
-                <ActionSection
-                    name="transport"
-                    actions={TransportActions}
-                    open={openSection === "transport"}
-                    onSelected={action => {
-                        const transportType = action as TransportAction;
-                        const gameMapState = GameMapState.instance;
-                        gameMapState.action = transportType;
-                        gameMapState.tileSelector.mode = "select";
-                        if (transportType === "road") {
-                            const { cellsPerRoadBlock } = config.game;
-                            gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-                            gameMapState.tileSelector.resolution = cellsPerRoadBlock;
-                        } else {
-                            gameMapState.tileSelector.setSize(1, 1);
-                            gameMapState.tileSelector.resolution = 1;
-                        }
-                    }}
-                    onOpen={() => setOpenSection("transport")}
-                    onClose={() => setOpenSection(null)}
-                />
-            </div>
-        }
+                        gameMapState.tileSelector.setBuilding(type as BuildingType);
+                    } else {
+                        gameMapState.tileSelector.setSize(1, 1);
+                        gameMapState.tileSelector.resolution = 1;
+                    }                    
+                }}
+                onOpen={() => setOpenSection("build")}
+                onClose={() => setOpenSection(null)}
+            />            
+        </div>
+
         {
             gameMapState.enabled.bottomPanels
             &&

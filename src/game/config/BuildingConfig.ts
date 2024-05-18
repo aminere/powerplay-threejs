@@ -16,7 +16,7 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
     },
     "factory": {
         size: new Vector3(5, 3, 4),
-        buildCost: [["stone", 10]],
+        buildCost: [["stone", 5]],
         hitpoints: 30
     },
     "assembly": {
