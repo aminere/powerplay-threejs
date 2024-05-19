@@ -432,7 +432,6 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
 
 function onBuildingAccepted() {
     GameMapState.instance.action = null;
-    evtActionCleared.post();
 }
 
 function rejectBuilding(error: string) {

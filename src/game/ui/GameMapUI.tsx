@@ -19,6 +19,7 @@ import { DepotOutputPanel } from "./DepotOutputPanel";
 import { ObjectivesPanel } from "./ObjectivePanel";
 import { Indicators } from "./Indicators";
 import { DebugUI } from "./DebugUI";
+import { ActionButton } from "./ActionButton";
 
 export function GameMapUI(_props: IGameUIProps) {
     // useEffect(() => {
@@ -115,6 +116,7 @@ export function GameMapUI(_props: IGameUIProps) {
         const onActionCleared = () => {
             clearError();
             setError(null);
+            setSelectedAction(null);
             errorRef.current!.style.opacity = "0";
         };
 
@@ -126,15 +128,22 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
-    const [openSection, setOpenSection] = useState<"build" | "transport" | null>(null);
-    useEffect(() => {
-        gameMapState.action = null;
-    }, [openSection]);
-
+    const [openSection, _setOpenSection] = useState<"build" | null>(null);
+    const [selectedAction, setSelectedAction] = useState<"conveyor" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
     const [showDepotOutputs, setShowDepotOutputs] = useState(false);
+
+    const setOpenSection = (section: "build" | null) => {        
+        _setOpenSection(section);
+        if (section) {
+            if (selectedAction) {
+                gameMapState.action = null;
+            }
+        }
+    };
+
     useEffect(() => {
         const onSelectedElems = (elems: SelectedElems | null) => {
             setSelectedElems(elems);
@@ -183,8 +192,8 @@ export function GameMapUI(_props: IGameUIProps) {
     >
 
         <ObjectivesPanel />
-        {gameMapState.tutorial.minimap && <Minimap />}
-        
+        {gameMapState.config.minimap && <Minimap />}
+
         <div
             style={{
                 position: "absolute",
@@ -193,16 +202,16 @@ export function GameMapUI(_props: IGameUIProps) {
                 left: "0px",
                 top: "50%",
                 transform: "translateY(calc(-50% + .5px))",
-                display: gameMapState.tutorial.sideActions.self ? "flex" : "none",
+                display: gameMapState.config.sideActions.self ? "flex" : "none",
                 flexDirection: "column",
                 gap: `${uiconfig.gapRem}rem`,
             }}
         >
             <ActionSection
-                visible={gameMapState.tutorial.sideActions.enabled.build.self}
+                visible={gameMapState.config.sideActions.enabled.build.self}
                 name="build"
                 actions={BuildableTypes}
-                actionsVisible={gameMapState.tutorial.sideActions.enabled.build.enabled}
+                actionsVisible={gameMapState.config.sideActions.enabled.build.enabled}
                 open={openSection === "build"}
                 onSelected={action => {
                     const type = action as BuildableType;
@@ -222,11 +231,33 @@ export function GameMapUI(_props: IGameUIProps) {
                 }}
                 onOpen={() => setOpenSection("build")}
                 onClose={() => setOpenSection(null)}
-            />            
+            />
+            <ActionButton
+                id={"conveyor"}
+                selected={selectedAction === "conveyor"}
+                selectedColor="yellow"
+                onClick={() => {
+                    if (selectedAction === "conveyor") {
+                        setSelectedAction(null);
+                        gameMapState.action = null;
+                    } else {
+                        setOpenSection(null);
+                        setSelectedAction("conveyor");                        
+                        GameMapProps.instance.buildableType = "conveyor";
+                        const gameMapState = GameMapState.instance;
+                        gameMapState.action = "building";
+                        gameMapState.tileSelector.color = "yellow";
+                        gameMapState.tileSelector.setSize(1, 1);
+                        gameMapState.tileSelector.resolution = 1;
+                    }
+                }}
+            >
+                <img src={`/images/icons/${"conveyor"}.png`} />
+            </ActionButton>
         </div>
 
         {
-            gameMapState.tutorial.bottomPanels
+            gameMapState.config.bottomPanels
             &&
             <div style={{
                 position: "absolute",

@@ -34,7 +34,7 @@ import { BuildingType } from "../buildings/BuildingTypes";
 import { Incubators } from "../buildings/Incubators";
 import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
-import { MissionManager } from "./MissionManager";
+import { Tutorial } from "./Tutorial";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -45,6 +45,7 @@ export class GameMapLoaderProps extends ComponentProps {
 
     path = "";
     fromLocalStorage = false;
+    tutorial = false;
 
     constructor(props?: Partial<GameMapLoaderProps>) {
         super();
@@ -242,7 +243,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/resources/oil.glb`);
     }
 
-    private init(size: number, cameraPos: Vector3, owner: Object3D) {
+    private init(size: number, _cameraPos: Vector3, owner: Object3D) {
         this.state.sectorRes = size;
 
         fogOfWar.init(size);
@@ -259,6 +260,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         unitsManager.owner = owner;
         updateCameraSize();
+
+        const cameraPos = _cameraPos ?? GameUtils.vec3.zero;
         setCameraPos(cameraPos);
 
         // reveal wherever the camera is
@@ -274,7 +277,9 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         const updator = utils.createObject(root(), "GameMapUpdate");
         engineState.setComponent(updator, new GameMapUpdate());
-        engineState.setComponent(updator, new MissionManager());
+        if (this.props.tutorial) {
+            engineState.setComponent(updator, new Tutorial());
+        }
 
         // TODO remove
         // if (false) {

@@ -5,15 +5,15 @@ import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { SelectedElems, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
-import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { BuildableType, BuildableTypes, IBuildingInstance } from "../buildings/BuildingTypes";
 import { IUnit } from "../unit/IUnit";
 import { CharacterUnit } from "../unit/CharacterUnit";
 import { depots } from "../buildings/Depots";
 import { engine } from "../../engine/Engine";
 import { GameUtils } from "../GameUtils";
 
-export class MissionManagerProps extends ComponentProps {
-    constructor(props?: Partial<MissionManagerProps>) {
+export class TutorialProps extends ComponentProps {
+    constructor(props?: Partial<TutorialProps>) {
         super();
         this.deserialize(props);
     }
@@ -29,16 +29,36 @@ enum MissionStep {
     BuildIncubator
 }
 
-export class MissionManager extends Component<MissionManagerProps> {
+export class Tutorial extends Component<TutorialProps> {
 
     private _step = MissionStep.SelectUnit;
 
-    constructor(props?: Partial<MissionManagerProps>) {
-        super(new MissionManagerProps(props));
-
+    constructor(props?: Partial<TutorialProps>) {
+        super(new TutorialProps(props));
     }
 
     override start(_owner: Object3D) {
+
+        GameMapState.instance.config = {
+            minimap: false,
+            sideActions: {
+                self: false,
+                enabled: {
+                    build: {
+                        self: false,
+                        enabled: BuildableTypes.reduce((prev, cur) => {
+                            return {
+                                ...prev,
+                                [cur]: !false
+                            }
+                        }, {} as Record<BuildableType, boolean>)
+                    }
+                }
+            },
+            bottomPanels: false,
+            cameraPan: false
+        };
+
         this.onSelection = this.onSelection.bind(this);
         this.onGameMapUIMounted = this.onGameMapUIMounted.bind(this);
         this.onUnitStateChanged = this.onUnitStateChanged.bind(this);
@@ -151,7 +171,7 @@ export class MissionManager extends Component<MissionManagerProps> {
                             });
                             cmdSetObjectiveStatus.post(`${0} / 1`);
                 
-                            const { sideActions } = GameMapState.instance.tutorial;
+                            const { sideActions } = GameMapState.instance.config;
                             sideActions.self = true;
                             sideActions.enabled.build.self = true;
                             sideActions.enabled.build.enabled.factory = true;
@@ -186,7 +206,7 @@ export class MissionManager extends Component<MissionManagerProps> {
                                 });
                                 cmdSetObjectiveStatus.post(`${0} / 1`);
                     
-                                const { sideActions } = GameMapState.instance.tutorial;                    
+                                const { sideActions } = GameMapState.instance.config;                    
                                 sideActions.enabled.build.enabled.incubator = true;
                                 cmdRefreshUI.post();
                                 setTimeout(() => {
@@ -290,7 +310,7 @@ export class MissionManager extends Component<MissionManagerProps> {
                 });
                 cmdSetObjectiveStatus.post(`${0} / 1`);
     
-                const { sideActions } = GameMapState.instance.tutorial;          
+                const { sideActions } = GameMapState.instance.config;          
                 sideActions.enabled.build.enabled.conveyor = true;
                 cmdRefreshUI.post();
                 setTimeout(() => {

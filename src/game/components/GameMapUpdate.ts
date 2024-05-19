@@ -146,7 +146,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
     private checkCameraPan(xNorm: number, yNorm: number) {
         
         const state = GameMapState.instance;
-        if (!state.tutorial.cameraPan) {
+        if (!state.config.cameraPan) {
             return;
         }
 
@@ -417,14 +417,12 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 case "conveyor": {
                                     const executed = onAction(2);
                                     if (!executed && !state.touchDragged) {
-                                        state.action = null;
-                                        evtActionCleared.post();
+                                        state.action = null;                                        
                                     }
                                 }
                                 break;
                                 default: {
                                     state.action = null;
-                                    evtActionCleared.post();
                                 }
                             }
                         }
@@ -437,7 +435,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
                         default: {
                             state.action = null;
-                            evtActionCleared.post();
                         }
                     }
 

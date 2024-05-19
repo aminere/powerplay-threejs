@@ -8,6 +8,7 @@ import { config } from "../config/config";
 import { BuildableType, BuildableTypes, IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
+import { evtActionCleared } from "../../Events";
 
 interface IBuildingCreationFilter {
     click?: (mapCoords: Vector2) => boolean;
@@ -73,24 +74,24 @@ export class GameMapState {
         resourceAmount: number;
     }>();
     
-    public tutorial = {
-        minimap: false,
+    public config = {
+        minimap: true,
         sideActions: {
-            self: false,
+            self: true,
             enabled: {
                 build: {
-                    self: false,
+                    self: true,
                     enabled: BuildableTypes.reduce((prev, cur) => {
                         return {
                             ...prev,
-                            [cur]: false
+                            [cur]: true
                         }
                     }, {} as Record<BuildableType, boolean>)
                 }
             }
         },
         bottomPanels: true,
-        cameraPan: false
+        cameraPan: true
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;
@@ -115,6 +116,7 @@ export class GameMapState {
             this.tileSelector.visible = false;
             this.tileSelector.resolution = 1;
             depots.highlightDepotRanges(false);
+            evtActionCleared.post();
         } else {
             switch (value) {
                 case "building": {                    
