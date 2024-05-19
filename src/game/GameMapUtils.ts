@@ -22,7 +22,7 @@ import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
-import { evtActionCleared, evtBuildError, evtConveyorCreated } from "../Events";
+import { evtBuildError, evtConveyorCreated } from "../Events";
 import { buildingConfig } from "./config/BuildingConfig";
 import { Assemblies } from "./buildings/Assemblies";
 import { trees } from "./Trees";

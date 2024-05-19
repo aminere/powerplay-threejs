@@ -56,7 +56,7 @@ export const evtCellStateChanged = new AsyncEvent<ICell>();
 export const evtGameMapUIMounted = new AsyncEvent<void>();
 
 interface IBuildingIndicator {
-    type: "build";
+    type: "building";
     building: IBuildingInstance;
 }
 
@@ -101,4 +101,5 @@ export const evtActionClicked = new AsyncEvent<string>();
 export const evtBuildingCreated = new AsyncEvent<IBuildingInstance>();
 export const cmdRefreshUI = new AsyncEvent<void>();
 export const evtConveyorCreated = new AsyncEvent<void>();
+export const cmdOpenBuildSection = new AsyncEvent<"build" | null>();
 

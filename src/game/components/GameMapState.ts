@@ -1,11 +1,11 @@
 import { Box2, Camera, DirectionalLight, MathUtils, Object3D, OrthographicCamera, Vector2, Vector3 } from "three";
 import { ICell, ISector } from "../GameTypes";
 import { TileSector } from "../TileSelector";
-import { Action } from "../GameDefinitions";
+import { Action, ResourceType, ResourceTypes } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
-import { BuildableType, BuildableTypes, IBuildingInstance } from "../buildings/BuildingTypes";
+import { BuildingType, BuildingTypes, IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
 import { evtActionCleared } from "../../Events";
@@ -81,17 +81,24 @@ export class GameMapState {
             enabled: {
                 build: {
                     self: true,
-                    enabled: BuildableTypes.reduce((prev, cur) => {
+                    enabled: BuildingTypes.reduce((prev, cur) => {
                         return {
                             ...prev,
                             [cur]: true
                         }
-                    }, {} as Record<BuildableType, boolean>)
-                }
+                    }, {} as Record<BuildingType, boolean>)
+                },
+                conveyor: true
             }
         },
         bottomPanels: true,
-        cameraPan: true
+        cameraPan: true,
+        factoryOutputs: ResourceTypes.reduce((prev, cur) => {
+            return {
+                ...prev,
+                [cur]: true
+            }
+        }, {} as Record<ResourceType, boolean>)
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;

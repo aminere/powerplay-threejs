@@ -5,8 +5,8 @@ import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
-import { BuildableType, BuildableTypes, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdRefreshUI, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
+import { BuildableType, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
+import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -19,7 +19,7 @@ import { DepotOutputPanel } from "./DepotOutputPanel";
 import { ObjectivesPanel } from "./ObjectivePanel";
 import { Indicators } from "./Indicators";
 import { DebugUI } from "./DebugUI";
-import { ActionButton } from "./ActionButton";
+import { TransportAction } from "./TransportAction";
 
 export function GameMapUI(_props: IGameUIProps) {
     // useEffect(() => {
@@ -135,7 +135,7 @@ export function GameMapUI(_props: IGameUIProps) {
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
     const [showDepotOutputs, setShowDepotOutputs] = useState(false);
 
-    const setOpenSection = (section: "build" | null) => {        
+    const setOpenSection = (section: "build" | null) => {
         _setOpenSection(section);
         if (section) {
             if (selectedAction) {
@@ -151,9 +151,16 @@ export function GameMapUI(_props: IGameUIProps) {
             setShowAssemblyOutputs(false);
             setShowDepotOutputs(false);
         }
+
+        const onOpenBuildSection = (section: "build" | null) => {
+            setOpenSection(section);
+        }
+
+        cmdOpenBuildSection.attach(onOpenBuildSection);
         cmdSetSelectedElems.attach(onSelectedElems);
         return () => {
             cmdSetSelectedElems.detach(onSelectedElems);
+            cmdOpenBuildSection.detach(onOpenBuildSection);
         }
     }, []);
 
@@ -210,7 +217,7 @@ export function GameMapUI(_props: IGameUIProps) {
             <ActionSection
                 visible={gameMapState.config.sideActions.enabled.build.self}
                 name="build"
-                actions={BuildableTypes}
+                actions={BuildingTypes}
                 actionsVisible={gameMapState.config.sideActions.enabled.build.enabled}
                 open={openSection === "build"}
                 onSelected={action => {
@@ -227,73 +234,58 @@ export function GameMapUI(_props: IGameUIProps) {
                     } else {
                         gameMapState.tileSelector.setSize(1, 1);
                         gameMapState.tileSelector.resolution = 1;
-                    }                    
+                    }
                 }}
                 onOpen={() => setOpenSection("build")}
                 onClose={() => setOpenSection(null)}
             />
-            <ActionButton
-                id={"conveyor"}
+            <TransportAction
+                type="conveyor"
                 selected={selectedAction === "conveyor"}
-                selectedColor="yellow"
-                onClick={() => {
-                    if (selectedAction === "conveyor") {
-                        setSelectedAction(null);
-                        gameMapState.action = null;
-                    } else {
-                        setOpenSection(null);
-                        setSelectedAction("conveyor");                        
-                        GameMapProps.instance.buildableType = "conveyor";
-                        const gameMapState = GameMapState.instance;
-                        gameMapState.action = "building";
-                        gameMapState.tileSelector.color = "yellow";
-                        gameMapState.tileSelector.setSize(1, 1);
-                        gameMapState.tileSelector.resolution = 1;
-                    }
+                onSelected={() => {
+                    setOpenSection(null);
+                    setSelectedAction("conveyor");
                 }}
-            >
-                <img src={`/images/icons/${"conveyor"}.png`} />
-            </ActionButton>
+                onCleared={() => {
+                    setSelectedAction(null);
+                }}
+            />
         </div>
 
-        {
-            gameMapState.config.bottomPanels
-            &&
-            <div style={{
-                position: "absolute",
-                bottom: "0px",
-                left: "470px",
-                height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
-                display: "flex",
-                gap: `${uiconfig.paddingRem}rem`,
-            }}>
-                <SelectionPanel selectedElems={selectedElems} />
-                <ActionsPanel
-                    factoryOutputsOpen={showFactoryOutputs}
-                    assemblyOutputsOpen={showAssemblyOutputs}
-                    depotOutputsOpen={showDepotOutputs}
-                    onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
-                    onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
-                    onShowDepotOutputs={() => setShowDepotOutputs(prev => !prev)}
-                >
-                    <FactoryOutputPanel
-                        open={showFactoryOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowFactoryOutputs(false)}
-                    />
-                    <AssemblyOutputPanel
-                        open={showAssemblyOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowAssemblyOutputs(false)}
-                    />
-                    <DepotOutputPanel
-                        open={showDepotOutputs}
-                        selectedElems={selectedElems}
-                        onOutputSelected={() => setShowDepotOutputs(false)}
-                    />
-                </ActionsPanel>
-            </div>
-        }
+        <div style={{
+            position: "absolute",
+            bottom: "0px",
+            left: "470px",
+            height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
+            display: gameMapState.config.bottomPanels ? "flex" : "none",
+            gap: `${uiconfig.paddingRem}rem`,
+        }}>
+            <SelectionPanel selectedElems={selectedElems} />
+            <ActionsPanel
+                factoryOutputsOpen={showFactoryOutputs}
+                assemblyOutputsOpen={showAssemblyOutputs}
+                depotOutputsOpen={showDepotOutputs}
+                onShowFactoryOutputs={() => setShowFactoryOutputs(prev => !prev)}
+                onShowAssemblyOutputs={() => setShowAssemblyOutputs(prev => !prev)}
+                onShowDepotOutputs={() => setShowDepotOutputs(prev => !prev)}
+            >
+                <FactoryOutputPanel
+                    open={showFactoryOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowFactoryOutputs(false)}
+                />
+                <AssemblyOutputPanel
+                    open={showAssemblyOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowAssemblyOutputs(false)}
+                />
+                <DepotOutputPanel
+                    open={showDepotOutputs}
+                    selectedElems={selectedElems}
+                    onOutputSelected={() => setShowDepotOutputs(false)}
+                />
+            </ActionsPanel>
+        </div>
 
         <div
             ref={errorRef}
@@ -311,7 +303,7 @@ export function GameMapUI(_props: IGameUIProps) {
         <HealthBars />
         <Indicators />
         <SelectionRect />
-        
+
         <DebugUI />
     </div>
 }

@@ -7,6 +7,7 @@ import { Factories } from "../buildings/Factories";
 import { SelectedElems } from "../../Events";
 import { Icon } from "./Icon";
 import { OutputPanel } from "./OutputPanel";
+import { GameMapState } from "../../powerplay";
 
 interface FactoryOutputPanelProps {
     open: boolean;
@@ -45,8 +46,10 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
 
     return <OutputPanel open={props.open}>
         {ResourceTypes.map(resource => {
-            return <ActionButton
+            return <ActionButton                
                 key={resource}
+                id={resource}
+                visible={GameMapState.instance.config.factoryOutputs[resource]}
                 selected={output === resource}
                 onClick={() => {
                     setOutput(resource);

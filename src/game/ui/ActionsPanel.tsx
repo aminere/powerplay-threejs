@@ -181,6 +181,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                     case "incubator": {
 
                                         return <ActionButton
+                                            id="worker"
                                             onClick={() => {
                                                 if (!Incubators.output(building)) {
                                                     const inputs = resourceConfig.incubatorProduction["worker"];
@@ -197,6 +198,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         const state = building.state as IFactoryState;
                                         return <>
                                             <ActionButton
+                                                id="output"
                                                 selected={props.factoryOutputsOpen}
                                                 selectedColor="white"
                                                 onClick={props.onShowFactoryOutputs}

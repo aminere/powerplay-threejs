@@ -102,11 +102,16 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }    
 
     public override clearAction() {
-        this._targetBuilding = null;       
+        this._targetBuilding = null;        
 
         const soldierState = this.fsm.getState(SoldierState);
         if (soldierState) {
             soldierState.stopAttack(this);
+            return;
+        }
+        const miningState = this.fsm.getState(MiningState);
+        if (miningState) {
+            miningState.stopMining(this);
             return;
         }
 

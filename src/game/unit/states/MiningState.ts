@@ -90,7 +90,7 @@ export class MiningState extends State<ICharacterUnit> {
         }
     }
 
-    private stopMining(unit: ICharacterUnit) {
+    public stopMining(unit: ICharacterUnit) {
         unit.fsm.switchState(null);
         unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
     }

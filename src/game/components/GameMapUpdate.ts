@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
-import { cmdEndSelection, cmdSetIndicator, evtActionCleared } from "../../Events";
+import { cmdEndSelection, cmdSetIndicator } from "../../Events";
 import { IUnit } from "../unit/IUnit";
 import { buildings } from "../buildings/Buildings";
 import { unitMotion } from "../unit/UnitMotion";
