@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Action, Actions } from "../GameDefinitions";
-import { GameMapState, config } from "../../powerplay";
 import { GameMapProps } from "../components/GameMapProps";
+import { GameMapState } from "../components/GameMapState";
 
 export function DebugUI() {
 
@@ -41,14 +41,6 @@ export function DebugUI() {
                             gameMapState.tileSelector.setSize(brushSize, brushSize);
                         }
                             break;
-
-                        case "road": {
-                            const { cellsPerRoadBlock } = config.game;
-                            gameMapState.tileSelector.setSize(cellsPerRoadBlock, cellsPerRoadBlock);
-                            resolution = cellsPerRoadBlock;
-                        }
-                            break;
-
                         default:
                             gameMapState.tileSelector.setSize(1, 1);
                     }

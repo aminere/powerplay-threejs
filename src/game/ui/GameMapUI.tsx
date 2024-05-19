@@ -183,7 +183,8 @@ export function GameMapUI(_props: IGameUIProps) {
     >
 
         <ObjectivesPanel />
-
+        {gameMapState.tutorial.minimap && <Minimap />}
+        
         <div
             style={{
                 position: "absolute",
@@ -279,8 +280,7 @@ export function GameMapUI(_props: IGameUIProps) {
         <HealthBars />
         <Indicators />
         <SelectionRect />
-
-        {gameMapState.tutorial.minimap && <Minimap />}
+        
         <DebugUI />
     </div>
 }

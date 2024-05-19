@@ -422,6 +422,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                     }
                                 }
                                 break;
+                                default: {
+                                    state.action = null;
+                                    evtActionCleared.post();
+                                }
                             }
                         }
                         break;
