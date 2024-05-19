@@ -10,12 +10,14 @@ export function GameUI(props: IGameUIProps) {
     const [ui, setUI] = useState<UIType | null>(null);
 
     useEffect(() => {
-        const onShowUI = (_ui: UIType | null) => setUI(_ui);        
+        const onShowUI = (_ui: UIType | null) => {
+            setUI(_ui);
+        };        
         cmdShowUI.attach(onShowUI);
         return () => {
             cmdShowUI.detach(onShowUI);
         };
-    }, [ui]);
+    }, []);
 
     switch (ui) {
         case "gamemap": return <GameMapUI {...props} />;

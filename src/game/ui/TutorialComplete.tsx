@@ -34,6 +34,17 @@ export function TutorialComplete() {
         });
     }, []);
 
+    useEffect(() => {
+        const onSceneCreated = () => {
+            // TODO check if this is the mainmenu scene
+            cmdShowUI.post("mainmenu");
+        };
+        evtSceneCreated.attach(onSceneCreated);
+        return () => {
+            evtSceneCreated.detach(onSceneCreated);
+        }
+    }, []);
+
     return <div style={{
         position: "absolute",
         width: "100%",
@@ -71,11 +82,8 @@ export function TutorialComplete() {
                 Good luck!
             </div>
             <div>
-                <TextButton text={"Continue"} onClick={() => {                    
-                    engine.parseScene(createNewScene().toJSON(), info => {
-                        evtSceneCreated.post(info);
-                        cmdShowUI.post("mainmenu");
-                    });
+                <TextButton text={"Continue"} onClick={() => {
+                    engine.parseScene(createNewScene().toJSON());
                 }} />
             </div>
         </div>

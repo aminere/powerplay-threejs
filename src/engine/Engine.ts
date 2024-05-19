@@ -9,7 +9,7 @@ import { pools } from "./core/Pools";
 import { serialization } from "./serialization/Serialization";
 import { time } from "./core/Time";
 import { utils } from "./Utils";
-import { cmdRenderUI, cmdUpdateUI, evtScreenResized } from "../Events";
+import { cmdRenderUI, cmdUpdateUI, evtSceneCreated, evtScreenResized } from "../Events";
 
 export interface ISceneInfo {
     mainCamera: Camera;
@@ -70,13 +70,13 @@ class Engine {
         cmdRenderUI.post();
     }
 
-    public async loadScene(path: string, onLoaded: (props: ISceneInfo) => void) {
+    public async loadScene(path: string) {
         const response = await fetch(path);
         const data = await response.json();
-        this.parseScene(data, onLoaded);
+        this.parseScene(data);
     }
 
-    public parseScene(data: object, onParsed: (props: ISceneInfo) => void) {
+    public parseScene(data: object) {
         if (this._scene) {
             this._scene.traverse(obj => {
                 const { components } = obj.userData;
@@ -128,7 +128,8 @@ class Engine {
         if (!mainCamera) {
             console.error("No camera found in scene");
         }        
-        onParsed({ mainCamera: mainCamera!, cameras });       
+
+        evtSceneCreated.post({ mainCamera: mainCamera!, cameras });
     }
 
     private updateComponents() {

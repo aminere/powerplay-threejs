@@ -188,6 +188,12 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
+    // useEffect(() => {
+    //     return () => {
+    //         console.log("GameMapUI unmount");
+    //     }
+    // }, [])
+
     const gameMapState = GameMapState.instance;
     return <div
         style={{

@@ -130,7 +130,7 @@ export class Tutorial extends Component<TutorialProps> {
     private onSelection(selectedElem: SelectedElems | null) {
         switch (this._step) {
             case MissionStep.SelectUnit: {
-                //cmdTutorialComplete.post(); // TODO
+                // cmdTutorialComplete.post(); // TODO
                 if (selectedElem?.type === "units") {
                     this._step = MissionStep.CollectStone;
                     cmdSetIndicator.post({

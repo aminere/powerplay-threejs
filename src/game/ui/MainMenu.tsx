@@ -1,4 +1,4 @@
-import { cmdShowUI, evtSceneCreated } from "../../Events";
+import { cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { MenuButton } from "./MenuButton";
 
@@ -40,17 +40,14 @@ export function MainMenu() {
                 </span>
             </div>
             <MenuButton onClick={() => {
-
+                cmdShowUI.post(null);
+                engine.loadScene("/scenes/scene.json");
             }}>
                 Learn to Play
             </MenuButton>
             <MenuButton
                 disabled={true}
                 onClick={() => {
-                    cmdShowUI.post(null);
-                    // engine.parseScene(createNewScene().toJSON(), info => {
-                    //     evtSceneCreated.post(info);
-                    // });
                 }}
             >
                 New Game
