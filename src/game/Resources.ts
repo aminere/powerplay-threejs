@@ -10,7 +10,7 @@ import { GameMapState } from "./components/GameMapState";
 import { utils } from "../engine/Utils";
 
 const { cellSize, mapRes } = config.game;
-const mapCoords = new Vector2();
+const cellCoords = new Vector2();
 const worldPos = new Vector3();
 
 const instanceInfo: { instancedMesh: InstancedMesh, instanceIndex: number } = {
@@ -34,11 +34,11 @@ function createLiquidPatch(mapCoords: Vector2, type: "oil" | "water") {
         visited.set(current, true);
 
         const [x, y] = current.split(",").map(Number);
-        mapCoords.set(x, y);
-        const cell = GameUtils.getCell(mapCoords);
+        cellCoords.set(x, y);
+        const cell = GameUtils.getCell(cellCoords);
         const resourceType = cell?.resource?.type;
         if (resourceType === type) {
-            cells.push(mapCoords.clone());
+            cells.push(cellCoords.clone());
             console.assert(!cell!.resource!.liquidPatchId);
             cell!.resource!.liquidPatchId = id;
             resourceAmount += cell!.resource!.amount;
@@ -75,9 +75,9 @@ class Resources {
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
 
         const resourceInstance = (() => {
-            mapCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
-            GameUtils.mapToWorld(mapCoords, worldPos);
-            worldPos.y = GameUtils.getMapHeight(mapCoords, localCoords, sector, worldPos.x, worldPos.z);
+            cellCoords.set(sectorCoords.x * mapRes + localCoords.x, sectorCoords.y * mapRes + localCoords.y);
+            GameUtils.mapToWorld(cellCoords, worldPos);
+            worldPos.y = GameUtils.getMapHeight(cellCoords, localCoords, sector, worldPos.x, worldPos.z);
             const { capacity } = resourceConfig.rawResources[type];
 
             switch (type) {

@@ -184,6 +184,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 const validSource = (() => {
                     const sourceBuilding = GameUtils.getCell(sourceCell)?.building;
                     if (sourceBuilding) {
+                        // avoid pick/deposit loop on the same building
                         const sourceInstance = GameMapState.instance.buildings.get(sourceBuilding)!;
                         return sourceInstance.id !== instance.id;
                     }
