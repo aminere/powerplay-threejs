@@ -102,4 +102,5 @@ export const evtBuildingCreated = new AsyncEvent<IBuildingInstance>();
 export const cmdRefreshUI = new AsyncEvent<void>();
 export const evtConveyorCreated = new AsyncEvent<void>();
 export const cmdOpenBuildSection = new AsyncEvent<"build" | null>();
+export const evtUnitSpawned = new AsyncEvent<IUnit>();
 

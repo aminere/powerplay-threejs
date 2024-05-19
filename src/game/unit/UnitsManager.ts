@@ -1,7 +1,7 @@
 import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
-import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled } from "../../Events";
+import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled, evtUnitSpawned } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
@@ -173,7 +173,7 @@ class UnitsManager {
                 const box3Helper = new Box3Helper(boundingBox);
                 visual.add(box3Helper);
                 box3Helper.visible = false;
-
+                evtUnitSpawned.post(unit);
             }
             break;
 
@@ -192,6 +192,7 @@ class UnitsManager {
                 const box3Helper = new Box3Helper(boundingBox);
                 visual.add(box3Helper);
                 box3Helper.visible = false;
+                evtUnitSpawned.post(unit);
             }
             break;
 
@@ -240,6 +241,7 @@ class UnitsManager {
                 const box3Helper = new Box3Helper(skinnedMesh.boundingBox!);
                 skinnedMesh.add(box3Helper);
                 box3Helper.visible = false;
+                evtUnitSpawned.post(unit);
             }    
         }
     }

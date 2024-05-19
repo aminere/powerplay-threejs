@@ -2,7 +2,7 @@
 import { Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdSpawnUnit, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdSpawnUnit, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitSpawned, evtUnitStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
@@ -14,6 +14,8 @@ import { GameUtils } from "../GameUtils";
 import { ResourceType, ResourceTypes } from "../GameDefinitions";
 import { GameMapProps } from "./GameMapProps";
 import { unitMotion } from "../unit/UnitMotion";
+import { engineState } from "../../engine/EngineState";
+import { UnitUtils } from "../unit/UnitUtils";
 
 function getBuildingOfType(type: BuildingType) {
     const buildings = GameMapState.instance.buildings;
@@ -57,13 +59,15 @@ enum MissionStep {
 export class Tutorial extends Component<TutorialProps> {
 
     private _step = MissionStep.SelectUnit;
+    private _owner: Object3D | null = null;
 
     constructor(props?: Partial<TutorialProps>) {
         super(new TutorialProps(props));
     }
 
-    override start(_owner: Object3D) {
+    override start(owner: Object3D) {
 
+        this._owner = owner;
         GameMapState.instance.config = {
             minimap: false,
             sideActions: {
@@ -106,16 +110,18 @@ export class Tutorial extends Component<TutorialProps> {
         evtActionClicked.attach(this.onActionClicked);
         evtBuildingCreated.attach(this.onBuildingCreated);
         evtConveyorCreated.attach(this.onConveyorCreated);
-        cmdSpawnUnit.once(this.onUnitSpawned);
+        evtUnitSpawned.attach(this.onUnitSpawned);
     }
 
     override dispose(_owner: Object3D) {
+        console.log("Tutorial.dispose");
         cmdSetSelectedElems.detach(this.onSelection);
         evtUnitStateChanged.detach(this.onUnitStateChanged);
         evtBuildingStateChanged.detach(this.onBuildingStateChanged);
         evtActionClicked.detach(this.onActionClicked);
         evtBuildingCreated.detach(this.onBuildingCreated);
         evtConveyorCreated.detach(this.onConveyorCreated);
+        evtUnitSpawned.detach(this.onUnitSpawned);
     }
 
     override update(_owner: Object3D) {
@@ -529,8 +535,10 @@ export class Tutorial extends Component<TutorialProps> {
                             click: coords => coords.equals(mapCoords)
                         }
 
-                        GameMapState.instance.config.sideActions.self = false;
-                        cmdRefreshUI.post();
+                        setTimeout(() => {
+                            GameMapState.instance.config.sideActions.self = false;
+                            cmdRefreshUI.post();
+                        }, 100);                        
                     }
                 }
             }
@@ -548,6 +556,7 @@ export class Tutorial extends Component<TutorialProps> {
                 const factoryShadow = engine.scene!.getObjectByName("factory-shadow")!;
                 factoryShadow.removeFromParent();
                 GameMapState.instance.buildingCreationFilter = null;
+                cmdSetObjectiveStatus.post(`${1} / 1`);
 
                 this._step = MissionStep.BuildConveyorToFactory;
                 cmdSetIndicator.post(null);
@@ -580,25 +589,27 @@ export class Tutorial extends Component<TutorialProps> {
                 const shadow = engine.scene!.getObjectByName("incubator-shadow")!;
                 shadow.removeFromParent();
                 GameMapState.instance.buildingCreationFilter = null;
-
-                this._step = MissionStep.CollectWater;
-                cmdSetObjective.post({
-                    objective: "Collect Water",
-                    icon: "water"
-                });
-                cmdSetObjectiveStatus.post(`${0} / 5`);
-                cmdSetIndicator.post({
-                    indicator: {
-                        type: "unit",
-                        unit: unitsManager.units[0]
-                    },
-                    props: {
-                        action: "Select worker",
-                        actionIcon: "worker",
-                        control: "Left click",
-                        icon: "mouse-left"
-                    }
-                });
+                cmdSetObjectiveStatus.post(`${1} / 1`);
+                setTimeout(() => {
+                    this._step = MissionStep.CollectWater;
+                    cmdSetObjective.post({
+                        objective: "Collect Water",
+                        icon: "water"
+                    });
+                    cmdSetObjectiveStatus.post(`${0} / 5`);
+                    cmdSetIndicator.post({
+                        indicator: {
+                            type: "unit",
+                            unit: unitsManager.units[0]
+                        },
+                        props: {
+                            action: "Select worker",
+                            actionIcon: "worker",
+                            control: "Left click",
+                            icon: "mouse-left"
+                        }
+                    });
+                }, 2000);                
             }
         }
     }
@@ -663,10 +674,17 @@ export class Tutorial extends Component<TutorialProps> {
     }
 
     private onUnitSpawned() {
-        console.log("SUCESSFULLY SPAWNED UNIT!");
-        // move units to a visible spot
-        // zoom camera on them
-        // show dialog with a button to go back to main menu
+        switch (this._step) {
+            case MissionStep.Incubate: {
+                for (const unit of unitsManager.units) {
+                    if (UnitUtils.isWorker(unit)) {
+                        unitMotion.moveUnit(unit, new Vector2(24, 137));
+                    }            
+                }        
+                engineState.removeComponent(this._owner!, Tutorial);
+                // TODO dialog
+            }
+        }        
     }
 }
 
