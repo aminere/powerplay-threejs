@@ -75,7 +75,7 @@ class Depots {
             output: null,
             inputTimer: depotsConfig.inputFrequency,            
             outputTimer: depotsConfig.outputFrequency,
-            autoOutput: false,
+            autoOutput: true,
             slots: {
                 root: slotsRoot,
                 slots: [...Array(slotCount)].map(() => {

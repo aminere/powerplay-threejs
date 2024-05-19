@@ -13,6 +13,8 @@ interface ActionButtonProps {
 }
 
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
+
+    const visible = props.visible ?? true;
     return <div
         id={props.id}
         className={`icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
@@ -20,7 +22,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
             width: `${uiconfig.buttonSizeRem}rem`,
-            display: props.visible ? "flex" : "none",
+            display: visible ? "flex" : "none",
             alignItems: "center",
             justifyContent: "center",
             textAlign: "center",

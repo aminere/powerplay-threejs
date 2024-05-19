@@ -146,7 +146,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
     private checkCameraPan(xNorm: number, yNorm: number) {
         
         const state = GameMapState.instance;
-        if (!state.enabled.cameraPan) {
+        if (!state.tutorial.cameraPan) {
             return;
         }
 
@@ -348,7 +348,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (!canceled) {
                     if (state.action) {
                         if (wasDragged) {
-                            onEndDrag();
+                            onEndDrag(state.touchStartCoords, state.touchHoveredCoords);
                         } else {
                             onAction(0);
                         }
@@ -412,14 +412,19 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (state.action) {
 
                     switch (state.action) {
-                        case "conveyor": {
-                            const executed = onAction(2);
-                            if (!executed && !state.touchDragged) {
-                                state.action = null;
-                                evtActionCleared.post();
+                        case "building": {
+                            switch (GameMapProps.instance.buildableType) {
+                                case "conveyor": {
+                                    const executed = onAction(2);
+                                    if (!executed && !state.touchDragged) {
+                                        state.action = null;
+                                        evtActionCleared.post();
+                                    }
+                                }
+                                break;
                             }
                         }
-                            break;
+                        break;
 
                         case "water": {
                             onAction(2);

@@ -192,23 +192,23 @@ export function GameMapUI(_props: IGameUIProps) {
                 left: "0px",
                 top: "50%",
                 transform: "translateY(calc(-50% + .5px))",
-                display: gameMapState.enabled.sideActions.self ? "flex" : "none",
+                display: gameMapState.tutorial.sideActions.self ? "flex" : "none",
                 flexDirection: "column",
                 gap: `${uiconfig.gapRem}rem`,
             }}
         >
             <ActionSection
-                visible={gameMapState.enabled.sideActions.enabled.build.self}
+                visible={gameMapState.tutorial.sideActions.enabled.build.self}
                 name="build"
                 actions={BuildableTypes}
-                actionsVisible={gameMapState.enabled.sideActions.enabled.build.enabled}
+                actionsVisible={gameMapState.tutorial.sideActions.enabled.build.enabled}
                 open={openSection === "build"}
                 onSelected={action => {
                     const type = action as BuildableType;
                     GameMapProps.instance.buildableType = type;
                     const gameMapState = GameMapState.instance;
                     gameMapState.action = "building";
-                    gameMapState.tileSelector.mode = "select";
+                    gameMapState.tileSelector.color = "yellow";
                     const isBuilding = BuildingTypes.includes(type as BuildingType);
                     if (isBuilding) {
                         const size = buildingConfig[type].size;
@@ -225,7 +225,7 @@ export function GameMapUI(_props: IGameUIProps) {
         </div>
 
         {
-            gameMapState.enabled.bottomPanels
+            gameMapState.tutorial.bottomPanels
             &&
             <div style={{
                 position: "absolute",
@@ -280,7 +280,7 @@ export function GameMapUI(_props: IGameUIProps) {
         <Indicators />
         <SelectionRect />
 
-        {gameMapState.enabled.minimap && <Minimap />}
+        {gameMapState.tutorial.minimap && <Minimap />}
         <DebugUI />
     </div>
 }

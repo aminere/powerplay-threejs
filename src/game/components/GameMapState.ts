@@ -5,9 +5,14 @@ import { Action } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
-import { BuildableType, BuildableTypes, BuildingType, IBuildingInstance } from "../buildings/BuildingTypes";
+import { BuildableType, BuildableTypes, IBuildingInstance } from "../buildings/BuildingTypes";
 import { PathViewer } from "../pathfinding/PathViewer";
 import { depots } from "../buildings/Depots";
+
+interface IBuildingCreationFilter {
+    click?: (mapCoords: Vector2) => boolean;
+    endDrag?: (start: Vector2, end: Vector2) => boolean;
+}
 
 const root = () => engine.scene!;
 
@@ -68,7 +73,7 @@ export class GameMapState {
         resourceAmount: number;
     }>();
     
-    public enabled = {
+    public tutorial = {
         minimap: false,
         sideActions: {
             self: false,
@@ -81,13 +86,14 @@ export class GameMapState {
                             [cur]: false
                         }
                     }, {} as Record<BuildableType, boolean>)
-                }                
+                }
             }
         },
-        bottomPanels: false,
-        actionPanel: false,
+        bottomPanels: true,
         cameraPan: false
     };
+
+    public buildingCreationFilter: IBuildingCreationFilter | null = null;
 
     public debug = {
         path: new PathViewer(),

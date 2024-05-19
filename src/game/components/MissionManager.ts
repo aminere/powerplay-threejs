@@ -2,13 +2,15 @@
 import { Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { SelectedElems, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtGameMapUIMounted, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { IBuildingInstance } from "../buildings/BuildingTypes";
 import { IUnit } from "../unit/IUnit";
 import { CharacterUnit } from "../unit/CharacterUnit";
 import { depots } from "../buildings/Depots";
+import { engine } from "../../engine/Engine";
+import { GameUtils } from "../GameUtils";
 
 export class MissionManagerProps extends ComponentProps {
     constructor(props?: Partial<MissionManagerProps>) {
@@ -19,10 +21,12 @@ export class MissionManagerProps extends ComponentProps {
 
 enum MissionStep {
     SelectUnit,
-    CollectResource,
-    DepositResource,
+    CollectStone,
+    DepositStone,
     BuildFactory,
-    BuildConveyorToFactory
+    BuildConveyorToFactory,
+    ProduceGlass,
+    BuildIncubator
 }
 
 export class MissionManager extends Component<MissionManagerProps> {
@@ -41,12 +45,14 @@ export class MissionManager extends Component<MissionManagerProps> {
         this.onBuildingStateChanged = this.onBuildingStateChanged.bind(this);
         this.onActionClicked = this.onActionClicked.bind(this);
         this.onBuildingCreated = this.onBuildingCreated.bind(this);
+        this.onConveyorCreated = this.onConveyorCreated.bind(this);
         cmdSetSelectedElems.attach(this.onSelection);
         evtGameMapUIMounted.once(this.onGameMapUIMounted);
         evtUnitStateChanged.once(this.onUnitStateChanged);
         evtBuildingStateChanged.attach(this.onBuildingStateChanged);
         evtActionClicked.attach(this.onActionClicked);
         evtBuildingCreated.attach(this.onBuildingCreated);
+        evtConveyorCreated.once(this.onConveyorCreated);
     }
 
     override dispose(_owner: Object3D) {
@@ -63,11 +69,11 @@ export class MissionManager extends Component<MissionManagerProps> {
         switch (this._step) {
             case MissionStep.SelectUnit: {
                 if (selectedElem?.type === "units") {
-                    this._step = MissionStep.CollectResource;
+                    this._step = MissionStep.CollectStone;
                     cmdSetIndicator.post({
                         indicator: {
                             type: "cell",
-                            mapCoords: new Vector2(31, 124)
+                            mapCoords: new Vector2(34, 131)
                         },
                         props: {
                             action: "Collect stone",
@@ -108,8 +114,8 @@ export class MissionManager extends Component<MissionManagerProps> {
     private onUnitStateChanged(unit: IUnit) {
         const resource = (unit as CharacterUnit)!.resource!.type;
         console.assert(resource === "stone");
-        console.assert(this._step === MissionStep.CollectResource);
-        this._step = MissionStep.DepositResource;
+        console.assert(this._step === MissionStep.CollectStone);
+        this._step = MissionStep.DepositStone;
 
         const { depotsCache } = GameMapState.instance;
         const depots = Array.from(depotsCache.values());
@@ -129,34 +135,75 @@ export class MissionManager extends Component<MissionManagerProps> {
     }
 
     private onBuildingStateChanged(building: IBuildingInstance) {
-        console.assert(building.buildingType === "depot");
-        const reserves = depots.getReservesPerType(building);
-        const amount = reserves.stone;
-        cmdSetObjectiveStatus.post(`${amount} / 5`);
-        if (amount === 5) {
-            evtBuildingStateChanged.detach(this.onBuildingStateChanged);
-            this._step = MissionStep.BuildFactory;
-
-            cmdSetObjective.post({
-                objective: "Build a Factory",
-                icon: "factory"
-            });
-            cmdSetObjectiveStatus.post(`${0} / 1`);
-
-            const { sideActions } = GameMapState.instance.enabled;
-            sideActions.self = true;
-            sideActions.enabled.build.self = true;
-            sideActions.enabled.build.enabled.factory = true;
-            cmdRefreshUI.post();
-            setTimeout(() => {
-                cmdSetIndicator.post({
-                    indicator: {
-                        type: "ui",
-                        element: "build"
+        switch (this._step) {
+            case MissionStep.DepositStone: {
+                switch (building.buildingType) {
+                    case "depot": {
+                        const reserves = depots.getReservesPerType(building);
+                        const amount = reserves.stone;
+                        cmdSetObjectiveStatus.post(`${amount} / 5`);
+                        if (amount === 5) {
+                            this._step = MissionStep.BuildFactory;
+                
+                            cmdSetObjective.post({
+                                objective: "Build a Factory",
+                                icon: "factory"
+                            });
+                            cmdSetObjectiveStatus.post(`${0} / 1`);
+                
+                            const { sideActions } = GameMapState.instance.tutorial;
+                            sideActions.self = true;
+                            sideActions.enabled.build.self = true;
+                            sideActions.enabled.build.enabled.factory = true;
+                            cmdRefreshUI.post();
+                            setTimeout(() => {
+                                cmdSetIndicator.post({
+                                    indicator: {
+                                        type: "ui",
+                                        element: "build"
+                                    }
+                                });
+                            }, 500);
+                        }
                     }
-                });
-            }, 500);
-        }
+                }                
+            }
+            break;
+
+            case MissionStep.ProduceGlass: {
+                switch (building.buildingType) {
+                    case "depot": {
+                        const reserves = depots.getReservesPerType(building);
+                        const amount = reserves.glass;
+                        if (amount !== undefined) {
+                            cmdSetObjectiveStatus.post(`${amount} / 5`);
+                            if (amount === 5) {
+                                this._step = MissionStep.BuildIncubator;
+                    
+                                cmdSetObjective.post({
+                                    objective: "Build an Incubator",
+                                    icon: "incubator"
+                                });
+                                cmdSetObjectiveStatus.post(`${0} / 1`);
+                    
+                                const { sideActions } = GameMapState.instance.tutorial;                    
+                                sideActions.enabled.build.enabled.incubator = true;
+                                cmdRefreshUI.post();
+                                setTimeout(() => {
+                                    cmdSetIndicator.post({
+                                        indicator: {
+                                            type: "ui",
+                                            element: "incubator"
+                                        }
+                                    });
+                                }, 500);
+                            }
+                        }                        
+                    }                    
+                }                
+            }
+            break;
+        }        
     }
 
     private onActionClicked(action: string) {
@@ -182,7 +229,7 @@ export class MissionManager extends Component<MissionManagerProps> {
                 cmdSetIndicator.post({
                     indicator: {
                         type: "cell",
-                        mapCoords: new Vector2(21, 131)
+                        mapCoords: new Vector2(27, 122)
                     },
                     props: {
                         action: "Place Factory",
@@ -191,19 +238,36 @@ export class MissionManager extends Component<MissionManagerProps> {
                         icon: "mouse-left"
                     }
                 });
+
+                const factoryShadow = engine.scene!.getObjectByName("factory-shadow")!;
+                factoryShadow.visible = true;
+                const mapCoords = GameUtils.worldToMap(factoryShadow.position, new Vector2());
+                GameMapState.instance.buildingCreationFilter = {
+                    click: coords => coords.equals(mapCoords)
+                }
             }
             break;
 
             case "conveyor": {
+                const conveyorShadow = engine.scene!.getObjectByName("conveyor-shadow")!;
+                conveyorShadow.visible = true;
+                const mapCoords = GameUtils.worldToMap(conveyorShadow.position, new Vector2());
+                GameMapState.instance.buildingCreationFilter = {
+                    endDrag: (start: Vector2, end: Vector2) => {
+                        const desiredEnd = new Vector2().subVectors(mapCoords, new Vector2(0, 3));
+                        return start.equals(mapCoords) && end.equals(desiredEnd);
+                    }
+                }
+
                 cmdSetIndicator.post({
                     indicator: {
                         type: "cell",
-                        mapCoords: new Vector2(21, 131)
+                        mapCoords
                     },
                     props: {
                         action: "Place Conveyor",
                         actionIcon: "conveyor",
-                        control: "Left click",
+                        control: "Left drag",
                         icon: "mouse-left"
                     }
                 });
@@ -213,7 +277,12 @@ export class MissionManager extends Component<MissionManagerProps> {
 
     private onBuildingCreated(building: IBuildingInstance) {
         if (building.buildingType === "factory") {
+            const factoryShadow = engine.scene!.getObjectByName("factory-shadow")!;
+            factoryShadow.removeFromParent();
+            GameMapState.instance.buildingCreationFilter = null;
+
             this._step = MissionStep.BuildConveyorToFactory;
+            cmdSetIndicator.post(null);
             setTimeout(() => {
                 cmdSetObjective.post({
                     objective: "Build a conveyor",
@@ -221,7 +290,7 @@ export class MissionManager extends Component<MissionManagerProps> {
                 });
                 cmdSetObjectiveStatus.post(`${0} / 1`);
     
-                const { sideActions } = GameMapState.instance.enabled;          
+                const { sideActions } = GameMapState.instance.tutorial;          
                 sideActions.enabled.build.enabled.conveyor = true;
                 cmdRefreshUI.post();
                 setTimeout(() => {
@@ -234,6 +303,22 @@ export class MissionManager extends Component<MissionManagerProps> {
                 }, 500);
             }, 2000);
         }
+    }
+
+    private onConveyorCreated() {
+        const conveyorShadow = engine.scene!.getObjectByName("conveyor-shadow")!;
+        conveyorShadow.removeFromParent();
+        GameMapState.instance.buildingCreationFilter = null;
+
+        this._step = MissionStep.ProduceGlass;
+        cmdSetIndicator.post(null);
+        setTimeout(() => {
+            cmdSetObjective.post({
+                objective: "Produce Glass",
+                icon: "glass"
+            });
+            cmdSetObjectiveStatus.post(`${0} / 5`);
+        }, 500);
     }
 }
 

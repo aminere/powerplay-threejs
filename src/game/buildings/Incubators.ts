@@ -111,9 +111,11 @@ export class Incubators {
             }
 
             state.worker.scale.setScalar(progress * unitScale);
-            const waterAmount = state.outputRequests + state.reserve.get("water")!;
+            const inputs = resourceConfig.incubatorProduction["worker"];
+            const [, waterCost] = inputs[0];
+            const waterAmount = state.outputRequests * waterCost + state.reserve.get("water")!;
             const waterSrcProgress = waterAmount / inputCapacity;
-            const waterDestProgress = (waterAmount - 1) / inputCapacity;
+            const waterDestProgress = (waterAmount - waterCost) / inputCapacity;
             state.water.scale.setY(MathUtils.lerp(waterSrcProgress, waterDestProgress, progress));
 
             if (isDone) {

@@ -22,7 +22,7 @@ import { Factories } from "./buildings/Factories";
 import { Mines } from "./buildings/Mines";
 import { depots } from "./buildings/Depots";
 import { Incubators } from "./buildings/Incubators";
-import { evtActionCleared, evtBuildError } from "../Events";
+import { evtActionCleared, evtBuildError, evtConveyorCreated } from "../Events";
 import { buildingConfig } from "./config/BuildingConfig";
 import { Assemblies } from "./buildings/Assemblies";
 import { trees } from "./Trees";
@@ -288,7 +288,7 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
     onDrag(start, current);
 }
 
-export function onEndDrag() {
+export function onEndDrag(start: Vector2, current: Vector2) {
     const gameMapState = GameMapState.instance;
     if (gameMapState.previousRoad.length > 0) {
         gameMapState.previousRoad.length = 0;
@@ -301,39 +301,58 @@ export function onEndDrag() {
 
     const { previousConveyors } = gameMapState;
     if (previousConveyors.length > 0) {
-        const { conveyorsPreview } = GameMapState.instance.layers;
-        console.assert(previousConveyors.length === conveyorsPreview.children.length);
-        for (let i = 0; i < conveyorsPreview.children.length; ++i) {
-            const mesh = conveyorsPreview.children[i] as Mesh;
-            const configId = mesh.name;
-            const [_dirX, _dirY, startAxis, _endAxis] = configId.split(",");
-            const dirX = parseInt(_dirX);
-            const dirY = parseInt(_dirY);
-            const endAxis = _endAxis === "none" ? undefined : (_endAxis as Axis);
-            const cell = GameUtils.getCell(previousConveyors[i], sectorCoords, localCoords)!;
-            const direction = cellCoords.set(dirX, dirY);
 
-            const buildingType = "conveyor";
-            let depotsInRange: IBuildingInstance[] | null = null;
-            const allowed = (() => {
-                if (!GameMapProps.instance.debugFreeCosts) {
-                    depotsInRange = depots.getDepotsInRange(sectorCoords, localCoords, buildingType);
-                    if (!depots.testDepots(depotsInRange, buildingType, false)) {
-                        return false;
-                    }
+        const canCreate = (() => {
+            const endDragFilter = GameMapState.instance.buildingCreationFilter?.endDrag;
+            if (endDragFilter) {
+                if (!endDragFilter(start, current)) {
+                    return false;
                 }
-                return true;
-            })();
-            if (allowed) {
-                if (depotsInRange) {
-                    depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
-                }
-                conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
-            } else {
-                conveyors.clearLooseCorners(previousConveyors[i]);
-                break;
             }
+            return true;
+        })();
+
+        if (canCreate) {
+            const { conveyorsPreview } = GameMapState.instance.layers;
+            console.assert(previousConveyors.length === conveyorsPreview.children.length);
+            for (let i = 0; i < conveyorsPreview.children.length; ++i) {
+                const mesh = conveyorsPreview.children[i] as Mesh;
+                const configId = mesh.name;
+                const [_dirX, _dirY, startAxis, _endAxis] = configId.split(",");
+                const dirX = parseInt(_dirX);
+                const dirY = parseInt(_dirY);
+                const endAxis = _endAxis === "none" ? undefined : (_endAxis as Axis);
+                const cell = GameUtils.getCell(previousConveyors[i], sectorCoords, localCoords)!;
+                const direction = cellCoords.set(dirX, dirY);
+    
+                const buildingType = "conveyor";
+                let depotsInRange: IBuildingInstance[] | null = null;
+                const allowed = (() => {
+                    // free for demo
+                    // if (!GameMapProps.instance.debugFreeCosts) {
+                    //     depotsInRange = depots.getDepotsInRange(sectorCoords, localCoords, buildingType);
+                    //     if (!depots.testDepots(depotsInRange, buildingType, false)) {
+                    //         return false;
+                    //     }
+                    // }
+    
+                    return true;
+                })();
+    
+                if (allowed) {
+                    if (depotsInRange) {
+                        depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
+                    }
+                    conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
+                } else {
+                    conveyors.clearLooseCorners(previousConveyors[i]);
+                    break;
+                }
+            }
+
+            evtConveyorCreated.post();
         }
+        
         conveyors.clearPreview();
         gameMapState.previousConveyors.length = 0;
     }
@@ -492,8 +511,20 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             }
 
             if (!GameMapProps.instance.debugFreeCosts) {
-                depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
-                if (!depots.testDepots(depotsInRange, buildableType)) {
+                if (buildableType === "conveyor") {
+                    // free conveyors for demo
+                } else {
+                    depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
+                    if (!depots.testDepots(depotsInRange, buildableType)) {
+                        return false;
+                    }
+                }                
+            }
+
+            const clickFilter = GameMapState.instance.buildingCreationFilter?.click;
+            if (clickFilter) {
+                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+                if (!clickFilter(cellCoords)) {
                     return false;
                 }
             }

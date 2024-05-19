@@ -69,7 +69,7 @@ class Resources {
 
     private _oilMaterial = new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .7 });
     private _oilGeometry = new PlaneGeometry(cellSize, cellSize).rotateX(-Math.PI / 2);    
-    private _glassMaterial = new MeshBasicMaterial({ blending: AdditiveBlending, transparent: true, opacity: .4 });
+    private _glassMaterial = new MeshBasicMaterial({ blending: AdditiveBlending, transparent: true, opacity: .6 });
     private _waterMaterial = new MeshStandardMaterial({ color: 0x5BB0F1, transparent: true, opacity: .6 });
 
     public create(sector: ISector, sectorCoords: Vector2, localCoords: Vector2, cell: ICell, type: RawResourceType) {
@@ -155,6 +155,7 @@ class Resources {
 
                 case "glass": {
                     mesh.material = this._glassMaterial;
+                    mesh.castShadow = false;
                 }
                 break;
             }

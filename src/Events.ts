@@ -100,4 +100,5 @@ export const cmdSetObjectiveStatus = new AsyncEvent<string>();
 export const evtActionClicked = new AsyncEvent<string>();
 export const evtBuildingCreated = new AsyncEvent<IBuildingInstance>();
 export const cmdRefreshUI = new AsyncEvent<void>();
+export const evtConveyorCreated = new AsyncEvent<void>();
 

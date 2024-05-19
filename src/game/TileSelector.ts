@@ -10,20 +10,15 @@ import { buildings } from "./buildings/Buildings";
 
 const { cellSize, mapRes } = config.game;
 
-export enum TileSelectorMode {
-    Select,
-    Destroy
-}
-
 export class TileSector extends Object3D {
 
     public get size() { return this._size; }
     public get resolution() { return this._resolution; }
 
     public set resolution(value: number) { this._resolution = value; }
-    public set mode(value: "select" | "destroy") { 
+    public set color(value: "yellow" | "red") { 
         switch (value) {
-            case "destroy": this._material.color.set(0xff0000); break;
+            case "red": this._material.color.set(0xff0000); break;
             default: this._material.color.set(0xffff00); break;
         }
     }
