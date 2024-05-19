@@ -130,6 +130,7 @@ export class Tutorial extends Component<TutorialProps> {
     private onSelection(selectedElem: SelectedElems | null) {
         switch (this._step) {
             case MissionStep.SelectUnit: {
+                //cmdTutorialComplete.post(); // TODO
                 if (selectedElem?.type === "units") {
                     this._step = MissionStep.CollectStone;
                     cmdSetIndicator.post({
@@ -590,8 +591,11 @@ export class Tutorial extends Component<TutorialProps> {
                 shadow.removeFromParent();
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetObjectiveStatus.post(`${1} / 1`);
-                setTimeout(() => {
-                    this._step = MissionStep.CollectWater;
+
+                this._step = MissionStep.CollectWater;
+                cmdSetIndicator.post(null);
+
+                setTimeout(() => {                    
                     cmdSetObjective.post({
                         objective: "Collect Water",
                         icon: "water"

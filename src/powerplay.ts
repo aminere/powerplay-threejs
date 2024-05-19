@@ -33,4 +33,4 @@ export { terrain } from "./game/Terrain";
 
 export { Collider } from "./engine/collision/Collider"
 export { SphereCollider } from "./engine/collision/SphereCollider"
-
+export { evtSceneCreated } from "./Events";

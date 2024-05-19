@@ -63,7 +63,7 @@ export const UnitTypes = [
     ...VehicleTypes
 ] as const;
 
-export type UIType = "gamemap";
+export type UIType = "gamemap" | "mainmenu";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
 export type RawResourceType = typeof RawResourceTypes[number];

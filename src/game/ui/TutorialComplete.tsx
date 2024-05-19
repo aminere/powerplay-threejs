@@ -3,6 +3,22 @@ import { TextButton } from "./TextButton";
 import { uiconfig } from "./uiconfig";
 
 import gsap from "gsap";
+import { engine } from "../../engine/Engine";
+import { AmbientLight, MathUtils, PerspectiveCamera, Scene } from "three";
+import { cmdShowUI, evtSceneCreated } from "../../Events";
+
+function createNewScene() {
+    const scene = new Scene();
+    const camera = new PerspectiveCamera();
+    camera.position.set(4, 3, 4);
+    camera.rotation.set(MathUtils.degToRad(-30), MathUtils.degToRad(45), 0, 'YXZ');
+    camera.userData.eulerRotation = camera.rotation.clone();
+    scene.add(camera);
+    const ambient = new AmbientLight(0xffffff, .2);
+    scene.add(ambient);
+    scene.updateWorldMatrix(true, true);
+    return scene;
+}
 
 export function TutorialComplete() {
     const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -55,8 +71,11 @@ export function TutorialComplete() {
                 Good luck!
             </div>
             <div>
-                <TextButton text={"Continue"} onClick={() => {
-                    console.log("play");
+                <TextButton text={"Continue"} onClick={() => {                    
+                    engine.parseScene(createNewScene().toJSON(), info => {
+                        evtSceneCreated.post(info);
+                        cmdShowUI.post("mainmenu");
+                    });
                 }} />
             </div>
         </div>

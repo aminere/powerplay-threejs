@@ -4,6 +4,7 @@ import { Vector2 } from "three";
 import { IBuildingInstance } from "./game/buildings/BuildingTypes";
 import { IUnit } from "./game/unit/IUnit";
 import { ICell } from "./game/GameTypes";
+import { ISceneInfo } from "./engine/Engine";
 
 export const cmdShowUI = new AsyncEvent<UIType | null>();
 
@@ -104,4 +105,5 @@ export const evtConveyorCreated = new AsyncEvent<void>();
 export const cmdOpenBuildSection = new AsyncEvent<"build" | null>();
 export const evtUnitSpawned = new AsyncEvent<IUnit>();
 export const cmdTutorialComplete = new AsyncEvent<void>();
+export const evtSceneCreated = new AsyncEvent<ISceneInfo>();
 

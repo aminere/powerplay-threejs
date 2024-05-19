@@ -4,6 +4,7 @@ import { cmdShowUI } from "../../Events";
 import { IGameUIProps } from "./GameUIProps";
 import { GameMapUI } from "./GameMapUI";
 import "./GameUI.css";
+import { MainMenu } from "./MainMenu";
 
 export function GameUI(props: IGameUIProps) {
     const [ui, setUI] = useState<UIType | null>(null);
@@ -18,6 +19,7 @@ export function GameUI(props: IGameUIProps) {
 
     switch (ui) {
         case "gamemap": return <GameMapUI {...props} />;
+        case "mainmenu": return <MainMenu />;
     }
 
     return null;

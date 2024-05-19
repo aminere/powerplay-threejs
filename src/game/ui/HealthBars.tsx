@@ -64,7 +64,7 @@ export function HealthBars() {
             selectedElemsRef.current = elems;
         };
 
-        const renderUI = () => {            
+        const renderUI = () => {
             const canvas = canvasRef.current!;
             const ctx = canvas.getContext("2d")!;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
