@@ -307,6 +307,8 @@ export class Tutorial extends Component<TutorialProps> {
                             GameMapState.instance.action = "building";
                             // TODO select conveyor in UI
 
+                            GameMapState.instance.config.bottomPanels = false;
+                            cmdRefreshUI.post();
                             cmdSetIndicator.post({
                                 indicator: {
                                     type: "cell",
@@ -477,8 +479,10 @@ export class Tutorial extends Component<TutorialProps> {
                             }
                         });
 
-                        GameMapState.instance.config.sideActions.self = false;
-                        cmdRefreshUI.post();
+                        setTimeout(() => {
+                            GameMapState.instance.config.sideActions.self = false;
+                            cmdRefreshUI.post();
+                        }, 500);                        
                     }
                         break;
                 }
@@ -529,6 +533,11 @@ export class Tutorial extends Component<TutorialProps> {
                         cmdRefreshUI.post();
                     }
                 }
+            }
+            break;
+
+            case "worker": {
+                cmdSetIndicator.post(null);
             }
         }
     }
