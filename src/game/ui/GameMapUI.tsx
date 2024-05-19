@@ -6,7 +6,7 @@ import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
 import { BuildableType, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetSelectedElems, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -20,6 +20,7 @@ import { ObjectivesPanel } from "./ObjectivePanel";
 import { Indicators } from "./Indicators";
 import { DebugUI } from "./DebugUI";
 import { TransportAction } from "./TransportAction";
+import { TutorialComplete } from "./TutorialComplete";
 
 export function GameMapUI(_props: IGameUIProps) {
     // useEffect(() => {
@@ -176,6 +177,17 @@ export function GameMapUI(_props: IGameUIProps) {
         }
     }, []);
 
+    const [tutorialComplete, setTutorialComplete] = useState(false);
+    useEffect(() => {
+        const onComplete = () => {
+            setTutorialComplete(true);
+        }
+        cmdTutorialComplete.attach(onComplete);
+        return () => {
+            cmdTutorialComplete.detach(onComplete);
+        }
+    }, []);
+
     const gameMapState = GameMapState.instance;
     return <div
         style={{
@@ -305,6 +317,8 @@ export function GameMapUI(_props: IGameUIProps) {
         <SelectionRect />
 
         <DebugUI />
+
+        {tutorialComplete && <TutorialComplete />}
     </div>
 }
 

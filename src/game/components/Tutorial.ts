@@ -2,7 +2,7 @@
 import { Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdSpawnUnit, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitSpawned, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdTutorialComplete, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitSpawned, evtUnitStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
@@ -678,11 +678,11 @@ export class Tutorial extends Component<TutorialProps> {
             case MissionStep.Incubate: {
                 for (const unit of unitsManager.units) {
                     if (UnitUtils.isWorker(unit)) {
-                        unitMotion.moveUnit(unit, new Vector2(24, 137));
+                        unitMotion.moveUnit(unit, new Vector2(32, 143));
                     }            
                 }        
                 engineState.removeComponent(this._owner!, Tutorial);
-                // TODO dialog
+                cmdTutorialComplete.post();
             }
         }        
     }

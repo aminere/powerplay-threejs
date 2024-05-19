@@ -13,6 +13,7 @@ export { utils } from "./engine/Utils";
 export { time } from "./engine/core/Time";
 
 export { GameUI } from "./game/ui/GameUI";
+export { TextButton } from "./game/ui/TextButton";
 export { EngineStats } from "./debug/EngineStats";
 export { config } from "./game/config/config";
 
