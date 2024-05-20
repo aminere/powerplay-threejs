@@ -41,7 +41,7 @@ export function MainMenu() {
             </div>
             <MenuButton onClick={() => {
                 cmdShowUI.post(null);
-                engine.loadScene("/scenes/scene.json");
+                engine.loadScene("/scenes/tutorial.json");
             }}>
                 Learn to Play
             </MenuButton>
