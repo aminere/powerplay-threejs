@@ -152,7 +152,10 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                             case "worker": {
                                                 const character = unit as ICharacterUnit;
                                                 if (character.resource) {
-                                                    return <ActionButton onClick={() => character.clearResource()}>
+                                                    return <ActionButton
+                                                        tooltipId="clear carried resource"
+                                                        onClick={() => character.clearResource()}
+                                                    >
                                                         clear
                                                     </ActionButton>
                                                 }
@@ -160,6 +163,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         }
                                     })()}
                                     <ActionButton
+                                        tooltipId="kill worker"
                                         visible={GameMapState.instance.config.selectionActions.kill}
                                         onClick={() => {
                                             killedThroughUI.current = true;
@@ -184,6 +188,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                     case "incubator": {
                                         return <ActionButton
                                             id="worker"
+                                            tooltipId="incubate worker"
                                             onClick={() => {
                                                 if (!Incubators.output(building)) {
                                                     const inputs = resourceConfig.incubatorProduction["worker"];
@@ -200,7 +205,8 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         const state = building.state as IFactoryState;
                                         return <>
                                             <ActionButton
-                                                id="output"
+                                                key="factory-output"
+                                                id="factory-output"
                                                 selected={props.factoryOutputsOpen}
                                                 selectedColor="white"
                                                 onClick={props.onShowFactoryOutputs}
@@ -242,6 +248,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 resourceType
                                                 &&
                                                 <ActionButton
+                                                    key="mine-output"
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {
                                                         const status = Mines.output(building);
@@ -292,6 +299,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                         state.output
                                                         &&
                                                         <ActionButton
+                                                            tooltipId={`produce ${state.output}`} // todo multiline with autooutput explanation
                                                             selectedAnim={state.autoOutput}
                                                             onClick={() => {
                                                                 if (!depots.output(building, state.output!)) {
@@ -323,6 +331,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 state.output
                                                 &&
                                                 <ActionButton
+                                                    tooltipId={`produce ${state.output}`}
                                                     // selectedAnim={state.autoOutput}
                                                     onClick={() => {
                                                         if (!Assemblies.output(building)) {
@@ -344,11 +353,15 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                 {
                                     (depotResources && depotResources.length > 0)
                                     &&
-                                    <ActionButton onClick={() => depots.clear(building)}>
+                                    <ActionButton 
+                                        tooltipId={`clear all resources in this depot`}
+                                        onClick={() => depots.clear(building)}
+                                    >
                                         clear
                                     </ActionButton>
                                 }
                                 <ActionButton
+                                    tooltipId={`destroy ${building.buildingType}`}
                                     visible={GameMapState.instance.config.selectionActions.kill}
                                     onClick={() => {
                                         killedThroughUI.current = true;
@@ -366,6 +379,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         console.assert(conveyor);
                         return <FooterActions>
                             <ActionButton
+                                tooltipId={`destroy conveyor`}
                                 visible={GameMapState.instance.config.selectionActions.kill}
                                 onClick={() => {
                                     killedThroughUI.current = true;

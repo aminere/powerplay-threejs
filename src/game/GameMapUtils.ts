@@ -328,14 +328,13 @@ export function onEndDrag(start: Vector2, current: Vector2) {
                 const buildingType = "conveyor";
                 let depotsInRange: IBuildingInstance[] | null = null;
                 const allowed = (() => {
-                    // free for demo
-                    // if (!GameMapProps.instance.debugFreeCosts) {
-                    //     depotsInRange = depots.getDepotsInRange(sectorCoords, localCoords, buildingType);
-                    //     if (!depots.testDepots(depotsInRange, buildingType, false)) {
-                    //         return false;
-                    //     }
-                    // }
-    
+                    if (GameMapState.instance.config.freeConveyors || GameMapProps.instance.debugFreeCosts) {
+                        return true;
+                    }
+                    depotsInRange = depots.getDepotsInRange(sectorCoords, localCoords, buildingType);
+                    if (!depots.testDepots(depotsInRange, buildingType, false)) {
+                        return false;
+                    }
                     return true;
                 })();
     

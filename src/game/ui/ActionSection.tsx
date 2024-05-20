@@ -60,6 +60,7 @@ export function ActionSection(props: IActionSectionProps) {
     return <ActionButton
         visible={props.visible}
         id={props.name}
+        tooltipId={props.name}
         selected={open}
         selectedColor="white"
         onClick={() => {
@@ -91,6 +92,7 @@ export function ActionSection(props: IActionSectionProps) {
             {props.actions.map(_action => {
                 return <ActionButton
                     id={_action}
+                    tooltipId={_action}
                     visible={props.actionsVisible[_action]}
                     key={_action}
                     selected={action === _action}

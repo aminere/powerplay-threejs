@@ -99,7 +99,8 @@ export class Tutorial extends Component<TutorialProps> {
             input: {
                 leftClick: false,
                 rightClick: false
-            }
+            },
+            freeConveyors: true
         };
 
         this.onSelection = this.onSelection.bind(this);
@@ -169,7 +170,7 @@ export class Tutorial extends Component<TutorialProps> {
                             cmdSetIndicator.post({
                                 indicator: {
                                     type: "ui",
-                                    element: "output"
+                                    element: "factory-output"
                                 }
                             });
                         }, 500);
@@ -516,7 +517,7 @@ export class Tutorial extends Component<TutorialProps> {
             }
                 break;
 
-            case "output": {
+            case "factory-output": {
                 switch (this._step) {
                     case MissionStep.ProduceGlass: {
                         setTimeout(() => {

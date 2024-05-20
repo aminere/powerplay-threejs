@@ -49,6 +49,7 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
             return <ActionButton                
                 key={resource}
                 id={resource}
+                tooltipId={resource}
                 visible={GameMapState.instance.config.factoryOutputs[resource]}
                 selected={output === resource}
                 onClick={() => {

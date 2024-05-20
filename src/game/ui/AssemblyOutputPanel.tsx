@@ -46,6 +46,7 @@ export function AssemblyOutputPanel(props: AssemblyOutputPanelProps) {
         {VehicleTypes.map(vehicle => {
                 return <ActionButton
                     key={vehicle}
+                    tooltipId={vehicle}
                     selected={output === vehicle}
                     onClick={() => {
                         setOutput(vehicle);

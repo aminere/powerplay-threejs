@@ -48,6 +48,7 @@ export function DepotOutputPanel(props: DepotOutputPanelProps) {
             const resourceType = type as ResourceType;
                 return <ActionButton
                     key={type}
+                    tooltipId={type}
                     selected={output === type}
                     onClick={() => {
                         const state = depot.state as IDepotState;

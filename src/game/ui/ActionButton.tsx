@@ -1,9 +1,11 @@
 import { cmdShowTooltip, evtActionClicked } from "../../Events";
+import { tooltips } from "./Tooltips";
 import { uiconfig } from "./uiconfig";
 import React, { useEffect, useRef } from "react";
 
 interface ActionButtonProps {
     id?: string;
+    tooltipId?: string;
     visible?: boolean;
     onClick: () => void;
     onContextMenu?: () => void;
@@ -16,10 +18,14 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
 
     const visible = props.visible ?? true;
     const tooltipRef = useRef<HTMLDivElement | null>(null);
+    const { id, tooltipId } = props;
 
     useEffect(() => {
-        const onShowTooltip = (id?: string) => {
-            const show = id && id === props.id;
+        if (!tooltipRef.current) {
+            return;
+        }
+        const onShowTooltip = (tooltipTargetId?: string) => {
+            const show = tooltipTargetId && tooltipTargetId === tooltipId;
             if (show) {
                 if (!tooltipRef.current!.classList.contains("visible")) {
                     tooltipRef.current!.classList.add("visible");
@@ -34,10 +40,11 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         return () => {
             cmdShowTooltip.detach(onShowTooltip)
         }
-    }, []);
+    }, [tooltipId]);
 
+    const tooltip = tooltipId ? tooltips.getContent(tooltipId) : null;
     return <div
-        id={props.id}
+        id={id}
         className={`action icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
             pointerEvents: "all",
@@ -61,7 +68,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             backgroundColor: uiconfig.slotBackgroundColor,
             padding: `${2 * uiconfig.gapRem}rem`
         }}
-        onClick={e => {            
+        onClick={e => {
             props.onClick();
 
             // in the editor, this is needed to avoid sending clicks to the editor viewport which dispatches it to the game 
@@ -69,8 +76,8 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             // in the game, this is needed so that onClick() doesn't trigger on ActionButton ancestors
             e.stopPropagation();
 
-            if (props.id) {
-                evtActionClicked.post(props.id);
+            if (id) {
+                evtActionClicked.post(id);
             }
         }}
         onContextMenu={e => {
@@ -80,11 +87,15 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         }}
 
         onPointerEnter={() => {
-            cmdShowTooltip.post(props.id);
+            if (tooltipId) {
+                cmdShowTooltip.post(tooltipId);
+            }
         }}
 
         onPointerLeave={() => {
-            cmdShowTooltip.post(undefined);
+            if (tooltipId) {
+                cmdShowTooltip.post(undefined);
+            }
         }}
     >
         {
@@ -97,22 +108,25 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
 
         {props.children}
 
-        <div
-            ref={tooltipRef}
-            className="tooltip"
-            style={{
-                position: "absolute",
-                left: 0, //`calc(100% + ${uiconfig.paddingRem}rem)`,
-                bottom: "100%", // `calc(100% + ${uiconfig.paddingRem}rem)`,
-                backgroundColor: uiconfig.backgroundColor,
-                padding: `${uiconfig.paddingRem}rem`,
-                // minWidth: "10ch",
-                minWidth: "max-content",
-                textAlign: "left"
-            }}>
-            {props.id}
-        </div>
-
+        {
+            tooltip
+            &&
+            <div
+                ref={tooltipRef}
+                className="tooltip"
+                style={{
+                    position: "absolute",
+                    left: 0, //`calc(100% + ${uiconfig.paddingRem}rem)`,
+                    bottom: "100%", // `calc(100% + ${uiconfig.paddingRem}rem)`,
+                    backgroundColor: uiconfig.backgroundColor,
+                    padding: `${uiconfig.paddingRem}rem`,
+                    // minWidth: "10ch",
+                    minWidth: "max-content",
+                    textAlign: "left"
+                }}>
+                {tooltip}
+            </div>
+        }
     </div>
 }
 

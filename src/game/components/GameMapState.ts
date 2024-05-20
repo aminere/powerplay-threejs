@@ -105,7 +105,8 @@ export class GameMapState {
         input: {
             leftClick: true,
             rightClick: true
-        }
+        },
+        freeConveyors: false
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;
