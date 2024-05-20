@@ -126,14 +126,14 @@ export function GameMapUI() {
         }
     }, []);
 
-    const [openSection, _setOpenSection] = useState<"build" | null>(null);
+    const [openSection, _setOpenSection] = useState<"building" | null>(null);
     const [selectedAction, setSelectedAction] = useState<"conveyor" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
     const [showDepotOutputs, setShowDepotOutputs] = useState(false);
 
-    const setOpenSection = (section: "build" | null) => {
+    const setOpenSection = (section: "building" | null) => {
         _setOpenSection(section);
         if (section) {
             if (selectedAction) {
@@ -150,7 +150,7 @@ export function GameMapUI() {
             setShowDepotOutputs(false);
         }
 
-        const onOpenBuildSection = (section: "build" | null) => {
+        const onOpenBuildSection = (section: "building" | null) => {
             setOpenSection(section);
         }
 
@@ -232,10 +232,10 @@ export function GameMapUI() {
         >
             <ActionSection
                 visible={gameMapState.config.sideActions.enabled.build.self}
-                name="build"
+                name="building"
                 actions={BuildingTypes}
                 actionsVisible={gameMapState.config.sideActions.enabled.build.enabled}
-                open={openSection === "build"}
+                open={openSection === "building"}
                 onSelected={action => {
                     const type = action as BuildableType;
                     GameMapProps.instance.buildableType = type;
@@ -252,7 +252,7 @@ export function GameMapUI() {
                         gameMapState.tileSelector.resolution = 1;
                     }
                 }}
-                onOpen={() => setOpenSection("build")}
+                onOpen={() => setOpenSection("building")}
                 onClose={() => setOpenSection(null)}
             />
             <TransportAction

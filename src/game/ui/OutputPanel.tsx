@@ -51,8 +51,8 @@ export function OutputPanel(props: React.PropsWithChildren<OutputPanelProps>) {
             left: "0px",
             top: `calc(-1 * (${height}))`,
             height: `calc(${height})`,
-            overflowY: "auto",
-            overflowX: "hidden",
+            // overflowY: "auto", // prevents tooltips from showing up, TODO IMPLEMENT THE SCROLL MANUALLY USING BUTTONS
+            // overflowX: "hidden",
             backgroundColor: uiconfig.backgroundColor,
             padding: `${uiconfig.paddingRem}rem`,
             transformOrigin: "bottom",

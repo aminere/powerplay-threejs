@@ -368,7 +368,7 @@ export class Tutorial extends Component<TutorialProps> {
                                 });
                                 cmdSetObjectiveStatus.post(`${0} / 1`);                               
 
-                                cmdOpenBuildSection.post("build");
+                                cmdOpenBuildSection.post("building");
                                 setTimeout(() => {
                                     cmdSetIndicator.post({
                                         indicator: {

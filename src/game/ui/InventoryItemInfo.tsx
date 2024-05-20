@@ -7,7 +7,7 @@ export function InventoryItemInfo({ children }: { children: React.ReactNode }) {
             right: "0",
             bottom: "0",
             backgroundColor: "black",
-            fontSize: "0.8rem"
+            fontSize: ".9rem"
         }}
     >
         {children}

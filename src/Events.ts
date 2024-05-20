@@ -102,10 +102,10 @@ export const evtActionClicked = new AsyncEvent<string>();
 export const evtBuildingCreated = new AsyncEvent<IBuildingInstance>();
 export const cmdRefreshUI = new AsyncEvent<void>();
 export const evtConveyorCreated = new AsyncEvent<void>();
-export const cmdOpenBuildSection = new AsyncEvent<"build" | null>();
+export const cmdOpenBuildSection = new AsyncEvent<"building" | null>();
 export const evtUnitSpawned = new AsyncEvent<IUnit>();
 export const cmdTutorialComplete = new AsyncEvent<void>();
 export const evtSceneCreated = new AsyncEvent<ISceneInfo>();
 export const cmdExitGame = new AsyncEvent<void>();
 export const evtMoveCommand = new AsyncEvent<Vector2>();
-
+export const cmdShowTooltip = new AsyncEvent<string | undefined>();

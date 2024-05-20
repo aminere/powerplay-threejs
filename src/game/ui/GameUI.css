@@ -30,7 +30,7 @@ img {
 
 .item-auto-output rect {
     stroke-dasharray: 4rem;
-    stroke-width: 2px;
+    stroke-width: 4px;
     fill: transparent;
     stroke: yellow;
     animation: item-auto-output-anim 10s linear infinite;
@@ -77,3 +77,16 @@ img {
     animation: highlight-anim .5s;
 }
 
+.tooltip {
+    opacity: 0;
+    transition: opacity .5s;
+    pointer-events: none;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+.ui {
+    pointer-events: none;
+}

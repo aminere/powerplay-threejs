@@ -1,7 +1,6 @@
-import { evtActionClicked } from "../../Events";
-import { engine } from "../../engine/Engine";
+import { cmdShowTooltip, evtActionClicked } from "../../Events";
 import { uiconfig } from "./uiconfig";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 interface ActionButtonProps {
     id?: string;
@@ -16,10 +15,31 @@ interface ActionButtonProps {
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
 
     const visible = props.visible ?? true;
+    const tooltipRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const onShowTooltip = (id?: string) => {
+            if (id === props.id) {
+                if (!tooltipRef.current!.classList.contains("visible")) {
+                    tooltipRef.current!.classList.add("visible");
+                }                
+            } else {
+                if (tooltipRef.current!.classList.contains("visible")) {
+                    tooltipRef.current!.classList.remove("visible");
+                }
+            }
+        }
+        cmdShowTooltip.attach(onShowTooltip);
+        return () => {
+            cmdShowTooltip.detach(onShowTooltip)
+        }
+    }, []);
+
     return <div
         id={props.id}
         className={`action icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
+            pointerEvents: "all",
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
             width: `${uiconfig.buttonSizeRem}rem`,
@@ -45,7 +65,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
 
             // in the editor, this is needed to avoid sending clicks to the editor viewport which dispatches it to the game 
             // TODO handle game input on the game canvas, not the viewport
-            // in the game, this is needed so that an onClick() doesn't trigger on ActionButton ancestors
+            // in the game, this is needed so that onClick() doesn't trigger on ActionButton ancestors
             e.stopPropagation();
 
             if (props.id) {
@@ -57,6 +77,14 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             e.preventDefault();
             props.onContextMenu?.();
         }}
+
+        onPointerEnter={() => {
+            cmdShowTooltip.post(props.id);
+        }}
+
+        onPointerLeave={() => {
+            cmdShowTooltip.post(undefined);
+        }}
     >
         {
             props.selectedAnim
@@ -67,6 +95,23 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         }
 
         {props.children}
+
+        <div
+            ref={tooltipRef}
+            className="tooltip"
+            style={{
+                position: "absolute",
+                left: 0, //`calc(100% + ${uiconfig.paddingRem}rem)`,
+                bottom: "100%", // `calc(100% + ${uiconfig.paddingRem}rem)`,
+                backgroundColor: uiconfig.backgroundColor,
+                padding: `${uiconfig.paddingRem}rem`,
+                // minWidth: "10ch",
+                minWidth: "max-content",
+                textAlign: "left"
+            }}>
+            {props.id}
+        </div>
+
     </div>
 }
 
