@@ -19,10 +19,11 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
 
     useEffect(() => {
         const onShowTooltip = (id?: string) => {
-            if (id === props.id) {
+            const show = id && id === props.id;
+            if (show) {
                 if (!tooltipRef.current!.classList.contains("visible")) {
                     tooltipRef.current!.classList.add("visible");
-                }                
+                }
             } else {
                 if (tooltipRef.current!.classList.contains("visible")) {
                     tooltipRef.current!.classList.remove("visible");
