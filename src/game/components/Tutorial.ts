@@ -293,7 +293,7 @@ export class Tutorial extends Component<TutorialProps> {
                                 cmdSetIndicator.post({
                                     indicator: {
                                         type: "ui",
-                                        element: "build"
+                                        element: "building"
                                     }
                                 });
                             }, 500);
@@ -326,9 +326,7 @@ export class Tutorial extends Component<TutorialProps> {
                             GameMapProps.instance.buildableType = "conveyor";
                             GameMapState.instance.action = "building";
                             // TODO select conveyor in UI
-
-                            GameMapState.instance.config.bottomPanels = false;
-                            cmdRefreshUI.post();
+                            
                             cmdSetIndicator.post({
                                 indicator: {
                                     type: "cell",
@@ -341,6 +339,11 @@ export class Tutorial extends Component<TutorialProps> {
                                     icon: "mouse-left"
                                 }
                             });
+
+                            setTimeout(() => {
+                                GameMapState.instance.config.bottomPanels = false;
+                                cmdRefreshUI.post();
+                            }, 100);
                         }
                     }
                         break;
@@ -471,8 +474,10 @@ export class Tutorial extends Component<TutorialProps> {
                     click: coords => coords.equals(mapCoords)
                 }
 
-                GameMapState.instance.config.sideActions.self = false;
-                cmdRefreshUI.post();
+                setTimeout(() => {
+                    GameMapState.instance.config.sideActions.self = false;
+                    cmdRefreshUI.post();
+                }, 100);                
             }
                 break;
 
@@ -504,7 +509,7 @@ export class Tutorial extends Component<TutorialProps> {
                         setTimeout(() => {
                             GameMapState.instance.config.sideActions.self = false;
                             cmdRefreshUI.post();
-                        }, 500);                        
+                        }, 100);                        
                     }
                         break;
                 }
@@ -575,19 +580,17 @@ export class Tutorial extends Component<TutorialProps> {
                 cmdSetObjectiveStatus.post(`${1} / 1`);
 
                 this._step = MissionStep.BuildConveyorToFactory;
-                cmdSetIndicator.post(null);
+                cmdSetIndicator.post(null);                
 
-                GameMapState.instance.config.sideActions.self = true;
-                cmdRefreshUI.post();
                 setTimeout(() => {
                     cmdSetObjective.post({
                         objective: "Build a conveyor",
                         icon: "conveyor"
                     });
                     cmdSetObjectiveStatus.post(`${0} / 1`);
-
-                    const { sideActions } = GameMapState.instance.config;
-                    sideActions.enabled.conveyor = true;
+                    
+                    GameMapState.instance.config.sideActions.self = true;
+                    GameMapState.instance.config.sideActions.enabled.conveyor = true;
                     cmdRefreshUI.post();
                     setTimeout(() => {
                         cmdSetIndicator.post({

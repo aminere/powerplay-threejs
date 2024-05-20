@@ -230,7 +230,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
         const state = GameMapState.instance;
         const resolution = state.tileSelector.resolution;
 
-        if (input.touchInside && !state.cursorOverUI) {
+        if (input.touchInside) {
             const { width, height } = engine.screenRect;
             const touchPos = input.touchPos;
             // [0, s] to [-1, 1]
