@@ -48,6 +48,7 @@ export function Icon(props: IconProps) {
         return <img src={`/images/icons/${icon}.png`} />
     }
 
-    return <span>{icon}</span>;
+    return <img src={`/images/icons/404.png`} />;
+    // return <span>{icon}</span>;
 }
 

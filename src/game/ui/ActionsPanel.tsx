@@ -218,6 +218,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 &&
                                                 <ActionButton
                                                     selectedAnim={state.autoOutput}
+                                                    tooltipId={`output_${state.output}_${state.autoOutput}`}
                                                     onClick={() => {
                                                         const status = Factories.output(building);
                                                         switch (status) {
@@ -228,7 +229,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             }
                                                             break;
                                                             case "output-full": {
-                                                                evtBuildError.post(`Not enough space to eject`);
+                                                                evtBuildError.post(`No space to eject!`);
                                                             }
                                                         }
                                                     }}
@@ -248,7 +249,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 resourceType
                                                 &&
                                                 <ActionButton
-                                                    tooltipId={`mine-output_${resourceType}_${state.autoOutput}`}
+                                                    tooltipId={`output_${resourceType}_${state.autoOutput}`}
                                                     key="mine-output"
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {
@@ -259,7 +260,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             }
                                                                 break;
                                                             case "output-full": {
-                                                                evtBuildError.post(`Not enough space to eject`);
+                                                                evtBuildError.post(`No space to eject!`);
                                                             }
                                                         }
                                                     }}
@@ -277,10 +278,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                             if (depotResources!.length === 1) {
                                                 const type = depotResources![0] as ResourceType;
                                                 return <ActionButton
+                                                    tooltipId={`output_${type}_${state.autoOutput}`}
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {                                                        
                                                         if (!depots.output(building, type)) {
-                                                            evtBuildError.post(`Not enough space to eject`);
+                                                            evtBuildError.post(`No space to eject!`);
                                                         }
                                                     }}
                                                     onContextMenu={() => depots.toggleAutoOutput(building)}
@@ -300,11 +302,11 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                         state.output
                                                         &&
                                                         <ActionButton
-                                                            tooltipId={`produce ${state.output}`} // todo multiline with autooutput explanation
+                                                            tooltipId={`output_${state.output}_${state.autoOutput}`}
                                                             selectedAnim={state.autoOutput}
                                                             onClick={() => {
                                                                 if (!depots.output(building, state.output!)) {
-                                                                    evtBuildError.post(`Not enough space to eject`);
+                                                                    evtBuildError.post(`No space to eject!`);
                                                                 }                                                               
                                                             }}
                                                             onContextMenu={() => depots.toggleAutoOutput(building)}
