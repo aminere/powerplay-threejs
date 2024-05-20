@@ -104,7 +104,7 @@ export class GameMapState {
         },
         input: {
             leftClick: true,
-            rightClick: false
+            rightClick: true
         }
     };
 

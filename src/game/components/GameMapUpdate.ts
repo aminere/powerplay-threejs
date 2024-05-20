@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
-import { cmdEndSelection, cmdSetIndicator, evtMoveCommand } from "../../Events";
+import { cmdEndSelection, evtMoveCommand } from "../../Events";
 import { IUnit } from "../unit/IUnit";
 import { buildings } from "../buildings/Buildings";
 import { unitMotion } from "../unit/UnitMotion";
@@ -23,6 +23,7 @@ import { ICell } from "../GameTypes";
 import { getCellFromAddr } from "../unit/UnitAddr";
 import { MeleeAttackState } from "../unit/states/MeleeAttackState";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
+import { buildingConfig } from "../config/BuildingConfig";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -53,6 +54,22 @@ function getEnemiesAroundCell(mapCoords: Vector2, radius: number) {
         }
     }
     return enemiesAroundCell;
+}
+
+const buildingsAroundCell = new Set<IBuildingInstance>();
+function getBuildingsAroundCell(mapCoords: Vector2, radius: number) {
+    buildingsAroundCell.clear();
+    for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
+        for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
+            cellCoords.set(x, y);
+            const building = GameUtils.getCell(cellCoords)?.building;
+            if (building) {
+                const instance = GameMapState.instance.buildings.get(building)!;
+                buildingsAroundCell.add(instance);
+            }
+        }
+    }
+    return buildingsAroundCell;
 }
 
 function raycastOnUnit(worldRay: Ray, unit: IUnit, intersectionOut: Vector3) {
@@ -467,35 +484,48 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         const targetCell = raycastOnCells(input.touchPos, state.camera, mapCoords, resolution);
                         if (targetCell) {
 
-                            // check if right click on enemy
-                            const targetEnemy = (() => {
-                                const enemies = getEnemiesAroundCell(mapCoords, 2);
-                                if (enemies.length > 0) {
-                                    intersections.length = 0;
-                                    getWorldRay(worldRay);
-                                    for (const enemy of enemies) {
-                                        if (raycastOnUnit(worldRay, enemy, intersection)) {
-                                            intersections.push({ unit: enemy, distance: worldRay.origin.distanceTo(intersection) });
+                            getWorldRay(worldRay);
+                            intersections.length = 0;
+
+                            const enemies = getEnemiesAroundCell(mapCoords, 2);
+                            for (const enemy of enemies) {
+                                if (raycastOnUnit(worldRay, enemy, intersection)) {
+                                    intersections.push({ unit: enemy, distance: worldRay.origin.distanceTo(intersection) });
+                                }
+                            }
+
+                            const _buildings = getBuildingsAroundCell(mapCoords, 4);
+                            for (const building of _buildings) {
+                                inverseMatrix.copy(building.visual.matrixWorld).invert();
+                                localRay.copy(worldRay).applyMatrix4(inverseMatrix);
+                                const boundingBox = buildings.getBoundingBox(building.buildingType);
+                                if (localRay.intersectBox(boundingBox, intersection)) {
+                                    intersection.applyMatrix4(building.visual.matrixWorld); // convert intersection to world space
+                                    intersections.push({ building, distance: worldRay.origin.distanceTo(intersection) });
+                                }
+                            }
+
+                            if (intersections.length > 0) {
+                                intersections.sort((a, b) => a.distance - b.distance);
+                                const { unit: targetEnemy, building } = intersections[0];
+                                if (targetEnemy) {
+                                    moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));                                
+                                    for (const _unit of unitsManager.selectedUnits) {
+                                        if (!UnitUtils.isWorker(_unit)) {
+                                            continue;
                                         }
-                                    }
-                                    if (intersections.length > 0) {
-                                        intersections.sort((a, b) => a.distance - b.distance);
-                                        return intersections[0].unit;
-                                    }
+                                        const attack = _unit.fsm.switchState(MeleeAttackState);
+                                        attack.attackTarget(_unit as ICharacterUnit, targetEnemy);
+                                    }  
+                                } else if (building) {
+                                    // move to center of building
+                                    const { size } = buildingConfig[building.buildingType];
+                                    mapCoords.set(
+                                        Math.floor(building.mapCoords.x + size.x / 2),
+                                        Math.floor(building.mapCoords.y + size.z / 2)
+                                    );
+                                    moveCommand(mapCoords, GameUtils.getCell(mapCoords)!);
                                 }
-                            })();
-
-                            if (targetEnemy) {
-                                moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));
-                                
-                                for (const unit of unitsManager.selectedUnits) {
-                                    if (!UnitUtils.isWorker(unit)) {
-                                        continue;
-                                    }
-                                    const attack = unit.fsm.switchState(MeleeAttackState);
-                                    attack.attackTarget(unit as ICharacterUnit, targetEnemy);
-                                }
-
                             } else {
                                 moveCommand(mapCoords, targetCell);
                             }

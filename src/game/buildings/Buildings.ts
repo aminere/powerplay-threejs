@@ -1,4 +1,4 @@
-import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
@@ -94,7 +94,7 @@ class Buildings {
         
         // const box3Helper = new Box3Helper(instance.boundingBox);
         // visual.add(box3Helper);
-        // box3Helper.visible = false;
+        // box3Helper.visible = true;
 
         const { size, hitpoints } = buildingConfig[buildingType];
         const mapCoords = new Vector2(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);

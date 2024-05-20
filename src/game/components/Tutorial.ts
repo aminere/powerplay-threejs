@@ -97,8 +97,8 @@ export class Tutorial extends Component<TutorialProps> {
                 kill: false,
             },
             input: {
-                leftClick: true,
-                rightClick: true
+                leftClick: false,
+                rightClick: false
             }
         };
 
@@ -142,6 +142,7 @@ export class Tutorial extends Component<TutorialProps> {
             case MissionStep.SelectUnit: {                
                 if (selectedElem?.type === "units") {
                     GameMapState.instance.config.input.leftClick = false;
+                    GameMapState.instance.config.input.rightClick = true;
                     this._step = MissionStep.CollectStone;
                     cmdSetIndicator.post({
                         indicator: {
@@ -203,7 +204,7 @@ export class Tutorial extends Component<TutorialProps> {
             icon: "stone"
         });
         cmdSetObjectiveStatus.post(`${0} / 5`);
-
+        GameMapState.instance.config.input.leftClick = true;
         setTimeout(() => {
             cmdSetIndicator.post({
                 indicator: {

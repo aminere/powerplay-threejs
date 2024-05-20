@@ -180,7 +180,6 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             {(() => {
                                 switch (building.buildingType) {
                                     case "incubator": {
-
                                         return <ActionButton
                                             id="worker"
                                             onClick={() => {
@@ -191,7 +190,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 }
                                             }}
                                         >
-                                            <Icon name={"incubate"} />
+                                            <Icon name={"worker"} />
                                         </ActionButton>
                                     }
 

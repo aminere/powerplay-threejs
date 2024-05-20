@@ -1,6 +1,6 @@
 
 export const uiconfig = {
-    buttonSizeRem: 4,
+    buttonSizeRem: 4.5,
     paddingRem: 0.5,
     gapRem: .2,
     slotBackgroundColor: "#00000044",

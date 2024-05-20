@@ -25,7 +25,7 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
         hitpoints: 50
     },
     "incubator": {
-        size: new Vector3(1, 3, 1),
+        size: new Vector3(1, 2, 1),
         buildCost: [["glass", 5]],
         hitpoints: 10
     },
@@ -40,17 +40,17 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
         hitpoints: 50
     },
     "road": {
-        size: null!,
+        size: new Vector3(1, .2, 1),
         buildCost: [["stone", 1]],
         hitpoints: -1
     },
     "conveyor": {
-        size: null!,
+        size: new Vector3(1, .2, 1),
         buildCost: [["wood", 1]],
         hitpoints: 10
     },
     "rail": {
-        size: null!,
+        size: new Vector3(1, .2, 1),
         buildCost: [["steel", 1]],
         hitpoints: -1
     }

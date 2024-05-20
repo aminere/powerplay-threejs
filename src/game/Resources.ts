@@ -155,7 +155,6 @@ class Resources {
 
                 case "glass": {
                     mesh.material = this._glassMaterial;
-                    mesh.castShadow = false;
                 }
                 break;
             }

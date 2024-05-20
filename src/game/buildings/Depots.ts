@@ -246,9 +246,9 @@ class Depots {
         const { range } = config.depots;
         cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
         const minX = cellCoords.x;
-        const maxX = cellCoords.x + (size?.x ?? 1) - 1;
+        const maxX = cellCoords.x + size.x - 1;
         const minY = cellCoords.y;
-        const maxY = cellCoords.y + (size?.z ?? 1) - 1;
+        const maxY = cellCoords.y + size.z - 1;
         const { depotsCache } = GameMapState.instance;
         for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
             neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
@@ -327,11 +327,9 @@ class Depots {
             
             // animation effect, send resource to the top of the building            
             const { size } = buildingConfig[buildingType];            
-            const sizeX = size?.x ?? 0;
-            const sizeZ = size?.z ?? 0;
-            cellCoords.set(Math.round(buildingCoords.x + sizeX / 2), Math.round(buildingCoords.y + sizeZ / 2));
+            cellCoords.set(Math.floor(buildingCoords.x + size.x / 2), Math.floor(buildingCoords.y + size.z / 2));
             GameUtils.mapToWorld(cellCoords, worldPos);
-            worldPos.setY(size?.y ?? .2);
+            worldPos.setY(size.y);
             
             const [_mesh] = meshes.loadImmediate(`/models/resources/${type}.glb`);            
             const tl = gsap.timeline();
@@ -344,6 +342,9 @@ class Depots {
                     position.y + depotsConfig.slotStart.y,
                     position.z + (depotSize.z * cellSize) / 2
                 );
+                if (type === "glass") {
+                    mesh.material = resources.glassMaterial;
+                }
                 flyingItems.add(mesh);
                 tl.to(mesh!.position, { 
                     ...worldPos, 
