@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { IGameUIProps } from "./GameUIProps";
 import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
@@ -23,7 +22,7 @@ import { TransportAction } from "./TransportAction";
 import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
 
-export function GameMapUI(_props: IGameUIProps) {    
+export function GameMapUI() {    
 
     // useEffect(() => {
     //     const onGamePointerMove = () => {

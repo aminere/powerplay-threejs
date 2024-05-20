@@ -127,3 +127,8 @@ export interface IRailUserData {
     barCount: number;
 }
 
+export interface IVector2 {
+    x: number;
+    y: number;
+}
+

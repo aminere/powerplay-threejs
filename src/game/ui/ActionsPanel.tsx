@@ -75,7 +75,9 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
             setSelectedElems(elems);
             if (!elems) {
                 if (killedThroughUI.current) {
-                    setTimeout(() => GameMapState.instance.cursorOverUI = false, 60);
+                    if (GameMapState.instance.cursorOverUI) {
+                        setTimeout(() => GameMapState.instance.cursorOverUI = false, 60);
+                    }
                     killedThroughUI.current = false;
                 }
             }

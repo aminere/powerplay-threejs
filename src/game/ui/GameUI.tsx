@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { UIType } from "../GameDefinitions";
 import { cmdShowUI } from "../../Events";
-import { IGameUIProps } from "./GameUIProps";
 import { GameMapUI } from "./GameMapUI";
 import { MainMenu } from "./MainMenu";
 import { engine } from "../../engine/Engine";
 import { utils } from "../../engine/Utils";
 import { GameMapState } from "../components/GameMapState";
+import { IVector2 } from "../GameTypes";
 import "./GameUI.css";
+
+export interface IGameUIProps {
+    isWeb: boolean;
+    rawPointerPos: IVector2;
+}
 
 export function GameUI(props: IGameUIProps) {
     const [ui, setUI] = useState<UIType | null>(null);
@@ -69,7 +74,7 @@ export function GameUI(props: IGameUIProps) {
     }, []);
 
     switch (ui) {
-        case "gamemap": return <GameMapUI {...props} />;
+        case "gamemap": return <GameMapUI />;
         case "mainmenu": return <MainMenu />;
     }
 

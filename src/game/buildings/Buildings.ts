@@ -1,4 +1,4 @@
-import { Box3, Box3Helper, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";

@@ -22,7 +22,7 @@ export { textures } from "./engine/resources/Textures";
 export { GameMap } from "./game/components/GameMap";
 export { GameMapState } from "./game/components/GameMapState";
 
-export { type IRail } from "./game/GameTypes";
+export { type IRail, type IVector2 } from "./game/GameTypes";
 export type { IFactoryState, IBuildingInstance } from "./game/buildings/BuildingTypes";
 export { serializeGameMap } from "./game/GameSerialization";
 
