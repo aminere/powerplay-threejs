@@ -248,6 +248,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                 resourceType
                                                 &&
                                                 <ActionButton
+                                                    tooltipId={`mine-output_${resourceType}_${state.autoOutput}`}
                                                     key="mine-output"
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {

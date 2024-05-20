@@ -1,7 +1,9 @@
 import { cmdShowTooltip, evtActionClicked } from "../../Events";
 import { tooltips } from "./Tooltips";
 import { uiconfig } from "./uiconfig";
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import { useTooltip } from "./useTooltip";
+import { Tooltip } from "./Tooltip";
 
 interface ActionButtonProps {
     id?: string;
@@ -17,31 +19,9 @@ interface ActionButtonProps {
 export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) {
 
     const visible = props.visible ?? true;
-    const tooltipRef = useRef<HTMLDivElement | null>(null);
-    const { id, tooltipId } = props;
+    const { id, tooltipId } = props; 
 
-    useEffect(() => {
-        if (!tooltipRef.current) {
-            return;
-        }
-        const onShowTooltip = (tooltipTargetId?: string) => {
-            const show = tooltipTargetId && tooltipTargetId === tooltipId;
-            if (show) {
-                if (!tooltipRef.current!.classList.contains("visible")) {
-                    tooltipRef.current!.classList.add("visible");
-                }
-            } else {
-                if (tooltipRef.current!.classList.contains("visible")) {
-                    tooltipRef.current!.classList.remove("visible");
-                }
-            }
-        }
-        cmdShowTooltip.attach(onShowTooltip);
-        return () => {
-            cmdShowTooltip.detach(onShowTooltip)
-        }
-    }, [tooltipId]);
-
+    const tooltipRef = useTooltip(tooltipId);
     const tooltip = tooltipId ? tooltips.getContent(tooltipId) : null;
     return <div
         id={id}
@@ -111,22 +91,10 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         {
             tooltip
             &&
-            <div
-                ref={tooltipRef}
-                className="tooltip"
-                style={{
-                    position: "absolute",
-                    left: 0, //`calc(100% + ${uiconfig.paddingRem}rem)`,
-                    bottom: "100%", // `calc(100% + ${uiconfig.paddingRem}rem)`,
-                    backgroundColor: uiconfig.backgroundColor,
-                    padding: `${uiconfig.paddingRem}rem`,
-                    // minWidth: "10ch",
-                    minWidth: "max-content",
-                    textAlign: "left"
-                }}>
+            <Tooltip rootRef={tooltipRef}>
                 {tooltip}
-            </div>
-        }
+            </Tooltip>
+        }       
     </div>
 }
 

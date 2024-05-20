@@ -63,6 +63,7 @@ function SingleSelectionPanel(props: SingleSelectionProps) {
                 props.output
                 &&
                 <InventoryItem
+                    tooltipId="output-full"
                     name={props.output.type}
                     progress={props.output.progress}
                     value={props.output.stack !== undefined ? `${props.output.stack}` : undefined}

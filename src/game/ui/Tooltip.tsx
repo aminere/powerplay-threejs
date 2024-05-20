@@ -1,16 +1,23 @@
-
-import styles from "./Tooltip.module.css";
+import { uiconfig } from "./uiconfig";
 
 interface TooltipProps {
-    content: JSX.Element;
+    rootRef: React.RefObject<HTMLDivElement>;
 }
 
 export function Tooltip(props: React.PropsWithChildren<TooltipProps>) {
-    return <div className={styles.tooltip}>
+    return <div
+        ref={props.rootRef}
+        className="tooltip"
+        style={{
+            position: "absolute",
+            left: 0, //`calc(100% + ${uiconfig.paddingRem}rem)`,
+            bottom: "100%", // `calc(100% + ${uiconfig.paddingRem}rem)`,
+            backgroundColor: uiconfig.backgroundColor,
+            padding: `${uiconfig.paddingRem}rem`,
+            minWidth: "max-content",
+            textAlign: "left"
+        }}>
         {props.children}
-        <span className={styles.tooltiptext}>
-            {props.content}
-        </span>
     </div>
 }
 

@@ -45,7 +45,7 @@ export function FactoryOutputPanel(props: FactoryOutputPanelProps) {
     }
 
     return <OutputPanel open={props.open}>
-        {ResourceTypes.map(resource => {
+        {ResourceTypes.map(resource => {            
             return <ActionButton                
                 key={resource}
                 id={resource}

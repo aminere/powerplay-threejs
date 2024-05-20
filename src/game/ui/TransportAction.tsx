@@ -13,11 +13,12 @@ export function TransportAction(props: ITransportActionProps) {
     const gameMapState = GameMapState.instance;
     return <ActionButton
         id={props.type}
+        tooltipId={props.type}
         visible={gameMapState.config.sideActions.enabled.conveyor}
         selected={props.selected}
         selectedColor="yellow"
         onClick={() => {
-            if (props.selected) {                
+            if (props.selected) {
                 gameMapState.action = null;
                 props.onCleared();
             } else {                

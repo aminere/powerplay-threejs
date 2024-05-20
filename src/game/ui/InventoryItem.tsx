@@ -3,18 +3,26 @@ import { Icon } from "./Icon";
 import { InventoryItemInfo } from "./InventoryItemInfo";
 import { ProgressBar } from "./ProgressBar";
 import { uiconfig } from "./uiconfig";
+import { useTooltip } from "./useTooltip";
+import { tooltips } from "./Tooltips";
+import { cmdShowTooltip } from "../../Events";
+import { Tooltip } from "./Tooltip";
 
 interface InventoryItemProps {
     name: string;
     value?: string;
     progress?: number;
     full?: boolean;
+    tooltipId?: string;
 }
 
-export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) {     
-    
+export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>) {
+
     const [_, setTimestamp] = useState(0);
 
+    const { tooltipId } = props;
+    const tooltipRef = useTooltip(tooltipId);
+    const tooltip = tooltipId ? tooltips.getContent(tooltipId) : null;
     return <div
         className={`icon ${props.full ? "item-full" : ""}`}
         style={{
@@ -27,6 +35,18 @@ export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>
             padding: `${2 * uiconfig.gapRem}rem`,
             textAlign: "center"
         }}
+
+        onPointerEnter={() => {
+            if (tooltipId) {
+                cmdShowTooltip.post(tooltipId);
+            }
+        }}
+
+        onPointerLeave={() => {
+            if (tooltipId) {
+                cmdShowTooltip.post(undefined);
+            }
+        }}
     >
         <Icon name={props.name} onError={() => setTimestamp(Date.now())} />
 
@@ -35,7 +55,7 @@ export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>
             &&
             <InventoryItemInfo>
                 {props.value}
-            </InventoryItemInfo>            
+            </InventoryItemInfo>
         }
 
         {
@@ -52,6 +72,14 @@ export function InventoryItem(props: React.PropsWithChildren<InventoryItemProps>
         }
 
         {props.children}
+
+        {
+            tooltip
+            &&
+            <Tooltip rootRef={tooltipRef}>
+                {tooltip}
+            </Tooltip>
+        }
     </div>
 }
 

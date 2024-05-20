@@ -5,6 +5,7 @@ export function InlineIcon({ name }: { name: string }) {
         className="icon"
         style={{
             height: "3rem",
+            maxWidth: "3.5rem",
             display: "flex",
             alignItems: "flex-end"
         }}>
