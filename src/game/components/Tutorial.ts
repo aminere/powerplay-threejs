@@ -660,7 +660,7 @@ export class Tutorial extends Component<TutorialProps> {
                         },
                         props: {
                             action: "Select Factory",
-                            actionIcon: "worker",
+                            actionIcon: "factory",
                             control: "Left click",
                             icon: "mouse-left"
                         }
