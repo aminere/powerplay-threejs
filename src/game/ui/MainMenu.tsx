@@ -1,4 +1,4 @@
-import { cmdShowUI } from "../../Events";
+import { cmdExitGame, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { MenuButton } from "./MenuButton";
 
@@ -62,7 +62,7 @@ export function MainMenu() {
                 height: "4rem"
             }} />
             <MenuButton onClick={() => {
-
+                cmdExitGame.post();
             }}>
                 Exit
             </MenuButton>
