@@ -127,8 +127,8 @@ class Engine {
         })();        
         if (!mainCamera) {
             console.error("No camera found in scene");
-        }        
-
+        }
+        
         evtSceneCreated.post({ mainCamera: mainCamera!, cameras });
     }
 

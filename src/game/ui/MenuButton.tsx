@@ -21,7 +21,7 @@ export function MenuButton(props: React.PropsWithChildren<MenuButtonProps>) {
             pointerEvents: props.disabled ? "none": "all",
             opacity: props.disabled ? .5 : 1
         }}
-        className="clickable"
+        className="action clickable"
         onClick={props.onClick}
     >
         {props.children}

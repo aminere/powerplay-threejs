@@ -22,49 +22,8 @@ import { DebugUI } from "./DebugUI";
 import { TransportAction } from "./TransportAction";
 import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
-import { utils } from "../../engine/Utils";
 
-export function GameMapUI(props: IGameUIProps) {
-
-    useEffect(() => {
-        if (engine.runtime === "editor") {
-            return;
-        }
-
-        const onClick = () => {
-            const { rawPointerPos } = props;
-            const actions = document.querySelectorAll(".action");
-            for (const action of actions) {
-                const rect = action.getBoundingClientRect();
-                if (rawPointerPos.x >= rect.left && rawPointerPos.x <= rect.right && rawPointerPos.y >= rect.top && rawPointerPos.y <= rect.bottom) {
-                    (action as HTMLElement).click();
-                }
-            }
-        };
-
-        const onGamePointerMove = () => {
-            if (utils.isPointerLocked()) {  
-                let cursorOverUI = false;              
-                const { rawPointerPos } = props;
-                const uis = document.querySelectorAll(".ui");
-                for (const ui of uis) {
-                    const rect = ui.getBoundingClientRect();
-                    if (rawPointerPos.x >= rect.left && rawPointerPos.x <= rect.right && rawPointerPos.y >= rect.top && rawPointerPos.y <= rect.bottom) {
-                        cursorOverUI = true;
-                        break;
-                    }
-                }
-                GameMapState.instance.cursorOverUI = cursorOverUI;
-            }
-        };
-
-        document.addEventListener('pointermove', onGamePointerMove);
-        document.addEventListener('click', onClick);
-        return () => {
-            document.removeEventListener('pointermove', onGamePointerMove);
-            document.removeEventListener('click', onClick);
-        }
-    }, []);
+export function GameMapUI(_props: IGameUIProps) {    
 
     // useEffect(() => {
     //     const onGamePointerMove = () => {

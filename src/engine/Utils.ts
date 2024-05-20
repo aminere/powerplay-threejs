@@ -1,4 +1,4 @@
-import { AnimationAction, Camera, DirectionalLight, Line, LoopOnce, LoopPingPong, LoopRepeat, Mesh, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import { AmbientLight, AnimationAction, Camera, DirectionalLight, Line, LoopOnce, LoopPingPong, LoopRepeat, MathUtils, Mesh, Object3D, ObjectLoader, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
 import { config } from "../game/config/config";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
@@ -111,6 +111,19 @@ class Utils {
 
     public isPointInRect(x: number, y: number, rect: DOMRect) {
         return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
+    }
+
+    public createNewScene() {
+        const scene = new Scene();
+        const camera = new PerspectiveCamera();
+        camera.position.set(4, 3, 4);
+        camera.rotation.set(MathUtils.degToRad(-30), MathUtils.degToRad(45), 0, 'YXZ');
+        camera.userData.eulerRotation = camera.rotation.clone();
+        scene.add(camera);
+        const ambient = new AmbientLight(0xffffff, .2);
+        scene.add(ambient);
+        scene.updateWorldMatrix(true, true);
+        return scene;
     }
 }
 
