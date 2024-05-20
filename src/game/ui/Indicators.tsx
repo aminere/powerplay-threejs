@@ -49,9 +49,12 @@ function UIIndicator({ element }: { element: string }) {
 
 export function Indicators() {
 
-    const [indicator, setIndicator] = useState<SetIndicatorEvent | null>();
+    const [indicator, _setIndicator] = useState<SetIndicatorEvent | null>();
 
     useEffect(() => {
+        const setIndicator = (event: SetIndicatorEvent | null) => {
+            _setIndicator(event);
+        }
         cmdSetIndicator.attach(setIndicator);
         return () => {
             cmdSetIndicator.detach(setIndicator);

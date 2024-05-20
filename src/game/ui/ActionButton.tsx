@@ -40,13 +40,13 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             backgroundColor: uiconfig.slotBackgroundColor,
             padding: `${2 * uiconfig.gapRem}rem`
         }}
-        onClick={e => {
-            if (engine.runtime === "editor") {
-                // in the editor, this is needed to avoid sending clicks to the editor viewport which dispatches it to the game 
-                // TODO handle game input on the game canvas, not the viewport
-                e.stopPropagation();
-            }
+        onClick={e => {            
             props.onClick();
+
+            // in the editor, this is needed to avoid sending clicks to the editor viewport which dispatches it to the game 
+            // TODO handle game input on the game canvas, not the viewport
+            // in the game, this is needed so that an onClick() doesn't trigger on ActionButton ancestors
+            e.stopPropagation();
 
             if (props.id) {
                 evtActionClicked.post(props.id);
