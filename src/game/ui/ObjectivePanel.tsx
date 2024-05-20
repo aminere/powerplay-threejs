@@ -36,14 +36,16 @@ export function ObjectivesPanel() {
         return null;
     }
 
-    return <div style={{
-        position: "absolute",
-        left: "0px",
-        top: "25%",
-        display: "flex",
-        flexDirection: "column",
-        gap: ".2rem",
-    }}>
+    return <div
+        className="ui"
+        style={{
+            position: "absolute",
+            left: "0px",
+            top: "25%",
+            display: "flex",
+            flexDirection: "column",
+            gap: ".2rem",
+        }}>
         <div style={{
             padding: `${uiconfig.paddingRem}rem`,
             backgroundColor: `${uiconfig.backgroundColor}`,

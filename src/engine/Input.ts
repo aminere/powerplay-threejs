@@ -25,7 +25,7 @@ class Input {
     get touchJustReleased() { return this._touchJustReleased; }
     get touchJustMoved() { return this._touchJustMoved; }
     get touchInside() { return this._touchInside; }
-    get wheelDelta() { return this._wheelDelta; }    
+    get wheelDelta() { return this._wheelDelta; }
     
     private _touchPos = new Vector2();
     private _touchButton = 0;
@@ -54,9 +54,6 @@ class Input {
         } else {
             if (this._touchPressed) {
                 this._touchJustReleased = true;
-
-                
-
             }
             this._touchPressed = false;
         }

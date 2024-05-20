@@ -44,6 +44,7 @@ export function OutputPanel(props: React.PropsWithChildren<OutputPanelProps>) {
 
     const height = `${uiconfig.outputRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.outputRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem`;
     return <div
+        className="ui"
         ref={rootRef}
         style={{
             position: "absolute",

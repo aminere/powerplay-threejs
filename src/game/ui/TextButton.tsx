@@ -12,7 +12,7 @@ export function TextButton({ text, onClick }: { text: string, onClick: () => voi
             alignItems: "center",
             justifyContent: "center",
         }}
-        className="clickable"
+        className="action clickable"
         onClick={onClick}
     >
         {text.toUpperCase()}

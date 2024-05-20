@@ -74,6 +74,7 @@ export function ActionSection(props: IActionSectionProps) {
     >
         <img src={`/images/icons/${props.name}.png`} />
         <div
+            className="ui"
             ref={actionsRef}
             style={{
                 position: "absolute",

@@ -1,4 +1,5 @@
 import { evtActionClicked } from "../../Events";
+import { engine } from "../../engine/Engine";
 import { uiconfig } from "./uiconfig";
 import React from "react";
 
@@ -17,7 +18,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
     const visible = props.visible ?? true;
     return <div
         id={props.id}
-        className={`icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
+        className={`action icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
@@ -40,7 +41,11 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
             padding: `${2 * uiconfig.gapRem}rem`
         }}
         onClick={e => {
-            e.stopPropagation();
+            if (engine.runtime === "editor") {
+                // in the editor, this is needed to avoid sending clicks to the editor viewport which dispatches it to the game 
+                // TODO handle game input on the game canvas, not the viewport
+                e.stopPropagation();
+            }
             props.onClick();
 
             if (props.id) {

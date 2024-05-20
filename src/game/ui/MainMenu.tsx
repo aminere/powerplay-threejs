@@ -25,11 +25,11 @@ export function MainMenu() {
         }}>
             <div style={{
                 position: "relative",
-                height: "12rem"
+                height: "14rem"
             }}>
                 <span style={{
                     fontFamily: "protector",
-                    fontSize: "8rem",
+                    fontSize: "12rem",
                     color: "#fbe184",
                     filter: "drop-shadow(2px 4px 6px black)",
                     position: "absolute",
