@@ -98,7 +98,14 @@ export class GameMapState {
                 ...prev,
                 [cur]: true
             }
-        }, {} as Record<ResourceType, boolean>)
+        }, {} as Record<ResourceType, boolean>),
+        selectionActions: {
+            kill: true,
+        },
+        input: {
+            leftClick: true,
+            rightClick: false
+        }
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;

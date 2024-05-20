@@ -107,5 +107,5 @@ export const evtUnitSpawned = new AsyncEvent<IUnit>();
 export const cmdTutorialComplete = new AsyncEvent<void>();
 export const evtSceneCreated = new AsyncEvent<ISceneInfo>();
 export const cmdExitGame = new AsyncEvent<void>();
-
+export const evtMoveCommand = new AsyncEvent<Vector2>();
 

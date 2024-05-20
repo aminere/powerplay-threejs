@@ -7,7 +7,7 @@ import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { onBeginDrag, onCancelDrag, onAction, onDrag, onEndDrag, raycastOnCells, updateCameraSize, setCameraPos } from "../GameMapUtils";
-import { cmdEndSelection, cmdSetIndicator } from "../../Events";
+import { cmdEndSelection, cmdSetIndicator, evtMoveCommand } from "../../Events";
 import { IUnit } from "../unit/IUnit";
 import { buildings } from "../buildings/Buildings";
 import { unitMotion } from "../unit/UnitMotion";
@@ -75,8 +75,6 @@ function getWorldRay(worldRayOut: Ray) {
 
 function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
 
-    cmdSetIndicator.post(null);
-
     // group units per sector
     const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
         if (UnitUtils.isEnemy(cur)) {
@@ -103,6 +101,8 @@ function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
             unitMotion.moveGroup(commandId, group.vehicle, _mapCoords, targetCell, true);
         }
     }
+
+    evtMoveCommand.post(_mapCoords)
 }
 
 export class GameMapUpdate extends Component<ComponentProps> {
@@ -261,11 +261,17 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (!state.cursorOverUI) {
                 if (state.action !== null) {
                     if (input.touchButton === 0) {
+                        if (!state.config.input.leftClick) {
+                            return;
+                        }
                         state.touchStartCoords.copy(state.selectedCellCoords);
                     }
                 } else {
                     if (GameMapProps.instance.debugCells) {
                         if (input.touchButton === 0) {
+                            if (!state.config.input.leftClick) {
+                                return;
+                            }
                             const sectorCoords = new Vector2();
                             const localCoords = new Vector2();
                             const cell = GameUtils.getCell(state.highlightedCellCoords, sectorCoords, localCoords);
@@ -286,6 +292,9 @@ export class GameMapUpdate extends Component<ComponentProps> {
         } else if (input.touchPressed) {
 
             if (input.touchButton === 0) {
+                if (!state.config.input.leftClick) {
+                    return;
+                }
                 if (input.touchJustMoved) {
                     if (!state.cursorOverUI) {
                         if (state.action) {
@@ -311,6 +320,9 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                 }
             } else if (input.touchButton === 2) {
+                if (!state.config.input.rightClick) {
+                    return;
+                }
                 if (input.touchJustMoved) {
                     if (!state.cursorOverUI) {
                         if (state.action) {
@@ -330,6 +342,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
         } else if (input.touchJustReleased) {
 
             if (input.touchButton === 0) {
+                if (!state.config.input.leftClick) {
+                    return;
+                }
+
                 const wasDragged = state.touchDragged;
                 state.touchDragged = false;
                 let canceled = false;
@@ -408,6 +424,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                 }
             } else if (input.touchButton === 2) {
+
+                if (!state.config.input.rightClick) {
+                    return;
+                }
 
                 if (state.action) {
 

@@ -350,6 +350,9 @@ class UnitsManager {
         if (input.touchJustPressed) {
             if (!gameMapState.cursorOverUI) {
                 if (input.touchButton === 0) {
+                    if (!gameMapState.config.input.leftClick) {
+                        return;
+                    }
                     this._dragStarted = true;
                     this._selectionStart.copy(input.touchPos);
                 }
@@ -358,6 +361,9 @@ class UnitsManager {
         } else if (input.touchPressed) {
 
             if (input.touchButton === 0) {
+                if (!gameMapState.config.input.leftClick) {
+                    return;
+                }
                 if (input.touchJustMoved) {
                     if (this._dragStarted) {
                         if (!input.touchInside) {

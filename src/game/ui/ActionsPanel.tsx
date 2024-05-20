@@ -158,6 +158,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         }
                                     })()}
                                     <ActionButton
+                                        visible={GameMapState.instance.config.selectionActions.kill}
                                         onClick={() => {
                                             killedThroughUI.current = true;
                                             unitsManager.killSelection();
@@ -347,6 +348,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                     </ActionButton>
                                 }
                                 <ActionButton
+                                    visible={GameMapState.instance.config.selectionActions.kill}
                                     onClick={() => {
                                         killedThroughUI.current = true;
                                         unitsManager.killSelection();
@@ -363,6 +365,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                         console.assert(conveyor);
                         return <FooterActions>
                             <ActionButton
+                                visible={GameMapState.instance.config.selectionActions.kill}
                                 onClick={() => {
                                     killedThroughUI.current = true;
                                     unitsManager.killSelection();

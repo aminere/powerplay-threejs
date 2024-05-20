@@ -49,7 +49,7 @@ class ConveyorUtils {
     public getConveyorTransform(direction: Vector2, startAxis: Axis) {
         const key = `${direction.x},${direction.y},${startAxis}` as keyof typeof cornerTransforms;
         const transform = cornerTransforms[key] as [boolean, number];
-        console.assert(transform !== undefined, `Invalid transform: ${direction.x},${direction.y},${startAxis}`);
+        console.assert(transform !== undefined, `Invalid transform: ${direction.x},${direction.y},${startAxis}`);        
         return transform;
     }
     

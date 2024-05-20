@@ -2,7 +2,7 @@
 import { Object3D, Vector2 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
-import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdTutorialComplete, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtUnitSpawned, evtUnitStateChanged } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetIndicator, cmdSetObjective, cmdSetObjectiveStatus, cmdSetSelectedElems, cmdTutorialComplete, evtActionClicked, evtBuildingCreated, evtBuildingStateChanged, evtConveyorCreated, evtGameMapUIMounted, evtMoveCommand, evtUnitSpawned, evtUnitStateChanged } from "../../Events";
 import { unitsManager } from "../unit/UnitsManager";
 import { GameMapState } from "./GameMapState";
 import { BuildingType, BuildingTypes, IBuildingInstance, IDepotState, IFactoryState, IIncubatorState } from "../buildings/BuildingTypes";
@@ -92,7 +92,14 @@ export class Tutorial extends Component<TutorialProps> {
                     ...prev,
                     [cur]: false
                 }
-            }, {} as Record<ResourceType, boolean>)
+            }, {} as Record<ResourceType, boolean>),
+            selectionActions: {
+                kill: false,
+            },
+            input: {
+                leftClick: true,
+                rightClick: true
+            }
         };
 
         this.onSelection = this.onSelection.bind(this);
@@ -103,6 +110,7 @@ export class Tutorial extends Component<TutorialProps> {
         this.onBuildingCreated = this.onBuildingCreated.bind(this);
         this.onConveyorCreated = this.onConveyorCreated.bind(this);
         this.onUnitSpawned = this.onUnitSpawned.bind(this);
+        this.onMoveCommand = this.onMoveCommand.bind(this);
         evtGameMapUIMounted.once(this.onGameMapUIMounted);
         cmdSetSelectedElems.attach(this.onSelection);
         evtUnitStateChanged.attach(this.onUnitStateChanged);
@@ -111,6 +119,7 @@ export class Tutorial extends Component<TutorialProps> {
         evtBuildingCreated.attach(this.onBuildingCreated);
         evtConveyorCreated.attach(this.onConveyorCreated);
         evtUnitSpawned.attach(this.onUnitSpawned);
+        evtMoveCommand.attach(this.onMoveCommand);
     }
 
     override dispose(_owner: Object3D) {
@@ -122,6 +131,7 @@ export class Tutorial extends Component<TutorialProps> {
         evtBuildingCreated.detach(this.onBuildingCreated);
         evtConveyorCreated.detach(this.onConveyorCreated);
         evtUnitSpawned.detach(this.onUnitSpawned);
+        evtMoveCommand.detach(this.onMoveCommand);
     }
 
     override update(_owner: Object3D) {
@@ -129,9 +139,9 @@ export class Tutorial extends Component<TutorialProps> {
 
     private onSelection(selectedElem: SelectedElems | null) {
         switch (this._step) {
-            case MissionStep.SelectUnit: {
-                // cmdTutorialComplete.post(); // TODO
+            case MissionStep.SelectUnit: {                
                 if (selectedElem?.type === "units") {
+                    GameMapState.instance.config.input.leftClick = false;
                     this._step = MissionStep.CollectStone;
                     cmdSetIndicator.post({
                         indicator: {
@@ -168,6 +178,8 @@ export class Tutorial extends Component<TutorialProps> {
                 break;
 
             case MissionStep.CollectWater: {
+                GameMapState.instance.config.input.leftClick = false;
+                GameMapState.instance.config.input.rightClick = true;
                 cmdSetIndicator.post({
                     indicator: {
                         type: "cell",
@@ -438,6 +450,8 @@ export class Tutorial extends Component<TutorialProps> {
                 factoryShadow.visible = true;
                 const mapCoords = GameUtils.worldToMap(factoryShadow.position, new Vector2());
 
+                GameMapState.instance.config.input.leftClick = true;
+                GameMapState.instance.config.input.rightClick = false;
                 cmdSetIndicator.post({
                     indicator: {
                         type: "cell",
@@ -689,6 +703,47 @@ export class Tutorial extends Component<TutorialProps> {
                 cmdTutorialComplete.post();
             }
         }        
+    }
+
+    private onMoveCommand(mapCoords: Vector2) {
+        switch (this._step) {
+            case MissionStep.CollectStone: {
+                const resource = GameUtils.getCell(mapCoords)?.resource?.type;
+                if (resource === "stone") {
+                    cmdSetIndicator.post(null);
+                }
+            }
+            break;
+
+            case MissionStep.DepositStone: {
+                const building = GameUtils.getCell(mapCoords)?.building;
+                if (building) {
+                    const buildingType = GameMapState.instance.buildings.get(building)?.buildingType;
+                    if (buildingType === "depot") {
+                        cmdSetIndicator.post(null);
+                    }
+                }
+            }   
+            break;
+
+            case MissionStep.CollectWater: {
+                const resource = GameUtils.getCell(mapCoords)?.resource?.type;
+                if (resource === "water") {
+                    cmdSetIndicator.post(null);
+                }
+            }
+            break;
+
+            case MissionStep.DepositWater: {
+                const building = GameUtils.getCell(mapCoords)?.building;
+                if (building) {
+                    const buildingType = GameMapState.instance.buildings.get(building)?.buildingType;
+                    if (buildingType === "incubator") {
+                        cmdSetIndicator.post(null);
+                    }
+                }
+            }
+        }
     }
 }
 
