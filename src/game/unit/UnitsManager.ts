@@ -421,6 +421,17 @@ class UnitsManager {
 
     private onUnitKilled(unit: IUnit) {
         this._unitsToKill.push(unit);
+        if (this._selectedUnits.length > 0) {
+            const index = this._selectedUnits.indexOf(unit);
+            if (index >= 0) {
+                utils.fastDelete(this._selectedUnits, index);
+                if (this._selectedUnits.length === 0) {
+                    cmdSetSelectedElems.post(null);
+                } else {
+                    cmdSetSelectedElems.post({ type: "units", units: this._selectedUnits });
+                }
+            }
+        }        
     }
 
     private onSpawnUnit(request: [IBuildingInstance, UnitType]) {

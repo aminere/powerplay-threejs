@@ -131,6 +131,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                 return instance ?? createSector(sectorCoords);
             })();
 
+            const geometry = (sectorInstance.layers.terrain as Mesh).geometry as BufferGeometry;
+            const position = geometry.getAttribute("position") as BufferAttribute;
+            for (const elevation of sector.elevation) {
+                position.setY(elevation.vertexIndex, elevation.height);
+            }
+
             for (let i = 0; i < sector.cells.length; i++) {
                 const cell = sector.cells[i];
                 const cellInstance = sectorInstance.cells[cell.index];
@@ -155,13 +161,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
                     const _direction = new Vector2(direction.x, direction.y);
                     conveyors.create(cellInstance, mapCoords, _direction, startAxis, endAxis);
                 }
-            }
-
-            const geometry = (sectorInstance.layers.terrain as Mesh).geometry as BufferGeometry;
-            const position = geometry.getAttribute("position") as BufferAttribute;
-            for (const elevation of sector.elevation) {
-                position.setY(elevation.vertexIndex, elevation.height);
-            }
+            }            
         }
 
         this.init(data.size, data.cameraPos, owner);

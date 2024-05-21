@@ -34,10 +34,10 @@ class Elevation {
 
     private _vertexOperations = new Map<ISector, Map<number, number>>();
 
-    public elevate(mapCoords: Vector2, size: number, height: number, relative: boolean) {
+    public elevate(mapCoords: Vector2, sizeX: number, sizeY: number, height: number, relative: boolean) {
         this._vertexOperations.clear();
-        for (let i = 0; i < size; ++i) {
-            for (let j = 0; j < size; ++j) {
+        for (let i = 0; i < sizeY; ++i) {
+            for (let j = 0; j < sizeX; ++j) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {

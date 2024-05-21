@@ -152,7 +152,7 @@ export function GameMapUI() {
 
         const onOpenBuildSection = (section: "building" | null) => {
             setOpenSection(section);
-        }
+        }        
 
         cmdOpenBuildSection.attach(onOpenBuildSection);
         cmdSetSelectedElems.attach(onSelectedElems);

@@ -214,7 +214,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
 
         case "flatten": {
             const { brushSize } = GameMapProps.instance;
-            elevation.elevate(current, brushSize, 0, false);
+            elevation.elevate(current, brushSize, brushSize, 0, false);
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
             break;
@@ -370,9 +370,9 @@ export function onCancelDrag() {
 function onElevation(mapCoords: Vector2, button: number) {
     const { brushSize, brushHeight, relativeBrush } = GameMapProps.instance;
     if (button === 0) {
-        elevation.elevate(mapCoords, brushSize, brushHeight, relativeBrush);
+        elevation.elevate(mapCoords, brushSize, brushSize, brushHeight, relativeBrush);
     } else if (button === 2) {
-        elevation.elevate(mapCoords, brushSize, -brushHeight, relativeBrush);
+        elevation.elevate(mapCoords, brushSize, brushSize, -brushHeight, relativeBrush);
     }
 }
 
@@ -735,7 +735,7 @@ export function onAction(touchButton: number) {
 
             case "flatten": {
                 const { brushSize } = GameMapProps.instance;
-                elevation.elevate(mapCoords, brushSize, 0, false);
+                elevation.elevate(mapCoords, brushSize, brushSize, 0, false);
                 state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
             }
                 break;

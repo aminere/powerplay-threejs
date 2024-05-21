@@ -19,6 +19,8 @@ import { resourceConfig } from "../config/ResourceConfig";
 import { Assemblies } from "../buildings/Assemblies";
 import { ResourceType } from "../GameDefinitions";
 
+const outputFullError = "No space to eject! Connect conveyor to building";
+
 function FooterActions({ children }: { children: React.ReactNode }) {
     return <div style={{
         position: "absolute",
@@ -135,13 +137,15 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                             return <>
                                 {(() => {
                                     if (!UnitUtils.isEnemy(unit)) {
-                                        return <ActionButton onClick={() => {
-                                            if (unit.motionId > 0) {
-                                                unitMotion.endMotion(unit);
-                                                unit.onArrived();
-                                            }
-                                            unit.clearAction();
-                                        }}>
+                                        return <ActionButton
+                                            tooltipId="stop current action"
+                                            onClick={() => {
+                                                if (unit.motionId > 0) {
+                                                    unitMotion.endMotion(unit);
+                                                    unit.onArrived();
+                                                }
+                                                unit.clearAction();
+                                            }}>
                                             stop
                                         </ActionButton>
                                     }
@@ -229,7 +233,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             }
                                                             break;
                                                             case "output-full": {
-                                                                evtBuildError.post(`No space to eject!`);
+                                                                evtBuildError.post(outputFullError);
                                                             }
                                                         }
                                                     }}
@@ -260,7 +264,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             }
                                                                 break;
                                                             case "output-full": {
-                                                                evtBuildError.post(`No space to eject!`);
+                                                                evtBuildError.post(outputFullError);
                                                             }
                                                         }
                                                     }}
@@ -282,7 +286,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                     selectedAnim={state.autoOutput}
                                                     onClick={() => {                                                        
                                                         if (!depots.output(building, type)) {
-                                                            evtBuildError.post(`No space to eject!`);
+                                                            evtBuildError.post(outputFullError);
                                                         }
                                                     }}
                                                     onContextMenu={() => depots.toggleAutoOutput(building)}
@@ -306,7 +310,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                                             selectedAnim={state.autoOutput}
                                                             onClick={() => {
                                                                 if (!depots.output(building, state.output!)) {
-                                                                    evtBuildError.post(`No space to eject!`);
+                                                                    evtBuildError.post(outputFullError);
                                                                 }                                                               
                                                             }}
                                                             onContextMenu={() => depots.toggleAutoOutput(building)}

@@ -9,6 +9,7 @@ import { BuildingType } from "./buildings/BuildingTypes";
 import { buildings } from "./buildings/Buildings";
 
 const { cellSize, mapRes } = config.game;
+const verticesPerRow = mapRes + 1;
 
 export class TileSector extends Object3D {
 
@@ -26,6 +27,7 @@ export class TileSector extends Object3D {
     private _size = new Vector2(1, 1);
     private _resolution = 1;
     private _material: MeshBasicMaterial;
+    private _building: Object3D | null = null;
 
     constructor() {
         super();
@@ -47,6 +49,7 @@ export class TileSector extends Object3D {
         this._size.set(x, z);
         if (this.children.length > 0) {
             this.clear();
+            this._building = null;
         }
         for (let i = 0; i < this._size.y; ++i) {
             for (let j = 0; j < this._size.x; ++j) {
@@ -62,10 +65,9 @@ export class TileSector extends Object3D {
     }
         
     public fit(x: number, y: number, sectors: Map<string, ISector>) {
-        const { mapRes } = config.game;
-        const verticesPerRow = mapRes + 1;
         const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
         
+        let maxY = 0;
         const fitTile = (mapX: number, mapY: number, tileIndex: number) => {
             const cell = GameUtils.getCell(cellCoords.set(mapX, mapY), sectorCoords, localCoords);
             const tileGeometry = (this.children[tileIndex] as Mesh).geometry as BufferGeometry;
@@ -74,12 +76,16 @@ export class TileSector extends Object3D {
                 const sector = sectors.get(`${sectorCoords.x},${sectorCoords.y}`);
                 const geometry = (sector?.layers.terrain as Mesh).geometry as BufferGeometry;
                 const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
-                const position = geometry.getAttribute("position") as BufferAttribute;                
-                tilePosition.setY(0, position.getY(startVertexIndex));
-                tilePosition.setY(1, position.getY(startVertexIndex + 1));
-                tilePosition.setY(2, position.getY(startVertexIndex + verticesPerRow + 1));
-                tilePosition.setY(3, position.getY(startVertexIndex + verticesPerRow));
-                
+                const position = geometry.getAttribute("position") as BufferAttribute;  
+                const y0 = position.getY(startVertexIndex);
+                const y1 = position.getY(startVertexIndex + 1);
+                const y2 = position.getY(startVertexIndex + verticesPerRow + 1);
+                const y3 = position.getY(startVertexIndex + verticesPerRow);
+                tilePosition.setY(0, y0);
+                tilePosition.setY(1, y1);
+                tilePosition.setY(2, y2);
+                tilePosition.setY(3, y3);
+                maxY = Math.max(maxY, y0, y1, y2, y3);                
             } else {
                 tilePosition.setY(0, 0);
                 tilePosition.setY(1, 0);
@@ -96,11 +102,16 @@ export class TileSector extends Object3D {
                 ++tileIndex;              
             }
         }
+
+        if (this._building) {
+            this._building.position.setY(maxY * config.game.elevationStep);
+        }
     }
 
     public setBuilding(buildingType: BuildingType) {
         const visual = buildings.createHologram(buildingType);
         this.add(visual);
+        this._building = visual;
     }
 
     private createMesh(x: number, y: number) {

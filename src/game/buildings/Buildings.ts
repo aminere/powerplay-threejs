@@ -1,4 +1,4 @@
-import { Box3, Material, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, MeshStandardMaterial, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
@@ -12,8 +12,10 @@ import { Incubators } from "./Incubators";
 import { utils } from "../../engine/Utils";
 import { buildingConfig } from "../config/BuildingConfig";
 import { Assemblies } from "./Assemblies";
+import { elevation } from "../Elevation";
 
-const { cellSize, mapRes } = config.game;
+const { cellSize, mapRes, elevationStep } = config.game;
+const verticesPerRow = mapRes + 1;
 const mapSize = mapRes * cellSize;
 const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
@@ -122,6 +124,7 @@ class Buildings {
             }
         }
         
+        let maxY = 0;
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
@@ -133,13 +136,23 @@ class Buildings {
                 const cellIndex2x2 = y * (mapRes / 2) + x;
                 const sector = GameUtils.getSector(sectorCoords)!;
                 const cell2x2 = sector.cells2x2[cellIndex2x2];
-                cell2x2.building = instanceId;
+                cell2x2.building = instanceId;                
+
+                const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+                const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
+                const position = geometry.getAttribute("position") as BufferAttribute;  
+                const y0 = position.getY(startVertexIndex);
+                const y1 = position.getY(startVertexIndex + 1);
+                const y2 = position.getY(startVertexIndex + verticesPerRow + 1);
+                const y3 = position.getY(startVertexIndex + verticesPerRow);                
+                maxY = Math.max(maxY, y0, y1, y2, y3);
             }
         }
 
+        elevation.elevate(mapCoords, size.x, size.z, maxY, false);
         visual.position.set(
             _sectorCoords.x * mapSize + _localCoords.x * cellSize + sectorOffset,
-            0,
+            maxY * elevationStep,
             _sectorCoords.y * mapSize + _localCoords.y * cellSize + sectorOffset
         );
 
