@@ -244,6 +244,11 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (state.action) {
                         if (!cellCoords.equals(state.selectedCellCoords)) {
                             state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
+                            if (GameMapState.instance.cursorOverUI) {
+                                state.tileSelector.visible = false;
+                            } else {
+                                state.tileSelector.visible = true;
+                            }
                             state.selectedCellCoords.copy(cellCoords);
                         }
                     } else {

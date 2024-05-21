@@ -150,7 +150,7 @@ export class Tutorial extends Component<TutorialProps> {
                             type: "cell",
                             mapCoords: new Vector2(34, 131)
                         },
-                        props: {
+                        panel: {
                             action: "Collect stone",
                             actionIcon: "stone",
                             control: "Right click",
@@ -185,9 +185,9 @@ export class Tutorial extends Component<TutorialProps> {
                 cmdSetIndicator.post({
                     indicator: {
                         type: "cell",
-                        mapCoords: new Vector2(21, 120)
+                        mapCoords: new Vector2(28, 140)
                     },
-                    props: {
+                    panel: {
                         action: "Collect Water",
                         actionIcon: "water",
                         control: "Right click",
@@ -212,7 +212,7 @@ export class Tutorial extends Component<TutorialProps> {
                     type: "unit",
                     unit: unitsManager.units[0]
                 },
-                props: {
+                panel: {
                     action: "Select Worker",
                     actionIcon: "worker",
                     control: "Left click",
@@ -237,7 +237,7 @@ export class Tutorial extends Component<TutorialProps> {
                         type: "building",
                         building: depot
                     },
-                    props: {
+                    panel: {
                         action: "Deposit Stone",
                         actionIcon: "stone",
                         control: "Right click",
@@ -256,7 +256,7 @@ export class Tutorial extends Component<TutorialProps> {
                         type: "building",
                         building: incubator
                     },
-                    props: {
+                    panel: {
                         action: "Deposit Water",
                         actionIcon: "water",
                         control: "Right click",
@@ -325,15 +325,13 @@ export class Tutorial extends Component<TutorialProps> {
                             }
 
                             GameMapProps.instance.buildableType = "conveyor";
-                            GameMapState.instance.action = "building";
-                            // TODO select conveyor in UI
-                            
+                            GameMapState.instance.action = "building";                            
                             cmdSetIndicator.post({
                                 indicator: {
                                     type: "cell",
-                                    mapCoords: mapCoords
+                                    mapCoords
                                 },
-                                props: {
+                                panel: {
                                     action: "Place Conveyor",
                                     actionIcon: "conveyor",
                                     control: "Left drag",
@@ -344,7 +342,7 @@ export class Tutorial extends Component<TutorialProps> {
                             setTimeout(() => {
                                 GameMapState.instance.config.bottomPanels = false;
                                 cmdRefreshUI.post();
-                            }, 100);
+                            }, 500);
                         }
                     }
                         break;
@@ -432,7 +430,7 @@ export class Tutorial extends Component<TutorialProps> {
     private onActionClicked(action: string) {
 
         switch (action) {
-            case "build": {
+            case "building": {
                 switch (this._step) {
                     case MissionStep.BuildFactory: {
                         setTimeout(() => {
@@ -463,7 +461,7 @@ export class Tutorial extends Component<TutorialProps> {
                         // mapCoords: new Vector2(27, 122)
                         mapCoords
                     },
-                    props: {
+                    panel: {
                         action: "Place Factory",
                         actionIcon: "factory",
                         control: "Left click",
@@ -478,7 +476,7 @@ export class Tutorial extends Component<TutorialProps> {
                 setTimeout(() => {
                     GameMapState.instance.config.sideActions.self = false;
                     cmdRefreshUI.post();
-                }, 100);                
+                }, 500);                
             }
                 break;
 
@@ -499,7 +497,7 @@ export class Tutorial extends Component<TutorialProps> {
                                 type: "cell",
                                 mapCoords
                             },
-                            props: {
+                            panel: {
                                 action: "Place Conveyor",
                                 actionIcon: "conveyor",
                                 control: "Left drag",
@@ -510,7 +508,7 @@ export class Tutorial extends Component<TutorialProps> {
                         setTimeout(() => {
                             GameMapState.instance.config.sideActions.self = false;
                             cmdRefreshUI.post();
-                        }, 100);                        
+                        }, 500);                        
                     }
                         break;
                 }
@@ -524,7 +522,8 @@ export class Tutorial extends Component<TutorialProps> {
                             cmdSetIndicator.post({
                                 indicator: {
                                     type: "ui",
-                                    element: "glass"
+                                    element: "glass",
+                                    align: "left"
                                 }
                             });
                         }, 300);
@@ -545,7 +544,7 @@ export class Tutorial extends Component<TutorialProps> {
                                 type: "cell",
                                 mapCoords
                             },
-                            props: {
+                            panel: {
                                 action: "Place Incubator",
                                 actionIcon: "incubator",
                                 control: "Left click",
@@ -625,7 +624,7 @@ export class Tutorial extends Component<TutorialProps> {
                             type: "unit",
                             unit: unitsManager.units[0]
                         },
-                        props: {
+                        panel: {
                             action: "Select worker",
                             actionIcon: "worker",
                             control: "Left click",
@@ -663,7 +662,7 @@ export class Tutorial extends Component<TutorialProps> {
                             type: "building",
                             building: factory
                         },
-                        props: {
+                        panel: {
                             action: "Select Factory",
                             actionIcon: "factory",
                             control: "Left click",

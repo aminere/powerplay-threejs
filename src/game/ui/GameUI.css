@@ -60,8 +60,26 @@ img {
     }
 }
 
+@keyframes float-left-anim {
+    0% {
+        transform: translatex(0px);
+    }
+
+    50% {
+        transform: translatex(-30px);
+    }
+
+    100% {
+        transform: translatex(0px);
+    }
+}
+
 .float {
     animation: float-anim 3s infinite;
+}
+
+.float-left {
+    animation: float-left-anim 3s infinite;
 }
 
 @keyframes highlight-anim {

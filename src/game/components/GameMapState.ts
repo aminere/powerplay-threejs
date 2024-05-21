@@ -118,13 +118,7 @@ export class GameMapState {
 
     public get cursorOverUI() { return this._cursorOverUI; }
     public set cursorOverUI(value: boolean) {
-        if (value === this._cursorOverUI) {
-            return;
-        }        
-        this._cursorOverUI = value;
-        if (this.action) {
-            this.tileSelector.visible = !value;
-        }
+        this._cursorOverUI = value
     }
 
     public get action() { return this._action; }

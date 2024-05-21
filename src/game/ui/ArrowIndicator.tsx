@@ -1,17 +1,20 @@
-import { IndicatorProps } from "../../Events";
+import { IndicatorPanel } from "../../Events";
 import { uiconfig } from "./uiconfig";
 import { InlineIcon } from "./InlineIcon";
 
 interface IArrowIndicatorProps {
     x: number;
     y: number;
-    props?: IndicatorProps;
+    panel?: IndicatorPanel;
     position?: "absolute" | "fixed";
+    align?: "left" | "top";
 }
 
 export function ArrowIndicator(props: IArrowIndicatorProps) {
+
+    const align = props.align ?? "top";
     return <div
-        className="float"
+        className={align === "top" ? "float" : "float-left"}
         style={{
             position: props.position ?? "absolute",
             left: `${props.x}px`,
@@ -22,13 +25,19 @@ export function ArrowIndicator(props: IArrowIndicatorProps) {
         <img
             style={{
                 height: "3rem",
-                transform: "translateX(-50%) translateY(-3rem)",
+                transform: (() => {
+                    switch (align) {
+                        case "top": return "translateX(-50%) translateY(-3rem)";
+                        default: return "rotate(-90deg) translate(3rem, -50%)";
+                    }
+                })(),
+                transformOrigin: "bottom"
             }}
             src="/images/arrows.png"
         />
 
         {
-            props.props
+            props.panel
             &&
             <div style={{
                 transform: "translateX(-50%) translateY(-11rem)",
@@ -42,7 +51,7 @@ export function ArrowIndicator(props: IArrowIndicatorProps) {
                     gap: ".5rem",
                     alignItems: "flex-end"
                 }}>
-                    {props.props.action} {props.props.actionIcon && <InlineIcon name={props.props.actionIcon} />}
+                    {props.panel.action} {props.panel.actionIcon && <InlineIcon name={props.panel.actionIcon} />}
                 </div>
                 <div style={{
                     position: "relative",
@@ -52,8 +61,8 @@ export function ArrowIndicator(props: IArrowIndicatorProps) {
                     gap: ".5rem",
                     alignItems: "flex-end"
                 }}>
-                    {props.props.control}
-                    <InlineIcon name={props.props.icon} />
+                    {props.panel.control}
+                    <InlineIcon name={props.panel.icon} />
                 </div>
             </div>
         }        
