@@ -3,11 +3,11 @@ import { RawResourceType, ResourceType } from "../GameDefinitions"
 type FactoryProduction = Record<ResourceType, Array<ResourceType | RawResourceType>>;
 const factoryProduction: FactoryProduction = {
     "charcoal": ["wood"],
-    "steel": ["iron-ore", "coal"],
+    "steel": ["iron", "coal"],
     "rubber": ["oil"],
-    "concrete": ["stone", "iron-ore"],
+    "concrete": ["stone", "iron"],
     "glass": ["stone"],
-    "ak47": ["iron-ore"]
+    "ak47": ["iron"]
 };
 
 type RawResourceConfig = Record<RawResourceType, { capacity: number }>;
@@ -18,7 +18,7 @@ const rawResources: RawResourceConfig = {
     "coal": {
         capacity: 100
     },
-    "iron-ore": {
+    "iron": {
         capacity: 100
     },    
     "oil": {
@@ -38,7 +38,7 @@ export const resourceConfig = {
 
     assemblyProduction: {
         "truck": [            
-            ["iron-ore", 1],
+            ["iron", 1],
             ["rubber", 1]
         ] as const,
         "tank": [

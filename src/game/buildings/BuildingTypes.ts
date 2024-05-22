@@ -8,7 +8,7 @@ export const BuildingTypes = [
     "assembly",
     "incubator",
     "depot",
-    "train-factory"
+    // "train-factory"
 ] as const;
 
 export const BuildableTypes = [

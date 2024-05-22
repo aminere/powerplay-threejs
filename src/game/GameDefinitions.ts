@@ -19,7 +19,7 @@ export const TileTypes = [
 export const MineralTypes = [
     "stone",
     "coal",
-    "iron-ore",
+    "iron",
 ] as const;
 
 export const RawResourceTypes = [
@@ -54,6 +54,11 @@ export const UnitTypes = [
     ...VehicleTypes
 ] as const;
 
+export const ElevationTypes = [
+    "increase",
+    "decrease"
+] as const;
+
 export type UIType = "gamemap" | "mainmenu";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
@@ -63,4 +68,6 @@ export type ResourceType = typeof ResourceTypes[number];
 export type CharacterType = typeof CharacterTypes[number];
 export type UnitType = typeof UnitTypes[number];
 export type VehicleType = typeof VehicleTypes[number];
+export type ElevationType = typeof ElevationTypes[number];
+
 

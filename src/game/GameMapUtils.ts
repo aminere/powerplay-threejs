@@ -166,12 +166,12 @@ function clearCell(mapCoords: Vector2) {
                 case "oil": {
                     elevation.clearLiquidPatch(mapCoords, 1, cell.resource.type);
                 }
-                break;
+                    break;
                 default: {
                     cell.resource = undefined;
                 }
             }
-            
+
         } else if (cell.roadTile !== undefined) {
             roads.clear(mapCoords);
         } else if (cell.rail) {
@@ -196,7 +196,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
     const state = GameMapState.instance;
     const { resolution } = state.tileSelector;
     switch (state.action) {
-        case "destroy": {            
+        case "destroy": {
             clearCell(current);
         }
             break;
@@ -226,7 +226,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "elevation": {
-            onElevation(current, 0);
+            onElevation(current);
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
             break;
@@ -236,11 +236,11 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             elevation.elevate(current, brushSize, brushSize, 0, false);
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
-            break;        
+            break;
 
         case "resource": {
             const cell = GameUtils.getCell(current, sectorCoords, localCoords)!;
-            onResource(sectorCoords, localCoords, cell, 0);
+            onResource(sectorCoords, localCoords, cell);
         }
             break;
     }
@@ -281,10 +281,10 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "elevation": {
-            onElevation(start, 0);
+            onElevation(start);
             state.tileSelector.fit(start.x, start.y, state.sectors);
         }
-            break;      
+            break;
 
         case "destroy": {
             clearCell(start);
@@ -331,7 +331,7 @@ export function onEndDrag(start: Vector2, current: Vector2) {
                 const endAxis = _endAxis === "none" ? undefined : (_endAxis as Axis);
                 const cell = GameUtils.getCell(previousConveyors[i], sectorCoords, localCoords)!;
                 const direction = cellCoords.set(dirX, dirY);
-    
+
                 const buildingType = "conveyor";
                 let depotsInRange: IBuildingInstance[] | null = null;
                 const allowed = (() => {
@@ -344,7 +344,7 @@ export function onEndDrag(start: Vector2, current: Vector2) {
                     }
                     return true;
                 })();
-    
+
                 if (allowed) {
                     if (depotsInRange) {
                         depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
@@ -358,7 +358,7 @@ export function onEndDrag(start: Vector2, current: Vector2) {
 
             evtConveyorCreated.post();
         }
-        
+
         conveyors.clearPreview();
         gameMapState.previousConveyors.length = 0;
     }
@@ -374,56 +374,50 @@ export function onCancelDrag() {
     gameMapState.previousConveyors.length = 0;
 }
 
-function onElevation(mapCoords: Vector2, button: number) {
-    const { brushSize, brushHeight, relativeBrush } = GameMapProps.instance;
-    if (button === 0) {
+function onElevation(mapCoords: Vector2) {
+    const { brushSize, brushHeight, relativeBrush, elevationType } = GameMapProps.instance;
+    const cell = GameUtils.getCell(mapCoords);
+    if (!cell?.isEmpty) {
+        return;
+    }
+
+    if (elevationType === "increase") {
         elevation.elevate(mapCoords, brushSize, brushSize, brushHeight, relativeBrush);
-    } else if (button === 2) {
+    } else {
         elevation.elevate(mapCoords, brushSize, brushSize, -brushHeight, relativeBrush);
     }
 }
 
-function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
-    if (button === 0) {
-        const empty = (() => {
-            for (let i = 0; i < cellsPerRoadBlock; ++i) {
-                for (let j = 0; j < cellsPerRoadBlock; ++j) {
-                    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x + j, _sectorCoords.y * mapRes + _localCoords.y + i);
-                    const roadPatchCell = GameUtils.getCell(cellCoords)!;
-                    if (!roadPatchCell.isEmpty) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        })();
-
-        if (empty) {
-
-            if (!GameMapProps.instance.debugFreeCosts) {
-                const buildingType = "road";
-                const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                if (!depots.testDepots(depotsInRange, buildingType)) {
+function onRoad(_sectorCoords: Vector2, _localCoords: Vector2) {
+    const empty = (() => {
+        for (let i = 0; i < cellsPerRoadBlock; ++i) {
+            for (let j = 0; j < cellsPerRoadBlock; ++j) {
+                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x + j, _sectorCoords.y * mapRes + _localCoords.y + i);
+                const roadPatchCell = GameUtils.getCell(cellCoords)!;
+                if (!roadPatchCell.isEmpty) {
                     return false;
                 }
+            }
+        }
+        return true;
+    })();
 
-                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
+    if (empty) {
+        if (!GameMapProps.instance.debugFreeCosts) {
+            const buildingType = "road";
+            const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+            if (!depots.testDepots(depotsInRange, buildingType)) {
+                return false;
             }
 
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-            roads.create(cellCoords);
-            return true;
+            depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
         }
 
-    } else if (button === 2) {
-        if (cell.roadTile !== undefined) {
-            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-            roads.clear(cellCoords);
-            return true;
-        }
+        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+        roads.create(cellCoords);
+        return true;
     }
-
     return false;
 }
 
@@ -431,180 +425,151 @@ function rejectBuilding(error: string) {
     evtBuildError.post(error);
 };
 
-function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
+function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
     const props = GameMapProps.instance;
     const { buildableType } = props;
+    const { size } = buildingConfig[buildableType];
 
-    if (button === 0) {
-        const { size } = buildingConfig[buildableType];
+    let depotsInRange: Array<IBuildingInstance> | null = null;
 
-        let depotsInRange: Array<IBuildingInstance> | null = null;
+    // TODO if units under the structure, move them away
+    const allowed = (() => {
 
-        // TODO if units under the structure, move them away
-        const allowed = (() => {
+        const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits);
 
-            const validateCell = (cell: ICell | null) => (cell !== null && cell.isEmpty && !cell.hasUnits);
-
-            const validateCells = (isValid: (cell: ICell | null) => boolean) => {
-                for (let i = 0; i < size.z; ++i) {
-                    for (let j = 0; j < size.x; ++j) {
-                        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x + j, _sectorCoords.y * mapRes + _localCoords.y + i);
-                        const _cell = GameUtils.getCell(cellCoords);
-                        if (!isValid(_cell)) {
-                            return false;
-                        }
+        const validateCells = (isValid: (cell: ICell | null) => boolean) => {
+            for (let i = 0; i < size.z; ++i) {
+                for (let j = 0; j < size.x; ++j) {
+                    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x + j, _sectorCoords.y * mapRes + _localCoords.y + i);
+                    const _cell = GameUtils.getCell(cellCoords);
+                    if (!isValid(_cell)) {
+                        return false;
                     }
                 }
-                return true;
-            };
+            }
+            return true;
+        };
 
-            switch (buildableType) {
-                case "mine": {
-                    let resourceCount = 0;
-                    const cellsValid = validateCells(cell => {
-                        if (!cell || cell.hasUnits) {
-                            return false;
-                        }
-
-                        const hasMineral = MineralTypes.includes(cell.resource?.type as MineralType);
-                        if (hasMineral && !cell.building) {
-                            resourceCount++;
-                            return true;
-                        } else {
-                            return cell.isEmpty;
-                        }
-                    });
-
-                    if (!cellsValid) {
-                        rejectBuilding("Can't build here");
+        switch (buildableType) {
+            case "mine": {
+                let resourceCount = 0;
+                const cellsValid = validateCells(cell => {
+                    if (!cell || cell.hasUnits) {
                         return false;
                     }
 
-                    if (resourceCount === 0) {
-                        rejectBuilding("Mine must be placed on a mineral resource");
-                        return false;
-                    }
-
-                    if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
+                    const hasMineral = MineralTypes.includes(cell.resource?.type as MineralType);
+                    if (hasMineral && !cell.building) {
+                        resourceCount++;
                         return true;
+                    } else {
+                        return cell.isEmpty;
                     }
+                });
 
-                    depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
-                    if (!depots.testDepots(depotsInRange, buildableType)) {
-                        return false;
-                    }
+                if (!cellsValid) {
+                    rejectBuilding("Can't build here");
+                    return false;
+                }
 
+                if (resourceCount === 0) {
+                    rejectBuilding("Mine must be placed on a mineral resource");
+                    return false;
+                }
+
+                if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
                     return true;
                 }
-            }
 
-            const cellsValid = validateCells(validateCell);
-            if (!cellsValid) {
-                rejectBuilding("Can't build here");
-                return false;
-            }
+                depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
+                if (!depots.testDepots(depotsInRange, buildableType)) {
+                    return false;
+                }
 
-            if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
                 return true;
-            }            
-
-            if (!GameMapProps.instance.debugFreeCosts) {
-                const isFree = (() => {
-                    if (buildableType === "conveyor") {
-                        return GameMapState.instance.config.freeConveyors;
-                    }
-                    return GameMapState.instance.config.freeBuildings
-                })();
-                if (!isFree) {
-                    depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
-                    if (!depots.testDepots(depotsInRange, buildableType)) {
-                        return false;
-                    }
-                }              
             }
+        }
 
-            const clickFilter = GameMapState.instance.buildingCreationFilter?.click;
-            if (clickFilter) {
-                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                if (!clickFilter(cellCoords)) {
+        const cellsValid = validateCells(validateCell);
+        if (!cellsValid) {
+            rejectBuilding("Can't build here");
+            return false;
+        }
+
+        if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
+            return true;
+        }
+
+        if (!GameMapProps.instance.debugFreeCosts) {
+            const isFree = (() => {
+                if (buildableType === "conveyor") {
+                    return GameMapState.instance.config.freeConveyors;
+                }
+                return GameMapState.instance.config.freeBuildings
+            })();
+            if (!isFree) {
+                depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
+                if (!depots.testDepots(depotsInRange, buildableType)) {
                     return false;
                 }
             }
-
-            return true;
-        })();
-
-        if (allowed) {
-            switch (buildableType) {
-                case "factory": Factories.create(_sectorCoords, _localCoords, null); break;
-                case "mine": Mines.create(_sectorCoords, _localCoords); break;
-                case "depot": depots.create(_sectorCoords, _localCoords); break;
-                case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
-                case "assembly": Assemblies.create(_sectorCoords, _localCoords, null); break;
-                default:
-                    console.assert(false, `Unknown buildable type: ${buildableType}`);
-            }
-
-            if (depotsInRange && depotsInRange.length > 0) {
-                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                depots.removeFromDepots(depotsInRange, buildableType, cellCoords);
-            }
-
-            // exit build mode, except in sandbox
-            if (!GameMapState.instance.config.sandbox) {
-                GameMapState.instance.action = null;                
-            }
-            
         }
 
-    } else if (button === 2) {
-        if (cell.building) {
-            buildings.clear(cell.building);
+        const clickFilter = GameMapState.instance.buildingCreationFilter?.click;
+        if (clickFilter) {
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            if (!clickFilter(cellCoords)) {
+                return false;
+            }
         }
-    }
-}
 
-function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
-
-    const type = (() => {
-        if (button === 0) {
-            return GameMapProps.instance.resourceType;
-        } else {
-            return cell.resource?.type;
-        }
+        return true;
     })();
 
-    if (!type) {
-        return;
+    if (allowed) {
+        switch (buildableType) {
+            case "factory": Factories.create(_sectorCoords, _localCoords, null); break;
+            case "mine": Mines.create(_sectorCoords, _localCoords); break;
+            case "depot": depots.create(_sectorCoords, _localCoords); break;
+            case "incubator": Incubators.create(_sectorCoords, _localCoords); break;
+            case "assembly": Assemblies.create(_sectorCoords, _localCoords, null); break;
+            default:
+                console.assert(false, `Unknown buildable type: ${buildableType}`);
+        }
+
+        if (depotsInRange && depotsInRange.length > 0) {
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            depots.removeFromDepots(depotsInRange, buildableType, cellCoords);
+        }
+
+        // exit build mode, except in sandbox
+        if (!GameMapState.instance.config.sandbox) {
+            GameMapState.instance.action = null;
+        }
+
     }
 
+}
+
+function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
+    const type = GameMapProps.instance.resourceType;
     switch (type) {
         case "oil":
         case "water": {
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-            if (button === 0) {
-                elevation.createLiquidPatch(cellCoords, 1, type);
-            } else if (button === 2) {
-                elevation.clearLiquidPatch(cellCoords, 1, type);
-            }
+            elevation.createLiquidPatch(cellCoords, 1, type);
         }
             break;
 
         default: {
             const { sectors } = GameMapState.instance;
             const sector = sectors.get(`${_sectorCoords.x},${_sectorCoords.y}`)!;
-            if (button === 0) {
-                const units = cell.units?.length ?? 0;
-                if (cell.isEmpty && units === 0) {
-                    resources.create(sector, _sectorCoords, _localCoords, cell, type);
-                    if (type === "wood") {
-                        const { visual, instanceIndex } = cell.resource!;
-                        trees.revealTree(visual as InstancedMesh, instanceIndex!);
-                    }
-                }
-            } else if (button === 2) {
-                if (cell.resource) {
-                    cell.resource = undefined;
+            const units = cell.units?.length ?? 0;
+            if (cell.isEmpty && units === 0) {
+                resources.create(sector, _sectorCoords, _localCoords, cell, type);
+                if (type === "wood") {
+                    const { visual, instanceIndex } = cell.resource!;
+                    trees.revealTree(visual as InstancedMesh, instanceIndex!);
                 }
             }
         }
@@ -622,34 +587,25 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
 //     Sector.updateCellTexture(sector, localCoords, tileIndex);
 // }
 
-function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, button: number) {
-    cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-
-    if (button === 0) {
-        if (cell.isEmpty) {
-
-            const isFree = GameMapProps.instance.debugFreeCosts || GameMapState.instance.config.freeConveyors;
-            if (!isFree) {
-                const buildingType = "conveyor";
-                const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
-                if (!depots.testDepots(depotsInRange, buildingType)) {
-                    return false;
-                }
-
-                cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-                depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
+function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
+    if (cell.isEmpty) {
+        cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+        const isFree = GameMapProps.instance.debugFreeCosts || GameMapState.instance.config.freeConveyors;
+        if (!isFree) {
+            const buildingType = "conveyor";
+            const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
+            if (!depots.testDepots(depotsInRange, buildingType)) {
+                return false;
             }
 
-            conveyors.createAndFit(cell, cellCoords);
-            return true;
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            depots.removeFromDepots(depotsInRange, buildingType, cellCoords);
         }
-    } else if (button === 2) {
-        if (cell.conveyor !== undefined) {
-            conveyors.clear(cellCoords);
-            conveyors.clearLooseCorners(cellCoords);
-            return true;
-        }
+
+        conveyors.createAndFit(cell, cellCoords);
+        return true;
     }
+
     return false;
 }
 
@@ -718,7 +674,7 @@ export function setCameraPos(pos: Vector3) {
     updateCameraBounds();
 }
 
-export function onAction(touchButton: number) {
+export function onAction() {
     const state = GameMapState.instance;
 
     const _cellCoords = (() => {
@@ -743,8 +699,8 @@ export function onAction(touchButton: number) {
             }
                 break;
 
-            case "elevation": {                
-                onElevation(_cellCoords, touchButton);
+            case "elevation": {
+                onElevation(_cellCoords);
                 state.tileSelector.fit(_cellCoords.x, _cellCoords.y, state.sectors);
             }
                 break;
@@ -754,56 +710,51 @@ export function onAction(touchButton: number) {
                 elevation.elevate(_cellCoords, brushSize, brushSize, 0, false);
                 state.tileSelector.fit(_cellCoords.x, _cellCoords.y, state.sectors);
             }
-                break;            
+                break;
 
             case "building": {
                 switch (GameMapProps.instance.buildableType) {
-                    case "road": return onRoad(sectorCoords, localCoords, cell, touchButton);
-                    case "conveyor": return onConveyor(sectorCoords, localCoords, cell, touchButton);
+                    case "road": return onRoad(sectorCoords, localCoords);
+                    case "conveyor": return onConveyor(sectorCoords, localCoords, cell);
                     case "rail": {
-                        if (touchButton === 2) {
-                            if (cell.rail) {
-                                Rails.clear(cell);
-                            }
-                        }
+                        // TODO
+                        // if (touchButton === 2) {
+                        //     if (cell.rail) {
+                        //         Rails.clear(cell);
+                        //     }
+                        // }
                     }
-                    break;
-                    default: onBuilding(sectorCoords, localCoords, cell, touchButton);
+                        break;
+                    default: onBuilding(sectorCoords, localCoords, cell);
                 }
             }
                 break;
 
             case "resource": {
-                onResource(sectorCoords, localCoords, cell, touchButton);
+                onResource(sectorCoords, localCoords, cell);
             }
                 break;
 
             case "train": {
-                if (touchButton === 0) {
-                    if (cell.rail) {
-                        const { layers } = state;
-                        const wagonLength = cellSize * 2 * trainScale;
-                        const numWagons = 4;
-                        const gap = .3;
-                        const train = utils.createObject(layers.trains, "train");
-                        engineState.setComponent(train, new Train({
-                            cell: _cellCoords,
-                            wagonLength,
-                            numWagons,
-                            gap
-                        }));
-                    }
+                if (cell.rail) {
+                    const { layers } = state;
+                    const wagonLength = cellSize * 2 * trainScale;
+                    const numWagons = 4;
+                    const gap = .3;
+                    const train = utils.createObject(layers.trains, "train");
+                    engineState.setComponent(train, new Train({
+                        cell: _cellCoords,
+                        wagonLength,
+                        numWagons,
+                        gap
+                    }));
                 }
             }
-                break;            
+                break;
 
             case "unit": {
-                if (touchButton === 0) {
-                    if (cell.isEmpty) {
-                        unitsManager.spawn(_cellCoords, GameMapProps.instance.unit);
-                    }
-                } else if (touchButton === 2) {
-                    console.assert(false, "this is done through the destroy action now");
+                if (cell.isEmpty) {
+                    unitsManager.spawn(_cellCoords, GameMapProps.instance.unit);
                 }
             }
                 break;

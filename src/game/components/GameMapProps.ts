@@ -1,9 +1,9 @@
-import { RawResourceTypes, type RawResourceType, type UnitType, UnitTypes } from "../GameDefinitions";
+import { RawResourceTypes, type RawResourceType, type UnitType, UnitTypes, ElevationTypes, type ElevationType } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
-import { TArray } from "../../powerplay";
 import { Vector2 } from "three";
 import { BuildableTypes, type BuildableType } from "../buildings/BuildingTypes";
+import { TArray } from "../../engine/serialization/TArray";
 
 export class GameMapProps extends ComponentProps {
 
@@ -35,6 +35,9 @@ export class GameMapProps extends ComponentProps {
 
     @Attributes.enumOptions(BuildableTypes)
     buildableType: BuildableType = "depot";
+
+    @Attributes.enumOptions(ElevationTypes)
+    elevationType: ElevationType = "increase";
 
     // @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
     // depotType: RawResourceType | ResourceType = "wood";

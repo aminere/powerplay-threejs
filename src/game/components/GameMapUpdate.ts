@@ -352,25 +352,6 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         }
                     }
                 }
-            } else if (input.touchButton === 2) {
-                // clearing is now only done through the destroy action 
-                // if (!state.config.input.rightClick) {
-                //     return;
-                // }
-                // if (input.touchJustMoved) {
-                //     if (!state.cursorOverUI) {
-                //         if (state.action) {
-                //             const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                //             if (cell) {
-                //                 if (cellCoords?.equals(state.touchHoveredCoords) === false) {
-                //                     state.touchHoveredCoords.copy(cellCoords!);
-                //                     onAction(2);
-                //                     state.touchDragged = true;
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
             }
 
         } else if (input.touchJustReleased) {
@@ -400,7 +381,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (wasDragged) {
                             onEndDrag(state.raycastedTouchStart, state.raycastedCellCoords);
                         } else {                            
-                            onAction(0);
+                            onAction();
                         }
                     } else {
 
@@ -464,29 +445,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 }
 
                 if (state.action) {
-
-                    switch (state.action) {
-                        case "building": {
-                            switch (GameMapProps.instance.buildableType) {
-                                case "conveyor": {
-                                    const executed = onAction(2);
-                                    if (!executed && !state.touchDragged) {
-                                        state.action = null;                                        
-                                    }
-                                }
-                                break;
-                                default: {
-                                    state.action = null;
-                                }
-                            }
-                        }
-                        break;                        
-
-                        default: {
-                            state.action = null;
-                        }
-                    }
-
+                    state.action = null;
                     if (state.touchDragged) {
                         state.touchDragged = false;
                     }

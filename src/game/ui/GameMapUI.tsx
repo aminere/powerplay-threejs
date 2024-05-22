@@ -21,7 +21,7 @@ import { DebugUI } from "./DebugUI";
 import { TransportAction } from "./TransportAction";
 import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
-import { RawResourceType, RawResourceTypes } from "../GameDefinitions";
+import { ElevationType, RawResourceType, RawResourceTypes } from "../GameDefinitions";
 import { ActionButton } from "./ActionButton";
 
 export function GameMapUI() {    
@@ -128,7 +128,7 @@ export function GameMapUI() {
         }
     }, []);
 
-    const [openSection, _setOpenSection] = useState<"building" | "resource" | null>(null);
+    const [openSection, _setOpenSection] = useState<"building" | "resource" | "elevation" | null>(null);
     const [selectedAction, setSelectedAction] = useState<"conveyor" | "worker" | "destroy" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
@@ -267,8 +267,7 @@ export function GameMapUI() {
                 gameMapState.config.sandbox
                 &&
                 <>
-                    <ActionSection
-                        visible={gameMapState.config.sideActions.enabled.build.self}
+                    <ActionSection                        
                         name="resource"
                         actions={RawResourceTypes}                        
                         open={openSection === "resource"}
@@ -278,7 +277,7 @@ export function GameMapUI() {
                             gameMapState.action = "resource";    
                             gameMapState.tileSelector.color = "yellow";        
                             gameMapState.tileSelector.setSize(1, 1);
-                            gameMapState.tileSelector.resolution = 1;                            
+                            gameMapState.tileSelector.resolution = 1;
                         }}
                         onOpen={() => setOpenSection("resource")}
                         onClose={() => setOpenSection(null)}
@@ -304,6 +303,21 @@ export function GameMapUI() {
                     >
                         <img src={`/images/icons/worker.png`} />
                     </ActionButton>
+                    <ActionSection
+                        name="elevation"
+                        actions={["increase", "decrease"]}                        
+                        open={openSection === "elevation"}
+                        onSelected={selection => {
+                            const type = selection as ElevationType;
+                            GameMapProps.instance.elevationType = type;
+                            gameMapState.action = "elevation";    
+                            gameMapState.tileSelector.color = "yellow";        
+                            gameMapState.tileSelector.setSize(1, 1);
+                            gameMapState.tileSelector.resolution = 1;
+                        }}
+                        onOpen={() => setOpenSection("elevation")}
+                        onClose={() => setOpenSection(null)}
+                    />
                     <ActionButton
                         tooltipId={"clear"}
                         selected={selectedAction === "destroy"}
@@ -327,7 +341,6 @@ export function GameMapUI() {
                     </ActionButton>
                 </>                
             }
-
         </div>
 
         <div 
@@ -365,7 +378,7 @@ export function GameMapUI() {
                     onOutputSelected={() => setShowDepotOutputs(false)}
                 />
             </ActionsPanel>
-        </div>
+        </div>        
 
         <div
             ref={errorRef}

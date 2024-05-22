@@ -8,6 +8,9 @@ import { Tooltip } from "./Tooltip";
 interface ActionButtonProps {
     id?: string;
     tooltipId?: string;
+    tooltipOptions?: {
+        position?: "top" | "bottom";
+    };
     visible?: boolean;
     onClick: () => void;
     onContextMenu?: () => void;
@@ -91,7 +94,7 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         {
             tooltip
             &&
-            <Tooltip rootRef={tooltipRef}>
+            <Tooltip rootRef={tooltipRef} options={props.tooltipOptions}>
                 {tooltip}
             </Tooltip>
         }       

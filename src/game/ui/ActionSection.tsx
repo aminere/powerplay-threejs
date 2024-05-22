@@ -10,7 +10,7 @@ interface IActionSectionProps {
     name: string;
     actions: readonly string[];
     actionsVisible?: Record<string, boolean>;
-    visible: boolean;
+    visible?: boolean;
     onSelected: (action: string) => void;
     onOpen: () => void;
     onClose: () => void;
