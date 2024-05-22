@@ -11,7 +11,9 @@ export function MainMenu() {
         height: "100%",
         backgroundImage: "url(/images/mainmenu-bg.png)",
         backgroundRepeat: "no-repeat",
-        backgroundSize: "cover"
+        backgroundSize: "cover",
+        textShadow: "1px 1px 0px black",
+        textTransform: "uppercase"
     }}>
         <div style={{
             display: "flex",
@@ -37,7 +39,7 @@ export function MainMenu() {
                     left: "50%",
                 }}>
                     POWERPLAY
-                </span>
+                </span>                
             </div>
             <MenuButton onClick={() => {
                 cmdShowUI.post(null);
@@ -75,6 +77,26 @@ export function MainMenu() {
                 Exit
             </MenuButton>
         </div>
+
+        <div style={{
+            display: "flex",
+            flexDirection: "column",
+            position: "absolute",
+            left: "1rem",
+            bottom: "1rem",
+            gap: ".5rem",
+            fontSize: "2rem",
+        }}>
+            <span>DEMO</span>
+            <img 
+                style={{
+                    maxWidth: "10ch"
+                }}
+                src="/images/powerplayrts.com.png" 
+            />
+            <a href="https://powerplayrts.com" target="_blank">powerplayrts.com</a>
+        </div>
+
     </div>
 }
 
