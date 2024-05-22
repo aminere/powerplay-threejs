@@ -78,7 +78,7 @@ export interface IDepotState {
 export interface IAssemblyState {
     active: boolean;
     productionTimer: number;
-    reserve: Map<ResourceType, number>;
+    reserve: Map<RawResourceType | ResourceType, number>;
     inputTimer: number;
     inputFull: boolean;
     output: VehicleType | null;

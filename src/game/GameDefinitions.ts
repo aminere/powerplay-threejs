@@ -2,8 +2,6 @@
 
 export const Actions = [
     "elevation",     
-    // "terrain",
-    "water",
     "flatten",
     "building", 
     "unit",
@@ -22,29 +20,22 @@ export const MineralTypes = [
     "stone",
     "coal",
     "iron-ore",
-    "sulfur",
-    "oil",
-    "copper"
 ] as const;
 
 export const RawResourceTypes = [
     ...MineralTypes,
     "wood",
-    "water"
+    "water",
+    "oil"
 ] as const;
 
 export const ResourceTypes = [
-    "coal",
+    "charcoal",
     "steel",
-    "bullets",
-    "plastic",
     "rubber",
     "concrete",
     "glass",
-    "engine",
     "ak47",    
-    "gasoline",
-    "tire",
 ] as const;
 
 export const CharacterTypes = [

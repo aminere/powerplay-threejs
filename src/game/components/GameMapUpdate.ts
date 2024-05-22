@@ -342,23 +342,24 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
                 }
             } else if (input.touchButton === 2) {
-                if (!state.config.input.rightClick) {
-                    return;
-                }
-                if (input.touchJustMoved) {
-                    if (!state.cursorOverUI) {
-                        if (state.action) {
-                            const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                            if (cell) {
-                                if (cellCoords?.equals(state.touchHoveredCoords) === false) {
-                                    state.touchHoveredCoords.copy(cellCoords!);
-                                    onAction(2);
-                                    state.touchDragged = true;
-                                }
-                            }
-                        }
-                    }
-                }
+                // clearing is now only done through the destroy action 
+                // if (!state.config.input.rightClick) {
+                //     return;
+                // }
+                // if (input.touchJustMoved) {
+                //     if (!state.cursorOverUI) {
+                //         if (state.action) {
+                //             const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
+                //             if (cell) {
+                //                 if (cellCoords?.equals(state.touchHoveredCoords) === false) {
+                //                     state.touchHoveredCoords.copy(cellCoords!);
+                //                     onAction(2);
+                //                     state.touchDragged = true;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
             }
 
         } else if (input.touchJustReleased) {
@@ -468,12 +469,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                                 }
                             }
                         }
-                        break;
-
-                        case "water": {
-                            onAction(2);
-                        }
-                            break;
+                        break;                        
 
                         default: {
                             state.action = null;
@@ -485,6 +481,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     }
 
                 } else {
+                    
                     if (unitsManager.selectedUnits.length > 0) {
                         const targetCell = raycastOnCells(input.touchPos, state.camera, mapCoords, resolution);
                         if (targetCell) {

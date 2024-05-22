@@ -35,6 +35,7 @@ import { Incubators } from "../buildings/Incubators";
 import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
 import { Tutorial } from "./Tutorial";
+import { Sandbox } from "./Sandbox";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -45,7 +46,6 @@ export class GameMapLoaderProps extends ComponentProps {
 
     path = "";
     fromLocalStorage = false;
-    tutorial = false;
 
     constructor(props?: Partial<GameMapLoaderProps>) {
         super();
@@ -246,8 +246,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
     private init(size: number, _cameraPos: Vector3, owner: Object3D) {
         this.state.sectorRes = size;
 
-        fogOfWar.init(size);
-
         // const water = utils.createObject(root(), "water");
         // water.matrixAutoUpdate = false;
         // water.matrixWorldAutoUpdate = false;
@@ -262,14 +260,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         updateCameraSize();
 
         const cameraPos = _cameraPos ?? GameUtils.vec3.zero;
-        setCameraPos(cameraPos);
-
-        // reveal wherever the camera is
-        // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
-        // mapCoords = (cameraPos / cellSize) + mapRes / 2;
-        const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
-        const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
-        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });
+        setCameraPos(cameraPos);        
 
         document.addEventListener("keyup", this.onKeyUp);
         document.addEventListener("keydown", this.onKeyDown);
@@ -277,8 +268,22 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         const updator = utils.createObject(root(), "GameMapUpdate");
         engineState.setComponent(updator, new GameMapUpdate());
-        if (this.props.tutorial) {
+
+        if (this.props.path.includes("tutorial")) {
             engineState.setComponent(updator, new Tutorial());
+        } else if (this.props.path.includes("sandbox")) {
+            engineState.setComponent(updator, new Sandbox());
+        }
+
+        if (this.state.config.fogOfWar) {
+            fogOfWar.init(size);
+
+            // reveal wherever the camera is
+            // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
+            // mapCoords = (cameraPos / cellSize) + mapRes / 2;
+            const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
+            const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
+            cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });
         }
 
         // TODO remove

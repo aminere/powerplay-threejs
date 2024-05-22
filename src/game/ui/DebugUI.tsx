@@ -35,7 +35,6 @@ export function DebugUI() {
                     let resolution = 1;
                     switch (_action) {
                         case "elevation":
-                        case "water":
                         case "flatten": {
                             const { brushSize } = GameMapProps.instance;
                             gameMapState.tileSelector.setSize(brushSize, brushSize);

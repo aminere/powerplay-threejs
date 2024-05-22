@@ -12,7 +12,7 @@ interface ActionButtonProps {
     onClick: () => void;
     onContextMenu?: () => void;
     selected?: boolean;
-    selectedColor?: "yellow" | "white";
+    selectedColor?: "yellow" | "white" | "red";
     selectedAnim?: boolean;
 }
 

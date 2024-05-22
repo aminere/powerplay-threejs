@@ -21,6 +21,8 @@ import { DebugUI } from "./DebugUI";
 import { TransportAction } from "./TransportAction";
 import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
+import { RawResourceType, RawResourceTypes } from "../GameDefinitions";
+import { ActionButton } from "./ActionButton";
 
 export function GameMapUI() {    
 
@@ -126,19 +128,17 @@ export function GameMapUI() {
         }
     }, []);
 
-    const [openSection, _setOpenSection] = useState<"building" | null>(null);
-    const [selectedAction, setSelectedAction] = useState<"conveyor" | null>(null);
+    const [openSection, _setOpenSection] = useState<"building" | "resource" | null>(null);
+    const [selectedAction, setSelectedAction] = useState<"conveyor" | "destroy" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
     const [showDepotOutputs, setShowDepotOutputs] = useState(false);
 
-    const setOpenSection = (section: "building" | null) => {
+    const setOpenSection = (section: typeof openSection) => {
         _setOpenSection(section);
         if (section) {
-            if (selectedAction) {
-                gameMapState.action = null;
-            }
+            gameMapState.action = null;
         }
     };
 
@@ -150,8 +150,8 @@ export function GameMapUI() {
             setShowDepotOutputs(false);
         }
 
-        const onOpenBuildSection = (section: "building" | null) => {
-            setOpenSection(section);
+        const onOpenBuildSection = () => {
+            setOpenSection("building");
         }        
 
         cmdOpenBuildSection.attach(onOpenBuildSection);
@@ -192,6 +192,10 @@ export function GameMapUI() {
     // }, [])
 
     const gameMapState = GameMapState.instance;
+    if (!gameMapState) {
+        return null;
+    }
+
     return <div
         style={{
             textShadow: "1px 1px 0px black",
@@ -239,18 +243,11 @@ export function GameMapUI() {
                 onSelected={action => {
                     const type = action as BuildableType;
                     GameMapProps.instance.buildableType = type;
-                    const gameMapState = GameMapState.instance;
                     gameMapState.action = "building";
                     gameMapState.tileSelector.color = "yellow";
-                    const isBuilding = BuildingTypes.includes(type as BuildingType);
-                    if (isBuilding) {
-                        const size = buildingConfig[type].size;
-                        gameMapState.tileSelector.setSize(size.x, size.z);
-                        gameMapState.tileSelector.setBuilding(type as BuildingType);
-                    } else {
-                        gameMapState.tileSelector.setSize(1, 1);
-                        gameMapState.tileSelector.resolution = 1;
-                    }
+                    const size = buildingConfig[type].size;
+                    gameMapState.tileSelector.setSize(size.x, size.z);
+                    gameMapState.tileSelector.setBuilding(type as BuildingType);
                 }}
                 onOpen={() => setOpenSection("building")}
                 onClose={() => setOpenSection(null)}
@@ -266,6 +263,51 @@ export function GameMapUI() {
                     setSelectedAction(null);
                 }}
             />
+
+            {
+                gameMapState.config.sandbox
+                &&
+                <>
+                    <ActionSection
+                        visible={gameMapState.config.sideActions.enabled.build.self}
+                        name="resource"
+                        actions={RawResourceTypes}                        
+                        open={openSection === "resource"}
+                        onSelected={action => {
+                            const type = action as RawResourceType;
+                            GameMapProps.instance.resourceType = type;
+                            gameMapState.action = "resource";    
+                            gameMapState.tileSelector.color = "yellow";        
+                            gameMapState.tileSelector.setSize(1, 1);
+                            gameMapState.tileSelector.resolution = 1;                            
+                        }}
+                        onOpen={() => setOpenSection("resource")}
+                        onClose={() => setOpenSection(null)}
+                    />
+                    <ActionButton
+                        tooltipId={"clear"}
+                        selected={selectedAction === "destroy"}
+                        selectedColor="red"
+                        onClick={() => {
+                            if (selectedAction !== "destroy") {                                
+                                setOpenSection(null);
+                                setSelectedAction("destroy");
+                                const gameMapState = GameMapState.instance;
+                                gameMapState.action = "destroy";
+                                gameMapState.tileSelector.color = "red";
+                                gameMapState.tileSelector.setSize(1, 1);
+                                gameMapState.tileSelector.resolution = 1;
+                            } else {
+                                gameMapState.action = null;
+                                setSelectedAction(null);
+                            }
+                        }}
+                    >
+                        <img src={`/images/icons/destroy.png`} />
+                    </ActionButton>
+                </>                
+            }
+
         </div>
 
         <div 

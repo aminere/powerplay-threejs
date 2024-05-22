@@ -9,7 +9,7 @@ interface IActionSectionProps {
     open: boolean;
     name: string;
     actions: readonly string[];
-    actionsVisible: Record<string, boolean>;
+    actionsVisible?: Record<string, boolean>;
     visible: boolean;
     onSelected: (action: string) => void;
     onOpen: () => void;
@@ -93,7 +93,7 @@ export function ActionSection(props: IActionSectionProps) {
                 return <ActionButton
                     id={_action}
                     tooltipId={_action}
-                    visible={props.actionsVisible[_action]}
+                    visible={props.actionsVisible?.[_action] ?? true}
                     key={_action}
                     selected={action === _action}
                     selectedColor="yellow"

@@ -106,7 +106,9 @@ export class GameMapState {
             leftClick: true,
             rightClick: true
         },
-        freeConveyors: false
+        freeConveyors: false,
+        fogOfWar: true,
+        sandbox: false
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;

@@ -11,11 +11,11 @@ import { CharacterUnit } from "../unit/CharacterUnit";
 import { depots } from "../buildings/Depots";
 import { engine } from "../../engine/Engine";
 import { GameUtils } from "../GameUtils";
-import { ResourceType, ResourceTypes } from "../GameDefinitions";
 import { GameMapProps } from "./GameMapProps";
 import { unitMotion } from "../unit/UnitMotion";
 import { engineState } from "../../engine/EngineState";
 import { UnitUtils } from "../unit/UnitUtils";
+import { ResourceType, ResourceTypes } from "../GameDefinitions";
 
 function getBuildingOfType(type: BuildingType) {
     const buildings = GameMapState.instance.buildings;
@@ -35,13 +35,6 @@ function stopUnit(unit: IUnit) {
     }
 }
 
-export class TutorialProps extends ComponentProps {
-    constructor(props?: Partial<TutorialProps>) {
-        super();
-        this.deserialize(props);
-    }
-}
-
 enum MissionStep {
     SelectUnit,
     CollectStone,
@@ -56,52 +49,54 @@ enum MissionStep {
     Incubate
 }
 
-export class Tutorial extends Component<TutorialProps> {
-
-    private _step = MissionStep.SelectUnit;
-    private _owner: Object3D | null = null;
-
-    constructor(props?: Partial<TutorialProps>) {
-        super(new TutorialProps(props));
+class TutorialState {
+    constructor(owner: Object3D) {
+        this.owner = owner;
     }
+
+    public step = MissionStep.SelectUnit;
+    public owner: Object3D;
+}
+
+export class Tutorial extends Component<ComponentProps, TutorialState> {
 
     override start(owner: Object3D) {
 
-        this._owner = owner;
-        GameMapState.instance.config = {
-            minimap: false,
-            sideActions: {
-                self: false,
-                enabled: {
-                    build: {
-                        self: false,
-                        enabled: BuildingTypes.reduce((prev, cur) => {
-                            return {
-                                ...prev,
-                                [cur]: false
-                            }
-                        }, {} as Record<BuildingType, boolean>)
-                    },
-                    conveyor: false
-                }
-            },
-            bottomPanels: false,
-            cameraPan: false,
-            factoryOutputs: ResourceTypes.reduce((prev, cur) => {
-                return {
-                    ...prev,
-                    [cur]: false
-                }
-            }, {} as Record<ResourceType, boolean>),
-            selectionActions: {
-                kill: false,
-            },
-            input: {
-                leftClick: false,
-                rightClick: false
-            },
-            freeConveyors: true
+        this.setState(new TutorialState(owner));
+        
+        const { config } = GameMapState.instance;
+        config.minimap = false;
+        config.sideActions = {
+            self: false,
+            enabled: {
+                build: {
+                    self: false,
+                    enabled: BuildingTypes.reduce((prev, cur) => {
+                        return {
+                            ...prev,
+                            [cur]: false
+                        }
+                    }, {} as Record<BuildingType, boolean>)
+                },
+                conveyor: false
+            }
         };
+        config.bottomPanels = false;
+        config.cameraPan = false;
+        config.factoryOutputs = ResourceTypes.reduce((prev, cur) => {
+            return {
+                ...prev,
+                [cur]: true
+            }
+        }, {} as Record<ResourceType, boolean>);
+        config.selectionActions = {
+            kill: false,
+        };        
+        config.input = {
+            leftClick: false,
+            rightClick: false
+        };
+        config.freeConveyors = true;        
 
         this.onSelection = this.onSelection.bind(this);
         this.onGameMapUIMounted = this.onGameMapUIMounted.bind(this);
@@ -135,16 +130,13 @@ export class Tutorial extends Component<TutorialProps> {
         evtMoveCommand.detach(this.onMoveCommand);
     }
 
-    override update(_owner: Object3D) {
-    }
-
     private onSelection(selectedElem: SelectedElems | null) {
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.SelectUnit: {                
                 if (selectedElem?.type === "units") {
                     GameMapState.instance.config.input.leftClick = false;
                     GameMapState.instance.config.input.rightClick = true;
-                    this._step = MissionStep.CollectStone;
+                    this.state.step = MissionStep.CollectStone;
                     cmdSetIndicator.post({
                         indicator: {
                             type: "cell",
@@ -223,10 +215,10 @@ export class Tutorial extends Component<TutorialProps> {
     }
 
     private onUnitStateChanged(unit: IUnit) {
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.CollectStone: {
 
-                this._step = MissionStep.DepositStone;
+                this.state.step = MissionStep.DepositStone;
                 const resource = (unit as CharacterUnit)!.resource!.type;
                 console.assert(resource === "stone");
                 const { depotsCache } = GameMapState.instance;
@@ -249,7 +241,7 @@ export class Tutorial extends Component<TutorialProps> {
 
             case MissionStep.CollectWater: {
 
-                this._step = MissionStep.DepositWater;
+                this.state.step = MissionStep.DepositWater;
                 const incubator = getBuildingOfType("incubator")!;
                 cmdSetIndicator.post({
                     indicator: {
@@ -269,7 +261,7 @@ export class Tutorial extends Component<TutorialProps> {
     }
 
     private onBuildingStateChanged(building: IBuildingInstance) {
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.DepositStone: {
                 switch (building.buildingType) {
                     case "depot": {
@@ -277,7 +269,7 @@ export class Tutorial extends Component<TutorialProps> {
                         const amount = reserves.stone;
                         cmdSetObjectiveStatus.post(`${amount} / 5`);
                         if (amount === 5) {
-                            this._step = MissionStep.BuildFactory;
+                            this.state.step = MissionStep.BuildFactory;
 
                             cmdSetObjective.post({
                                 objective: "Build a Factory",
@@ -309,7 +301,7 @@ export class Tutorial extends Component<TutorialProps> {
                     case "factory": {
                         const state = building.state as IFactoryState;
                         if (state.output === "glass") {
-                            this._step = MissionStep.CollectGlass;
+                            this.state.step = MissionStep.CollectGlass;
 
                             const unit = unitsManager.units[0];
                             stopUnit(unit);
@@ -358,7 +350,7 @@ export class Tutorial extends Component<TutorialProps> {
                         if (amount !== undefined) {
                             cmdSetObjectiveStatus.post(`${amount} / 5`);
                             if (amount === 5) {
-                                this._step = MissionStep.BuildIncubator;
+                                this.state.step = MissionStep.BuildIncubator;
 
                                 GameMapState.instance.config.sideActions.self = true;
                                 GameMapState.instance.config.sideActions.enabled.build.enabled.incubator = true;
@@ -370,7 +362,7 @@ export class Tutorial extends Component<TutorialProps> {
                                 });
                                 cmdSetObjectiveStatus.post(`${0} / 1`);                               
 
-                                cmdOpenBuildSection.post("building");
+                                cmdOpenBuildSection.post();
                                 setTimeout(() => {
                                     cmdSetIndicator.post({
                                         indicator: {
@@ -394,7 +386,7 @@ export class Tutorial extends Component<TutorialProps> {
                         const amount = state.reserve.get("water")!;
                         cmdSetObjectiveStatus.post(`${amount} / 5`);
                         if (amount === 5) {
-                            this._step = MissionStep.Incubate;
+                            this.state.step = MissionStep.Incubate;
 
                             const unit = unitsManager.units[0];
                             stopUnit(unit);
@@ -431,7 +423,7 @@ export class Tutorial extends Component<TutorialProps> {
 
         switch (action) {
             case "building": {
-                switch (this._step) {
+                switch (this.state.step) {
                     case MissionStep.BuildFactory: {
                         setTimeout(() => {
                             cmdSetIndicator.post({
@@ -481,7 +473,7 @@ export class Tutorial extends Component<TutorialProps> {
                 break;
 
             case "conveyor": {
-                switch (this._step) {
+                switch (this.state.step) {
                     case MissionStep.BuildConveyorToFactory: {
                         const conveyorShadow = engine.scene!.getObjectByName("conveyor-shadow")!;
                         conveyorShadow.visible = true;
@@ -516,7 +508,7 @@ export class Tutorial extends Component<TutorialProps> {
                 break;
 
             case "factory-output": {
-                switch (this._step) {
+                switch (this.state.step) {
                     case MissionStep.ProduceGlass: {
                         setTimeout(() => {
                             cmdSetIndicator.post({
@@ -534,7 +526,7 @@ export class Tutorial extends Component<TutorialProps> {
                 break;
 
             case "incubator": {
-                switch (this._step) {
+                switch (this.state.step) {
                     case MissionStep.BuildIncubator: {
                         const incubatorShadow = engine.scene!.getObjectByName("incubator-shadow")!;
                         incubatorShadow.visible = true;
@@ -579,7 +571,7 @@ export class Tutorial extends Component<TutorialProps> {
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetObjectiveStatus.post(`${1} / 1`);
 
-                this._step = MissionStep.BuildConveyorToFactory;
+                this.state.step = MissionStep.BuildConveyorToFactory;
                 cmdSetIndicator.post(null);                
 
                 setTimeout(() => {
@@ -610,7 +602,7 @@ export class Tutorial extends Component<TutorialProps> {
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetObjectiveStatus.post(`${1} / 1`);
 
-                this._step = MissionStep.CollectWater;
+                this.state.step = MissionStep.CollectWater;
                 cmdSetIndicator.post(null);
 
                 setTimeout(() => {                    
@@ -638,7 +630,7 @@ export class Tutorial extends Component<TutorialProps> {
 
     private onConveyorCreated() {
 
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.BuildConveyorToFactory: {
                 const conveyorShadow = engine.scene!.getObjectByName("conveyor-shadow")!;
                 conveyorShadow.removeFromParent();
@@ -646,7 +638,7 @@ export class Tutorial extends Component<TutorialProps> {
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetIndicator.post(null);
 
-                this._step = MissionStep.ProduceGlass;
+                this.state.step = MissionStep.ProduceGlass;
                 setTimeout(() => {
                     cmdSetObjective.post({
                         objective: "Produce Glass",
@@ -696,21 +688,21 @@ export class Tutorial extends Component<TutorialProps> {
     }
 
     private onUnitSpawned() {
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.Incubate: {
                 for (const unit of unitsManager.units) {
                     if (UnitUtils.isWorker(unit)) {
                         unitMotion.moveUnit(unit, new Vector2(32, 143));
-                    }            
-                }        
-                engineState.removeComponent(this._owner!, Tutorial);
+                    }
+                }
+                engineState.removeComponent(this.state.owner, Tutorial);
                 cmdTutorialComplete.post();
             }
         }        
     }
 
     private onMoveCommand(mapCoords: Vector2) {
-        switch (this._step) {
+        switch (this.state.step) {
             case MissionStep.CollectStone: {
                 const resource = GameUtils.getCell(mapCoords)?.resource?.type;
                 if (resource === "stone") {

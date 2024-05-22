@@ -81,7 +81,7 @@ export function Minimap() {
             return;
         }
 
-        const { sectorRes, sectors } = GameMapState.instance;
+        const { sectorRes, sectors, config } = GameMapState.instance;
         const texRes = mapRes * sectorRes;
         root.current!.style.width = `${minimapSize}px`;
         root.current!.style.height = `${minimapSize}px`;
@@ -110,6 +110,9 @@ export function Minimap() {
         const fogCtx = fogCanvas.getContext("2d")!;
         const fogPixels = fogCtx.createImageData(fogCanvas.width, fogCanvas.height);
         fogPixelsRef.current = fogPixels;
+        if (!config.fogOfWar) {
+            fogCanvas.style.display = "none";
+        }
 
         const cameraCanvas = cameraRef.current!;
         cameraCanvas.width = minimapSize;
@@ -290,7 +293,7 @@ export function Minimap() {
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />
             <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />            
             <canvas ref={unitsRef} style={{ ...crispCanvasStyle, zIndex: 3 }} />
-            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4, display: "block" }} />
+            <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4 }} />
             <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />            
         </div>
         {/* <canvas

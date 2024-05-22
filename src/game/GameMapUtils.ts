@@ -217,13 +217,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             elevation.elevate(current, brushSize, brushSize, 0, false);
             state.tileSelector.fit(current.x, current.y, state.sectors);
         }
-            break;
-
-        case "water": {
-            onWater(current, 0);
-            state.tileSelector.fit(current.x, current.y, state.sectors);
-        }
-            break;
+            break;        
 
         case "resource": {
             const cell = GameUtils.getCell(current, sectorCoords, localCoords)!;
@@ -271,13 +265,7 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
             onElevation(start, 0);
             state.tileSelector.fit(start.x, start.y, state.sectors);
         }
-            break;
-
-        case "water": {
-            onWater(start, 0);
-            state.tileSelector.fit(start.x, start.y, state.sectors);
-        }
-            break;
+            break;      
 
         case "destroy": {
             clearCell(start);
@@ -373,15 +361,6 @@ function onElevation(mapCoords: Vector2, button: number) {
         elevation.elevate(mapCoords, brushSize, brushSize, brushHeight, relativeBrush);
     } else if (button === 2) {
         elevation.elevate(mapCoords, brushSize, brushSize, -brushHeight, relativeBrush);
-    }
-}
-
-function onWater(mapCoords: Vector2, button: number) {
-    const { brushSize } = GameMapProps.instance;
-    if (button === 0) {
-        elevation.createLiquidPatch(mapCoords, brushSize, "water");
-    } else if (button === 2) {
-        elevation.clearLiquidPatch(mapCoords, brushSize);
     }
 }
 
@@ -571,7 +550,8 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     }
 
     switch (type) {
-        case "oil": {
+        case "oil":
+        case "water": {
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
             if (button === 0) {
                 elevation.createLiquidPatch(cellCoords, 1, type);
@@ -738,14 +718,7 @@ export function onAction(touchButton: number) {
                 elevation.elevate(mapCoords, brushSize, brushSize, 0, false);
                 state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
             }
-                break;
-
-            case "water": {
-                onWater(mapCoords, touchButton);
-                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
-            }
-                break;
-            
+                break;            
 
             case "building": {
                 switch (GameMapProps.instance.buildableType) {
