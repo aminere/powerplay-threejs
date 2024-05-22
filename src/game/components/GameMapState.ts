@@ -107,6 +107,7 @@ export class GameMapState {
             rightClick: true
         },
         freeConveyors: false,
+        freeBuildings: false,
         fogOfWar: true,
         sandbox: false
     };
@@ -133,8 +134,14 @@ export class GameMapState {
             evtActionCleared.post();
         } else {
             switch (value) {
-                case "building": {                    
-                    depots.highlightDepotRanges(true);
+                case "building": {
+                    if (!this.config.freeBuildings) {
+                        depots.highlightDepotRanges(true);
+                    }
+                }
+                break;
+                case "destroy": {
+                    this.tileSelector.flatten();
                 }
                 break;
             }

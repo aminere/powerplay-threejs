@@ -122,6 +122,19 @@ function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
     evtMoveCommand.post(_mapCoords)
 }
 
+function onCellHovered(_cellCoords: Vector2, touchStart: Vector2) {
+    const state = GameMapState.instance;
+    state.tileSelector.setPosition(_cellCoords.x, _cellCoords.y);
+    if (GameMapState.instance.cursorOverUI) {
+        state.tileSelector.visible = false;
+    } else {
+        state.tileSelector.visible = true;
+    }
+    if (state.touchDragged) {
+        onDrag(touchStart, _cellCoords);
+    }
+}
+
 export class GameMapUpdate extends Component<ComponentProps> {
 
     constructor() {
@@ -240,36 +253,26 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
-                if (raycastOnCells(input.touchPos, state.camera, cellCoords, resolution)) {
-                    if (!cellCoords.equals(state.raycastedCellCoords)) {
-                        state.raycastedCellCoords.copy(cellCoords);
-                        if (state.action) {
-                            state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
-                            if (GameMapState.instance.cursorOverUI) {
-                                state.tileSelector.visible = false;
-                            } else {
-                                state.tileSelector.visible = true;
-                            }
 
-                            if (state.touchDragged) {
-                                if (state.action !== "destroy") {
-                                    onDrag(state.raycastedTouchStart, cellCoords);
-                                }                                
+                if (state.action === "destroy") {
+                    if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
+                        GameUtils.worldToMap(intersection, cellCoords);
+                        if (!cellCoords.equals(state.surfaceCellCoords)) {
+                            state.surfaceCellCoords.copy(cellCoords);
+                            onCellHovered(cellCoords, state.surfaceTouchStart);
+                        }
+                    }
+                } else {
+                    if (raycastOnCells(input.touchPos, state.camera, cellCoords, resolution)) {
+                        if (!cellCoords.equals(state.raycastedCellCoords)) {
+                            state.raycastedCellCoords.copy(cellCoords);
+                            if (state.action) {
+                                state.tileSelector.fit(cellCoords.x, cellCoords.y, state.sectors);
+                                onCellHovered(cellCoords, state.raycastedTouchStart);
                             }
                         }
                     }
-                }
-                if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
-                    GameUtils.worldToMap(intersection, cellCoords);
-                    if (!cellCoords.equals(state.surfaceCellCoords)) {
-                        state.surfaceCellCoords.copy(cellCoords);
-                        if (state.touchDragged) {   
-                            if (state.action === "destroy") {
-                                onDrag(state.surfaceTouchStart, cellCoords);
-                            }       
-                        }
-                    }
-                }
+                }                
             }
         }
 
@@ -335,12 +338,14 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (!state.cursorOverUI) {
                         if (state.action) {
                             if (!state.touchDragged) {
-                                if (!state.raycastedTouchStart.equals(state.raycastedCellCoords)) {
-                                    const startCell = GameUtils.getCell(state.raycastedTouchStart);
-                                    const endCell = GameUtils.getCell(state.raycastedCellCoords);
+                                const startCoords = state.action === "destroy" ? state.surfaceTouchStart : state.raycastedTouchStart;
+                                const currentCoords = state.action === "destroy" ? state.surfaceCellCoords : state.raycastedCellCoords;
+                                if (!startCoords.equals(currentCoords)) {
+                                    const startCell = GameUtils.getCell(startCoords);
+                                    const endCell = GameUtils.getCell(currentCoords);
                                     if (startCell && endCell) {
                                         state.touchDragged = true;
-                                        onBeginDrag(state.raycastedTouchStart, state.raycastedCellCoords);
+                                        onBeginDrag(startCoords, currentCoords);
                                     }                                    
                                 }
                             }

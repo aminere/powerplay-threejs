@@ -116,13 +116,13 @@ class Elevation {
         }
     }
 
-    public clearLiquidPatch(mapCoords: Vector2, size: number) {
+    public clearLiquidPatch(mapCoords: Vector2, size: number, type: "water" | "oil") {
         this._vertexOperations.clear();
-        for (let y = mapCoords.y - 1; y < mapCoords.y + size + 1; ++y) {
-            for (let x = mapCoords.x - 1; x < mapCoords.x + size + 1; ++x) {
+        for (let y = mapCoords.y - 2; y < mapCoords.y + size + 2; ++y) {
+            for (let x = mapCoords.x - 2; x < mapCoords.x + size + 2; ++x) {
                 cellCoords.set(x, y);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
-                if (cell) {
+                if (cell && cell.resource?.type === type) {
                     this.elevateCell(sectorCoords, localCoords, 0, false);
                     cell.resource = undefined;
                 }

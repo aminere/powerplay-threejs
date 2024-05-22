@@ -261,11 +261,11 @@ class UnitsManager {
             case "units": {
                 const units = this._selection.units;
                 if (units.length > 0) {
-                    for (const unit of units) {
+                    // setHitpoints mutates _selectedUnits which is pointing to units
+                    const _units = [...units]; 
+                    for (const unit of _units) {
                         unit.setHitpoints(0);
-                    }
-                    console.assert(units === this._selectedUnits);
-                    this._selectedUnits.length = 0;
+                    }                    
                 }
             }
             break;

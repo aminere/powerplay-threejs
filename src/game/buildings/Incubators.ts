@@ -76,15 +76,14 @@ export class Incubators {
             state.water = mesh;
         });
 
-        meshes.load("/models/buildings/incubator-glass.glb").then(([_mesh]) => {
-            const mesh = _mesh.clone();
-            mesh.castShadow = true;
-            const glass = mesh.material as Material;
-            glass.transparent = true;
-            glass.opacity = 0.6;
-            mesh.renderOrder = 1;
-            instance.visual.add(mesh);
-        });
+        const [_glass] = meshes.loadImmediate("/models/buildings/incubator-glass.glb");
+        const glass = _glass.clone();
+        glass.castShadow = true;
+        const glassMaterial = glass.material as Material;
+        glassMaterial.transparent = true;
+        glassMaterial.opacity = 0.6;
+        glass.renderOrder = 1;
+        instance.visual.add(glass);
 
         meshes.load("/models/characters/worker.glb").then(([_mesh]) => {            
             const mesh = _mesh.clone();            

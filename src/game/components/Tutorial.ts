@@ -96,7 +96,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             leftClick: false,
             rightClick: false
         };
-        config.freeConveyors = true;        
+        config.freeConveyors = true;
 
         this.onSelection = this.onSelection.bind(this);
         this.onGameMapUIMounted = this.onGameMapUIMounted.bind(this);

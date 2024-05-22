@@ -164,8 +164,7 @@ function clearCell(mapCoords: Vector2) {
             switch (cell.resource.type) {
                 case "water":
                 case "oil": {
-                    console.log(`clearing liquid patch ${mapCoords.x},${mapCoords.y}`);
-                    elevation.clearLiquidPatch(mapCoords, 1);
+                    elevation.clearLiquidPatch(mapCoords, 1, cell.resource.type);
                 }
                 break;
                 default: {
@@ -180,6 +179,14 @@ function clearCell(mapCoords: Vector2) {
         } else if (cell.conveyor) {
             conveyors.clear(mapCoords);
             conveyors.clearLooseCorners(mapCoords);
+        }
+
+        if (cell.units) {
+            const units = [...cell.units];
+            for (const unit of units) {
+                unit.setHitpoints(0);
+            }
+            console.assert(cell.units.length === 0);
         }
     }
 }
@@ -420,10 +427,6 @@ function onRoad(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, butt
     return false;
 }
 
-function onBuildingAccepted() {
-    GameMapState.instance.action = null;
-}
-
 function rejectBuilding(error: string) {
     evtBuildError.post(error);
 };
@@ -482,11 +485,13 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                         return false;
                     }
 
-                    if (!GameMapProps.instance.debugFreeCosts) {
-                        depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
-                        if (!depots.testDepots(depotsInRange, buildableType)) {
-                            return false;
-                        }
+                    if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
+                        return true;
+                    }
+
+                    depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
+                    if (!depots.testDepots(depotsInRange, buildableType)) {
+                        return false;
                     }
 
                     return true;
@@ -499,15 +504,23 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 return false;
             }
 
+            if (GameMapState.instance.config.freeBuildings || GameMapProps.instance.debugFreeCosts) {
+                return true;
+            }            
+
             if (!GameMapProps.instance.debugFreeCosts) {
-                if (buildableType === "conveyor") {
-                    // free conveyors for demo
-                } else {
+                const isFree = (() => {
+                    if (buildableType === "conveyor") {
+                        return GameMapState.instance.config.freeConveyors;
+                    }
+                    return GameMapState.instance.config.freeBuildings
+                })();
+                if (!isFree) {
                     depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildableType);
                     if (!depots.testDepots(depotsInRange, buildableType)) {
                         return false;
                     }
-                }                
+                }              
             }
 
             const clickFilter = GameMapState.instance.buildingCreationFilter?.click;
@@ -537,7 +550,11 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
                 depots.removeFromDepots(depotsInRange, buildableType, cellCoords);
             }
 
-            onBuildingAccepted();
+            // exit build mode, except in sandbox
+            if (!GameMapState.instance.config.sandbox) {
+                GameMapState.instance.action = null;                
+            }
+            
         }
 
     } else if (button === 2) {
@@ -568,7 +585,7 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
             if (button === 0) {
                 elevation.createLiquidPatch(cellCoords, 1, type);
             } else if (button === 2) {
-                elevation.clearLiquidPatch(cellCoords, 1);
+                elevation.clearLiquidPatch(cellCoords, 1, type);
             }
         }
             break;
@@ -611,7 +628,8 @@ function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell, 
     if (button === 0) {
         if (cell.isEmpty) {
 
-            if (!GameMapProps.instance.debugFreeCosts) {
+            const isFree = GameMapProps.instance.debugFreeCosts || GameMapState.instance.config.freeConveyors;
+            if (!isFree) {
                 const buildingType = "conveyor";
                 const depotsInRange = depots.getDepotsInRange(_sectorCoords, _localCoords, buildingType);
                 if (!depots.testDepots(depotsInRange, buildingType)) {
@@ -785,12 +803,7 @@ export function onAction(touchButton: number) {
                         unitsManager.spawn(_cellCoords, GameMapProps.instance.unit);
                     }
                 } else if (touchButton === 2) {
-                    if (cell.units) {
-                        const cellUnits = [...cell.units];
-                        for (const unit of cellUnits) {
-                            unit.setHitpoints(0);
-                        }
-                    }
+                    console.assert(false, "this is done through the destroy action now");
                 }
             }
                 break;

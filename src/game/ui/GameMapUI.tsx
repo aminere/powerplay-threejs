@@ -129,7 +129,7 @@ export function GameMapUI() {
     }, []);
 
     const [openSection, _setOpenSection] = useState<"building" | "resource" | null>(null);
-    const [selectedAction, setSelectedAction] = useState<"conveyor" | "destroy" | null>(null);
+    const [selectedAction, setSelectedAction] = useState<"conveyor" | "worker" | "destroy" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
@@ -263,7 +263,6 @@ export function GameMapUI() {
                     setSelectedAction(null);
                 }}
             />
-
             {
                 gameMapState.config.sandbox
                 &&
@@ -285,11 +284,32 @@ export function GameMapUI() {
                         onClose={() => setOpenSection(null)}
                     />
                     <ActionButton
+                        tooltipId={"worker"}
+                        selected={selectedAction === "worker"}
+                        onClick={() => {
+                            if (selectedAction !== "worker") {                                
+                                setOpenSection(null);
+                                setSelectedAction("worker");
+                                const gameMapState = GameMapState.instance;
+                                gameMapState.action = "unit";
+                                GameMapProps.instance.unit = "worker";
+                                gameMapState.tileSelector.color = "yellow";        
+                                gameMapState.tileSelector.setSize(1, 1);
+                                gameMapState.tileSelector.resolution = 1;
+                            } else {
+                                gameMapState.action = null;
+                                setSelectedAction(null);
+                            }
+                        }}
+                    >
+                        <img src={`/images/icons/worker.png`} />
+                    </ActionButton>
+                    <ActionButton
                         tooltipId={"clear"}
                         selected={selectedAction === "destroy"}
                         selectedColor="red"
                         onClick={() => {
-                            if (selectedAction !== "destroy") {                                
+                            if (selectedAction !== "destroy") {
                                 setOpenSection(null);
                                 setSelectedAction("destroy");
                                 const gameMapState = GameMapState.instance;

@@ -170,6 +170,7 @@ class Buildings {
         visual.name = `${buildingType}`;
 
         if (buildingType === "incubator") {
+            visual.receiveShadow = false;
             meshes.load("/models/buildings/incubator-glass.glb").then(([_mesh]) => {
                 const mesh = _mesh.clone();
                 mesh.castShadow = true;
@@ -178,7 +179,7 @@ class Buildings {
                 glass.opacity = 0.6;
                 mesh.renderOrder = 1;
                 visual.add(mesh);
-            });    
+            });
         }
 
         return visual;

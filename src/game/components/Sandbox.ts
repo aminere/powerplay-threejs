@@ -10,6 +10,8 @@ export class Sandbox extends Component<ComponentProps> {
         const { config } = GameMapState.instance;
         config.fogOfWar = false;
         config.sandbox = true;
+        config.freeBuildings = true;
+        config.freeConveyors = true;
     }
 }
 

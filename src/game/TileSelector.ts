@@ -58,10 +58,9 @@ export class TileSector extends Object3D {
         }
     }    
 
-    public setPosition(x: number, y: number, sectors: Map<string, ISector>) {
+    public setPosition(x: number, y: number) {
         const offset = -mapRes / 2;
         this.position.set((x + offset) * cellSize, 0, (y + offset) * cellSize);
-        this.fit(x, y, sectors);
     }
         
     public fit(x: number, y: number, sectors: Map<string, ISector>) {
@@ -105,6 +104,22 @@ export class TileSector extends Object3D {
 
         if (this._building) {
             this._building.position.setY(maxY * config.game.elevationStep);
+        }
+    }
+
+    public flatten() {
+        let tileIndex = 0;
+        for (let i = 0; i < this._size.y; ++i) {
+            for (let j = 0; j < this._size.x; ++j) {
+                const tileGeometry = (this.children[tileIndex] as Mesh).geometry as BufferGeometry;
+                const tilePosition = tileGeometry.getAttribute('position') as BufferAttribute;
+                tilePosition.setY(0, 0);
+                tilePosition.setY(1, 0);
+                tilePosition.setY(2, 0);
+                tilePosition.setY(3, 0);
+                tilePosition.needsUpdate = true;
+                ++tileIndex;              
+            }
         }
     }
 
