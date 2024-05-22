@@ -16,6 +16,7 @@ import { unitMotion } from "../unit/UnitMotion";
 import { engineState } from "../../engine/EngineState";
 import { UnitUtils } from "../unit/UnitUtils";
 import { ResourceType, ResourceTypes } from "../GameDefinitions";
+import { gameState } from "../GameState";
 
 function getBuildingOfType(type: BuildingType) {
     const buildings = GameMapState.instance.buildings;
@@ -700,6 +701,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 }
                 engineState.removeComponent(this.state.owner, Tutorial);
                 cmdTutorialComplete.post();
+                gameState.tutorialCompleted = true;
             }
         }        
     }

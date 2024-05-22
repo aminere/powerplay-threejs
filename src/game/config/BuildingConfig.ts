@@ -34,11 +34,11 @@ export const buildingConfig: Record<BuildableType, IBuildingConfig> = {
         buildCost: [["stone", 5]],
         hitpoints: 10
     },
-    "train-factory": {
-        size: new Vector3(8, 4, 5),
-        buildCost: [["concrete", 10], ["glass", 10]],
-        hitpoints: 50
-    },
+    // "train-factory": {
+    //     size: new Vector3(8, 4, 5),
+    //     buildCost: [["concrete", 10], ["glass", 10]],
+    //     hitpoints: 50
+    // },
     "road": {
         size: new Vector3(1, .2, 1),
         buildCost: [["stone", 1]],

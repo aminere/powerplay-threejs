@@ -1,13 +1,14 @@
 import { useEffect, useRef } from "react";
+import { ISceneInfo, engine } from "../../engine/Engine";
+import { utils } from "../../engine/Utils";
 import { TextButton } from "./TextButton";
 import { uiconfig } from "./uiconfig";
-
+import { cmdOpenInGameMenu, cmdShowUI, evtSceneCreated } from "../../Events";
 import gsap from "gsap";
-import { ISceneInfo, engine } from "../../engine/Engine";
-import { cmdShowUI, evtSceneCreated } from "../../Events";
-import { utils } from "../../engine/Utils";
+import { gameState } from "../GameState";
 
-export function TutorialComplete() {
+export function InGameMenu() {
+
     const dialogRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -17,7 +18,7 @@ export function TutorialComplete() {
         gsap.to(dialogRef.current, {
             scaleY: 1,
             opacity: 1,
-            duration: .3,                
+            duration: .3,
         });
     }, []);
 
@@ -33,19 +34,19 @@ export function TutorialComplete() {
         }
     }, []);
 
-    return <div 
-    className="ui"
-    style={{
-        position: "absolute",
-        width: "100%",
-        height: "100%",
-        left: "0px",
-        top: "0px",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-    }}>
+    return <div
+        className="ui"
+        style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            left: "0px",
+            top: "0px",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+        }}>
         <div
             ref={dialogRef}
             style={{
@@ -59,23 +60,21 @@ export function TutorialComplete() {
                 opacity: 0
             }}>
             <div style={{
-                fontSize: "2rem",
-                color: "yellow"
+                fontFamily: "protector",
+                fontSize: "4rem",
+                color: "#fbe184",
+                filter: "drop-shadow(2px 4px 6px black)",
+                padding: "1rem"
             }}>
-                Mission Complete!
+                POWERPLAY
             </div>
-            <div style={{
-                fontSize: "1.2rem"
-            }}>
-                Congratulations on completing the tutorial. <br />
-                You are now ready to play on your own terms. <br />
-                Good luck!
-            </div>
-            <div>
-                <TextButton text={"Continue"} onClick={() => {
-                    engine.parseScene(utils.createNewScene("mainmenu").toJSON());
-                }} />
-            </div>
+            <TextButton text={"Continue"} onClick={() => {
+                cmdOpenInGameMenu.post(false);
+                gameState.inGameMenuOpen = false;
+            }} />
+            <TextButton text={"Quit"} onClick={() => {
+                engine.parseScene(utils.createNewScene("mainmenu").toJSON());
+            }} />
         </div>
     </div>
 }

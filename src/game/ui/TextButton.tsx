@@ -5,7 +5,7 @@ export function TextButton({ text, onClick }: { text: string, onClick: () => voi
         style={{
             backgroundColor: uiconfig.slotBackgroundColor,
             height: `${uiconfig.buttonSizeRem}rem`,
-            padding: `${2 * uiconfig.gapRem}rem`,
+            padding: `1rem`,
             fontSize: "2rem",
             border: "1px outset gray",
             display: "flex",

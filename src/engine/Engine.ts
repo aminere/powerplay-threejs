@@ -12,6 +12,7 @@ import { utils } from "./Utils";
 import { cmdRenderUI, cmdUpdateUI, evtSceneCreated, evtScreenResized } from "../Events";
 
 export interface ISceneInfo {
+    name: string;
     mainCamera: Camera;
     cameras: Camera[];
 }
@@ -129,7 +130,11 @@ class Engine {
             console.error("No camera found in scene");
         }
         
-        evtSceneCreated.post({ mainCamera: mainCamera!, cameras });
+        evtSceneCreated.post({ 
+            name: scene.name,
+            mainCamera: mainCamera!, 
+            cameras 
+        });
     }
 
     private updateComponents() {

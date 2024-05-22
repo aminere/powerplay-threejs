@@ -18,7 +18,7 @@ import { conveyorItems } from "../ConveyorItems";
 import { trees } from "../Trees";
 import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
-import { cmdFogAddCircle, cmdRenderUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
+import { cmdFogAddCircle, cmdOpenInGameMenu, cmdRenderUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
@@ -36,6 +36,7 @@ import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
 import { Tutorial } from "./Tutorial";
 import { Sandbox } from "./Sandbox";
+import { gameState } from "../GameState";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -329,6 +330,16 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             case 'q': cameraDirection = -1; break;
             case 'e': cameraDirection = 1; break;
             case "k": unitsManager.killSelection(); break;
+            case 'escape': {
+                if (this.state.action) {
+                    this.state.action = null;
+                } else {
+                    const inGameMenu = !gameState.inGameMenuOpen;
+                    cmdOpenInGameMenu.post(inGameMenu);
+                    gameState.inGameMenuOpen = inGameMenu;
+                }
+            }
+            break;
         }
         if (cameraDirection !== 0 && !this.state.cameraTween) {
             this.state.cameraTween = gsap.to(this.state,

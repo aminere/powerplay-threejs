@@ -425,7 +425,7 @@ function rejectBuilding(error: string) {
     evtBuildError.post(error);
 };
 
-function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
+function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2) {
     const props = GameMapProps.instance;
     const { buildableType } = props;
     const { size } = buildingConfig[buildableType];
@@ -725,7 +725,7 @@ export function onAction() {
                         // }
                     }
                         break;
-                    default: onBuilding(sectorCoords, localCoords, cell);
+                    default: onBuilding(sectorCoords, localCoords);
                 }
             }
                 break;

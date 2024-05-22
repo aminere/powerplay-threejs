@@ -113,3 +113,4 @@ export const evtSceneCreated = new AsyncEvent<ISceneInfo>();
 export const cmdExitGame = new AsyncEvent<void>();
 export const evtMoveCommand = new AsyncEvent<Vector2>();
 export const cmdShowTooltip = new AsyncEvent<string | undefined>();
+export const cmdOpenInGameMenu = new AsyncEvent<boolean>();

@@ -113,8 +113,9 @@ class Utils {
         return x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height
     }
 
-    public createNewScene() {
+    public createNewScene(name: string) {
         const scene = new Scene();
+        scene.name = name;
         const camera = new PerspectiveCamera();
         camera.position.set(4, 3, 4);
         camera.rotation.set(MathUtils.degToRad(-30), MathUtils.degToRad(45), 0, 'YXZ');

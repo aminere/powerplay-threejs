@@ -46,6 +46,14 @@ export function MainMenu() {
                 Learn to Play
             </MenuButton>
             <MenuButton
+                // disabled={!gameState.tutorialCompleted}
+                onClick={() => {
+                    cmdShowUI.post(null);
+                    engine.loadScene("/scenes/sandbox.json");
+                }}>
+                Sandbox
+            </MenuButton>
+            <MenuButton
                 disabled={true}
                 onClick={() => {
                 }}

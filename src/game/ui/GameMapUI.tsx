@@ -5,7 +5,7 @@ import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
 import { BuildableType, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdOpenBuildSection, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdOpenInGameMenu, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -23,6 +23,7 @@ import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
 import { ElevationType, RawResourceType, RawResourceTypes, UnitType } from "../GameDefinitions";
 import { ActionButton } from "./ActionButton";
+import { InGameMenu } from "./InGameMenu";
 
 export function GameMapUI() {    
 
@@ -175,13 +176,19 @@ export function GameMapUI() {
     }, []);
 
     const [tutorialComplete, setTutorialComplete] = useState(false);
+    const [inGameMenu, setInGameMenu] = useState(false);
     useEffect(() => {
-        const onComplete = () => {
+        const onTutorialComplete = () => {
             setTutorialComplete(true);
         }
-        cmdTutorialComplete.attach(onComplete);
+        const onInGameMenu = (open: boolean) => {
+            setInGameMenu(open);
+        }
+        cmdTutorialComplete.attach(onTutorialComplete);
+        cmdOpenInGameMenu.attach(onInGameMenu);
         return () => {
-            cmdTutorialComplete.detach(onComplete);
+            cmdTutorialComplete.detach(onTutorialComplete);
+            cmdOpenInGameMenu.detach(onInGameMenu);
         }
     }, []);
 
@@ -394,6 +401,7 @@ export function GameMapUI() {
 
         {engine.runtime === "editor" && <DebugUI />}
         {tutorialComplete && <TutorialComplete />}
+        {inGameMenu && <InGameMenu />}
     </div>
 }
 
