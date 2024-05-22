@@ -44,7 +44,8 @@ enum MissionStep {
     ProduceGlass,
     CollectGlass,
     BuildIncubator,
-    CollectWater,
+    CollectWater1,
+    CollectWater2,
     DepositWater,
     Incubate
 }
@@ -86,7 +87,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
         config.factoryOutputs = ResourceTypes.reduce((prev, cur) => {
             return {
                 ...prev,
-                [cur]: true
+                [cur]: false
             }
         }, {} as Record<ResourceType, boolean>);
         config.selectionActions = {
@@ -171,21 +172,24 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             }
                 break;
 
-            case MissionStep.CollectWater: {
-                GameMapState.instance.config.input.leftClick = false;
-                GameMapState.instance.config.input.rightClick = true;
-                cmdSetIndicator.post({
-                    indicator: {
-                        type: "cell",
-                        mapCoords: new Vector2(28, 140)
-                    },
-                    panel: {
-                        action: "Collect Water",
-                        actionIcon: "water",
-                        control: "Right click",
-                        icon: "mouse-right"
-                    }
-                })
+            case MissionStep.CollectWater1: {
+                if (selectedElem?.type === "units") {
+                    this.state.step = MissionStep.CollectWater2;
+                    GameMapState.instance.config.input.leftClick = false;
+                    GameMapState.instance.config.input.rightClick = true;
+                    cmdSetIndicator.post({
+                        indicator: {
+                            type: "cell",
+                            mapCoords: new Vector2(28, 140)
+                        },
+                        panel: {
+                            action: "Collect Water",
+                            actionIcon: "water",
+                            control: "Right click",
+                            icon: "mouse-right"
+                        }
+                    })
+                }                
             }
                 break;
         }
@@ -239,8 +243,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             }
                 break;
 
-            case MissionStep.CollectWater: {
-
+            case MissionStep.CollectWater2: {
                 this.state.step = MissionStep.DepositWater;
                 const incubator = getBuildingOfType("incubator")!;
                 cmdSetIndicator.post({
@@ -602,7 +605,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetObjectiveStatus.post(`${1} / 1`);
 
-                this.state.step = MissionStep.CollectWater;
+                this.state.step = MissionStep.CollectWater1;
                 cmdSetIndicator.post(null);
 
                 setTimeout(() => {                    
@@ -722,7 +725,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             }   
             break;
 
-            case MissionStep.CollectWater: {
+            case MissionStep.CollectWater2: {
                 const resource = GameUtils.getCell(mapCoords)?.resource?.type;
                 if (resource === "water") {
                     cmdSetIndicator.post(null);

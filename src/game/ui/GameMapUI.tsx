@@ -21,7 +21,7 @@ import { DebugUI } from "./DebugUI";
 import { TransportAction } from "./TransportAction";
 import { TutorialComplete } from "./TutorialComplete";
 import { engine } from "../../engine/Engine";
-import { ElevationType, RawResourceType, RawResourceTypes } from "../GameDefinitions";
+import { ElevationType, RawResourceType, RawResourceTypes, UnitType } from "../GameDefinitions";
 import { ActionButton } from "./ActionButton";
 
 export function GameMapUI() {    
@@ -128,8 +128,8 @@ export function GameMapUI() {
         }
     }, []);
 
-    const [openSection, _setOpenSection] = useState<"building" | "resource" | "elevation" | null>(null);
-    const [selectedAction, setSelectedAction] = useState<"conveyor" | "worker" | "destroy" | null>(null);
+    const [openSection, _setOpenSection] = useState<"building" | "resource" | "unit" | "elevation" | null>(null);
+    const [selectedAction, setSelectedAction] = useState<"conveyor" | "destroy" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
@@ -282,27 +282,22 @@ export function GameMapUI() {
                         onOpen={() => setOpenSection("resource")}
                         onClose={() => setOpenSection(null)}
                     />
-                    <ActionButton
-                        tooltipId={"worker"}
-                        selected={selectedAction === "worker"}
-                        onClick={() => {
-                            if (selectedAction !== "worker") {                                
-                                setOpenSection(null);
-                                setSelectedAction("worker");
-                                const gameMapState = GameMapState.instance;
-                                gameMapState.action = "unit";
-                                GameMapProps.instance.unit = "worker";
-                                gameMapState.tileSelector.color = "yellow";        
-                                gameMapState.tileSelector.setSize(1, 1);
-                                gameMapState.tileSelector.resolution = 1;
-                            } else {
-                                gameMapState.action = null;
-                                setSelectedAction(null);
-                            }
+                    <ActionSection
+                        name="unit"
+                        actions={["worker", "enemy-melee"]}
+                        open={openSection === "unit"}
+                        onSelected={selection => {
+                            const type = selection as UnitType;
+                            const gameMapState = GameMapState.instance;
+                            gameMapState.action = "unit";
+                            GameMapProps.instance.unit = type;
+                            gameMapState.tileSelector.color = "yellow";
+                            gameMapState.tileSelector.setSize(1, 1);
+                            gameMapState.tileSelector.resolution = 1;
                         }}
-                    >
-                        <img src={`/images/icons/worker.png`} />
-                    </ActionButton>
+                        onOpen={() => setOpenSection("unit")}
+                        onClose={() => setOpenSection(null)}
+                    />
                     <ActionSection
                         name="elevation"
                         actions={["increase", "decrease"]}                        
