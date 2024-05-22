@@ -241,19 +241,32 @@ export class GameMapUpdate extends Component<ComponentProps> {
             if (!input.touchPos.equals(state.previousTouchPos)) {
                 state.previousTouchPos.copy(input.touchPos);
                 if (raycastOnCells(input.touchPos, state.camera, cellCoords, resolution)) {
-                    if (state.action) {
-                        if (!cellCoords.equals(state.selectedCellCoords)) {
+                    if (!cellCoords.equals(state.raycastedCellCoords)) {
+                        state.raycastedCellCoords.copy(cellCoords);
+                        if (state.action) {
                             state.tileSelector.setPosition(cellCoords.x, cellCoords.y, state.sectors);
                             if (GameMapState.instance.cursorOverUI) {
                                 state.tileSelector.visible = false;
                             } else {
                                 state.tileSelector.visible = true;
                             }
-                            state.selectedCellCoords.copy(cellCoords);
+
+                            if (state.touchDragged) {
+                                if (state.action !== "destroy") {
+                                    onDrag(state.raycastedTouchStart, cellCoords);
+                                }                                
+                            }
                         }
-                    } else {
-                        if (!cellCoords.equals(state.highlightedCellCoords)) {
-                            state.highlightedCellCoords.copy(cellCoords!);
+                    }
+                }
+                if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
+                    GameUtils.worldToMap(intersection, cellCoords);
+                    if (!cellCoords.equals(state.surfaceCellCoords)) {
+                        state.surfaceCellCoords.copy(cellCoords);
+                        if (state.touchDragged) {   
+                            if (state.action === "destroy") {
+                                onDrag(state.surfaceTouchStart, cellCoords);
+                            }       
                         }
                     }
                 }
@@ -286,7 +299,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                         if (!state.config.input.leftClick) {
                             return;
                         }
-                        state.touchStartCoords.copy(state.selectedCellCoords);
+                        state.raycastedTouchStart.copy(state.raycastedCellCoords);
+                        state.surfaceTouchStart.copy(state.surfaceCellCoords);                        
                     }
                 } else {
                     if (GameMapProps.instance.debugCells) {
@@ -296,10 +310,10 @@ export class GameMapUpdate extends Component<ComponentProps> {
                             }
                             const sectorCoords = new Vector2();
                             const localCoords = new Vector2();
-                            const cell = GameUtils.getCell(state.highlightedCellCoords, sectorCoords, localCoords);
-                            const _x = Math.floor(state.highlightedCellCoords.x / 2);
-                            const _y = Math.floor(state.highlightedCellCoords.y / 2);
-                            console.log(`mapCoords: ${state.highlightedCellCoords.x},${state.highlightedCellCoords.y}, mapCoords2x2: ${_x},${_y}`);
+                            const cell = GameUtils.getCell(state.raycastedCellCoords, sectorCoords, localCoords);
+                            const _x = Math.floor(state.raycastedCellCoords.x / 2);
+                            const _y = Math.floor(state.raycastedCellCoords.y / 2);
+                            console.log(`mapCoords: ${state.raycastedCellCoords.x},${state.raycastedCellCoords.y}, mapCoords2x2: ${_x},${_y}`);
                             console.log(cell);
                             const sector = GameUtils.getSector(sectorCoords)!;
                             const x = Math.floor(localCoords.x / 2);
@@ -321,21 +335,13 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (!state.cursorOverUI) {
                         if (state.action) {
                             if (!state.touchDragged) {
-                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                                if (cell) {
-                                    if (cellCoords?.equals(state.touchStartCoords) === false) {
+                                if (!state.raycastedTouchStart.equals(state.raycastedCellCoords)) {
+                                    const startCell = GameUtils.getCell(state.raycastedTouchStart);
+                                    const endCell = GameUtils.getCell(state.raycastedCellCoords);
+                                    if (startCell && endCell) {
                                         state.touchDragged = true;
-                                        state.touchHoveredCoords.copy(cellCoords!);
-                                        onBeginDrag(state.touchStartCoords, state.touchHoveredCoords);
-                                    }
-                                }
-                            } else {
-                                const cell = raycastOnCells(input.touchPos, state.camera, cellCoords, resolution);
-                                if (cell) {
-                                    if (cellCoords?.equals(state.touchHoveredCoords) === false) {
-                                        state.touchHoveredCoords.copy(cellCoords!);
-                                        onDrag(state.touchStartCoords, state.touchHoveredCoords);
-                                    }
+                                        onBeginDrag(state.raycastedTouchStart, state.raycastedCellCoords);
+                                    }                                    
                                 }
                             }
                         }
@@ -387,8 +393,8 @@ export class GameMapUpdate extends Component<ComponentProps> {
                 if (!canceled) {
                     if (state.action) {
                         if (wasDragged) {
-                            onEndDrag(state.touchStartCoords, state.touchHoveredCoords);
-                        } else {
+                            onEndDrag(state.raycastedTouchStart, state.raycastedCellCoords);
+                        } else {                            
                             onAction(0);
                         }
                     } else {

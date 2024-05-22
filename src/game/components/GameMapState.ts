@@ -46,10 +46,10 @@ export class GameMapState {
     public pressedKeys = new Set<string>();
     public previousTouchPos = new Vector2();
     public tileSelector: TileSector = null!;
-    public selectedCellCoords = new Vector2();
-    public highlightedCellCoords = new Vector2();
-    public touchStartCoords = new Vector2();
-    public touchHoveredCoords = new Vector2();
+    public raycastedCellCoords = new Vector2();
+    public surfaceCellCoords = new Vector2();
+    public raycastedTouchStart = new Vector2();    
+    public surfaceTouchStart = new Vector2();    
     public touchDragged = false;
     public selectionInProgress = false;
     public layers = {

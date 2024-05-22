@@ -71,6 +71,25 @@ class Elevation {
     }
 
     public createLiquidPatch(mapCoords: Vector2, size: number, type: "water" | "oil") {
+        const canCreate = (() => {
+            for (let y = mapCoords.y - 1; y < mapCoords.y + size + 1; ++y) {
+                for (let x = mapCoords.x - 1; x < mapCoords.x + size + 1; ++x) {
+                    cellCoords.set(x, y);
+                    const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);                    
+                    if (!cell?.isEmpty) {
+                        if (cell?.resource?.type !== type) {
+                            return false;                
+                        }
+                    }
+                }
+            }
+            return true;
+        })();
+
+        if (!canCreate) {
+            return;
+        }
+
         this._vertexOperations.clear();
         for (let i = 0; i < size; ++i) {
             for (let j = 0; j < size; ++j) {
@@ -99,26 +118,17 @@ class Elevation {
 
     public clearLiquidPatch(mapCoords: Vector2, size: number) {
         this._vertexOperations.clear();
-        for (let i = 0; i < size; ++i) {
-            for (let j = 0; j < size; ++j) {
-                cellCoords.set(mapCoords.x + j, mapCoords.y + i);
-                const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
-                if (cell) {
-                    this.elevateCell(sectorCoords, localCoords, 0, false);
-                }
-            }
-        }
-        applyVertexOperations(this._vertexOperations);
-
         for (let y = mapCoords.y - 1; y < mapCoords.y + size + 1; ++y) {
             for (let x = mapCoords.x - 1; x < mapCoords.x + size + 1; ++x) {
                 cellCoords.set(x, y);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
                 if (cell) {
+                    this.elevateCell(sectorCoords, localCoords, 0, false);
                     cell.resource = undefined;
                 }
             }
         }
+        applyVertexOperations(this._vertexOperations);
     }
 
     private elevateCell(sectorCoords: Vector2, localCoords: Vector2, height: number, relative: boolean) {

@@ -160,7 +160,19 @@ function clearCell(mapCoords: Vector2) {
         if (cell.building) {
             buildings.clear(cell.building);
         } else if (cell.resource) {
-            cell.resource = undefined;
+
+            switch (cell.resource.type) {
+                case "water":
+                case "oil": {
+                    console.log(`clearing liquid patch ${mapCoords.x},${mapCoords.y}`);
+                    elevation.clearLiquidPatch(mapCoords, 1);
+                }
+                break;
+                default: {
+                    cell.resource = undefined;
+                }
+            }
+            
         } else if (cell.roadTile !== undefined) {
             roads.clear(mapCoords);
         } else if (cell.rail) {
@@ -177,7 +189,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
     const state = GameMapState.instance;
     const { resolution } = state.tileSelector;
     switch (state.action) {
-        case "destroy": {
+        case "destroy": {            
             clearCell(current);
         }
             break;
@@ -691,7 +703,14 @@ export function setCameraPos(pos: Vector3) {
 export function onAction(touchButton: number) {
     const state = GameMapState.instance;
 
-    const cell = GameUtils.getCell(state.selectedCellCoords, sectorCoords, localCoords);
+    const _cellCoords = (() => {
+        if (state.action === "destroy") {
+            return state.surfaceCellCoords;
+        }
+        return state.raycastedCellCoords;
+    })();
+
+    const cell = GameUtils.getCell(_cellCoords, sectorCoords, localCoords);
     if (!cell) {
 
         // TODO show warning
@@ -700,23 +719,22 @@ export function onAction(touchButton: number) {
 
     } else {
 
-        const mapCoords = state.selectedCellCoords;
         switch (state.action) {
             case "destroy": {
-                clearCell(mapCoords);
+                clearCell(_cellCoords);
             }
                 break;
 
-            case "elevation": {
-                onElevation(mapCoords, touchButton);
-                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
+            case "elevation": {                
+                onElevation(_cellCoords, touchButton);
+                state.tileSelector.fit(_cellCoords.x, _cellCoords.y, state.sectors);
             }
                 break;
 
             case "flatten": {
                 const { brushSize } = GameMapProps.instance;
-                elevation.elevate(mapCoords, brushSize, brushSize, 0, false);
-                state.tileSelector.fit(mapCoords.x, mapCoords.y, state.sectors);
+                elevation.elevate(_cellCoords, brushSize, brushSize, 0, false);
+                state.tileSelector.fit(_cellCoords.x, _cellCoords.y, state.sectors);
             }
                 break;            
 
@@ -751,7 +769,7 @@ export function onAction(touchButton: number) {
                         const gap = .3;
                         const train = utils.createObject(layers.trains, "train");
                         engineState.setComponent(train, new Train({
-                            cell: mapCoords,
+                            cell: _cellCoords,
                             wagonLength,
                             numWagons,
                             gap
@@ -764,7 +782,7 @@ export function onAction(touchButton: number) {
             case "unit": {
                 if (touchButton === 0) {
                     if (cell.isEmpty) {
-                        unitsManager.spawn(mapCoords, GameMapProps.instance.unit);
+                        unitsManager.spawn(_cellCoords, GameMapProps.instance.unit);
                     }
                 } else if (touchButton === 2) {
                     if (cell.units) {
