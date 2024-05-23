@@ -109,7 +109,8 @@ export class GameMapState {
         freeConveyors: false,
         freeBuildings: false,
         fogOfWar: true,
-        sandbox: false
+        sandbox: false,
+        tutorial: false
     };
 
     public buildingCreationFilter: IBuildingCreationFilter | null = null;
