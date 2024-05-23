@@ -4,12 +4,16 @@ import { BezierPath } from "../BezierPath";
 import { Axis, ICell, IRailUserData } from "../GameTypes";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
-import { pools } from "../../engine/core/Pools";
 import { Component } from "../../engine/ecs/Component";
 import { time } from "../../engine/core/Time";
 import { ComponentProps } from "../../powerplay";
 
 const { maxSpeed, acceleration, deceleration } = config.trains;
+const point = new Vector3();
+const tangent = new Vector3();
+const target = new Vector3();
+const offset = new Vector3();
+const direction = new Vector3();
 
 interface IMotionSegment {
     endDist: number;
@@ -108,7 +112,6 @@ function fitPointOnCurve(segment: IMotionSegment, localDist: number, out: Vector
     const { curve, inverted, rotation, direction } = segment.curve!;
     const { startAxis, startPos } = segment;
     const t = localDist / curve.length;
-    const [point, offset] = pools.vec3.get(2);
     curve.evaluate(inverted ? 1 - t : t, point);
     point.applyAxisAngle(GameUtils.vec3.up, rotation);
     const { cellSize } = config.game;
@@ -136,7 +139,6 @@ function alignToTrack(segment: IMotionSegment, localDist: number, node: Object3D
     if (segment.curve) {
         const { curve, inverted, rotation } = segment.curve;
         const t = localDist / curve.length;
-        const [point, tangent, target] = pools.vec3.get(3);
         const _t = inverted ? 1 - t : t;
         curve.evaluate(_t, point);
         curve.evaluateTangent(_t, tangent);
@@ -145,7 +147,6 @@ function alignToTrack(segment: IMotionSegment, localDist: number, node: Object3D
         node.rotateOnAxis(GameUtils.vec3.up, rotation);
     } else {
         const { direction } = segment.straight!;
-        const target = pools.vec3.getOne();
         const _direction = segment.startAxis === "x" ? GameUtils.vec3.right : GameUtils.vec3.forward;
         target.copy(node.position).addScaledVector(_direction, direction);
         node.lookAt(target);
@@ -211,7 +212,7 @@ export class Wagon extends Component<WagonProps, IWagonState> {
         if (currentSegment.curve) {
             fitPointOnCurve(currentSegment, localDist, owner.position);
         } else {
-            const dir = getStraightSegmentDir(currentSegment, pools.vec3.getOne());
+            const dir = getStraightSegmentDir(currentSegment, direction);
             owner.position.copy(currentSegment.startPos).addScaledVector(dir, localDist - config.game.cellSize / 2);
         }
         alignToTrack(currentSegment, localDist, owner);
@@ -253,7 +254,7 @@ export class Wagon extends Component<WagonProps, IWagonState> {
             fitPointOnCurve(segment, localDist, owner.position);
             alignToTrack(segment, localDist, owner);
         } else {
-            const dir = getStraightSegmentDir(segment, pools.vec3.getOne());
+            const dir = getStraightSegmentDir(segment, direction);
             owner.position.addScaledVector(dir, stepDistance);
             alignToTrack(segment, 0, owner);
         }
@@ -270,7 +271,7 @@ export class Wagon extends Component<WagonProps, IWagonState> {
                 if (newSegment.curve) {
                     fitPointOnCurve(newSegment, localDist, owner.position);
                 } else {
-                    const dir = getStraightSegmentDir(newSegment, pools.vec3.getOne());
+                    const dir = getStraightSegmentDir(newSegment, direction);
                     owner.position.copy(newSegment.startPos).addScaledVector(dir, localDist - config.game.cellSize / 2);
                 }
                 alignToTrack(newSegment, localDist, owner);

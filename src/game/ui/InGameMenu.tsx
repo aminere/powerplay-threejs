@@ -5,22 +5,8 @@ import { TextButton } from "./TextButton";
 import { uiconfig } from "./uiconfig";
 import { cmdOpenInGameMenu, cmdShowUI, evtSceneCreated } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
-import gsap from "gsap";
 
 export function InGameMenu() {
-
-    const dialogRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (!dialogRef.current) {
-            return;
-        }
-        gsap.to(dialogRef.current, {
-            scaleY: 1,
-            opacity: 1,
-            duration: .3,
-        });
-    }, []);
 
     useEffect(() => {
         const onSceneCreated = (info: ISceneInfo) => {
@@ -34,12 +20,16 @@ export function InGameMenu() {
         }
     }, []);
 
+    const dialogRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
+        setTimeout(() => {
+            dialogRef.current!.classList.add("visible");
+        }, 10);
         engine.paused = true;
         GameMapState.instance.inGameMenuOpen = true;
         return () => {
             engine.paused = false;
-            if (!GameMapState.instance) {                
+            if (!GameMapState.instance) {
                 return;
             }
             GameMapState.instance.inGameMenuOpen = false;
@@ -64,16 +54,16 @@ export function InGameMenu() {
         }}>
         <div
             ref={dialogRef}
+            className="dialog"
             style={{
                 backgroundColor: uiconfig.backgroundColor,
                 padding: `${uiconfig.paddingRem}rem`,
                 gap: `${uiconfig.paddingRem * 2}rem`,
                 display: "flex",
                 flexDirection: "column",
-                maxWidth: "80ch",
-                transform: "scaleY(0)",
-                opacity: 0
-            }}>
+                maxWidth: "80ch"
+            }}
+        >
             <div style={{
                 fontFamily: "protector",
                 fontSize: "4rem",
@@ -84,7 +74,7 @@ export function InGameMenu() {
                 POWERPLAY
             </div>
             <TextButton text={"Continue"} onClick={() => {
-                cmdOpenInGameMenu.post(false);                
+                cmdOpenInGameMenu.post(false);
             }} />
             <TextButton text={"Quit"} onClick={() => {
                 engine.parseScene(utils.createNewScene("mainmenu").toJSON());

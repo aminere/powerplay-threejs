@@ -2,7 +2,6 @@ import { Matrix4, Vector2, Vector3 } from "three";
 import { GameUtils } from "./GameUtils";
 import { railFactory } from "./RailFactory";
 import { Axis, ICell, ICurvedRailConfig, IRailConfig, IRailUserData, IStraightRailConfig } from "./GameTypes";
-import { pools } from "../engine/core/Pools";
 import { GameMapState } from "./components/GameMapState";
 
 const neighborCoord = new Vector2();
@@ -10,6 +9,7 @@ const sectorCoords = new Vector2();
 const sectorCoords2 = new Vector2();
 const worldPos = new Vector3();
 const matrix = new Matrix4();
+const endPos = new Vector3();
 
 export class Rails {
     
@@ -56,7 +56,6 @@ export class Rails {
 
         if (endCoords) {
             console.assert(endAxis);
-            const endPos = pools.vec3.getOne();
             GameUtils.mapToWorld(endCoords!, endPos)
             endCell!.rail = {
                 visual,

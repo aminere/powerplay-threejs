@@ -1,5 +1,4 @@
 import { BufferGeometry, Material, InstancedMesh, Vector2, Mesh, Vector3, BufferAttribute } from "three";
-import { pools } from "../engine/core/Pools";
 import { BezierPath } from "./BezierPath";
 import { ICell, Axis, IConveyor } from "./GameTypes";
 import { GameUtils } from "./GameUtils";
@@ -8,6 +7,10 @@ import { config } from "./config/config";
 const { width, maxCount } = config.conveyors;
 const neighborCoords = new Vector2();
 const halfPi = Math.PI / 2;
+const point = new Vector3();
+const bitangent = new Vector3();
+const curvedPos = new Vector3();
+const offset = new Vector3();
 
 // [flipX, angle]
 const cornerTransforms = {
@@ -76,7 +79,6 @@ class ConveyorUtils {
         ]);
     
         const vertices = curvedMesh.geometry.getAttribute("position") as BufferAttribute;
-        const [point, bitangent, curvedPos, offset] = pools.vec3.get(4);
         offset.set(0, 0, -halfCell);
         for (let i = 0; i < vertices.count; ++i) {
             const t = (vertices.getZ(i) - minZ) / (maxZ - minZ);

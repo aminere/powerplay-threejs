@@ -2,7 +2,6 @@
 import { Mesh, MeshBasicMaterial, Object3D, BufferGeometry, BufferAttribute, NearestFilter, Vector2 } from "three";
 import { config } from "./config/config";
 import { GameUtils } from "./GameUtils";
-import { pools } from "../engine/core/Pools";
 import { textures } from "../engine/resources/Textures";
 import { ISector } from "./GameTypes";
 import { BuildingType } from "./buildings/BuildingTypes";
@@ -10,6 +9,9 @@ import { buildings } from "./buildings/Buildings";
 
 const { cellSize, mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
+const cellCoords = new Vector2();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
 
 export class TileSector extends Object3D {
 
@@ -63,9 +65,7 @@ export class TileSector extends Object3D {
         this.position.set((x + offset) * cellSize, 0, (y + offset) * cellSize);
     }
         
-    public fit(x: number, y: number, sectors: Map<string, ISector>) {
-        const [cellCoords, sectorCoords, localCoords] = pools.vec2.get(3);
-        
+    public fit(x: number, y: number, sectors: Map<string, ISector>) {        
         let maxY = 0;
         const fitTile = (mapX: number, mapY: number, tileIndex: number) => {
             const cell = GameUtils.getCell(cellCoords.set(mapX, mapY), sectorCoords, localCoords);

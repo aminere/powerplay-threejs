@@ -5,11 +5,11 @@ import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
 import { engineState } from "./EngineState";
 import { input } from "./Input";
-import { pools } from "./core/Pools";
 import { serialization } from "./serialization/Serialization";
 import { time } from "./core/Time";
 import { utils } from "./Utils";
 import { cmdRenderUI, cmdUpdateUI, evtSceneCreated, evtScreenResized } from "../Events";
+import gsap from "gsap";
 
 export interface ISceneInfo {
     name: string;
@@ -47,6 +47,7 @@ class Engine {
         this._runtime = runtime;
         this.setScreenSize(width, height);
         registerComponents();
+        gsap.ticker.remove(gsap.updateRoot);
     }
 
     public setScreenSize(width: number, height: number) {
@@ -55,16 +56,16 @@ class Engine {
         evtScreenResized.post();
     }
 
-    public update() {
+    public update() {        
         time.update();
-        pools.flush();
 
         if (this._paused) {
             return;
-        }
+        }        
         
+        gsap.updateRoot(time.time);
         input.update();
-        this.updateComponents();        
+        this.updateComponents();
         cmdUpdateUI.post();
         input.postUpdate();
     }

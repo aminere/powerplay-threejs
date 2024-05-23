@@ -105,3 +105,14 @@ img {
     opacity: 1;
 }
 
+.dialog {
+    opacity: 0;
+    transform: scaleY(0);
+    transition: transform .3s, opacity .3s;
+}
+
+.dialog.visible {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
