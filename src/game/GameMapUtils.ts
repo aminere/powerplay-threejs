@@ -589,6 +589,15 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) 
 
 function onConveyor(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
     if (cell.isEmpty) {
+
+        const clickFilter = GameMapState.instance.buildingCreationFilter?.click;
+        if (clickFilter) {
+            cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
+            if (!clickFilter(cellCoords)) {
+                return false;
+            }
+        }
+
         cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
         const isFree = GameMapProps.instance.debugFreeCosts || GameMapState.instance.config.freeConveyors;
         if (!isFree) {

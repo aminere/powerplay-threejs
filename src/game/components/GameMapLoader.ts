@@ -36,7 +36,6 @@ import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
 import { Tutorial } from "./Tutorial";
 import { Sandbox } from "./Sandbox";
-import { gameState } from "../GameState";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -331,17 +330,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             case 'e': cameraDirection = 1; break;
             case "k": unitsManager.killSelection(); break;
             case 'escape': {
-                if (!this.state.config.tutorial) {
-                    if (this.state.action) {
-                        this.state.action = null;
-                    } else {
-                        const inGameMenu = !gameState.inGameMenuOpen;
-                        cmdOpenInGameMenu.post(inGameMenu);
-                        gameState.inGameMenuOpen = inGameMenu;
-                    }
+                if (this.state.action) {
+                    this.state.action = null;
+                } else {
+                    cmdOpenInGameMenu.post(!this.state.inGameMenuOpen);
                 }
             }
-            break;
+                break;
         }
         if (cameraDirection !== 0 && !this.state.cameraTween) {
             this.state.cameraTween = gsap.to(this.state,

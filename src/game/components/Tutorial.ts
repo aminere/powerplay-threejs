@@ -83,7 +83,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 conveyor: false
             }
         };
-        config.bottomPanels = false;
+        config.bottomPanels.enabled = false;
         config.cameraPan = false;
         config.factoryOutputs = ResourceTypes.reduce((prev, cur) => {
             return {
@@ -248,6 +248,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             case MissionStep.CollectWater2: {
                 this.state.step = MissionStep.DepositWater;
                 const incubator = getBuildingOfType("incubator")!;
+                GameMapState.instance.config.input.leftClick = false;
                 cmdSetIndicator.post({
                     indicator: {
                         type: "building",
@@ -315,6 +316,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                             conveyorShadow.visible = true;
                             const mapCoords = GameUtils.worldToMap(conveyorShadow.position, new Vector2());
                             GameMapState.instance.buildingCreationFilter = {
+                                click: () => false,
                                 endDrag: (start: Vector2, end: Vector2) => {
                                     const desiredEnd = new Vector2().addVectors(mapCoords, new Vector2(0, 3));
                                     return start.equals(mapCoords) && end.equals(desiredEnd);
@@ -336,10 +338,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                                 }
                             });
 
-                            setTimeout(() => {
-                                GameMapState.instance.config.bottomPanels = false;
-                                cmdRefreshUI.post();
-                            }, 500);
+                            GameMapState.instance.config.bottomPanels.inputEnabled = false;
+                            cmdRefreshUI.post();
                         }
                     }
                         break;
@@ -396,7 +396,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                             const unit = unitsManager.units[0];
                             stopUnit(unit);
 
-                            GameMapState.instance.config.bottomPanels = true;
+                            GameMapState.instance.config.bottomPanels.enabled = true
+                            GameMapState.instance.config.bottomPanels.inputEnabled = true;
                             const incubator = getBuildingOfType("incubator")!;
                             unitsManager.setSelection({
                                 type: "building",
@@ -484,6 +485,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                         conveyorShadow.visible = true;
                         const mapCoords = GameUtils.worldToMap(conveyorShadow.position, new Vector2());
                         GameMapState.instance.buildingCreationFilter = {
+                            click: () => false,
                             endDrag: (start: Vector2, end: Vector2) => {
                                 const desiredEnd = new Vector2().addVectors(mapCoords, new Vector2(0, -3));
                                 return start.equals(mapCoords) && end.equals(desiredEnd);
@@ -606,8 +608,9 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 shadow.removeFromParent();
                 GameMapState.instance.buildingCreationFilter = null;
                 cmdSetObjectiveStatus.post(`${1} / 1`);
-
+                
                 this.state.step = MissionStep.CollectWater1;
+                GameMapState.instance.config.bottomPanels.enabled = false;
                 cmdSetIndicator.post(null);
 
                 setTimeout(() => {                    
@@ -651,8 +654,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                     });
                     cmdSetObjectiveStatus.post(`${0} / 5`);
 
-                    GameMapState.instance.config.bottomPanels = true;
-
+                    GameMapState.instance.config.bottomPanels.enabled = true;
+                    GameMapState.instance.config.bottomPanels.inputEnabled = true;
                     const factory = getBuildingOfType("factory")!;
                     cmdSetIndicator.post({
                         indicator: {
@@ -680,7 +683,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
 
                 // remove factory panel for less confusion
                 unitsManager.setSelection(null);
-                GameMapState.instance.config.bottomPanels = false;
+                GameMapState.instance.config.bottomPanels.inputEnabled = false;
 
                 // for demo disable auto ouput so glass remains in the depot
                 const { depotsCache } = GameMapState.instance;

@@ -91,7 +91,10 @@ export class GameMapState {
                 conveyor: true
             }
         },
-        bottomPanels: true,
+        bottomPanels: {
+            enabled: true,
+            inputEnabled: true
+        },        
         cameraPan: true,
         factoryOutputs: ResourceTypes.reduce((prev, cur) => {
             return {
@@ -121,12 +124,17 @@ export class GameMapState {
     };
 
     public get cursorOverUI() { return this._cursorOverUI; }
-    public set cursorOverUI(value: boolean) {
-        this._cursorOverUI = value
+    public set cursorOverUI(value: boolean) { this._cursorOverUI = value; }
+
+    public set inGameMenuOpen(value: boolean) { 
+        this._inGameMenuOpen = value; 
+        engine.paused = value;
     }
+    public get inGameMenuOpen() { return this._inGameMenuOpen; }
 
     public get action() { return this._action; }
     public set action(value: Action | null) {
+        console.log(`action`, value);
         this._action = value;
         if (!value) {
             this.tileSelector.visible = false;
@@ -150,6 +158,7 @@ export class GameMapState {
     }
 
     private _cursorOverUI = false;
+    private _inGameMenuOpen = false;
     private _action: Action | null = null;
     
     constructor() {

@@ -39,7 +39,7 @@ export function MainMenu() {
                     left: "50%",
                 }}>
                     POWERPLAY
-                </span>                
+                </span>
             </div>
             <MenuButton onClick={() => {
                 cmdShowUI.post(null);
@@ -88,13 +88,20 @@ export function MainMenu() {
             fontSize: "2rem",
         }}>
             <span>DEMO</span>
-            <img 
+            <img
                 style={{
                     maxWidth: "10ch"
                 }}
-                src="/images/powerplayrts.com.png" 
+                src="/images/powerplayrts.com.png"
             />
-            <a href="https://powerplayrts.com" target="_blank">powerplayrts.com</a>
+            <a
+                href="https://powerplayrts.com"
+                target="_blank"
+                style={{
+                    color: "#fbe184",
+                }}
+            >powerplayrts.com
+            </a>
         </div>
 
     </div>

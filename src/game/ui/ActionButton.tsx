@@ -30,7 +30,6 @@ export function ActionButton(props: React.PropsWithChildren<ActionButtonProps>) 
         id={id}
         className={`action icon clickable ${props.selectedAnim ? "item-auto-output" : ""}`}
         style={{
-            pointerEvents: "all",
             position: "relative",
             height: `${uiconfig.buttonSizeRem}rem`,
             width: `${uiconfig.buttonSizeRem}rem`,

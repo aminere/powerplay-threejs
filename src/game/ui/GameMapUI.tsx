@@ -182,7 +182,7 @@ export function GameMapUI() {
             setTutorialComplete(true);
         }
         const onInGameMenu = (open: boolean) => {
-            setInGameMenu(open);
+            setInGameMenu(open);            
         }
         cmdTutorialComplete.attach(onTutorialComplete);
         cmdOpenInGameMenu.attach(onInGameMenu);
@@ -321,6 +321,16 @@ export function GameMapUI() {
                         onClose={() => setOpenSection(null)}
                     />
                     <ActionButton
+                        tooltipId={"Fog of war"}
+                        selected={selectedAction === "destroy"}
+                        selectedColor="white"
+                        onClick={() => {
+                            
+                        }}
+                    >
+                        <span>fog</span>
+                    </ActionButton>
+                    <ActionButton
                         tooltipId={"clear"}
                         selected={selectedAction === "destroy"}
                         selectedColor="red"
@@ -352,7 +362,8 @@ export function GameMapUI() {
             bottom: "0px",
             left: "470px",
             height: `calc(${uiconfig.actionRows} * ${uiconfig.buttonSizeRem}rem + ${uiconfig.actionRows - 1} * ${uiconfig.gapRem}rem + 2 * ${uiconfig.paddingRem}rem)`,
-            display: gameMapState.config.bottomPanels ? "flex" : "none",
+            display: gameMapState.config.bottomPanels.enabled ? "flex" : "none",
+            pointerEvents: gameMapState.config.bottomPanels.inputEnabled ? "all" : "none",
             gap: `${uiconfig.paddingRem}rem`,
         }}>
             <SelectionPanel selectedElems={selectedElems} />

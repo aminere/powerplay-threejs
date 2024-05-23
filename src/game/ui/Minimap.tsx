@@ -273,8 +273,7 @@ export function Minimap() {
                 height: "100%",
                 transform: `translate(${minimapPos.x}px, ${minimapPos.y}px) scaleY(.5) rotate(${45}deg)`,
                 transformOrigin: "center",
-                border: "1px solid white",
-                pointerEvents: "all"
+                border: "1px solid white"
             }}
             onPointerDown={e => {
                 const cameraCanvas = cameraRef.current!;

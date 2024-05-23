@@ -4,8 +4,8 @@ import { utils } from "../../engine/Utils";
 import { TextButton } from "./TextButton";
 import { uiconfig } from "./uiconfig";
 import { cmdOpenInGameMenu, cmdShowUI, evtSceneCreated } from "../../Events";
+import { GameMapState } from "../components/GameMapState";
 import gsap from "gsap";
-import { gameState } from "../GameState";
 
 export function InGameMenu() {
 
@@ -31,6 +31,19 @@ export function InGameMenu() {
         evtSceneCreated.attach(onSceneCreated);
         return () => {
             evtSceneCreated.detach(onSceneCreated);
+        }
+    }, []);
+
+    useEffect(() => {
+        GameMapState.instance.inGameMenuOpen = true;
+        return () => {
+            if (!GameMapState.instance) {
+                return;
+            }
+            GameMapState.instance.inGameMenuOpen = false;
+            setTimeout(() => {
+                GameMapState.instance.cursorOverUI = false;
+            }, 60);
         }
     }, []);
 
@@ -69,8 +82,7 @@ export function InGameMenu() {
                 POWERPLAY
             </div>
             <TextButton text={"Continue"} onClick={() => {
-                cmdOpenInGameMenu.post(false);
-                gameState.inGameMenuOpen = false;
+                cmdOpenInGameMenu.post(false);                
             }} />
             <TextButton text={"Quit"} onClick={() => {
                 engine.parseScene(utils.createNewScene("mainmenu").toJSON());

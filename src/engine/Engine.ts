@@ -25,12 +25,14 @@ class Engine {
     public get scene() { return this._scene; }    
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._screenRect; }
+    public set paused(value: boolean) { this._paused = value; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
     private _sceneStarted = false;
     private _runtime: Runtime = "game";
     private _screenRect = { left: 0, top: 0, width: 0, height: 0 };
+    private _paused = false;
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -56,8 +58,13 @@ class Engine {
     public update() {
         time.update();
         pools.flush();
+
+        if (this._paused) {
+            return;
+        }
+        
         input.update();
-        this.updateComponents();
+        this.updateComponents();        
         cmdUpdateUI.post();
         input.postUpdate();
     }
