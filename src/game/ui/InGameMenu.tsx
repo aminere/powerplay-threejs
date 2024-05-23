@@ -35,9 +35,11 @@ export function InGameMenu() {
     }, []);
 
     useEffect(() => {
+        engine.paused = true;
         GameMapState.instance.inGameMenuOpen = true;
         return () => {
-            if (!GameMapState.instance) {
+            engine.paused = false;
+            if (!GameMapState.instance) {                
                 return;
             }
             GameMapState.instance.inGameMenuOpen = false;

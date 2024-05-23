@@ -328,10 +328,14 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             case 'e': cameraDirection = 1; break;
             case "k": unitsManager.killSelection(); break;
             case 'escape': {
-                if (this.state.action) {
-                    this.state.action = null;
-                } else {
+                if (this.state.config.tutorial) {
                     cmdOpenInGameMenu.post(!this.state.inGameMenuOpen);
+                } else {
+                    if (this.state.action) {
+                        this.state.action = null;
+                    } else {
+                        cmdOpenInGameMenu.post(!this.state.inGameMenuOpen);
+                    }
                 }
             }
                 break;

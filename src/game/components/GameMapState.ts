@@ -126,10 +126,7 @@ export class GameMapState {
     public get cursorOverUI() { return this._cursorOverUI; }
     public set cursorOverUI(value: boolean) { this._cursorOverUI = value; }
 
-    public set inGameMenuOpen(value: boolean) { 
-        this._inGameMenuOpen = value; 
-        engine.paused = value;
-    }
+    public set inGameMenuOpen(value: boolean) { this._inGameMenuOpen = value; }
     public get inGameMenuOpen() { return this._inGameMenuOpen; }
 
     public get action() { return this._action; }
