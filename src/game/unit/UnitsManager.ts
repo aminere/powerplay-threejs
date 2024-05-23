@@ -1,7 +1,7 @@
 import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
-import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, evtUnitKilled, evtUnitSpawned } from "../../Events";
+import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, cmdUpdateHealthBars, evtUnitKilled, evtUnitSpawned } from "../../Events";
 import { skeletonPool } from "../animation/SkeletonPool";
 import { utils } from "../../engine/Utils";
 import { skeletonManager } from "../animation/SkeletonManager";
@@ -327,6 +327,7 @@ class UnitsManager {
         }
 
         cmdSetSelectedElems.post(selection);
+        cmdUpdateHealthBars.post(selection);
         this._selection = selection;
     }
 
@@ -388,9 +389,9 @@ class UnitsManager {
                                 }
 
                                 if (this._selectedUnits.length > 0) {
-                                    this.setSelection({ type: "units", units: this._selectedUnits });
+                                    cmdUpdateHealthBars.post({ type: "units", units: this._selectedUnits });
                                 } else {
-                                    this.setSelection(null);
+                                    cmdUpdateHealthBars.post(null);
                                 }
 
                             } else {

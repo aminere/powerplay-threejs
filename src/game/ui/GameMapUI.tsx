@@ -5,7 +5,7 @@ import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
 import { GameMapProps } from "../components/GameMapProps";
 import { BuildableType, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
-import { SelectedElems, cmdOpenBuildSection, cmdOpenInGameMenu, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtGameMapUIMounted } from "../../Events";
+import { SelectedElems, cmdOpenBuildSection, cmdOpenInGameMenu, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtFogOfWarChanged, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
 import { SelectionPanel } from "./SelectionPanel";
 import { uiconfig } from "./uiconfig";
@@ -322,10 +322,13 @@ export function GameMapUI() {
                     />
                     <ActionButton
                         tooltipId={"Fog of war"}
-                        selected={selectedAction === "destroy"}
+                        selected={GameMapState.instance.config.fogOfWar}
                         selectedColor="white"
                         onClick={() => {
-                            
+                            const { fogOfWar } = GameMapState.instance.config;
+                            GameMapState.instance.config.fogOfWar = !fogOfWar;
+                            evtFogOfWarChanged.post(!fogOfWar);
+                            setTimestamp(Date.now());
                         }}
                     >
                         <span>fog</span>

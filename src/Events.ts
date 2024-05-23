@@ -26,6 +26,7 @@ interface ICellSelection {
 
 export type SelectedElems = IBuildingSelection | IUnitSelection | ICellSelection;
 export const cmdSetSelectedElems = new AsyncEvent<SelectedElems | null>();
+export const cmdUpdateHealthBars = new AsyncEvent<SelectedElems | null>();
 
 export const cmdStartSelection = new AsyncEvent<Vector2>();
 export const cmdEndSelection = new AsyncEvent<void>();
@@ -114,3 +115,4 @@ export const cmdExitGame = new AsyncEvent<void>();
 export const evtMoveCommand = new AsyncEvent<Vector2>();
 export const cmdShowTooltip = new AsyncEvent<string | undefined>();
 export const cmdOpenInGameMenu = new AsyncEvent<boolean>();
+export const evtFogOfWarChanged = new AsyncEvent<boolean>();

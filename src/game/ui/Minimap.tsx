@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI } from "../../Events";
+import { IMinimapFog, cmdRenderUI, cmdRotateMinimap, cmdUpdateMinimapFog, cmdUpdateUI, evtFogOfWarChanged } from "../../Events";
 import { config } from "../config/config";
 import { BufferAttribute, MathUtils, Matrix3, Mesh, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
@@ -177,6 +177,17 @@ export function Minimap() {
 
         makeScreenToCanvasTransform(45, minimapSize / 2);
         
+    }, []);
+
+    useEffect(() => {
+        const onFogOfWarChanged = (active: boolean) => {
+            const fogCanvas = fogRef.current!;
+            fogCanvas.style.display = active ? "block" : "none";
+        };
+        evtFogOfWarChanged.attach(onFogOfWarChanged);
+        return () => {
+            evtFogOfWarChanged.detach(onFogOfWarChanged);
+        }
     }, []);
 
     useEffect(() => {

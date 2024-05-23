@@ -1,11 +1,12 @@
-import { ClampToEdgeWrapping, DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, PlaneGeometry, RGBAFormat, Vector2 } from "three";
+import { ClampToEdgeWrapping, DataTexture, InstancedMesh, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, RGBAFormat, Vector2 } from "three";
 import { config } from "./config/config";
 import { engine } from "../engine/Engine";
 import { GameUtils } from "./GameUtils";
-import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog } from "../Events";
+import { cmdFogAddCircle, cmdFogMoveCircle, cmdFogRemoveCircle, cmdUpdateMinimapFog, evtFogOfWarChanged } from "../Events";
 import { trees } from "./Trees";
 import { ICell } from "./GameTypes";
 import { UnitUtils } from "./unit/UnitUtils";
+import { GameMapState } from "./components/GameMapState";
 
 const { mapRes, cellSize } = config.game;
 const mapSize = mapRes * cellSize;
@@ -27,6 +28,7 @@ class FogOfWar {
     private _texture!: DataTexture;
     private _textureData!: Uint8Array;
     private _circleCache = new Map<number, boolean[]>();
+    private _plane!: Object3D;
 
     public init(sectorRes: number) {        
         const texRes = mapRes * sectorRes;
@@ -66,8 +68,9 @@ class FogOfWar {
         // plane.position.y = .01;
         const uvFactor = texResPow2 / texRes;
         plane.scale.set(mapSize, 1, -mapSize).multiplyScalar(sectorRes * uvFactor);
-        // plane.visible = false;
+        plane.visible = GameMapState.instance.config.fogOfWar;
         engine.scene!.add(plane);
+        this._plane = plane;
         
         // bad hack do not bring back!
         // const edgeMaterial = new MeshBasicMaterial({ color: 0x000000, depthTest: false });
@@ -92,12 +95,17 @@ class FogOfWar {
         cmdFogAddCircle.attach(({ mapCoords, radius }) => this.addCircle(mapCoords, radius));
         cmdFogMoveCircle.attach(({ mapCoords, radius, dx, dy }) => this.moveCircle(mapCoords, radius, dx, dy));
         cmdFogRemoveCircle.attach(({ mapCoords, radius }) => this.removeCircle(mapCoords, radius));
+
+        this.onFogOfWarChanged = this.onFogOfWarChanged.bind(this);
+        evtFogOfWarChanged.attach(this.onFogOfWarChanged);
+
     }
 
     public dispose() {
         cmdFogAddCircle.detach();
         cmdFogMoveCircle.detach();
         cmdFogRemoveCircle.detach();
+        evtFogOfWarChanged.detach(this.onFogOfWarChanged);
     }
 
     private addCircle(mapCoords: Vector2, radius: number) {
@@ -276,6 +284,10 @@ class FogOfWar {
         }
         this._circleCache.set(radius, _circle);
         return _circle;
+    }
+
+    private onFogOfWarChanged(active: boolean) {
+        this._plane.visible = active;
     }
 }
 

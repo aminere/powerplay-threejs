@@ -276,16 +276,14 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             engineState.setComponent(updator, new Sandbox());
         }
 
-        if (this.state.config.fogOfWar) {
-            fogOfWar.init(size);
+        fogOfWar.init(size);
 
-            // reveal wherever the camera is
-            // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
-            // mapCoords = (cameraPos / cellSize) + mapRes / 2;
-            const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
-            const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
-            cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });
-        }
+        // reveal wherever the camera is
+        // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
+        // mapCoords = (cameraPos / cellSize) + mapRes / 2;
+        const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
+        const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
+        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
 
         // TODO remove
         // if (false) {

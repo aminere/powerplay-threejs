@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { cmdRenderUI, evtScreenResized, cmdSetSelectedElems, SelectedElems } from "../../Events";
+import { cmdRenderUI, evtScreenResized, cmdUpdateHealthBars, SelectedElems } from "../../Events";
 import { Color, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
@@ -60,7 +60,7 @@ export function HealthBars() {
 
     useEffect(() => {
 
-        const onSelectedElems = (elems: SelectedElems | null) => {
+        const onUpdateHealthBars = (elems: SelectedElems | null) => {
             selectedElemsRef.current = elems;
         };
 
@@ -118,10 +118,10 @@ export function HealthBars() {
         };
 
         cmdRenderUI.attach(renderUI);
-        cmdSetSelectedElems.attach(onSelectedElems);
+        cmdUpdateHealthBars.attach(onUpdateHealthBars);
         evtScreenResized.attach(onResize);
         return () => {
-            cmdSetSelectedElems.detach(onSelectedElems);
+            cmdUpdateHealthBars.detach(onUpdateHealthBars);
             cmdRenderUI.detach(renderUI);
             evtScreenResized.detach(onResize);
         }

@@ -372,6 +372,12 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (state.selectionInProgress) {
                         cmdEndSelection.post();
                         state.selectionInProgress = false;
+
+                        if (unitsManager.selectedUnits.length > 0) {
+                            unitsManager.setSelection({ type: "units", units: unitsManager.selectedUnits });
+                        } else {
+                            unitsManager.setSelection(null);
+                        }
                     }
                     canceled = true;
                 }
