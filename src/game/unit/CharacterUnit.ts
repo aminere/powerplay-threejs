@@ -26,6 +26,7 @@ import { IUnit } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
+import { Assemblies } from "../buildings/Assemblies";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -177,6 +178,13 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
                 case "incubator": {
                     if (Incubators.tryDepositResource(instance, this.resource.type as RawResourceType)) {
+                        this.resource = null;
+                    }
+                }
+                break;
+
+                case "assembly": {
+                    if (Assemblies.tryDepositResource(instance, this.resource.type as ResourceType)) {
                         this.resource = null;
                     }
                 }

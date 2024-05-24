@@ -71,7 +71,7 @@ export const config = {
     },
     steering: {
         maxForce: 60,
-        maxSpeed: 5,
+        maxSpeed: 7,
         separations: {
             "worker": .7,
             "enemy-melee": .7,

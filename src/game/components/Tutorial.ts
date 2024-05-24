@@ -318,8 +318,11 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                             GameMapState.instance.buildingCreationFilter = {
                                 click: () => false,
                                 endDrag: (start: Vector2, end: Vector2) => {
+                                    if (!start.equals(mapCoords)) {
+                                        return false;
+                                    }
                                     const desiredEnd = new Vector2().addVectors(mapCoords, new Vector2(0, 3));
-                                    return start.equals(mapCoords) && end.equals(desiredEnd);
+                                    return end.y >= desiredEnd.y - 1 && end.y <= desiredEnd.y + 3;
                                 }
                             }
 
@@ -487,8 +490,11 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                         GameMapState.instance.buildingCreationFilter = {
                             click: () => false,
                             endDrag: (start: Vector2, end: Vector2) => {
+                                if (!start.equals(mapCoords)) {
+                                    return false;
+                                }
                                 const desiredEnd = new Vector2().addVectors(mapCoords, new Vector2(0, -3));
-                                return start.equals(mapCoords) && end.equals(desiredEnd);
+                                return end.y <= desiredEnd.y + 1 && end.y >= desiredEnd.y - 3;
                             }
                         }
                         cmdSetIndicator.post({

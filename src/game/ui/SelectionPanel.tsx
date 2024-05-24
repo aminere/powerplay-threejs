@@ -97,7 +97,12 @@ function SingleSelectionPanel(props: SingleSelectionProps) {
                 }}
             >
                 <GridFiller slots={4} columns={2} />
-                {props.properties?.map((prop, i) => <InventoryItem key={i} name={prop.name} value={prop.value} />)}
+                {props.properties?.map((prop, i) => <InventoryItem
+                    key={i}
+                    tooltipId={prop.name}
+                    name={prop.name}
+                    value={prop.value}
+                />)}
 
             </div>
         </div>

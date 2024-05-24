@@ -138,9 +138,7 @@ export function GameMapUI() {
 
     const setOpenSection = (section: typeof openSection) => {
         _setOpenSection(section);
-        if (section) {
-            gameMapState.action = null;
-        }
+        gameMapState.action = null;
     };
 
     useEffect(() => {
