@@ -182,7 +182,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
 
         if (state.selectionInProgress) {
             return;
-        }
+        }        
 
         const { width, height } = engine.screenRect;
         const dt = time.deltaTime;
@@ -203,6 +203,9 @@ export class GameMapUpdate extends Component<ComponentProps> {
                     if (rightX > width - margin) {
                         setCameraPos(oldPos);
                     }
+                }
+                if (state.cursorOverUI) {
+                    setCameraPos(oldPos);
                 }
             } else {
                 if (rightX < width) {
