@@ -3,7 +3,7 @@ import { GameMapState } from "../components/GameMapState";
 import { ActionButton } from "./ActionButton";
 
 interface ITransportActionProps {
-    type: "conveyor";
+    type: "conveyor" | "rail";
     selected: boolean;
     onCleared: () => void;
     onSelected: () => void;
@@ -14,14 +14,14 @@ export function TransportAction(props: ITransportActionProps) {
     return <ActionButton
         id={props.type}
         tooltipId={props.type}
-        visible={gameMapState.config.sideActions.enabled.conveyor}
+        visible={gameMapState.config.sideActions.enabled[props.type]}
         selected={props.selected}
         selectedColor="yellow"
         onClick={() => {
             if (props.selected) {
                 gameMapState.action = null;
                 props.onCleared();
-            } else {                
+            } else {
                 GameMapProps.instance.buildableType = props.type;
                 const gameMapState = GameMapState.instance;
                 gameMapState.action = "building";

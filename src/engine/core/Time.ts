@@ -5,6 +5,7 @@ interface ITime {
     fps: number;
     currentFrame: number;
     update(): void;
+    advance(): void;
 }
 
 class VariableTime implements ITime {
@@ -13,11 +14,14 @@ class VariableTime implements ITime {
     get fps() { return this._fps; }
     get currentFrame() { return 0; }
 
+    advance() {
+        this._time += this._deltaTime;
+    }
+
     update() {
         const time = performance.now();
         const deltaTime = Math.min((time - this._previousTime) / 1000.0, this._deltaTimeCap);
         this._deltaTime = deltaTime;
-        this._time += deltaTime;
         this._previousTime = time; 
     }
 
@@ -37,8 +41,12 @@ class FixedTime implements ITime {
     private _deltaTime = 1 / 60;
     private _time = 0;
 
-    update() {
+    advance() {
         this._time += this._deltaTime;
+    }
+
+    update() {
+        
     }
 }
 
@@ -59,6 +67,10 @@ class Time implements ITime {
 
     public update() {
         this._impl.update();
+    }
+
+    public advance() {
+        this._impl.advance();
         this._currentFrame++;
     }
 }

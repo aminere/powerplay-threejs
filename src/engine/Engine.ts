@@ -61,8 +61,9 @@ class Engine {
 
         if (this._paused) {
             return;
-        }        
+        }
         
+        time.advance();
         gsap.updateRoot(time.time);
         input.update();
         this.updateComponents();

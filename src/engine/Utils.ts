@@ -4,6 +4,8 @@ import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
 import { TArray } from "./serialization/TArray";
 import { LoopMode } from "./serialization/Types";
+import { serialization } from "./serialization/Serialization";
+import { engineState } from "./EngineState";
 
 const lightDir = new Vector3();
 const worldPos = new Vector3();
@@ -125,6 +127,23 @@ class Utils {
         scene.add(ambient);
         scene.updateWorldMatrix(true, true);
         return scene;
+    }
+
+    public instantiate(prefab: Object3D) {
+        const instance = prefab.clone();
+        instance.traverse(o => {
+            serialization.postDeserializeObject(o);
+            serialization.postDeserializeComponents(o);
+            const components = o.userData.components;
+            if (components) {
+                for (const component of Object.values(components)) {
+                    const instance = component as Component<ComponentProps>;
+                    instance.start(o);
+                    engineState.registerComponent(instance, o);
+                }
+            }
+        });
+        return instance;
     }
 }
 

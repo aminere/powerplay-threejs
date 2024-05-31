@@ -130,7 +130,7 @@ export function GameMapUI() {
     }, []);
 
     const [openSection, _setOpenSection] = useState<"building" | "resource" | "unit" | "elevation" | null>(null);
-    const [selectedAction, setSelectedAction] = useState<"conveyor" | "destroy" | null>(null);
+    const [selectedAction, setSelectedAction] = useState<"conveyor" | "rail" | "destroy" | null>(null);
     const [selectedElems, setSelectedElems] = useState<SelectedElems | null>(null);
     const [showFactoryOutputs, setShowFactoryOutputs] = useState(false);
     const [showAssemblyOutputs, setShowAssemblyOutputs] = useState(false);
@@ -265,6 +265,17 @@ export function GameMapUI() {
                 onSelected={() => {
                     setOpenSection(null);
                     setSelectedAction("conveyor");
+                }}
+                onCleared={() => {
+                    setSelectedAction(null);
+                }}
+            />
+            <TransportAction
+                type="rail"
+                selected={selectedAction === "rail"}
+                onSelected={() => {
+                    setOpenSection(null);
+                    setSelectedAction("rail");
                 }}
                 onCleared={() => {
                     setSelectedAction(null);

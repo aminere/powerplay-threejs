@@ -117,19 +117,7 @@ export class TankState extends State<ICharacterUnit> {
                             setTimeout(() => muzzleFlash.visible = false, MathUtils.randInt(50, 100));
 
                             objects.load("/prefabs/tank-shot.json").then(_explosion => {
-                                const explosion = _explosion.clone();
-                                explosion.traverse(o => {
-                                    serialization.postDeserializeObject(o);
-                                    serialization.postDeserializeComponents(o);
-                                    const components = o.userData.components;
-                                    if (components) {
-                                        for (const component of Object.values(components)) {
-                                            const instance = component as Component<ComponentProps>;
-                                            instance.start(o);
-                                            engineState.registerComponent(instance, o);
-                                        }
-                                    }
-                                });
+                                const explosion = utils.instantiate(_explosion);
                                 this._cannon.add(explosion);
                                 setTimeout(() => engineState.removeObject(explosion), 2000);
                             });

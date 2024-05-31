@@ -80,7 +80,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                         }
                     }, {} as Record<BuildingType, boolean>)
                 },
-                conveyor: false
+                conveyor: false,
+                rail: false
             }
         };
         config.bottomPanels.enabled = false;

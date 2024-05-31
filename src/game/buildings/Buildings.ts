@@ -1,10 +1,10 @@
-import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, MeshStandardMaterial, Object3D, Vector2 } from "three";
+import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, Object3D, Points, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
 import { GameMapState } from "../components/GameMapState";
 import { meshes } from "../../engine/resources/Meshes";
-import { BuildingType, BuildingTypes, IBuildingInstance, IMineState } from "./BuildingTypes";
+import { BuildingType, IBuildingInstance, IMineState } from "./BuildingTypes";
 import { Mines } from "./Mines";
 import { Factories } from "./Factories";
 import { depots } from "./Depots";
@@ -13,6 +13,8 @@ import { utils } from "../../engine/Utils";
 import { buildingConfig } from "../config/BuildingConfig";
 import { Assemblies } from "./Assemblies";
 import { elevation } from "../Elevation";
+import { objects } from "../../engine/resources/Objects";
+import { Particles } from "../../engine/components/Particles";
 
 const { cellSize, mapRes, elevationStep } = config.game;
 const verticesPerRow = mapRes + 1;
@@ -35,50 +37,22 @@ class Buildings {
             return;
         }
 
-        const buildings = await Promise.all(BuildingTypes.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
+        const meshBuildings: BuildingType[] = [
+            "mine",
+            "incubator",
+            "assembly",
+            "depot"        
+        ];
+
+        const buildings = await Promise.all(meshBuildings.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
         for (let i = 0; i < buildings.length; i++) {
             const [building] = buildings[i];
-            const buildingType = BuildingTypes[i];
-
-            const material = building.material as MeshStandardMaterial;
-            material.color.setHex((() => {
-                switch (buildingType) {
-                    case "factory": return 0xFFD9D6;
-                    case "mine": return 0xD2F7FE;
-                    default: return 0xFFFFFF;
-                }
-            })())
-
-            building.castShadow = true;
-            building.receiveShadow = true;
-
-            const size = buildingConfig[buildingType].size;
-            const boundingBox = new Box3();
-            boundingBox.min.set(0, 0, 0);
-            boundingBox.max.copy(size);
-            this._buildings.set(buildingType, {
-                prefab: building,
-                boundingBox
-            });
+            const buildingType = meshBuildings[i];
+            this.registerBuilding(building, buildingType);
         }
 
-        // const buildings = await Promise.all(BuildingTypes.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
-        // for (let i = 0; i < buildings.length; i++) {
-        //     const building = buildings[i];
-        //     building.traverse(child => {
-        //         child.castShadow = true;
-        //         child.receiveShadow = true;
-        //     });
-        //     const buildingType = BuildingTypes[i];
-        //     const size = buildingSizes[buildingType];
-        //     const boundingBox = new Box3();
-        //     boundingBox.min.set(0, 0, 0);
-        //     boundingBox.max.copy(size);
-        //     this._buildings.set(buildingType, {
-        //         prefab: building,
-        //         boundingBox
-        //     });
-        // }
+        const factory = await objects.load(`/models/buildings/${"factory"}.json`);
+        this.registerBuilding(factory, "factory");      
     }
 
     public getBoundingBox(buildingType: BuildingType) {
@@ -90,7 +64,17 @@ class Buildings {
         this._instanceId++;
 
         const instance = this._buildings.get(buildingType)!;
-        const visual = instance.prefab.clone();
+        const visual = utils.instantiate(instance.prefab);
+
+        // make sure particle geometries are unique
+        visual.traverse(v => {
+            const particles = utils.getComponent(Particles, v);
+            if (particles) {
+                (v as Points).geometry = (v as Points).geometry.clone();
+                particles.props.active = false;
+            }
+        });
+
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
         
@@ -251,6 +235,29 @@ class Buildings {
                 case "incubator": Incubators.update(instance); break;
                 case "assembly": Assemblies.update(instance); break;
             }
+        });
+    }
+
+    private registerBuilding(building: Object3D, buildingType: BuildingType) {
+        building.traverse(child => {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        });
+        // const material = building.material as MeshStandardMaterial;
+        // material.color.setHex((() => {
+        //     switch (buildingType) {
+        //         case "factory": return 0xFFD9D6;
+        //         case "mine": return 0xD2F7FE;
+        //         default: return 0xFFFFFF;
+        //     }
+        // })())
+        const size = buildingConfig[buildingType].size;
+        const boundingBox = new Box3();
+        boundingBox.min.set(0, 0, 0);
+        boundingBox.max.copy(size);
+        this._buildings.set(buildingType, {
+            prefab: building,
+            boundingBox
         });
     }
 }

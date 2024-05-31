@@ -21,7 +21,7 @@ class Objects {
         const promise = this._loader.loadAsync(path)
             .then(obj => {
                 this._cache.set(path, obj);
-                this._loading.delete(path);
+                this._loading.delete(path);                
                 return obj;
             });
         this._loading.set(path, promise);

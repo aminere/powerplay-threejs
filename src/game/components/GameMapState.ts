@@ -88,7 +88,8 @@ export class GameMapState {
                         }
                     }, {} as Record<BuildingType, boolean>)
                 },
-                conveyor: true
+                conveyor: true,
+                rail: true
             }
         },
         bottomPanels: {
