@@ -710,7 +710,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                         unitMotion.moveUnit(unit, new Vector2(32, 143));
                     }
                 }
-                engineState.removeComponent(this.state.owner, Tutorial);
+                engineState.removeComponent(Tutorial, this.state.owner);
                 cmdTutorialComplete.post();
                 gameState.tutorialCompleted = true;
             }

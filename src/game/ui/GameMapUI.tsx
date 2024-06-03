@@ -27,57 +27,6 @@ import { InGameMenu } from "./InGameMenu";
 
 export function GameMapUI() {    
 
-    // useEffect(() => {
-    //     const onGamePointerMove = () => {
-    //         if (utils.isPointerLocked()) {
-    //             hoveredElement.current = null;
-    //             const { rawPointerPos } = props;
-    //             for (const [, elem] of Object.entries(actions.current)) {
-    //                 const hovered = utils.isPointInRect(rawPointerPos.x, rawPointerPos.y, elem.getBoundingClientRect());
-    //                 if (hovered) {
-    //                     hoveredElement.current = elem;
-    //                     elem.classList.add("hovered");
-    //                 } else {
-    //                     elem.classList.remove("hovered");
-    //                 }
-    //             }
-    //         }
-    //     };
-
-    //     const onGamePointerDown = () => {
-    //         if (utils.isPointerLocked()) {
-    //             if (hoveredElement.current) {
-    //                 hoveredElement.current.classList.add("active");
-    //                 hoveredElementOnDown.current = hoveredElement.current;
-    //             }
-    //         }
-    //     };
-
-    //     const onGamePointerUp = () => {
-    //         if (utils.isPointerLocked()) {
-    //             if (hoveredElement.current && hoveredElement.current === hoveredElementOnDown.current) {
-    //                 const action = hoveredElement.current.id as Action;
-    //                 setAction(action);
-    //             }
-    //             hoveredElementOnDown.current?.classList.remove("active");
-    //             hoveredElementOnDown.current = null;
-    //         }
-    //     };
-
-    //     document.addEventListener('pointermove', onGamePointerMove);
-    //     if (props.isWeb) {
-    //         document.addEventListener('pointerdown', onGamePointerDown);
-    //         document.addEventListener('pointerup', onGamePointerUp);
-    //     }
-    //     return () => {
-    //         document.removeEventListener('pointermove', onGamePointerMove);
-    //         if (props.isWeb) {
-    //             document.removeEventListener('pointerdown', onGamePointerDown);
-    //             document.removeEventListener('pointerup', onGamePointerUp);
-    //         }
-    //     };
-    // }, []);
-
     const [error, setError] = useState<string | null>(null);
     const clearErrorRef = useRef<NodeJS.Timeout | null>(null);
     const errorTweenRef = useRef<gsap.core.Tween | null>(null);
@@ -190,13 +139,7 @@ export function GameMapUI() {
             cmdTutorialComplete.detach(onTutorialComplete);
             cmdOpenInGameMenu.detach(onInGameMenu);
         }
-    }, []);
-
-    // useEffect(() => {
-    //     return () => {
-    //         console.log("GameMapUI unmount");
-    //     }
-    // }, [])
+    }, []);    
 
     const gameMapState = GameMapState.instance;
     if (!gameMapState) {

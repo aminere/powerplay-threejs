@@ -72,7 +72,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override setHitpoints(value: number): void {
         if (value <= 0) {            
-            engineState.removeComponent(this.visual, UnitCollisionAnim);
+            engineState.removeComponent(UnitCollisionAnim, this.visual);
             this.resource = null;
         }
         super.setHitpoints(value);
@@ -96,7 +96,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onMove(bindSkeleton: boolean) {
-        engineState.removeComponent(this.visual, UnitCollisionAnim);
+        engineState.removeComponent(UnitCollisionAnim, this.visual);
         if (bindSkeleton) {
             unitAnimation.setAnimation(this, "run");
         }

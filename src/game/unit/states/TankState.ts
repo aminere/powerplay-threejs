@@ -9,9 +9,6 @@ import { GameUtils } from "../../GameUtils";
 import { mathUtils } from "../../MathUtils";
 import { utils } from "../../../engine/Utils";
 import { objects } from "../../../engine/resources/Objects";
-import { serialization } from "../../../engine/serialization/Serialization";
-import { Component } from "../../../engine/ecs/Component";
-import { ComponentProps } from "../../../engine/ecs/ComponentProps";
 import { engineState } from "../../../engine/EngineState";
 import { unitConfig } from "../../config/UnitConfig";
 

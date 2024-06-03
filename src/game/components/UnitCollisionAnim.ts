@@ -38,7 +38,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
             if (this.props.unit.isIdle) {     
                 unitAnimation.setAnimation(this.props.unit, "idle");
             }
-            engineState.removeComponent(owner, UnitCollisionAnim);
+            engineState.removeComponent(UnitCollisionAnim, owner);
         }
     }
 

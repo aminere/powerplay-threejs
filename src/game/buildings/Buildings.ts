@@ -38,21 +38,29 @@ class Buildings {
         }
 
         const meshBuildings: BuildingType[] = [
-            "mine",
             "incubator",
             "assembly",
             "depot"        
         ];
 
-        const buildings = await Promise.all(meshBuildings.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
-        for (let i = 0; i < buildings.length; i++) {
-            const [building] = buildings[i];
+        const objectBuildings: BuildingType[] = [
+            "mine",
+            "factory"
+        ];
+
+        const _meshBuildings = await Promise.all(meshBuildings.map(buildingType => meshes.load(`/models/buildings/${buildingType}.glb`)));
+        for (let i = 0; i < meshBuildings.length; i++) {
+            const [building] = _meshBuildings[i];
             const buildingType = meshBuildings[i];
             this.registerBuilding(building, buildingType);
         }
-
-        const factory = await objects.load(`/models/buildings/${"factory"}.json`);
-        this.registerBuilding(factory, "factory");      
+        
+        const _objectBuildings = await Promise.all(objectBuildings.map(buildingType => objects.load(`/models/buildings/${buildingType}.json`)));
+        for (let i = 0; i < objectBuildings.length; i++) {
+            const building = _objectBuildings[i];
+            const buildingType = objectBuildings[i];
+            this.registerBuilding(building, buildingType);
+        }        
     }
 
     public getBoundingBox(buildingType: BuildingType) {
@@ -71,7 +79,6 @@ class Buildings {
             const particles = utils.getComponent(Particles, v);
             if (particles) {
                 (v as Points).geometry = (v as Points).geometry.clone();
-                particles.props.active = false;
             }
         });
 
@@ -148,23 +155,34 @@ class Buildings {
     }
 
     public createHologram(buildingType: BuildingType) {
-        const instance = this._buildings.get(buildingType)!;
-        const visual = instance.prefab.clone();
+        const building = this._buildings.get(buildingType)!;
+        const visual = utils.instantiate(building.prefab);
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}`;
 
-        if (buildingType === "incubator") {
-            visual.receiveShadow = false;
-            meshes.load("/models/buildings/incubator-glass.glb").then(([_mesh]) => {
-                const mesh = _mesh.clone();
-                mesh.castShadow = true;
-                const glass = mesh.material as Material;
-                glass.transparent = true;
-                glass.opacity = 0.6;
-                mesh.renderOrder = 1;
-                visual.add(mesh);
-            });
+        switch (buildingType) {
+            case "incubator": {
+                visual.receiveShadow = false;
+                meshes.load("/models/buildings/incubator-glass.glb").then(([_mesh]) => {
+                    const mesh = _mesh.clone();
+                    mesh.castShadow = true;
+                    const glass = mesh.material as Material;
+                    glass.transparent = true;
+                    glass.opacity = 0.6;
+                    mesh.renderOrder = 1;
+                    visual.add(mesh);
+                });
+            }
+            break;           
         }
+
+        // remove particles from Hologram
+        visual.traverse(child => {
+            const particles = utils.getComponent(Particles, child);
+            if (particles) {
+                child.visible = false;
+            }
+        });
 
         return visual;
     }

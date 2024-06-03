@@ -132,7 +132,6 @@ export class GameMapState {
 
     public get action() { return this._action; }
     public set action(value: Action | null) {
-        console.log(`action`, value);
         this._action = value;
         if (!value) {
             this.tileSelector.visible = false;

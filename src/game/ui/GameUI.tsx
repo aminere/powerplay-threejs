@@ -65,11 +65,11 @@ export function GameUI(props: IGameUIProps) {
             }
         };
 
-        document.addEventListener('pointermove', onGamePointerMove);
-        document.addEventListener('click', onClick);
+        window.addEventListener('pointermove', onGamePointerMove);
+        window.addEventListener('click', onClick);
         return () => {
-            document.removeEventListener('pointermove', onGamePointerMove);
-            document.removeEventListener('click', onClick);
+            window.removeEventListener('pointermove', onGamePointerMove);
+            window.removeEventListener('click', onClick);
         }
     }, []);
 

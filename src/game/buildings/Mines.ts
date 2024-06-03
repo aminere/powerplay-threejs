@@ -9,6 +9,7 @@ import { MineralType } from "../GameDefinitions";
 import { buildingConfig } from "../config/BuildingConfig";
 import { evtBuildingStateChanged } from "../../Events";
 import { config } from "../config/config";
+import { Particles } from "../../engine/components/Particles";
 
 const cellCoords = new Vector2();
 const { productionTime } = config.mines;
@@ -25,6 +26,12 @@ function consumeResource(instance: IBuildingInstance) {
             state.depleted = true;
         }
     }
+}
+
+function setMineActive(state: IMineState, active: boolean) {
+    state.active = active;
+    const particles = utils.getComponent(Particles, state.smoke)!;
+    particles.state.isEmitting = active;
 }
 
 export class Mines {
@@ -55,9 +62,11 @@ export class Mines {
             autoOutput: true,
             resourceCells,
             minedResource: null,
-            depleted
+            depleted,
+            smoke: instance.visual.getObjectByName("smoke")!
         };
 
+        setMineActive(mineState, false);
         instance.state = mineState;
     }
 
@@ -87,19 +96,19 @@ export class Mines {
                             switch (status) {
                                 case "ok": state.productionTimer = 0; break;
                                 default: {
-                                    state.active = false;
+                                    setMineActive(state, false);
                                     state.minedResource = null;
                                 }
                             }
                             
                         } else {
-                            state.active = false;
+                            setMineActive(state, false);
                             state.minedResource = null;
                         }
                     }
 
                 } else {
-                    state.active = false;
+                    setMineActive(state, false);
                     state.outputFull = true;
                     state.outputCheckTimer = 1;
                 }
@@ -130,7 +139,7 @@ export class Mines {
                     const minedCell = GameUtils.getCell(state.resourceCells[0])!;
                     state.minedResource = minedCell.resource!.type as MineralType;
                     state.productionTimer = 0;
-                    state.active = true;
+                    setMineActive(state, true);
                     evtBuildingStateChanged.post(instance);                                       
 
                 } else if (state.autoOutput) {

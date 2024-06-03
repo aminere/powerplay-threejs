@@ -35,12 +35,12 @@ class EngineState {
         return components.filter(c => c.component.props.active);
     }    
 
-    public removeComponent<U extends Component<ComponentProps>>(owner: Object3D, ctor: new () => U) {
+    public removeComponent<U extends Component<ComponentProps>>(ctor: new () => U, owner: Object3D) {
         const componentType = ctor.name;
-        this.removeComponentByType(owner, componentType);
+        this.removeComponentByType(componentType, owner);
     }
 
-    public removeComponentByType(owner: Object3D, componentType: string) {
+    public removeComponentByType(componentType: string, owner: Object3D) {
         const instance = owner.userData.components?.[componentType] as Component<ComponentProps>;
         if (instance) {
             instance.dispose(owner);

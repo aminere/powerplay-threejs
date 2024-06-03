@@ -7,6 +7,8 @@ import { BuildingUtils } from "./BuildingUtils";
 import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
 import { resourceConfig } from "../config/ResourceConfig";
+import { utils } from "../../engine/Utils";
+import { Particles } from "../../engine/components/Particles";
 
 const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 
@@ -40,23 +42,34 @@ function canAcceptResource(instance: IBuildingInstance, type: RawResourceType | 
     return false;
 }
 
+function setFactoryActive(state: IFactoryState, active: boolean) {
+    state.active = active;
+    for (const smoke of state.smoke) {
+        const particles = utils.getComponent(Particles, smoke)!;
+        particles.state.isEmitting = active;
+    }
+}
+
 export class Factories {
     public static create(sectorCoords: Vector2, localCoords: Vector2, output: ResourceType | null) {
 
-        const instance = buildings.create("factory", sectorCoords, localCoords);
+        const instance = buildings.create("factory", sectorCoords, localCoords);        
+
         const factoryState: IFactoryState = {
             active: false,
             productionTimer: 0,
             reserve: new Map(),
-            inputFull: false,            
+            inputFull: false,
             inputTimer: -1,
             outputRequests: 0,            
             output,
             outputFull: false,
             outputCheckTimer: -1,
-            autoOutput: true
+            autoOutput: true,
+            smoke: instance.visual.getObjectsByProperty("name", "smoke")
         };
 
+        setFactoryActive(factoryState, false);
         instance.state = factoryState;
     }
 
@@ -82,16 +95,16 @@ export class Factories {
                             const status = Factories.output(instance);
                             switch (status) {
                                 case "ok": state.productionTimer = 0; break;
-                                default: state.active = false;
+                                default: setFactoryActive(state, false);
                             }
                             
                         } else {
-                            state.active = false;
+                            setFactoryActive(state, false);
                         }
                     }
 
                 } else {
-                    state.active = false;
+                    setFactoryActive(state, false);
                     state.outputFull = true;
                     state.outputCheckTimer = 1;
                 }
@@ -115,8 +128,8 @@ export class Factories {
                 }
             } else {
                 if (state.outputRequests > 0) {
-                    state.productionTimer = 0;                    
-                    state.active = true;
+                    state.productionTimer = 0;  
+                    setFactoryActive(state, true);
                     evtBuildingStateChanged.post(instance);
                 } else if (state.autoOutput) {
                     Factories.output(instance);
@@ -209,7 +222,7 @@ export class Factories {
         const state = instance.state as IFactoryState;
         state.output = type;
         state.reserve.clear();
-        state.active = false;
+        setFactoryActive(state, false);
         state.outputRequests = 0;
         state.outputFull = false;
         state.inputFull = false;

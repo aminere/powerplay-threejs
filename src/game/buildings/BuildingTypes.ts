@@ -45,6 +45,7 @@ export interface IFactoryState {
     outputFull: boolean;
     outputCheckTimer: number;
     autoOutput: boolean;
+    smoke: Object3D[];
 }
 
 export interface IMineState {
@@ -59,6 +60,7 @@ export interface IMineState {
     depleted: boolean;
     resourceCells: Vector2[];
     minedResource: MineralType | null;
+    smoke: Object3D;
 }
 
 export interface IDepotState {

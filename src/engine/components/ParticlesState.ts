@@ -21,7 +21,7 @@ function getDataOffset(name: DataOffset, particleIndex: number, localOffset: num
     return (particleIndex * dataOffsets.MAX) + dataOffsets[name] + localOffset;
 }
 
-export class ParticleState implements IComponentState {
+export class ParticlesState implements IComponentState {
 
     public particleCount = 0;
     public newParticlesCounter = 0;

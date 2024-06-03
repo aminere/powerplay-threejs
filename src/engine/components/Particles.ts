@@ -2,7 +2,7 @@ import { BufferAttribute, Color, DynamicDrawUsage, MathUtils, Object3D, Points, 
 import { Component } from "../ecs/Component";
 import { TArray } from "../serialization/TArray";
 import { time } from "../core/Time";
-import { ParticleState } from "./ParticlesState";
+import { ParticlesState } from "./ParticlesState";
 import { ParticlesProps } from "./ParticlesProps";
 import * as Attributes from "../serialization/Attributes";
 
@@ -44,7 +44,7 @@ const particleVelocity = new Vector3();
 @Attributes.componentRequires(obj => {
     return obj instanceof Points && (obj as Points).material instanceof ShaderMaterial;
 })
-export class Particles extends Component<ParticlesProps, ParticleState> {
+export class Particles extends Component<ParticlesProps, ParticlesState> {
 
     constructor(props?: Partial<ParticlesProps>) {
         super(new ParticlesProps(props));
@@ -60,7 +60,7 @@ export class Particles extends Component<ParticlesProps, ParticleState> {
         geometry.setAttribute('size', new BufferAttribute(sizes, 1).setUsage(DynamicDrawUsage));
         geometry.setDrawRange(0, 0);
         geometry.computeBoundingSphere();  
-        this.setState(new ParticleState(this.props.maxParticles));
+        this.setState(new ParticlesState(this.props.maxParticles));
         this.initEmitter();
     }
 
