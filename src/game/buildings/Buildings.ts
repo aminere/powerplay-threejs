@@ -14,7 +14,7 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { Assemblies } from "./Assemblies";
 import { elevation } from "../Elevation";
 import { objects } from "../../engine/resources/Objects";
-import { Particles } from "../../engine/components/Particles";
+import { Particles } from "../../engine/components/particles/Particles";
 
 const { cellSize, mapRes, elevationStep } = config.game;
 const verticesPerRow = mapRes + 1;

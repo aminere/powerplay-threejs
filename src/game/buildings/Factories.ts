@@ -8,7 +8,7 @@ import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
 import { resourceConfig } from "../config/ResourceConfig";
 import { utils } from "../../engine/Utils";
-import { Particles } from "../../engine/components/Particles";
+import { Particles } from "../../engine/components/particles/Particles";
 
 const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 

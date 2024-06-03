@@ -9,7 +9,7 @@ import { MineralType } from "../GameDefinitions";
 import { buildingConfig } from "../config/BuildingConfig";
 import { evtBuildingStateChanged } from "../../Events";
 import { config } from "../config/config";
-import { Particles } from "../../engine/components/Particles";
+import { Particles } from "../../engine/components/particles/Particles";
 
 const cellCoords = new Vector2();
 const { productionTime } = config.mines;

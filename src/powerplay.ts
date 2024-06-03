@@ -27,7 +27,7 @@ export type { IFactoryState, IBuildingInstance } from "./game/buildings/Building
 export { serializeGameMap } from "./game/GameSerialization";
 
 export { Animator } from "./engine/components/Animator";
-export { Particles } from "./engine/components/Particles";
+export { Particles } from "./engine/components/particles/Particles";
 export { trees } from "./game/Trees";
 export { terrain } from "./game/Terrain";
 

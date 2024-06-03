@@ -13,6 +13,8 @@ export class Component<T extends ComponentProps, S extends IComponentState = {}>
         this.props = props ?? {} as T;        
     }
 
+    mount(_owner: Object3D) { }
+
     start(_owner: Object3D) { }
 
     update(_owner: Object3D) { }

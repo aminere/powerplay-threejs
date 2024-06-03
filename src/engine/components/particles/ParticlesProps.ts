@@ -1,7 +1,7 @@
 import { Color, Vector2 } from "three";
-import { ComponentProps } from "../ecs/ComponentProps";
-import { TArray } from "../serialization/TArray";
-import * as Attributes from "../serialization/Attributes";
+import { ComponentProps } from "../../ecs/ComponentProps";
+import { TArray } from "../../serialization/TArray";
+import * as Attributes from "../../serialization/Attributes";
 
 const ParticleDirections = [
     "static",
@@ -22,9 +22,9 @@ export class ParticlesProps extends ComponentProps {
     maxParticles = 128;
     particlesPerSecond = 30;
     life = new Vector2(1, 2);
-    gravity = -10;
+    gravity = 0;
     initialSpeed = new Vector2(1, 2);
-    initialSize = new Vector2(1, 2);
+    initialSize = new Vector2(.1, .2);
     initialColor = new Color(0xffffff);
     initialAlpha = 1;
     radius = 1;
