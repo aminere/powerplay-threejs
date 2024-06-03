@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Quaternion, Scene, WebGLRenderer } from "three";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
@@ -10,6 +10,8 @@ import { time } from "./core/Time";
 import { utils } from "./Utils";
 import { cmdRenderUI, cmdUpdateUI, evtSceneCreated, evtScreenResized } from "../Events";
 import gsap from "gsap";
+import { Billboard } from "./components/Billboard";
+import { InstancedParticles } from "./components/particles/InstancedParticles";
 
 export interface ISceneInfo {
     name: string;
@@ -18,6 +20,8 @@ export interface ISceneInfo {
 }
 
 type Runtime = "editor" | "game";
+
+const quaternion = new Quaternion();
 
 class Engine {
     public get renderer() { return this._renderer; }
@@ -78,6 +82,22 @@ class Engine {
 
     public render(camera: Camera) {
         this._renderer!.clear();
+
+        const billboardQuaternion = camera.getWorldQuaternion(quaternion);
+        for (const owner of engineState.billboards) {
+            if (owner.visible) {
+                const billboard = utils.getComponent(Billboard, owner)!;
+                billboard.setQuaternion(owner, billboardQuaternion);
+            }
+        }
+
+        for (const owner of engineState.instancedParticles) {
+            if (owner.visible) {
+                const particles = utils.getComponent(InstancedParticles, owner)!;
+                particles.updateGeometry(owner, billboardQuaternion);
+            }
+        }
+
         this._renderer!.render(this._scene!, camera);
     }
 
