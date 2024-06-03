@@ -1,5 +1,5 @@
 
-import { BufferAttribute, BufferGeometry, Euler, MathUtils, Mesh, Object3D, Vector2, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { Component } from "../../engine/ecs/Component";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { ISerializedAssembly, ISerializedFactory, ISerializedGameMap, TSerializedBuilding } from "../GameSerialization";
@@ -18,11 +18,10 @@ import { conveyorItems } from "../ConveyorItems";
 import { trees } from "../Trees";
 import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
-import { cmdFogAddCircle, cmdOpenInGameMenu, cmdRenderUI, cmdRotateMinimap, cmdShowUI } from "../../Events";
+import { cmdFogAddCircle, cmdRenderUI, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
-import gsap from "gsap";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
@@ -92,8 +91,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
     override start(owner: Object3D) {
         this.setState(new GameMapState());
-        this.onKeyUp = this.onKeyUp.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
 
         if (this.props.path.length > 0) {
             this.load(owner);
@@ -261,10 +258,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         updateCameraSize();
 
         const cameraPos = _cameraPos ?? GameUtils.vec3.zero;
-        setCameraPos(cameraPos);        
-
-        document.addEventListener("keyup", this.onKeyUp);
-        document.addEventListener("keydown", this.onKeyDown);
+        setCameraPos(cameraPos);
         cmdShowUI.post("gamemap");
 
         const updator = utils.createObject(root(), "GameMapUpdate");
@@ -300,9 +294,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             return;
         }
 
-        document.removeEventListener("keyup", this.onKeyUp);
-        document.removeEventListener("keydown", this.onKeyDown);
-
         cmdRenderUI.detach();
         cmdShowUI.post(null);
         conveyors.dispose();
@@ -312,66 +303,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         fogOfWar.dispose();
         this.state.dispose();
         GameUtils.clearCellCache();
-    }
-
-    private onKeyDown(e: KeyboardEvent) {
-        const key = e.key.toLowerCase();
-        this.state.pressedKeys.add(key);
-    }
-
-    private onKeyUp(e: KeyboardEvent) {
-        let cameraDirection = 0;
-        const key = e.key.toLowerCase();
-
-        switch (key) {
-            case 'q': cameraDirection = -1; break;
-            case 'e': cameraDirection = 1; break;
-            case "k": unitsManager.killSelection(); break;
-            case 'escape': {
-                if (this.state.config.tutorial) {
-                    cmdOpenInGameMenu.post(!this.state.inGameMenuOpen);
-                } else {
-                    if (this.state.action) {
-                        this.state.action = null;
-                    } else {
-                        cmdOpenInGameMenu.post(!this.state.inGameMenuOpen);
-                    }
-                }
-            }
-                break;
-        }
-        if (cameraDirection !== 0 && !this.state.cameraTween) {
-            this.state.cameraTween = gsap.to(this.state,
-                {
-                    cameraAngleRad: this.state.cameraAngleRad + Math.PI / 2 * cameraDirection,
-                    duration: .45,
-                    ease: "power2.out",
-                    onUpdate: () => {
-                        const [rotationX] = config.camera.rotation;
-                        this.state.cameraPivot.setRotationFromEuler(new Euler(MathUtils.degToRad(rotationX), this.state.cameraAngleRad, 0, 'YXZ'));
-                        cmdRotateMinimap.post(MathUtils.radToDeg(this.state.cameraAngleRad));
-                    },
-                    onComplete: () => {
-                        this.state.cameraTween = null;
-
-                        // rotate camera bounds
-                        const length = this.state.cameraBoundsAccessors.length;
-                        this.state.cameraBoundsAccessors = this.state.cameraBoundsAccessors.map((_, index) => {
-                            if (cameraDirection < 0) {
-                                return this.state.cameraBoundsAccessors[(index + 1) % length];
-                            } else {
-                                if (index === 0) {
-                                    return this.state.cameraBoundsAccessors[length - 1];
-                                } else {
-                                    return this.state.cameraBoundsAccessors[index - 1];
-                                }
-                            }
-                        });
-                    }
-                });
-        }
-
-        this.state.pressedKeys.delete(key);
-    }
+    }   
 }
 

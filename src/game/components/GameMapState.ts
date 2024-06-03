@@ -42,8 +42,7 @@ export class GameMapState {
         new Vector3(), // bottom
         new Vector3() // left
     ];
-
-    public pressedKeys = new Set<string>();
+    
     public previousTouchPos = new Vector2();
     public tileSelector: TileSector = null!;
     public raycastedCellCoords = new Vector2();

@@ -26,6 +26,7 @@ class Engine {
     public get runtime() { return this._runtime; }
     public get screenRect() { return this._screenRect; }
     public set paused(value: boolean) { this._paused = value; }
+    public get paused() { return this._paused; }
     
     private _renderer: WebGLRenderer | null = null;
     private _scene: Scene | null = null;
@@ -60,15 +61,19 @@ class Engine {
         time.update();
 
         if (this._paused) {
+            input.update();
+            input.postUpdate();
             return;
         }
         
         time.advance();
         gsap.updateRoot(time.time);
+
         input.update();
         this.updateComponents();
-        cmdUpdateUI.post();
         input.postUpdate();
+
+        cmdUpdateUI.post();
     }
 
     public render(camera: Camera) {
