@@ -55,7 +55,8 @@ export function SelectionRect() {
         style={{
             position: "absolute",
             border: "2px solid #7ac987",
-            display: "none"
+            display: "none",
+            pointerEvents: "none"
         }}
     />
 }

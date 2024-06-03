@@ -286,7 +286,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         //         Workers.pickResource(solider as ICharacterUnit, "ak47");
         //         unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
         //     });
-        // }
+        // }        
     }
 
     override dispose() {

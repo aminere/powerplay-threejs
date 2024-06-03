@@ -27,6 +27,7 @@ import { GameUtils } from "../GameUtils";
 import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
+import gsap from "gsap";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -39,7 +40,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
 
-    public set resource(value: ICarriedResource | null) { 
+    public set resource(value: ICarriedResource | null) {
         if (value?.type === this._resource?.type) {
             return;
         }
@@ -71,7 +72,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override setHitpoints(value: number): void {
-        if (value <= 0) {            
+        if (value <= 0) {
             engineState.removeComponent(UnitCollisionAnim, this.visual);
             this.resource = null;
         }
@@ -82,17 +83,23 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         unitAnimation.setAnimation(this, "death", {
             transitionDuration: 1,
             destAnimLoopMode: "Once"
-        });
-        setTimeout(() => {
-            const fadeDuration = 1;
-            engineState.setComponent(this.visual, new Fadeout({ duration: fadeDuration }));
-            setTimeout(() => {
-                skeletonPool.releaseSkeleton(this);
-                if (!UnitUtils.isEnemy(this)) {
-                    cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+        });        
+        
+        const fadeDuration = 1;
+        gsap.timeline()
+            .to({}, { duration: 2 })
+            .to({}, {
+                duration: fadeDuration,
+                onStart: () => {
+                    engineState.setComponent(this.visual, new Fadeout({ duration: fadeDuration }));
+                },
+                onComplete: () => {
+                    skeletonPool.releaseSkeleton(this);
+                    if (!UnitUtils.isEnemy(this)) {
+                        cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+                    }
                 }
-            }, fadeDuration * 1000);
-        }, 2000); // wait for the death anim to play a bit
+            }, `>0`);
     }
 
     public override onMove(bindSkeleton: boolean) {
@@ -100,10 +107,10 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         if (bindSkeleton) {
             unitAnimation.setAnimation(this, "run");
         }
-    }    
+    }
 
     public override clearAction() {
-        this._targetBuilding = null;        
+        this._targetBuilding = null;
 
         const soldierState = this.fsm.getState(SoldierState);
         if (soldierState) {
@@ -124,7 +131,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
         }
     }
-    
+
     public override onArriving() {
         if (this.isIdle) {
             unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
@@ -181,14 +188,14 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                         this.resource = null;
                     }
                 }
-                break;
+                    break;
 
                 case "assembly": {
                     if (Assemblies.tryDepositResource(instance, this.resource.type as ResourceType)) {
                         this.resource = null;
                     }
                 }
-                break;
+                    break;
             }
 
             const wasDeposited = this.resource === null;
@@ -203,7 +210,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     }
                     return true;
                 })();
-                
+
                 if (validSource) {
                     this._targetBuilding = this.targetCell.mapCoords.clone();
                     unitMotion.moveUnit(this, sourceCell);
@@ -235,9 +242,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                                 break;
                             }
                         }
-                    }                    
+                    }
                 }
-                break;
+                    break;
             }
         }
 
@@ -280,7 +287,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     return true;
                 }
             })();
-            
+
             if (isMining) {
                 return; // keep going
             }

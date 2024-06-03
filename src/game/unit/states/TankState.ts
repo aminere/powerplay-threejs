@@ -116,7 +116,9 @@ export class TankState extends State<ICharacterUnit> {
                             objects.load("/prefabs/tank-shot.json").then(_explosion => {
                                 const explosion = utils.instantiate(_explosion);
                                 this._cannon.add(explosion);
-                                setTimeout(() => engineState.removeObject(explosion), 2000);
+                                utils.postpone(2, () => {
+                                    engineState.removeObject(explosion);
+                                });
                             });
 
                             this._attackTimer = attackFrequency;

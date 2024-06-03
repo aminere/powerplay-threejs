@@ -142,11 +142,11 @@ export class Unit implements IUnit {
     public onDeath() {
         const fadeDuration = 1;
         engineState.setComponent(this._visual, new Fadeout({ duration: fadeDuration }));
-        setTimeout(() => {
-            if (!UnitUtils.isEnemy(this)) {
+        if (!UnitUtils.isEnemy(this)) {
+            utils.postpone(fadeDuration, () => {
                 cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
-            }
-        }, fadeDuration * 1000);
+            });
+        }
     }
 
     public onMove(_bindSkeleton: boolean) {}

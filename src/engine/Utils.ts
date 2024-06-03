@@ -6,6 +6,7 @@ import { TArray } from "./serialization/TArray";
 import { LoopMode } from "./serialization/Types";
 import { serialization } from "./serialization/Serialization";
 import { engineState } from "./EngineState";
+import gsap from "gsap";
 
 const lightDir = new Vector3();
 const worldPos = new Vector3();
@@ -144,6 +145,10 @@ class Utils {
             }
         });
         return instance;
+    }
+
+    public postpone(delay: number, cb: () => void) {
+        gsap.to({}, { duration: delay, onComplete: cb });
     }
 }
 

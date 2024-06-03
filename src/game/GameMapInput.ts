@@ -273,6 +273,10 @@ function checkKeyboardInput() {
             }
         }
     }
+
+    if (input.keyJustReleased.has("k")) {
+        unitsManager.killSelection();
+    }
 }
 
 export class GameMapInput {
