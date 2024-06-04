@@ -82,18 +82,18 @@ class Engine {
     public render(camera: Camera) {
         this._renderer!.clear();
 
-        const billboardQuaternion = camera.getWorldQuaternion(quaternion);
+        const billboardRotation = camera.getWorldQuaternion(quaternion);
         for (const owner of engineState.billboards) {
             if (owner.visible) {
                 const billboard = utils.getComponent(Billboard, owner)!;
-                billboard.setQuaternion(owner, billboardQuaternion);
+                billboard.setRotation(owner, billboardRotation);
             }
         }
 
         for (const owner of engineState.instancedParticles) {
             if (owner.visible) {
                 const particles = utils.getComponent(InstancedParticles, owner)!;
-                particles.updateGeometry(owner, billboardQuaternion);
+                particles.updateGeometry(owner, billboardRotation);
             }
         }
 
