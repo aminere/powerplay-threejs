@@ -25,7 +25,8 @@ export class ParticlesProps extends ComponentProps {
     gravity = 0;
     initialSpeed = new Vector2(1, 2);
     initialSize = new Vector2(1, 1);
-    initialColor = new Color(0xffffff);
+    initialColor1 = new Color(0xffffff);
+    initialColor2 = new Color(0xffffff);
     initialAlpha = 1;
     radius = 1;
 

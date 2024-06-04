@@ -7,6 +7,7 @@ import { TArray } from "../../serialization/TArray";
 const particleDirection = new Vector3();
 const particleVelocity = new Vector3();
 const particlePos = new Vector3();
+const white = new Color(0xffffff);
 
 function randomRange(range: Vector2) {
     return MathUtils.randFloat(range.x, range.y);
@@ -115,11 +116,13 @@ export class ParticlesEmitter {
                     state.setVector3("position", i, particlePos);
 
                     // color
+                    const color = dummyColor.lerpColors(props.initialColor1, props.initialColor2, Math.random());
+                    state.setColor("initialColor", i, color);
                     if (props.colorOverLife.data.length > 0) {
                         const color = evaluateColorOverLife(props.colorOverLife, 0);
-                        state.setColor(i, color);
+                        state.setColor("color", i, color);
                     } else {
-                        state.setColor(i, props.initialColor);
+                        state.setColor("color", i, white);
                     }
 
                     if (props.alphaOverLife.data.length > 0) {
@@ -173,7 +176,7 @@ export class ParticlesEmitter {
                     // update color
                     if (props.colorOverLife.length > 0) {
                         const color = evaluateColorOverLife(props.colorOverLife, lifeFactor);
-                        state.setColor(i, color);
+                        state.setColor("color", i, color);
                     }
 
                     if (props.alphaOverLife.length > 0) {

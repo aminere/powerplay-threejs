@@ -1,4 +1,4 @@
-import { Color, InstancedMesh, Matrix4, Object3D, Quaternion, Vector3 } from "three";
+import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
 import { Component } from "../../ecs/Component";
 import { ParticlesProps } from "./ParticlesProps";
 import { ParticlesState } from "./ParticlesState";
@@ -6,7 +6,9 @@ import { ParticlesEmitter } from "./ParticlesEmitter";
 import * as Attributes from "../../serialization/Attributes";
 
 const particlePos = new Vector3();
-const dummyColor = new Color();
+const color = new Color();
+const color2 = new Color();
+const color3 = new Color();
 const matrix = new Matrix4();
 const scale = new Vector3();
 
@@ -15,7 +17,7 @@ const scale = new Vector3();
 })
 export class InstancedParticles extends Component<ParticlesProps, ParticlesState> {
 
-    public static typename = "InstancedParticles";
+    public static typename = "InstancedParticles" as const;
 
     constructor(props?: Partial<ParticlesProps>) {
         super(new ParticlesProps(props));
@@ -35,7 +37,7 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         owner.count = 0;
     }
 
-    public updateGeometry(owner: InstancedMesh, quaternion: Quaternion) {
+    public updateGeometry(owner: InstancedMesh, rotation: Quaternion) {
 
         if (!this.state) {
             return;
@@ -63,15 +65,16 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
 
             const size = this.state.getData("size", i);
             const initialSize = this.state.getData("initialSize", i);
-            this.state.getColor(i, dummyColor);
+            this.state.getColor("initialColor", i, color);
+            this.state.getColor("color", i, color2);            
             const alpha = this.state.getAlpha(i);
-            dummyColor.multiplyScalar(alpha);
-
+            color3.copy(color).multiply(color2).multiplyScalar(alpha);
+            
             const _size = size * initialSize;
             scale.set(_size, _size, _size);
-            matrix.compose(particlePos, quaternion, scale);
+            matrix.compose(particlePos, rotation, scale);
             owner.setMatrixAt(index, matrix);            
-            owner.setColorAt(index, dummyColor);
+            owner.setColorAt(index, color3);
 
             --particlesToProcess;
             index++;

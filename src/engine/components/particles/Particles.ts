@@ -6,7 +6,9 @@ import * as Attributes from "../../serialization/Attributes";
 import { ParticlesEmitter } from "./ParticlesEmitter";
 
 const particlePos = new Vector3();
-const dummyColor = new Color();
+const color = new Color();
+const color2 = new Color();
+const color3 = new Color();
 
 @Attributes.componentRequires(obj => {
     return obj instanceof Points && (obj as Points).material instanceof ShaderMaterial;
@@ -70,9 +72,11 @@ export class Particles extends Component<ParticlesProps, ParticlesState> {
             sizes.setX(index, initialSize * size);
 
             // Apply color
-            this.state.getColor(i, dummyColor);
+            this.state.getColor("initialColor", i, color);
+            this.state.getColor("color", i, color2);            
+            color3.copy(color).multiply(color2);
             const alpha = this.state.getAlpha(i);
-            colors.setXYZW(index, dummyColor.r, dummyColor.g, dummyColor.b, alpha);
+            colors.setXYZW(index, color3.r, color3.g, color3.b, alpha);
             --particlesToProcess;
             index++;
         }

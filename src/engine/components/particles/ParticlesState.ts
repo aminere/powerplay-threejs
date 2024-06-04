@@ -8,14 +8,16 @@ const dataOffsets = {
     life: 10, // number    
     remainingLife: 11, // number    
     size: 12, // number    
-    initialSize: 13, // number    
-    speed: 14, // number
-    active: 15, // number
-    MAX: 16
+    initialSize: 13, // number
+    initialColor: 14, // Color RGB
+    speed: 17, // number
+    active: 18, // number
+    MAX: 19
 };
 
 type DataOffset = Exclude<keyof typeof dataOffsets, "MAX">;
 type Vector3Offset = "position" | "direction";
+type ColorOffset = "color" | "initialColor";
 
 function getDataOffset(name: DataOffset, particleIndex: number, localOffset: number) {
     return (particleIndex * dataOffsets.MAX) + dataOffsets[name] + localOffset;
@@ -58,16 +60,16 @@ export class ParticlesState implements IComponentState {
         result.z = this.getData(name, particleIndex, 2);
     }
 
-    setColor(particleIndex: number, value: Color) {
-        this.setData("color", particleIndex, value.r, 0);
-        this.setData("color", particleIndex, value.g, 1);
-        this.setData("color", particleIndex, value.b, 2);
+    setColor(name: ColorOffset, particleIndex: number, value: Color) {
+        this.setData(name, particleIndex, value.r, 0);
+        this.setData(name, particleIndex, value.g, 1);
+        this.setData(name, particleIndex, value.b, 2);
     }
 
-    getColor(particleIndex: number, result: Color) {
-        result.r = this.getData("color", particleIndex, 0);
-        result.g = this.getData("color", particleIndex, 1);
-        result.b = this.getData("color", particleIndex, 2);        
+    getColor(name: ColorOffset, particleIndex: number, result: Color) {
+        result.r = this.getData(name, particleIndex, 0);
+        result.g = this.getData(name, particleIndex, 1);
+        result.b = this.getData(name, particleIndex, 2);        
     }
 
     setAlpha(particleIndex: number, value: number) {
