@@ -169,5 +169,9 @@ export class Unit implements IUnit {
             unitMotion.endMotion(this);
         }
     }
+
+    public dispose() {
+        this._fsm.dispose();
+    }
 }
 

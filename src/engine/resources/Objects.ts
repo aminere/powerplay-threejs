@@ -5,6 +5,11 @@ class Objects {
     private _cache = new Map<string, Object3D>();
     private _loading = new Map<string, Promise<Object3D>>();
 
+    public loadImmediate(path: string) {
+        const cached = this._cache.get(path);
+        return cached;
+    }
+
     public async load(path: string) {
         const cached = this._cache.get(path);
         if (cached) {

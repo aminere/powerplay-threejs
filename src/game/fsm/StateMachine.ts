@@ -5,6 +5,7 @@ export class State<T> {
     enter(_owner: T) {}
     exit(_owner: T) {}
     update(_owner: T) {}
+    dispose(_owner: T) {}
 }
 
 interface IStateMachineProps<T> {
@@ -44,6 +45,10 @@ export class StateMachine<T> {
         } else {
             return null;
         }
+    }
+
+    public dispose() {
+        this._currentState?.dispose(this._owner);
     }
 }
 

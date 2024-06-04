@@ -42,5 +42,6 @@ export interface IUnit {
     onReachedBuilding: (cell: ICell) => void;
     onReachedResource: (cell: ICell) => void;
     onCollidedWhileMoving: (unit: IUnit) => void;
+    dispose: () => void;
 }
 

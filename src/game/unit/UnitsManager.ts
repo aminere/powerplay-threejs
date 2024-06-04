@@ -118,6 +118,11 @@ class UnitsManager {
         cmdSpawnUnit.detach(this.onSpawnUnit);
         skeletonManager.dispose();
         skeletonPool.dispose();
+
+        for (const unit of this._units) {
+            unit.dispose();
+        }
+
         this._units.length = 0;
         this._selectedUnits.length = 0;
         this._dragStarted = false;

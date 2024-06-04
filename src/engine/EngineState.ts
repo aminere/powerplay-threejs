@@ -99,8 +99,10 @@ class EngineState {
         const list = this._componentsMap.get(typename);
         if (list) {
             const index = list.findIndex(i => i.owner === owner);
-            console.assert(index >= 0);
+            console.assert(index >= 0);            
             utils.fastDelete(list, index);
+        } else {
+            console.assert(false);
         }
 
         switch (typename) {

@@ -11,6 +11,7 @@ import { utils } from "../../../engine/Utils";
 import { objects } from "../../../engine/resources/Objects";
 import { engineState } from "../../../engine/EngineState";
 import { unitConfig } from "../../config/UnitConfig";
+import gsap from "gsap";
 
 const shootRange = 10;
 const splashRadius = 1;
@@ -50,6 +51,7 @@ export class TankState extends State<ICharacterUnit> {
     private _step = TankStep.Idle;
     private _attackTimer = 0;    
     private _cannon!: Object3D;
+    private _tweens: gsap.core.Tween[] = [];
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
@@ -113,13 +115,15 @@ export class TankState extends State<ICharacterUnit> {
                             muzzleFlash.visible = true;
                             setTimeout(() => muzzleFlash.visible = false, MathUtils.randInt(50, 100));
 
-                            objects.load("/prefabs/tank-shot.json").then(_explosion => {
-                                const explosion = utils.instantiate(_explosion);
-                                this._cannon.add(explosion);
-                                utils.postpone(2, () => {
-                                    engineState.removeObject(explosion);
-                                });
+                            const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
+                            const explosion = utils.instantiate(_explosion);
+                            this._cannon.add(explosion);
+                            
+                            const tween = gsap.delayedCall(2, () => {
+                                engineState.removeObject(explosion);
+                                this._tweens.splice(0, 1);
                             });
+                            this._tweens.push(tween);
 
                             this._attackTimer = attackFrequency;
                         } else {
@@ -140,6 +144,13 @@ export class TankState extends State<ICharacterUnit> {
 
     public stopAttack() {
         this._step = TankStep.Idle;
+    }
+
+    override dispose() {
+        for (const tween of this._tweens) {
+            tween.kill();
+        }
+        this._tweens.length = 0;
     }
 }
 
