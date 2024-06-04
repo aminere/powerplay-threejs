@@ -8,7 +8,7 @@ import { config } from "../config/config";
 import { evtBuildingStateChanged } from "../../Events";
 import { resourceConfig } from "../config/ResourceConfig";
 import { utils } from "../../engine/Utils";
-import { Particles } from "../../engine/components/particles/Particles";
+import { InstancedParticles } from "../../engine/components/particles/InstancedParticles";
 
 const { inputCapacity, productionTime, inputAccepFrequency } = config.factories;
 
@@ -45,7 +45,7 @@ function canAcceptResource(instance: IBuildingInstance, type: RawResourceType | 
 function setFactoryActive(state: IFactoryState, active: boolean) {
     state.active = active;
     for (const smoke of state.smoke) {
-        const particles = utils.getComponent(Particles, smoke)!;
+        const particles = utils.getComponent(InstancedParticles, smoke)!;
         particles.state.isEmitting = active;
     }
 }

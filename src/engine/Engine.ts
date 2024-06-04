@@ -75,9 +75,8 @@ class Engine {
 
         input.update();
         this.updateComponents();
-        input.postUpdate();
-
         cmdUpdateUI.post();
+        input.postUpdate();
     }
 
     public render(camera: Camera) {

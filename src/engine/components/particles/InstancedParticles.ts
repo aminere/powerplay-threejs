@@ -21,9 +21,10 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         super(new ParticlesProps(props));
     }
 
-    override start(_owner: Object3D) {
+    override start(owner: InstancedMesh) {
         this.setState(new ParticlesState(this.props.maxParticles));
         ParticlesEmitter.init(this.state, this.props.duration);
+        owner.computeBoundingSphere();
     }
 
     override update(_owner: InstancedMesh) {
@@ -42,6 +43,7 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
 
         let index = 0;
         let particlesToProcess = this.state.particleCount;
+        let radiusSq = 0;
         for (let i = 0; i < this.props.maxParticles; ++i) {
             if (particlesToProcess === 0) {
                 // early break if no more particles to process
@@ -54,6 +56,11 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
             }
 
             this.state.getVector3("position", i, particlePos);
+            const lengthSq = particlePos.lengthSq();
+            if (lengthSq > radiusSq) {
+                radiusSq = lengthSq;
+            }
+
             const size = this.state.getData("size", i);
             const initialSize = this.state.getData("initialSize", i);
             this.state.getColor(i, dummyColor);
@@ -71,10 +78,11 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         }
 
         owner.count = index;
+        owner.boundingSphere!.radius = Math.sqrt(radiusSq);
         owner.instanceMatrix.needsUpdate = true;
         if (owner.instanceColor) {
             owner.instanceColor.needsUpdate = true;
-        }        
+        }
     }
 }
 

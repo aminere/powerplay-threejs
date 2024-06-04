@@ -9,7 +9,7 @@ import { MineralType } from "../GameDefinitions";
 import { buildingConfig } from "../config/BuildingConfig";
 import { evtBuildingStateChanged } from "../../Events";
 import { config } from "../config/config";
-import { Particles } from "../../engine/components/particles/Particles";
+import { InstancedParticles } from "../../engine/components/particles/InstancedParticles";
 
 const cellCoords = new Vector2();
 const { productionTime } = config.mines;
@@ -30,7 +30,7 @@ function consumeResource(instance: IBuildingInstance) {
 
 function setMineActive(state: IMineState, active: boolean) {
     state.active = active;
-    const particles = utils.getComponent(Particles, state.smoke)!;
+    const particles = utils.getComponent(InstancedParticles, state.smoke)!;
     particles.state.isEmitting = active;
 }
 
