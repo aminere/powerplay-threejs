@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, Object3D, Points, Vector2 } from "three";
+import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
@@ -14,7 +14,7 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { Assemblies } from "./Assemblies";
 import { elevation } from "../Elevation";
 import { objects } from "../../engine/resources/Objects";
-import { Particles } from "../../engine/components/particles/Particles";
+import { InstancedParticles } from "../../engine/components/particles/InstancedParticles";
 
 const { cellSize, mapRes, elevationStep } = config.game;
 const verticesPerRow = mapRes + 1;
@@ -75,12 +75,12 @@ class Buildings {
         const visual = utils.instantiate(instance.prefab);
 
         // make sure particle geometries are unique
-        visual.traverse(v => {
-            const particles = utils.getComponent(Particles, v);
-            if (particles) {
-                (v as Points).geometry = (v as Points).geometry.clone();
-            }
-        });
+        // visual.traverse(v => {
+        //     const particles = utils.getComponent(Particles, v);
+        //     if (particles) {
+        //         (v as Points).geometry = (v as Points).geometry.clone();
+        //     }
+        // });
 
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
@@ -178,7 +178,7 @@ class Buildings {
 
         // remove particles from Hologram
         visual.traverse(child => {
-            const particles = utils.getComponent(Particles, child);
+            const particles = utils.getComponent(InstancedParticles, child);
             if (particles) {
                 child.visible = false;
             }
