@@ -4,7 +4,6 @@ import { ParticlesProps } from "./ParticlesProps";
 import { ParticlesState } from "./ParticlesState";
 import { TArray } from "../../serialization/TArray";
 
-const particleDirection = new Vector3();
 const particleVelocity = new Vector3();
 const particlePos = new Vector3();
 const white = new Color(0xffffff);
@@ -99,17 +98,15 @@ export class ParticlesEmitter {
                         state.setData("size", i, 1);
                     }
 
-                    // speed
-                    state.setData("speed", i, randomRange(props.initialSpeed));
-
-                    // direction
-                    particlePos.set(MathUtils.randInt(-1, 1), MathUtils.randInt(-1, 1), MathUtils.randInt(-1, 1)).normalize();
+                    // velocity
+                    particlePos.set(MathUtils.randFloat(-1, 1), MathUtils.randFloat(-1, 1), MathUtils.randFloat(-1, 1)).normalize();
                     if (props.direction === "awayFromCenter") {
-                        particleDirection.copy(particlePos).normalize();
+                        particleVelocity.copy(particlePos);
                     } else {
-                        particleDirection.set(0, 1, 0);
+                        particleVelocity.set(0, 1, 0);
                     }
-                    state.setVector3("direction", i, particleDirection);
+                    const speed = randomRange(props.initialSpeed);
+                    state.setVector3("velocity", i, particleVelocity.multiplyScalar(speed));
 
                     // position
                     particlePos.multiplyScalar(MathUtils.randFloat(0, props.radius));
@@ -149,27 +146,20 @@ export class ParticlesEmitter {
                     const lifeFactor = 1 - (remainingLife / life);
 
                     // active particle, update it
-                    state.getVector3("direction", i, particleDirection);
-                    let speed = state.getData("speed", i);
-
-                    if (props.speedOverLife.length > 0) {
-                        const speedOverLife = evaluateValueOverLife(props.speedOverLife, lifeFactor);
-                        speed *= speedOverLife;
-                    }
-
-                    particleVelocity.set(0, 0, 0).addScaledVector(particleDirection, speed);
+                    state.getVector3("velocity", i, particleVelocity);                    
 
                     // apply gravity
                     if (props.gravity !== 0) {
                         particleVelocity.y += props.gravity * deltaTime;
-                        particleDirection.copy(particleVelocity).normalize();
-                        state.setVector3("direction", i, particleDirection);
-                        const newSpeed = particleVelocity.length();
-                        state.setData("speed", i, newSpeed);
+                        state.setVector3("velocity", i, particleVelocity);
                     }
 
-                    // update velocity
+                    // update position
                     state.getVector3("position", i, particlePos);
+                    if (props.speedOverLife.length > 0) {
+                        const speedOverLife = evaluateValueOverLife(props.speedOverLife, lifeFactor);
+                        particleVelocity.multiplyScalar(speedOverLife);
+                    }
                     particlePos.addScaledVector(particleVelocity, deltaTime);
                     state.setVector3("position", i, particlePos);
 

@@ -3,20 +3,19 @@ import { IComponentState } from "../../ecs/Component";
 
 const dataOffsets = {    
     position: 0, // Vector3    
-    direction: 3, // Vector3
+    velocity: 3, // Vector3
     color: 6, // Color RGBA    
     life: 10, // number    
     remainingLife: 11, // number    
     size: 12, // number    
     initialSize: 13, // number
-    initialColor: 14, // Color RGB
-    speed: 17, // number
-    active: 18, // number
-    MAX: 19
+    initialColor: 14, // Color RGB    
+    active: 17, // number
+    MAX: 18
 };
 
 type DataOffset = Exclude<keyof typeof dataOffsets, "MAX">;
-type Vector3Offset = "position" | "direction";
+type Vector3Offset = "position" | "velocity";
 type ColorOffset = "color" | "initialColor";
 
 function getDataOffset(name: DataOffset, particleIndex: number, localOffset: number) {

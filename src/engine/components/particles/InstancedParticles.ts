@@ -4,6 +4,7 @@ import { ParticlesProps } from "./ParticlesProps";
 import { ParticlesState } from "./ParticlesState";
 import { ParticlesEmitter } from "./ParticlesEmitter";
 import * as Attributes from "../../serialization/Attributes";
+import { utils } from "../../Utils";
 
 const particlePos = new Vector3();
 const color = new Color();
@@ -24,9 +25,14 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
     }
 
     override start(owner: InstancedMesh) {
-        this.setState(new ParticlesState(this.props.maxParticles));
-        ParticlesEmitter.init(this.state, this.props.duration);
+        this.setState(new ParticlesState(this.props.maxParticles));        
         owner.computeBoundingSphere();
+
+        ParticlesEmitter.init(this.state, this.props.duration);
+        if (this.props.delay > 0) {
+            this.state.isEmitting = false;
+            utils.postpone(this.props.delay, () => this.state.isEmitting = true);
+        }
     }
 
     override update(_owner: InstancedMesh) {

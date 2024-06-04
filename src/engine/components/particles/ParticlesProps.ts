@@ -18,6 +18,7 @@ export class ParticlesProps extends ComponentProps {
     }
 
     duration = 6;
+    delay = 0;
     isLooping = false;
     maxParticles = 128;
     particlesPerSecond = 30;
