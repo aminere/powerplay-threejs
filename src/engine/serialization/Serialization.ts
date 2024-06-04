@@ -5,6 +5,16 @@ import { utils } from "../Utils";
 import { ComponentProps } from "../ecs/ComponentProps";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
 
+function parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
+    callback(a, b);
+    for (let i = 0; i < a.children.length; i++) {
+        if (i >= b.children.length) {
+            break;
+        }
+        parallelTraverse(a.children[i], b.children[i], callback);
+    }
+}
+
 class Serialization {
 
     private _loader = new ObjectLoader();   
@@ -38,12 +48,14 @@ class Serialization {
 
     public deserialize(serialized: string, target?: Object3D) {
         const newInstance = this._loader.parse(JSON.parse(serialized));
-        if (target) {            
-            this.parallelTraverse(target, newInstance, (_target, _newInstance) => {
+        if (target) {
+            parallelTraverse(target, newInstance, (_target, _newInstance) => {
                 if (_target.userData.unserializable) {
                     console.log(`skipping deserialization of ${_target.name}`);
                     return;
                 }
+
+                const liveUserData = _target.userData;
 
                 if ((_target as SkinnedMesh).isSkinnedMesh) {
                     // Avoid affecting the existing skeleton
@@ -52,7 +64,6 @@ class Serialization {
                     _target.copy(_newInstance, false);
                 }
 
-                const liveUserData = _target.userData;
                 _target.userData = {
                     ...liveUserData,
                     ..._newInstance.userData
@@ -111,17 +122,7 @@ class Serialization {
                 }                
             }
         }
-    }
-
-    private parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
-        callback(a, b);
-        for (let i = 0; i < a.children.length; i++) {
-            if (i >= b.children.length) {
-                break;
-            }
-            this.parallelTraverse(a.children[i], b.children[i], callback);
-        }
-    }    
+    }     
 }
 
 export const serialization = new Serialization();
