@@ -117,6 +117,8 @@ export class TankState extends State<ICharacterUnit> {
 
                             const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
                             const explosion = utils.instantiate(_explosion);
+                            explosion.position.set(0, .12, 1.48);
+                            explosion.scale.setScalar(.06);
                             this._cannon.add(explosion);
                             
                             const tween = gsap.delayedCall(2, () => {
