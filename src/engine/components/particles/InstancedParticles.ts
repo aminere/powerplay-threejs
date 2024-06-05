@@ -1,4 +1,4 @@
-import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
+import { Camera, Color, InstancedMesh, Matrix4, Quaternion, Renderer, Scene, Vector3 } from "three";
 import { Component } from "../../ecs/Component";
 import { ParticlesProps } from "./ParticlesProps";
 import { ParticlesState } from "./ParticlesState";
@@ -12,14 +12,12 @@ const color2 = new Color();
 const color3 = new Color();
 const matrix = new Matrix4();
 const scale = new Vector3();
+const quaternion = new Quaternion();
 
 @Attributes.componentRequires(obj => {
     return obj instanceof InstancedMesh
 })
 export class InstancedParticles extends Component<ParticlesProps, ParticlesState> {
-
-    public static typename = "InstancedParticles" as const;
-
     constructor(props?: Partial<ParticlesProps>) {
         super(new ParticlesProps(props));
     }
@@ -35,23 +33,33 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         }
     }
 
-    override update(_owner: InstancedMesh) {
+    override update(owner: InstancedMesh) {
         ParticlesEmitter.update(this.state, this.props);
+        this.updateGeometry(owner);
     }
 
     override mount(owner: InstancedMesh) { 
         owner.count = 0;
+
+        owner.userData.cameraRotation = new Quaternion();
+        owner.onBeforeRender = (_renderer: Renderer, _scene: Scene, camera: Camera) => {
+            const { worldRotation: cameraRotation } = camera.userData;
+            owner.userData.cameraRotation.copy(cameraRotation);
+        };
     }
 
-    public updateGeometry(owner: InstancedMesh, rotation: Quaternion) {
-
-        if (!this.state) {
-            return;
-        }
-
+    private updateGeometry(owner: InstancedMesh) {
         let index = 0;
         let particlesToProcess = this.state.particleCount;
         let radiusSq = 0;
+
+        // world = parent * local
+        // local = world * invParent
+        const { cameraRotation } = owner.userData;
+        const parentRotation = owner.parent!.getWorldQuaternion(quaternion);
+        const invParentRotation = parentRotation.invert();
+        const localParticleRotation = invParentRotation.multiply(cameraRotation);
+
         for (let i = 0; i < this.props.maxParticles; ++i) {
             if (particlesToProcess === 0) {
                 // early break if no more particles to process
@@ -78,7 +86,7 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
             
             const _size = size * initialSize;
             scale.set(_size, _size, _size);
-            matrix.compose(particlePos, rotation, scale);
+            matrix.compose(particlePos, localParticleRotation, scale);
             owner.setMatrixAt(index, matrix);            
             owner.setColorAt(index, color3);
 

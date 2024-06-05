@@ -1,16 +1,12 @@
-import { AnimationClip, InstancedMesh, Object3D } from "three";
+import { AnimationClip, Object3D } from "three";
 import { Component, IComponentInstance } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
 import { utils } from "./Utils";
-import { Billboard } from "./components/Billboard";
-import { InstancedParticles } from "./components/particles/InstancedParticles";
 
 class EngineState {
 
     public get components() { return this._componentsMap; }
     public get animations() { return this._animations; }
-    public get billboards() { return this._billboards; }
-    public get instancedParticles() { return this._instancedParticles; }
 
     private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
     private _componentsToRegister = new Array<IComponentInstance<Component<ComponentProps>>>();
@@ -18,8 +14,6 @@ class EngineState {
         owner: Object3D;
         clip: AnimationClip;
     }>();
-    private _billboards: Object3D[] = [];
-    private _instancedParticles: InstancedMesh[] = [];
 
     public clear() {
         this._animations.clear();
@@ -81,15 +75,6 @@ class EngineState {
         } else {
             this._componentsMap.set(typename, [{ owner, component }]);
         }
-        
-        switch (typename) {
-            case Billboard.typename:
-                this._billboards.push(owner);
-                break;
-            case InstancedParticles.typename:
-                this._instancedParticles.push(owner as InstancedMesh);
-                break;
-        }
 
         component.mount(owner);
     }
@@ -103,22 +88,7 @@ class EngineState {
             utils.fastDelete(list, index);
         } else {
             console.assert(false);
-        }
-
-        switch (typename) {
-            case Billboard.typename: {
-                const index = this._billboards.indexOf(owner);
-                console.assert(index >= 0);
-                utils.fastDelete(this._billboards, index);
-            }
-                break;
-            case InstancedParticles.typename: {
-                const index = this._instancedParticles.indexOf(owner as InstancedMesh);
-                console.assert(index >= 0);
-                utils.fastDelete(this._instancedParticles, index);
-            }
-                break;
-        }
+        }       
     }
 
     public registerAnimations(obj: Object3D) {

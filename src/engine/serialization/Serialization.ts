@@ -1,4 +1,4 @@
-import { DirectionalLight, Mesh, Object3D, ObjectLoader, SkinnedMesh } from "three";
+import { DirectionalLight, Mesh, Object3D, ObjectLoader, Quaternion, SkinnedMesh } from "three";
 import { Component, IComponentState } from "../ecs/Component";
 import { componentFactory } from "../ecs/ComponentFactory";
 import { utils } from "../Utils";
@@ -102,9 +102,16 @@ class Serialization {
         if (light.isDirectionalLight) {
             utils.updateDirectionalLightTarget(light);
         }
+
         const { eulerRotation } = obj.userData;
         if (eulerRotation) {
             obj.rotation.copy(eulerRotation);
+        }
+
+        const { worldRotation } = obj.userData;
+        if (worldRotation) {
+            // Quaternion.toJSON() serializes an array
+            obj.userData.worldRotation = new Quaternion().fromArray(worldRotation);
         }
     }
 
