@@ -27,7 +27,7 @@ const localPos = new Vector3();
 const localRotation = new Quaternion();
 const matrix = new Matrix4();
 const cellCoords = new Vector2();
-const cannonOffset = new Vector3(0, 0.09, 1.8);
+const cannonOffset = new Vector3(0, 0.12, 1.48);
 
 function aimCannon(cannon: Object3D, target: Vector3) {
     const damping = 0.25;
@@ -118,7 +118,7 @@ export class TankState extends State<ICharacterUnit> {
                             const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
                             const explosion = utils.instantiate(_explosion);
                             explosion.position.set(0, .12, 1.48);
-                            explosion.scale.setScalar(.06);
+                            explosion.scale.setScalar(.4);
                             this._cannon.add(explosion);
                             
                             const tween = gsap.delayedCall(2, () => {

@@ -4,11 +4,17 @@ import { TArray } from "../../serialization/TArray";
 import * as Attributes from "../../serialization/Attributes";
 
 const ParticleDirections = [
-    "static",
-    "awayFromCenter"    
+    "up",
+    "radial"
+] as const;
+
+const EmitLocations = [
+    "volume",
+    "surface"
 ] as const;
 
 type ParticleDirection = typeof ParticleDirections[number];
+type EmitLocation = typeof EmitLocations[number];
 
 export class ParticlesProps extends ComponentProps {
 
@@ -32,7 +38,10 @@ export class ParticlesProps extends ComponentProps {
     radius = 1;
 
     @Attributes.enumOptions(ParticleDirections)
-    direction: ParticleDirection = "static";
+    direction: ParticleDirection = "up";
+    
+    @Attributes.enumOptions(EmitLocations)
+    emitLocation: EmitLocation = "volume";
 
     sizeOverLife = new TArray(Number);
     speedOverLife = new TArray(Number);

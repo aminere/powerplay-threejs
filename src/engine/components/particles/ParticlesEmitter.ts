@@ -100,16 +100,17 @@ export class ParticlesEmitter {
 
                     // velocity
                     particlePos.set(MathUtils.randFloat(-1, 1), MathUtils.randFloat(-1, 1), MathUtils.randFloat(-1, 1)).normalize();
-                    if (props.direction === "awayFromCenter") {
-                        particleVelocity.copy(particlePos);
-                    } else {
-                        particleVelocity.set(0, 1, 0);
+                    switch (props.direction) {
+                        case "up": particleVelocity.set(0, 1, 0); break;
+                        default: particleVelocity.copy(particlePos);
                     }
-                    const speed = randomRange(props.initialSpeed);
-                    state.setVector3("velocity", i, particleVelocity.multiplyScalar(speed));
+                    state.setVector3("velocity", i, particleVelocity.multiplyScalar(randomRange(props.initialSpeed)));
 
                     // position
-                    particlePos.multiplyScalar(MathUtils.randFloat(0, props.radius));
+                    switch (props.emitLocation) {
+                        case "surface": particlePos.multiplyScalar(props.radius); break;
+                        default: particlePos.multiplyScalar(MathUtils.randFloat(0, props.radius));
+                    }
                     state.setVector3("position", i, particlePos);
 
                     // color
