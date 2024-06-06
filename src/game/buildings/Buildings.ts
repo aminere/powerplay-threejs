@@ -18,8 +18,6 @@ import { InstancedParticles } from "../../engine/components/particles/InstancedP
 
 const { cellSize, mapRes, elevationStep } = config.game;
 const verticesPerRow = mapRes + 1;
-const mapSize = mapRes * cellSize;
-const sectorOffset = -mapSize / 2;
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -101,7 +99,7 @@ class Buildings {
             hitpoints
         };
 
-        const { layers, buildings } = GameMapState.instance;
+        const { buildings } = GameMapState.instance;
         buildings.set(instanceId, buildingInstance);
 
         if (buildingType === "depot") {
@@ -141,13 +139,10 @@ class Buildings {
         }
 
         elevation.elevate(mapCoords, size.x, size.z, maxY, false);
-        visual.position.set(
-            _sectorCoords.x * mapSize + _localCoords.x * cellSize + sectorOffset,
-            maxY * elevationStep,
-            _sectorCoords.y * mapSize + _localCoords.y * cellSize + sectorOffset
-        );
 
-        layers.buildings.add(visual);
+        const sector = GameUtils.getSector(_sectorCoords)!;
+        visual.position.set(_localCoords.x * cellSize, maxY * elevationStep, _localCoords.y * cellSize);
+        sector.layers.buildings.add(visual);
         cellCoords.set(mapCoords.x + Math.round(size.x / 2), mapCoords.y + Math.round(size.z / 2));
         cmdFogAddCircle.post({ mapCoords: cellCoords, radius: 20 });
         evtBuildingCreated.post(buildingInstance);

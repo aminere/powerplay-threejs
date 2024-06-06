@@ -54,8 +54,6 @@ export class GameMapState {
     public layers = {
         rails: utils.createObject(root(), "rails"),
         trains: utils.createObject(root(), "trains"),
-        cars: utils.createObject(root(), "cars"),
-        buildings: utils.createObject(root(), "buildings"),
         conveyors: utils.createObject(root(), "conveyors"),
         conveyorsPreview: utils.createObject(root(), "conveyors-preview"),
         pickedItems: utils.createObject(root(), "pickedItems"),

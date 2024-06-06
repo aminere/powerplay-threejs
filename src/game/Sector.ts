@@ -30,6 +30,8 @@ export class Sector {
         // terrain
         const { mesh, cellTextureData, highlightTextureData } = terrain.createPatch(coords);
         const resources = utils.createObject(sectorRoot, "resources");
+        const buildings = utils.createObject(sectorRoot, "buildings");
+        const fx = utils.createObject(sectorRoot, "fx");
 
         const flowfield = new FlowfieldViewer();
         const { sectors } = GameMapState.instance;
@@ -39,7 +41,9 @@ export class Sector {
             root: sectorRoot,
             layers: {
                 terrain: mesh,
-                resources
+                resources,
+                buildings,
+                fx
             },
             textureData: {
                 terrain: cellTextureData,

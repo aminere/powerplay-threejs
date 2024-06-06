@@ -111,6 +111,8 @@ export interface ISector {
     layers: {
         resources: Object3D;
         terrain: Object3D;
+        buildings: Object3D;
+        fx: Object3D;
     };
     textureData: {
         terrain: Uint8Array;
