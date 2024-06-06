@@ -56,9 +56,9 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         // world = parent * local
         // local = world * invParent
         const { cameraRotation } = owner.userData;
-        const parentRotation = owner.parent!.getWorldQuaternion(quaternion);
-        const invParentRotation = parentRotation.invert();
-        const localParticleRotation = invParentRotation.multiply(cameraRotation);
+        const worldRotation = owner.getWorldQuaternion(quaternion);
+        const invWorldRotation = worldRotation.invert();
+        const localParticleRotation = invWorldRotation.multiply(cameraRotation);
 
         for (let i = 0; i < this.props.maxParticles; ++i) {
             if (particlesToProcess === 0) {
