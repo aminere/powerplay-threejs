@@ -397,7 +397,7 @@ export class UnitMotion {
             const neighbors = (() => {
                 if (unit.type === "truck") {
                     const truck = unit as ITruckUnit;
-                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
+                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 2);
                     return neighbors2x2;
                 } else {
                     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);

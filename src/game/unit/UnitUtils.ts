@@ -1,4 +1,4 @@
-import { MathUtils, Matrix4, Quaternion, Vector3 } from "three";
+import { MathUtils, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { IUnitAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
@@ -10,24 +10,25 @@ import { mathUtils } from "../MathUtils";
 import { time } from "../../engine/core/Time";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { unitConfig } from "../config/UnitConfig";
+import sat from "sat";
 
 const direction = new Vector3();
-const matrix = new Matrix4();
-
 const { separations } = config.steering;
-const { truckScale } = config.game;
 
 const baseRotations = {
     "shoot": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12)),
     "attack": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(60))
 }
 
+const { truckScale } = config.game;
 const truckMin = new Vector3(-.3, 0, -1);
 const truckMax = new Vector3(.3, .74, 1);
-const truckCollisionSphere1 = new Vector3(0, .74 / 2, .5);
-const truckCollisionSphere2 = new Vector3(0, .74 / 2, -.5);
-const truckCollisionSphere1World = new Vector3();
-const truckCollisionSphere2World = new Vector3();
+const truckPoly1 = new sat.Box(new sat.Vector(), truckScale * (truckMax.x - truckMin.x), truckScale * (truckMax.z - truckMin.z)).toPolygon();
+const truckPoly2 = new sat.Box(new sat.Vector(), truckScale * (truckMax.x - truckMin.x), truckScale * (truckMax.z - truckMin.z)).toPolygon();
+const truckCorner = new Vector3(truckMin.x, 0, truckMin.z);
+const truckWorldCorner1 = new Vector3();
+const truckWorldCorner2 = new Vector3();
+
 function truckCollidesWithUnit(truck: ITruckUnit, unit: IUnit) {
     return Collision.obbIntersectsSphere(truck.visual, truckMin, truckMax, unit.visual.position, separations[unit.type]);
 }
@@ -59,15 +60,17 @@ export class UnitUtils {
         const unit1IsTruck = unit1.type === "truck";
         const unit2IsTruck = unit2.type === "truck";
         if (unit1IsTruck && unit2IsTruck) {
-            unit2.visual.localToWorld(truckCollisionSphere1World.copy(truckCollisionSphere1));
-            unit2.visual.localToWorld(truckCollisionSphere2World.copy(truckCollisionSphere2));
-            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere1World, .3 * truckScale)) {
-                return true;
-            }
-            if (Collision.obbIntersectsSphere(unit1.visual, truckMin, truckMax, truckCollisionSphere2World, .3 * truckScale)) {
-                return true;
-            }
-            return false;
+            const box1Pos = unit1.visual.localToWorld(truckWorldCorner1.copy(truckCorner));
+            truckPoly1.pos.x = box1Pos.x;
+            truckPoly1.pos.y = box1Pos.z;
+            truckPoly1.setAngle(-unit1.visual.rotation.y);
+            const box2Pos = unit2.visual.localToWorld(truckWorldCorner2.copy(truckCorner));
+            truckPoly2.pos.x = box2Pos.x;
+            truckPoly2.pos.y = box2Pos.z;
+            truckPoly2.setAngle(-unit2.visual.rotation.y);
+            const isColliding = sat.testPolygonPolygon(truckPoly1, truckPoly2);
+            return isColliding;            
+
         } else {
             if (unit1IsTruck) {
                 return truckCollidesWithUnit(unit1 as ITruckUnit, unit2);
@@ -84,10 +87,13 @@ export class UnitUtils {
 
     public static updateRotation(unit: IUnit, _direction: Vector3) {
         if (_direction.lengthSq() > 0.001) {
-            direction.copy(_direction).normalize().negate();
-            unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, direction, GameUtils.vec3.up));
             const rotationDamp = 0.1;
-            mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
+            // direction.copy(_direction).normalize().negate();            
+            // unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, direction, GameUtils.vec3.up));
+            // mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
+            direction.copy(_direction).normalize();
+            const angle = Math.atan2(direction.x, direction.z);
+            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, angle, rotationDamp, time.deltaTime);
         }
     }
 
