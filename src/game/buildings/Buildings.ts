@@ -16,7 +16,8 @@ import { elevation } from "../Elevation";
 import { objects } from "../../engine/resources/Objects";
 import { InstancedParticles } from "../../engine/components/particles/InstancedParticles";
 
-const { cellSize, mapRes, elevationStep } = config.game;
+const { cellSize, mapRes, cellsPerVehicleCell, elevationStep } = config.game;
+const vehicleMapRes = mapRes / cellsPerVehicleCell;
 const verticesPerRow = mapRes + 1;
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -120,9 +121,9 @@ class Buildings {
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
                 cell.building = instanceId;
 
-                const x = Math.floor(localCoords.x / 2);
-                const y = Math.floor(localCoords.y / 2);
-                const cellIndex2x2 = y * (mapRes / 2) + x;
+                const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                const cellIndex2x2 = y * vehicleMapRes + x;
                 const sector = GameUtils.getSector(sectorCoords)!;
                 const cell2x2 = sector.cells2x2[cellIndex2x2];
                 cell2x2.building = instanceId;                
@@ -197,9 +198,9 @@ class Buildings {
                 const cell = GameUtils.getCell(cellCoords, undefined, localCoords)!;
                 cell.building = undefined;
 
-                const x = Math.floor(localCoords.x / 2);
-                const y = Math.floor(localCoords.y / 2);
-                const cellIndex2x2 = y * (mapRes / 2) + x;
+                const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                const cellIndex2x2 = y * vehicleMapRes + x;
                 const sector = GameUtils.getSector(sectorCoords)!;
                 const cell2x2 = sector.cells2x2[cellIndex2x2];
                 cell2x2.building = undefined;

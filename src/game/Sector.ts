@@ -8,11 +8,13 @@ import { Cell } from "./Cell";
 import { GameMapState } from "./components/GameMapState";
 import { IUnit } from "./unit/IUnit";
 
+const { mapRes, cellSize, cellsPerVehicleCell } = config.game;
+const vehicleMapRes = mapRes / cellsPerVehicleCell;
+
 export class Sector {
     public static create(coords: Vector2) {
         // console.log(`creating sector ${props.sectorX},${props.sectorY}`);
         const { x, y } = coords;
-        const { mapRes, cellSize } = config.game;
 
         const sectorRoot = new Object3D();
         sectorRoot.matrixAutoUpdate = false;
@@ -25,7 +27,7 @@ export class Sector {
 
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map((_, i) => new Cell(`${x}${y}${i}`));
-        const cells2x2 = [...Array((mapRes / 2) * (mapRes / 2))].map(() => ({ units: [] as IUnit[] }));
+        const cells2x2 = [...Array(vehicleMapRes * vehicleMapRes)].map(() => ({ units: [] as IUnit[] }));
 
         // terrain
         const { mesh, cellTextureData, highlightTextureData } = terrain.createPatch(coords);

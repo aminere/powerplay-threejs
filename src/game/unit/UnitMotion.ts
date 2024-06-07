@@ -16,8 +16,7 @@ import { UnitUtils } from "./UnitUtils";
 import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeAttackState } from "./states/MeleeAttackState";
-import { ITruckUnit, TruckUnit } from "./TruckUnit";
-
+import { IVehicleUnit } from "./VehicleUnit";
 
 const cellDirection = new Vector2();
 const destSectorCoords = new Vector2();
@@ -29,7 +28,8 @@ const lookDirection = new Vector3();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 
-const { mapRes } = config.game;
+const { mapRes, cellsPerVehicleCell } = config.game;
+const vehicleMapRes = mapRes / cellsPerVehicleCell;
 const { maxSpeed, maxForce } = config.steering;
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
@@ -40,11 +40,12 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
     unit.motionCommandId = motionCommandId;
     unit.arriving = false;
     computeUnitAddr(mapCoords, unit.targetCell);
-    if (unit.type === "truck") {
-        const truck = unit as ITruckUnit;
-        computeUnitAddr2x2(mapCoords, truck.targetCell2x2);
-    }
 
+    if (UnitUtils.isVehicle(unit)) {
+        const vehicle = unit as IVehicleUnit;
+        computeUnitAddr2x2(mapCoords, vehicle.targetCell2x2);
+    }
+    
     unit.onMove(bindSkeleton);
 }
 
@@ -250,15 +251,15 @@ function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
     const { sectors } = GameMapState.instance;
     for (let y = mapCoords2x2.y - radius; y <= mapCoords2x2.y + radius; y++) {
         for (let x = mapCoords2x2.x - radius; x <= mapCoords2x2.x + radius; x++) {
-            const sectorX = Math.floor(x / (mapRes / 2));
-            const sectorY = Math.floor(y / (mapRes / 2));
+            const sectorX = Math.floor(x / vehicleMapRes);
+            const sectorY = Math.floor(y / vehicleMapRes);
             const sector = sectors.get(`${sectorX},${sectorY}`);
             if (sector) {
-                const sectorStartX = sectorX * (mapRes / 2);
-                const sectorStartY = sectorY * (mapRes / 2);
+                const sectorStartX = sectorX * vehicleMapRes;
+                const sectorStartY = sectorY * vehicleMapRes;
                 const localX = x - sectorStartX;
                 const localY = y - sectorStartY;
-                const cellIndex = localY * (mapRes / 2) + localX;
+                const cellIndex = localY * vehicleMapRes + localX;
                 const cell = sector.cells2x2[cellIndex];
                 for (const neighbor of cell.units) {
                     cellUnits2x2.push(neighbor);
@@ -269,20 +270,20 @@ function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
     return cellUnits2x2;
 }
 
-function tryMoveTruck(truck: ITruckUnit, nextMapCoords: Vector2) {
-    const x = Math.floor(nextMapCoords.x / 2);
-    const y = Math.floor(nextMapCoords.y / 2);
-    const coords2x2 = truck.coords2x2;
+function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
+    const x = Math.floor(nextMapCoords.x / cellsPerVehicleCell);
+    const y = Math.floor(nextMapCoords.y / cellsPerVehicleCell);
+    const coords2x2 = vehicle.coords2x2;
     if (coords2x2.mapCoords.x === x && coords2x2.mapCoords.y === y) {
         return;
     }
     const currentCell = coords2x2.sector!.cells2x2[coords2x2.cellIndex];
-    const unitIndex = currentCell.units!.indexOf(truck);
+    const unitIndex = currentCell.units!.indexOf(vehicle);
     console.assert(unitIndex >= 0);
     utils.fastDelete(currentCell.units!, unitIndex);
     computeUnitAddr2x2(nextMapCoords, coords2x2);
     const nextCell = coords2x2.sector.cells2x2[coords2x2.cellIndex];
-    nextCell.units.push(truck);
+    nextCell.units.push(vehicle);
 }
 
 export class UnitMotion {    
@@ -395,9 +396,9 @@ export class UnitMotion {
         if (unit.collidable) {
 
             const neighbors = (() => {
-                if (unit.type === "truck") {
-                    const truck = unit as ITruckUnit;
-                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 2);
+                if (UnitUtils.isVehicle(unit)) {
+                    const truck = unit as IVehicleUnit;
+                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
                     return neighbors2x2;
                 } else {
                     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
@@ -445,6 +446,9 @@ export class UnitMotion {
                     }
 
                     const canBeAffectedByNeighbor = (() => {
+                        if (UnitUtils.isVehicle(unit) && unit.motionId === 0) {
+                            return false;
+                        }
 
                         if (UnitUtils.isVehicle(unit) && !UnitUtils.isVehicle(neighbor)) {
                             // prevent small units from pushing away vehicles
@@ -465,22 +469,30 @@ export class UnitMotion {
                     })();
 
                     if (canBeAffectedByNeighbor) {
-
                         const forceFactor = (() => {
-                            if (unit.motionId > 0 && neighbor.motionId === 0) {
-                                return .4;
+                            if (UnitUtils.isVehicle(neighbor)) {
+                                return .9;
                             }
+                            if (unit.motionId > 0 && neighbor.motionId === 0) {
+                                return .2;
+                            }                            
                             return .6;
-                        })();
-
+                        })();                        
                         unit.acceleration
                             .multiplyScalar(1 - forceFactor)
                             .addScaledVector(awayDirection3, maxForce * forceFactor)
                             .clampLength(0, maxForce);
 
                     } else {
-                        unit.acceleration                            
-                            .addScaledVector(awayDirection3, maxForce * .1)
+                        const forceFactor = (() => {
+                            if (unit.motionId > 0) {
+                                return .1;
+                            }
+                            return .01;
+                        })();
+
+                        unit.acceleration
+                            .addScaledVector(awayDirection3, maxForce * forceFactor)
                             .clampLength(0, maxForce);
                     }
 
@@ -546,26 +558,27 @@ export class UnitMotion {
                 if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                     // entered a new sector
                     computeUnitAddr(nextMapCoords, unit.coords);
-                    if (unit.type === "truck") {
-                        tryMoveTruck(unit as TruckUnit, nextMapCoords);
+                    if (UnitUtils.isVehicle(unit)) {
+                        tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);
                     }
+                    
                 } else {
                     unit.coords.mapCoords.copy(nextMapCoords);
                     unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                    if (unit.type === "truck") {
-                        tryMoveTruck(unit as TruckUnit, nextMapCoords);
+                    if (UnitUtils.isVehicle(unit)) {
+                        tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);                        
                     }
                 }
 
                 if (isMoving && !unit.arriving) {
                     const reachedTarget = (() => {
-                        if (unit.type === "truck") {
-                            const truck = unit as TruckUnit;
-                            if (truck.targetCell2x2.mapCoords.equals(truck.coords2x2.mapCoords)) {
+                        if (UnitUtils.isVehicle(unit)) {
+                            const vehicle = unit as IVehicleUnit;
+                            if (vehicle.targetCell2x2.mapCoords.equals(vehicle.coords2x2.mapCoords)) {
                                 return true;
                             }
-                            const targetCell2x2 = getCell2x2FromAddr(truck.targetCell2x2);
-                            const cell2x2 = getCell2x2FromAddr(truck.coords2x2);
+                            const targetCell2x2 = getCell2x2FromAddr(vehicle.targetCell2x2);
+                            const cell2x2 = getCell2x2FromAddr(vehicle.coords2x2);
                             if (cell2x2.building && targetCell2x2.building === cell2x2.building) {
                                 return true;
                             }

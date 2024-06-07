@@ -15,7 +15,7 @@ export class TruckState extends State<ITruckUnit> {
     private _getFromDepot = false;
     private _timer = 0;
 
-    override update(unit: ITruckUnit): void { 
+    override update(unit: ITruckUnit) {
         if (this._targetDepot) {
             if (this._timer < 0) {                
                 if (this._getFromDepot) {

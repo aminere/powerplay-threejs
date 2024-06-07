@@ -21,6 +21,7 @@ export const config = {
         cellSize: 1,
         cellsPerRoadBlock: 1,
         mapRes: 32,
+        cellsPerVehicleCell: 4,
         elevationStep: .2,
         unitScale: .7,
         truckScale: 1.7,
@@ -76,8 +77,8 @@ export const config = {
             "worker": .7,
             "enemy-melee": .7,
             "enemy-ranged": .7,
-            "tank": 4,
-            "truck": 4,
+            "tank": 2,
+            "truck": 2
         }
     }
 };

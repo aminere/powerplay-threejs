@@ -11,7 +11,6 @@ import { config } from "../config/config";
 import { UnitType } from "../GameDefinitions";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit } from "./CharacterUnit";
-import { Unit } from "./Unit";
 import { NPCState } from "./states/NPCState";
 import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
@@ -28,6 +27,7 @@ import { IUnit } from "./IUnit";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
+import { VehicleUnit } from "./VehicleUnit";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -187,7 +187,7 @@ class UnitsManager {
                 visual.receiveShadow = true;
                 GameUtils.mapToWorld(mapCoords, visual.position);
                 const boundingBox = getBoundingBox(visual);                
-                const unit = new Unit({ visual, boundingBox, type, states: [new TankState()]}, id);
+                const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]}, id);
                 visual.scale.multiplyScalar(tankScale);
                 this._units.push(unit);
                 this._owner.add(visual);

@@ -28,6 +28,7 @@ const oldPos = new Vector3();
 const normalizedPos = new Vector2();
 const intersection = new Vector3();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
+const { mapRes, cellsPerVehicleCell } = config.game;
 const localRay = new Ray();
 const worldRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -361,9 +362,9 @@ export class GameMapInput {
                             console.log(`mapCoords: ${state.raycastedCellCoords.x},${state.raycastedCellCoords.y}, mapCoords2x2: ${_x},${_y}`);
                             console.log(cell);
                             const sector = GameUtils.getSector(sectorCoords)!;
-                            const x = Math.floor(localCoords.x / 2);
-                            const y = Math.floor(localCoords.y / 2);
-                            const cellIndex2x2 = y * (config.game.mapRes / 2) + x;
+                            const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                            const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                            const cellIndex2x2 = y * (mapRes / cellsPerVehicleCell) + x;
                             const cell2x2 = sector.cells2x2[cellIndex2x2];
                             console.log(cell2x2);
                         }

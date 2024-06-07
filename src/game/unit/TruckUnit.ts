@@ -1,17 +1,11 @@
 
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
-import { IUnitProps, Unit } from "./Unit";
 import { ICell } from "../GameTypes";
 import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { TruckState } from "./states/TruckState";
-import { IUnit } from "./IUnit";
-import { IUnitAddr, computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
-import { utils } from "../../engine/Utils";
-
-// const { resourcesPerSlot, slotCount } = config.trucks;
-// const truckCapacity = resourcesPerSlot * slotCount;
+import { IVehicleUnit, VehicleUnit } from "./VehicleUnit";
 
 interface ITruckResources {
     type: RawResourceType | ResourceType;
@@ -19,27 +13,11 @@ interface ITruckResources {
     root: Object3D;
 }
 
-export interface ITruckUnit extends IUnit {
-    resources: ITruckResources | null;    
-    coords2x2: IUnitAddr;
-    targetCell2x2: IUnitAddr;
+export interface ITruckUnit extends IVehicleUnit {
+    resources: ITruckResources | null;
 }
 
-export class TruckUnit extends Unit implements ITruckUnit {    
-
-    public get coords2x2() { return this._coords2x2; }
-    public get targetCell2x2() { return this._targetCell2x2; }
-
-    private _coords2x2 = makeUnitAddr();
-    private _targetCell2x2 = makeUnitAddr();
-
-    constructor(props: IUnitProps, id: number) {
-        super(props, id);
-        
-        computeUnitAddr2x2(this.coords.mapCoords, this._coords2x2);
-        const cell2x2 = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
-        cell2x2.units.push(this);
-    }
+export class TruckUnit extends VehicleUnit implements ITruckUnit {    
 
     public get resources(): ITruckResources | null { return this._resources; }
     public set resources(value: ITruckResources | null) { 
@@ -58,15 +36,6 @@ export class TruckUnit extends Unit implements ITruckUnit {
         if (value <= 0) {
             this.resources = null;
         }
-
-        const willDie = value <= 0;
-        if (willDie && this.isAlive) {
-            const cell = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
-            const unitIndex = cell.units!.indexOf(this);
-            console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
-            utils.fastDelete(cell.units!, unitIndex);    
-        }
-
         super.setHitpoints(value);
     }
 
