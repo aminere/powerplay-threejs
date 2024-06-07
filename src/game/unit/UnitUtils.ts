@@ -1,4 +1,4 @@
-import { MathUtils, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
+import { MathUtils, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { IUnitAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";

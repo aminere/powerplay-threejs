@@ -24,7 +24,7 @@ export function InGameMenu() {
     useEffect(() => {
         setTimeout(() => {
             dialogRef.current!.classList.add("visible");
-        }, 10);
+        }, 60);
         engine.paused = true;
         GameMapState.instance.inGameMenuOpen = true;
         return () => {

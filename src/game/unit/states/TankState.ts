@@ -153,10 +153,10 @@ export class TankState extends State<ICharacterUnit> {
                             
                             gsap.to(this._cannon.position, {
                                 duration: MathUtils.randFloat(.05, .08),
-                                z: `+=.1`,
+                                z: `-=.15`,
                                 yoyo: true,
                                 repeat: 3,
-                                ease: "power1.inOut"
+                                ease: "bounce.inOut"
                             });
                             
                             const tween = gsap.delayedCall(2, () => {
