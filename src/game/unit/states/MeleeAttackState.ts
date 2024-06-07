@@ -47,7 +47,7 @@ export class MeleeAttackState extends State<ICharacterUnit> {
                     if (!UnitUtils.isOutOfRange(unit, target!, config.combat.ak47Range - 1)) {
                         unitMotion.endMotion(unit);
                         const soldier = unit.fsm.switchState(SoldierState);
-                        soldier.attackTarget(unit, target!);                        
+                        soldier.attackTarget(target!);
                     }
                 }
             }

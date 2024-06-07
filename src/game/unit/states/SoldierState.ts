@@ -62,9 +62,8 @@ export class SoldierState extends State<ICharacterUnit> {
         }
     }
 
-    public attackTarget(unit: ICharacterUnit, target: IUnit) {
+    public attackTarget(target: IUnit) {
         this._target = target;
-        unit.isIdle = false;
     }    
 
     public stopAttack(unit: ICharacterUnit) {
