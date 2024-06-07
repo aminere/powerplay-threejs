@@ -69,6 +69,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public clearResource() {
         this.resource = null;
         this._targetBuilding = null;
+        unitAnimation.setAnimation(this, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
     }
 
     public override setHitpoints(value: number): void {
@@ -148,18 +149,16 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             }
         }
 
-        (() => {
-            const npcState = this.fsm.getState(NPCState);
-            if (npcState) {
-                npcState.onColliding(this);
-                return;
-            }
-            const meleeAttackState = this.fsm.getState(MeleeAttackState);
-            if (meleeAttackState) {
-                meleeAttackState.onColliding(this);
-                return;
-            }
-        })();
+        const npcState = this.fsm.getState(NPCState);
+        if (npcState) {
+            npcState.onColliding(this);
+            return;
+        }
+        const meleeAttackState = this.fsm.getState(MeleeAttackState);
+        if (meleeAttackState) {
+            meleeAttackState.onColliding(this);
+            return;
+        }
     }
 
     public override onReachedBuilding(cell: ICell) {

@@ -286,30 +286,30 @@ export function GameMapUI() {
                         }}
                     >
                         <span>fog</span>
-                    </ActionButton>
-                    <ActionButton
-                        tooltipId={"clear"}
-                        selected={selectedAction === "destroy"}
-                        selectedColor="red"
-                        onClick={() => {
-                            if (selectedAction !== "destroy") {
-                                setOpenSection(null);
-                                setSelectedAction("destroy");
-                                const gameMapState = GameMapState.instance;
-                                gameMapState.action = "destroy";
-                                gameMapState.tileSelector.color = "red";
-                                gameMapState.tileSelector.setSize(1, 1);
-                                gameMapState.tileSelector.resolution = 1;
-                            } else {
-                                gameMapState.action = null;
-                                setSelectedAction(null);
-                            }
-                        }}
-                    >
-                        <img src={`/images/icons/destroy.png`} />
-                    </ActionButton>
+                    </ActionButton>                    
                 </>                
             }
+            <ActionButton
+                tooltipId={"clear"}
+                selected={selectedAction === "destroy"}
+                selectedColor="red"
+                onClick={() => {
+                    if (selectedAction !== "destroy") {
+                        setOpenSection(null);
+                        setSelectedAction("destroy");
+                        const gameMapState = GameMapState.instance;
+                        gameMapState.action = "destroy";
+                        gameMapState.tileSelector.color = "red";
+                        gameMapState.tileSelector.setSize(1, 1);
+                        gameMapState.tileSelector.resolution = 1;
+                    } else {
+                        gameMapState.action = null;
+                        setSelectedAction(null);
+                    }
+                }}
+            >
+                <img src={`/images/icons/destroy.png`} />
+            </ActionButton>
         </div>
 
         <div 

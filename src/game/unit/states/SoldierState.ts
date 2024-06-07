@@ -6,9 +6,10 @@ import { UnitSearch } from "../UnitSearch";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitConfig } from "../../config/UnitConfig";
+import { config } from "../../config/config";
 
-const shootRange = 4;
 const hitFrequency = .5;
+const { ak47Range } = config.combat;
 
 export class SoldierState extends State<ICharacterUnit> {
 
@@ -28,7 +29,7 @@ export class SoldierState extends State<ICharacterUnit> {
 
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, shootRange)) {
+            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, ak47Range)) {
                 this.stopAttack(unit);
                 this._search.reset();
                 this._target = null;
@@ -54,12 +55,17 @@ export class SoldierState extends State<ICharacterUnit> {
                 }
             }
         } else {
-            const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
+            const newTarget = this._search.find(unit, ak47Range, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
             }
         }
     }
+
+    public attackTarget(unit: ICharacterUnit, target: IUnit) {
+        this._target = target;
+        unit.isIdle = false;
+    }    
 
     public stopAttack(unit: ICharacterUnit) {
         unit.isIdle = true;

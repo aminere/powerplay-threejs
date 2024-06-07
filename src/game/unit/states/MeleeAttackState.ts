@@ -9,6 +9,7 @@ import { unitMotion } from "../UnitMotion";
 import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
+import { SoldierState } from "./SoldierState";
 
 const hitFrequency = .5;
 const { separations } = config.steering;
@@ -40,8 +41,21 @@ export class MeleeAttackState extends State<ICharacterUnit> {
         }
 
         switch (this._step) {
+            case MeleeAttackStateStep.Follow: {
+                const hasAk47 = unit.resource?.type === "ak47";
+                if (hasAk47) {
+                    if (!UnitUtils.isOutOfRange(unit, target!, config.combat.ak47Range - 1)) {
+                        unitMotion.endMotion(unit);
+                        const soldier = unit.fsm.switchState(SoldierState);
+                        soldier.attackTarget(unit, target!);                        
+                    }
+                }
+            }
+            break;
+
             case MeleeAttackStateStep.Attack: {
-                const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separations[unit.type] * 1.5;
+                const separation = separations[unit.type] + separations[target!.type];
+                const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separation * 1.5;
                 if (outOfRange) {
                     this._step = MeleeAttackStateStep.Follow;
                     unitMotion.moveUnit(unit, target!.coords.mapCoords, false);

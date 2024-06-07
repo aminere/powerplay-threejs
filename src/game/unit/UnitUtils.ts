@@ -79,7 +79,7 @@ export class UnitUtils {
             } else {
                 // both have sphere collision
                 const dist = unit1.visual.position.distanceTo(unit2.visual.position);
-                const separation = Math.max(separations[unit1.type], separations[unit2.type]);
+                const separation = separations[unit1.type] + separations[unit2.type];
                 return dist < separation;
             }
         }

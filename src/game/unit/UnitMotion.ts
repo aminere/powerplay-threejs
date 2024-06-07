@@ -403,8 +403,8 @@ export class UnitMotion {
                 } else {
                     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
                     const { x, y } = unit.coords.mapCoords;
-                    cellCoords.set(Math.floor(x / 2), Math.floor(y / 2));
-                    const neighbors2x2 = getCellUnits2x2(cellCoords, 1);
+                    const mapCoords2x2 = cellCoords.set(Math.floor(x / cellsPerVehicleCell), Math.floor(y / cellsPerVehicleCell));
+                    const neighbors2x2 = getCellUnits2x2(mapCoords2x2, 1);
                     return _neighbors.concat(neighbors2x2);
                 }
             })();
@@ -477,7 +477,8 @@ export class UnitMotion {
                                 return .2;
                             }                            
                             return .6;
-                        })();                        
+                        })();
+
                         unit.acceleration
                             .multiplyScalar(1 - forceFactor)
                             .addScaledVector(awayDirection3, maxForce * forceFactor)

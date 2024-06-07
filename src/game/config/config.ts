@@ -27,6 +27,9 @@ export const config = {
         truckScale: 1.7,
         tankScale: 2
     },
+    combat: {
+        ak47Range: 10
+    },
     incubators: {
         inputCapacity: 5,        
         productionTime: 10,
@@ -74,9 +77,9 @@ export const config = {
         maxForce: 50,
         maxSpeed: 5,
         separations: {
-            "worker": .7,
-            "enemy-melee": .7,
-            "enemy-ranged": .7,
+            "worker": .5,
+            "enemy-melee": .5,
+            "enemy-ranged": .5,
             "tank": 2,
             "truck": 2
         }
