@@ -7,6 +7,7 @@ import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitConfig } from "../../config/UnitConfig";
 import { config } from "../../config/config";
+import { NPCState } from "./NPCState";
 
 const hitFrequency = .5;
 const { ak47Range } = config.combat;
@@ -42,12 +43,23 @@ export class SoldierState extends State<ICharacterUnit> {
                     } else {
 
                         UnitUtils.rotateToTarget(unit, target!);
+
                         // attack
                         if (this._hitTimer < 0) {
                             const ak47DamageFactor = 2;
                             const damage = unitConfig[unit.type].damage * ak47DamageFactor;
                             target!.setHitpoints(target!.hitpoints - damage);
                             this._hitTimer = hitFrequency;
+
+                            if (target!.isAlive) {
+                                const enemy = target as ICharacterUnit;
+                                if (enemy.isIdle && enemy.motionId === 0) {
+                                    const npcState = enemy!.fsm.getState(NPCState);
+                                    console.assert(npcState);
+                                    npcState?.attackTarget(enemy, unit);
+                                }
+                            }
+
                         } else {
                             this._hitTimer -= time.deltaTime;
                         }

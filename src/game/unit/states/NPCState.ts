@@ -8,6 +8,7 @@ import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
 import { MeleeDefendState } from "./MeleeDefendState";
 import { unitConfig } from "../../config/UnitConfig";
+import { config } from "../../config/config";
 
 enum NpcStep {
     Idle,
@@ -17,6 +18,7 @@ enum NpcStep {
 
 const vision = 4;
 const hitFrequency = .5;
+const { separations } = config.steering;
 
 export class NPCState extends State<ICharacterUnit> {
 
@@ -42,17 +44,16 @@ export class NPCState extends State<ICharacterUnit> {
             case NpcStep.Idle: {
                 const newTarget = spiralFind(unit, vision, other => !UnitUtils.isEnemy(other));
                 if (newTarget) {
-                    this._target = newTarget;
-                    this._step = NpcStep.Follow;
-                    unit.isIdle = false;
-                    unitMotion.moveUnit(unit, newTarget.coords.mapCoords);
+                    this.attackTarget(unit, newTarget);
                 }
             }
             break;
 
             case NpcStep.Attack: {
 
-                if (UnitUtils.isOutOfRange(unit, target!, 1)) {
+                const separation = separations[unit.type] + separations[target!.type];
+                const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separation * 1.1;
+                if (outOfRange) {
                     
                     this._step = NpcStep.Follow;
                     unitMotion.moveUnit(unit, target!.coords.mapCoords, false);
@@ -110,6 +111,13 @@ export class NPCState extends State<ICharacterUnit> {
             this.startAttack(unit);
         }
     }
+
+    public attackTarget(unit: ICharacterUnit, target: IUnit) {
+        this._target = target;
+        this._step = NpcStep.Follow;
+        unit.isIdle = false;
+        unitMotion.moveUnit(unit, target.coords.mapCoords);
+    }   
 
     private startAttack(unit: ICharacterUnit) {
         unitMotion.endMotion(unit);

@@ -12,11 +12,14 @@ import { objects } from "../../../engine/resources/Objects";
 import { engineState } from "../../../engine/EngineState";
 import { unitConfig } from "../../config/UnitConfig";
 import gsap from "gsap";
+import { NPCState } from "./NPCState";
+import { config } from "../../config/config";
 
 const shootRange = 10;
 const splashRadius = 1;
 const attackDelay = .5;
 const attackFrequency = 1;
+const { separations } = config.steering;
 
 enum TankStep {
     Idle,
@@ -41,7 +44,7 @@ function aimCannon(cannon: Object3D, target: Vector3) {
 }
 
 function resetCannon(cannon: Object3D) {
-    const damping = 0.25; 
+    const damping = 0.25;
     localRotation.identity();
     mathUtils.smoothDampQuat(cannon.quaternion, localRotation, damping, time.deltaTime);
 }
@@ -51,7 +54,7 @@ export class TankState extends State<ICharacterUnit> {
     private _search = new UnitSearch();
     private _target: IUnit | null = null;
     private _step = TankStep.Idle;
-    private _attackTimer = 0;    
+    private _attackTimer = 0;
     private _cannon!: Object3D;
     private _cannonRotator!: Object3D;
     private _muzzleFlash!: Object3D;
@@ -59,8 +62,8 @@ export class TankState extends State<ICharacterUnit> {
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
-        this._cannon = unit.visual.getObjectByName("cannon")!;        
-        const cannonRoot = utils.createObject(unit.visual, "cannon-root");        
+        this._cannon = unit.visual.getObjectByName("cannon")!;
+        const cannonRoot = utils.createObject(unit.visual, "cannon-root");
         cannonRoot.position.copy(this._cannon.position);
         this._cannonRotator = utils.createObject(unit.visual, "cannon-rotator");
         cannonRoot.add(this._cannonRotator);
@@ -72,7 +75,7 @@ export class TankState extends State<ICharacterUnit> {
         this._muzzleFlash.position.copy(cannonOffset);
         this._cannon.add(this._muzzleFlash);
         this._muzzleFlash.visible = false;
-    }    
+    }
     override exit(_unit: IUnit) {
         console.log(`TankState exit`);
     }
@@ -95,82 +98,98 @@ export class TankState extends State<ICharacterUnit> {
                             this._attackTimer = attackDelay;
                         }
                     }
-                    break;
-        
+                        break;
+
                     case TankStep.Attack: {
                         aimCannon(this._cannonRotator, target.visual.position);
-                        if (this._attackTimer < 0) {
-                            const { mapCoords } = target.coords;
 
-                            let unitCount = 0;
-                            smokePosition.set(0, 0, 0);
-                            for (let y = mapCoords.y - splashRadius; y <= mapCoords.y + splashRadius; y++) {
-                                for (let x = mapCoords.x - splashRadius; x <= mapCoords.x + splashRadius; x++) {
-                                    cellCoords.set(x, y);
-                                    const units = GameUtils.getCell(cellCoords)?.units;
-                                    if (units) {                                        
-                                        for (const unit of units) {
-                                            if (UnitUtils.isEnemy(unit)) {
-                                                const damage = unitConfig[unit.type].damage;
-                                                unit.setHitpoints(unit!.hitpoints - damage);
-                                                smokePosition.add(unit.visual.position);
-                                                unitCount++;
+                        const separation = separations[unit.type] + separations[target!.type];
+                        const tooClose = unit.visual.position.distanceTo(target!.visual.position) < separation * 1.5;
+                        if (tooClose) {                            
+                            // can't shoot if too close
+                            
+                        } else {
+                            if (this._attackTimer < 0) {
+                                const { mapCoords } = target.coords;
+
+                                let unitCount = 0;
+                                smokePosition.set(0, 0, 0);
+                                const damage = unitConfig[unit.type].damage;
+                                for (let y = mapCoords.y - splashRadius; y <= mapCoords.y + splashRadius; y++) {
+                                    for (let x = mapCoords.x - splashRadius; x <= mapCoords.x + splashRadius; x++) {
+                                        cellCoords.set(x, y);
+                                        const units = GameUtils.getCell(cellCoords)?.units;
+                                        if (units) {
+                                            for (const enemy of units) {
+                                                if (UnitUtils.isEnemy(enemy)) {
+                                                    enemy.setHitpoints(enemy!.hitpoints - damage);
+                                                    smokePosition.add(enemy.visual.position);
+                                                    unitCount++;
+
+                                                    if (enemy.isAlive) {
+                                                        const _enemy = enemy as ICharacterUnit;
+                                                        if (enemy.isIdle && enemy.motionId === 0) {
+                                                            const npcState = enemy!.fsm.getState(NPCState);
+                                                            console.assert(npcState);
+                                                            npcState?.attackTarget(_enemy, unit);
+                                                        }
+                                                    }
+                                                }
                                             }
-                                        }                                        
+                                        }
                                     }
                                 }
+
+                                // spawn smoke
+                                smokePosition.divideScalar(unitCount);
+                                smokePosition.x += MathUtils.randFloat(-1, 1);
+                                smokePosition.z += MathUtils.randFloat(-1, 1);
+                                const _smoke = objects.loadImmediate("/prefabs/smoke.json")!;
+                                const smoke = utils.instantiate(_smoke);
+                                smoke.position.copy(smokePosition);
+                                smoke.updateMatrixWorld();
+                                GameUtils.worldToMap(smokePosition, cellCoords);
+                                GameUtils.getCell(cellCoords, sectorCoords);
+                                const smokeSector = GameUtils.getSector(sectorCoords)!;
+                                smokeSector.layers.fx.attach(smoke);
+                                const smokeTween = gsap.delayedCall(2, () => {
+                                    engineState.removeObject(smoke);
+                                    this._tweens.splice(0, 1);
+                                });
+                                this._tweens.push(smokeTween);
+
+                                this._muzzleFlash.visible = true;
+                                setTimeout(() => this._muzzleFlash.visible = false, MathUtils.randInt(50, 100));
+
+                                const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
+                                const explosion = utils.instantiate(_explosion);
+                                explosion.position.set(0, .12, 1.48);
+                                explosion.scale.setScalar(.6);
+                                this._cannon.add(explosion);
+                                explosion.updateMatrixWorld();
+                                const sector = unit.coords.sector;
+                                sector.layers.fx.attach(explosion);
+
+                                gsap.to(this._cannon.position, {
+                                    duration: MathUtils.randFloat(.05, .08),
+                                    z: `-=.15`,
+                                    yoyo: true,
+                                    repeat: 3,
+                                    ease: "bounce.inOut"
+                                });
+
+                                const tween = gsap.delayedCall(2, () => {
+                                    engineState.removeObject(explosion);
+                                    this._tweens.splice(0, 1);
+                                });
+                                this._tweens.push(tween);
+                                this._attackTimer = attackFrequency;
+                            } else {
+                                this._attackTimer -= time.deltaTime;
                             }
-
-                            // spawn smoke
-                            smokePosition.divideScalar(unitCount);
-                            smokePosition.x += MathUtils.randFloat(-1, 1);
-                            smokePosition.z += MathUtils.randFloat(-1, 1);
-                            const _smoke = objects.loadImmediate("/prefabs/smoke.json")!;
-                            const smoke = utils.instantiate(_smoke);
-                            smoke.position.copy(smokePosition);
-                            smoke.updateMatrixWorld();
-                            GameUtils.worldToMap(smokePosition, cellCoords);
-                            GameUtils.getCell(cellCoords, sectorCoords);
-                            const smokeSector = GameUtils.getSector(sectorCoords)!;
-                            smokeSector.layers.fx.attach(smoke);
-                            const smokeTween = gsap.delayedCall(2, () => {
-                                engineState.removeObject(smoke);
-                                this._tweens.splice(0, 1);
-                            });
-                            this._tweens.push(smokeTween);
-
-                            this._muzzleFlash.visible = true;
-                            setTimeout(() => this._muzzleFlash.visible = false, MathUtils.randInt(50, 100));
-
-                            const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
-                            const explosion = utils.instantiate(_explosion);
-                            explosion.position.set(0, .12, 1.48);
-                            explosion.scale.setScalar(.6);
-                            this._cannon.add(explosion);
-                            explosion.updateMatrixWorld();
-                            const sector = unit.coords.sector;
-                            sector.layers.fx.attach(explosion);
-                            
-                            gsap.to(this._cannon.position, {
-                                duration: MathUtils.randFloat(.05, .08),
-                                z: `-=.15`,
-                                yoyo: true,
-                                repeat: 3,
-                                ease: "bounce.inOut"
-                            });
-                            
-                            const tween = gsap.delayedCall(2, () => {
-                                engineState.removeObject(explosion);
-                                this._tweens.splice(0, 1);
-                            });
-                            this._tweens.push(tween);
-
-                            this._attackTimer = attackFrequency;
-                        } else {
-                            this._attackTimer -= time.deltaTime;
                         }
                     }
-                    break;
+                        break;
                 }
             }
         } else {
@@ -179,7 +198,7 @@ export class TankState extends State<ICharacterUnit> {
             if (newTarget) {
                 this._target = newTarget;
             }
-        }        
+        }
     }
 
     public stopAttack() {
