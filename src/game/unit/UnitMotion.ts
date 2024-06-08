@@ -446,24 +446,17 @@ export class UnitMotion {
                     }
 
                     const canBeAffectedByNeighbor = (() => {
-                        if (UnitUtils.isVehicle(unit) && unit.motionId === 0) {
-                            return false;
-                        }
-
                         if (UnitUtils.isVehicle(unit) && !UnitUtils.isVehicle(neighbor)) {
                             // prevent small units from pushing away vehicles
                             return false;
                         }
 
-                        if (!unit.isIdle && UnitUtils.isEnemy(unit)) {
-                            // prevent units from pushing away npcs that are currently attacking
-                            // this allows for surrounding the npc
+                        const isEnemy1 = UnitUtils.isEnemy(unit);
+                        const isEnemy2 = UnitUtils.isEnemy(neighbor);
+                        if (isEnemy1 !== isEnemy2) {
+                            // enemies can't push each other
                             return false;
                         }
-
-                        // if (beingAttacked) {
-                            // return false;
-                        // }
 
                         return true;
                     })();
@@ -475,8 +468,8 @@ export class UnitMotion {
                             }
                             if (unit.motionId > 0 && neighbor.motionId === 0) {
                                 return .2;
-                            }                            
-                            return .6;
+                            }
+                            return .5;
                         })();
 
                         unit.acceleration
@@ -485,16 +478,15 @@ export class UnitMotion {
                             .clampLength(0, maxForce);
 
                     } else {
-                        const forceFactor = (() => {
-                            if (unit.motionId > 0) {
-                                return .1;
-                            }
-                            return .01;
-                        })();
-
-                        unit.acceleration
-                            .addScaledVector(awayDirection3, maxForce * forceFactor)
-                            .clampLength(0, maxForce);
+                        // const forceFactor = (() => {
+                        //     if (unit.motionId > 0) {
+                        //         return .1;
+                        //     }
+                        //     return .01;
+                        // })();
+                        // unit.acceleration
+                        //     .addScaledVector(awayDirection3, maxForce * forceFactor)
+                        //     .clampLength(0, maxForce);
                     }
 
                     if (unit.motionId > 0) {
