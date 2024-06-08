@@ -22,6 +22,7 @@ export class GameMapProps extends ComponentProps {
 
     debugFreeCosts = false;
     debugPathfinding = false;
+    debugCollisions = false;
 
     saveToDisk = false;
     @Attributes.command("save")

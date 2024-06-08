@@ -3,7 +3,7 @@ import { config } from "./config/config";
 import { ISector } from "./GameTypes";
 import { terrain, TerrainUniforms } from "./Terrain";
 import { utils } from "../engine/Utils";
-import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
+import { FlowfieldViewer } from "./debug/FlowfieldViewer";
 import { Cell } from "./Cell";
 import { GameMapState } from "./components/GameMapState";
 import { IUnit } from "./unit/IUnit";

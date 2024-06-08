@@ -134,7 +134,7 @@ class UnitsManager {
         skeletonPool.update();
         this.handleSpawnRequests();
 
-        unitMotion.resetCollisionResults();
+        unitMotion.resetCollisionResults(this._units);
         for (const unit of this._units) {
             if (unit.isAlive) {
                 unit.fsm.update();
@@ -194,7 +194,7 @@ class UnitsManager {
                 unit.fsm.switchState(TankState);
 
                 cmdFogAddCircle.post({ mapCoords, radius: 10 });
-                const box3Helper = new Box3Helper(boundingBox);
+                const box3Helper = new Box3Helper(boundingBox);                
                 visual.add(box3Helper);
                 box3Helper.visible = false;
                 evtUnitSpawned.post(unit);

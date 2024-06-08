@@ -20,6 +20,7 @@ import { MeleeAttackState } from "./unit/states/MeleeAttackState";
 import { ICharacterUnit } from "./unit/ICharacterUnit";
 import { buildingConfig } from "./config/BuildingConfig";
 import gsap from "gsap";
+import { TankState } from "./unit/states/TankState";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -532,11 +533,17 @@ export class GameMapInput {
                                 if (targetEnemy) {
                                     moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));
                                     for (const _unit of unitsManager.selectedUnits) {
-                                        if (!UnitUtils.isWorker(_unit)) {
+                                        if (UnitUtils.isWorker(_unit)) {
+                                            const attack = _unit.fsm.switchState(MeleeAttackState);
+                                            attack.attackTarget(_unit as ICharacterUnit, targetEnemy);
+                                            continue;
+                                        }            
+                                        
+                                        const tankState = _unit.fsm.getState(TankState);
+                                        if (tankState) {
+                                            tankState.followTarget(targetEnemy);
                                             continue;
                                         }
-                                        const attack = _unit.fsm.switchState(MeleeAttackState);
-                                        attack.attackTarget(_unit as ICharacterUnit, targetEnemy);
                                     }
                                 } else if (building) {
                                     // move to center of building

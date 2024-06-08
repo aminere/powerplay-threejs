@@ -4,7 +4,7 @@ import { BufferGeometry, LineBasicMaterial, LineSegments, Mesh, MeshBasicMateria
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { ISector } from "../GameTypes";
-import { TFlowFieldMap, flowField } from "./Flowfield";
+import { TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { _3dFonts } from "../../engine/resources/3DFonts";
 import { Font, TextGeometry } from "three/examples/jsm/Addons.js";
 import { utils } from "../../engine/Utils";

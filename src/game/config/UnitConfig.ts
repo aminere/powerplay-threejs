@@ -11,12 +11,12 @@ interface IUnitConfig {
 
 export const unitConfig: Record<UnitType, IUnitConfig> = {
     "worker": {
-        hitpoints: 10,
+        hitpoints: 100,
         damage: 2,
         arrivalDamping: characterArrivalDamping
     },
     "enemy-melee": {
-        hitpoints: 10,
+        hitpoints: 500,
         damage: 2,
         arrivalDamping: characterArrivalDamping
     },
@@ -26,7 +26,7 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         arrivalDamping: characterArrivalDamping
     },
     "tank": {
-        hitpoints: 25,
+        hitpoints: 250,
         damage: 5,
         arrivalDamping: vehicleArrivalDamping
     },

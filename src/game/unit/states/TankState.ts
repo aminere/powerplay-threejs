@@ -14,15 +14,17 @@ import { unitConfig } from "../../config/UnitConfig";
 import gsap from "gsap";
 import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
+import { unitMotion } from "../UnitMotion";
 
 const shootRange = 10;
 const splashRadius = 1;
-const attackDelay = .5;
+const attackDelay = .8;
 const attackFrequency = 1;
 const { separations } = config.steering;
 
 enum TankStep {
     Idle,
+    Follow,
     Attack
 }
 
@@ -84,10 +86,9 @@ export class TankState extends State<ICharacterUnit> {
 
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, shootRange)) {
+            if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, shootRange))) {
                 this.stopAttack();
                 this._search.reset();
-                this._target = null;
             } else {
                 switch (this._step) {
                     case TankStep.Idle: {
@@ -100,6 +101,15 @@ export class TankState extends State<ICharacterUnit> {
                     }
                         break;
 
+                    case TankStep.Follow: {
+                        if (!UnitUtils.isOutOfRange(unit, target!, shootRange - 1)) {
+                            unitMotion.endMotion(unit);
+                            this._step = TankStep.Attack;
+                            this._attackTimer = attackDelay;
+                        }
+                    }
+                    break;
+
                     case TankStep.Attack: {
                         aimCannon(this._cannonRotator, target.visual.position);
 
@@ -107,7 +117,7 @@ export class TankState extends State<ICharacterUnit> {
                         const tooClose = unit.visual.position.distanceTo(target!.visual.position) < separation * 1.5;
                         if (tooClose) {                            
                             // can't shoot if too close
-                            
+
                         } else {
                             if (this._attackTimer < 0) {
                                 const { mapCoords } = target.coords;
@@ -170,6 +180,7 @@ export class TankState extends State<ICharacterUnit> {
                                 const sector = unit.coords.sector;
                                 sector.layers.fx.attach(explosion);
 
+                                // recoil
                                 gsap.to(this._cannon.position, {
                                     duration: MathUtils.randFloat(.05, .08),
                                     z: `-=.15`,
@@ -193,7 +204,7 @@ export class TankState extends State<ICharacterUnit> {
                 }
             }
         } else {
-            resetCannon(this._cannon);
+            resetCannon(this._cannonRotator);
             const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
@@ -203,6 +214,12 @@ export class TankState extends State<ICharacterUnit> {
 
     public stopAttack() {
         this._step = TankStep.Idle;
+        this._target = null;
+    }
+
+    public followTarget(target: IUnit) {
+        this._target = target;
+        this._step = TankStep.Follow;
     }
 
     override dispose() {

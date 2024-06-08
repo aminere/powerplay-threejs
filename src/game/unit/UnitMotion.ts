@@ -1,4 +1,4 @@
-import { MathUtils, Vector2, Vector3 } from "three";
+import { Box3Helper, MathUtils, Object3D, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
@@ -30,7 +30,19 @@ const nextPos = new Vector3();
 
 const { mapRes, cellsPerVehicleCell } = config.game;
 const vehicleMapRes = mapRes / cellsPerVehicleCell;
-const { maxSpeed, maxForce } = config.steering;
+const { maxForce } = config.steering;
+
+function getBox3Helper(visual: Object3D) {
+    return visual.getObjectByProperty("type", "Box3Helper") as Box3Helper;
+}
+
+const velocity1 = new Vector3();
+const velocity2 = new Vector3();
+function movingInSameDirection(unit: IUnit, neighbor: IUnit) {
+    velocity1.copy(unit.velocity).normalize();
+    velocity2.copy(neighbor.velocity).normalize();
+    return velocity1.dot(velocity2) >= .98;
+}
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -297,8 +309,13 @@ export class UnitMotion {
         return commandId;
     }
 
-    public resetCollisionResults() {
+    public resetCollisionResults(units: IUnit[]) {
         this._collisionResults.clear();
+        if (GameMapProps.instance.debugCollisions) {
+            for (const unit of units) {
+                getBox3Helper(unit.visual).visible = false;
+            }
+        }
     }
 
     public moveUnit(unit: IUnit, destMapCoords: Vector2, bindSkeleton = true) {
@@ -417,6 +434,11 @@ export class UnitMotion {
                 if (neighbor === unit) {
                     continue;
                 }
+                if (unit.motionCommandId > 0 && neighbor.motionCommandId === unit.motionCommandId) {
+                    if (movingInSameDirection(unit, neighbor)) {
+                        continue;
+                    }
+                }
 
                 const collisionTestId = `${unit.id},${neighbor.id}`;
                 const isColliding = (() => {
@@ -429,6 +451,10 @@ export class UnitMotion {
                         if (newResult) {
                             unit.collidingWith.push(neighbor);
                             neighbor.collidingWith.push(unit);
+                            if (GameMapProps.instance.debugCollisions) {
+                                getBox3Helper(unit.visual).visible = true;
+                                getBox3Helper(neighbor.visual).visible = true;
+                            }
                         }
                         return newResult;
                     } else {
@@ -437,57 +463,92 @@ export class UnitMotion {
                 })();
 
                 if (isColliding) {
-                    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
-                    const length = awayDirection3.length();
-                    if (length > 0) {
-                        awayDirection3.divideScalar(length)
-                    } else {
-                        awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
-                    }
 
-                    const canBeAffectedByNeighbor = (() => {
-                        if (UnitUtils.isVehicle(unit) && !UnitUtils.isVehicle(neighbor)) {
-                            // prevent small units from pushing away vehicles
-                            return false;
-                        }
-
+                    const canAffectEachOther = (() => {
                         const isEnemy1 = UnitUtils.isEnemy(unit);
                         const isEnemy2 = UnitUtils.isEnemy(neighbor);
                         if (isEnemy1 !== isEnemy2) {
                             // enemies can't push each other
                             return false;
                         }
-
                         return true;
                     })();
 
-                    if (canBeAffectedByNeighbor) {
-                        const forceFactor = (() => {
-                            if (UnitUtils.isVehicle(neighbor)) {
-                                return .9;
-                            }
-                            if (unit.motionId > 0 && neighbor.motionId === 0) {
-                                return .2;
-                            }
-                            return .5;
-                        })();
+                    if (canAffectEachOther) {
+                        if (unit.motionId > 0) {
+                            if (neighbor.motionId === 0) {
+                                // TODO
+                                // make neighbor move out of the way
 
-                        unit.acceleration
-                            .multiplyScalar(1 - forceFactor)
-                            .addScaledVector(awayDirection3, maxForce * forceFactor)
-                            .clampLength(0, maxForce);
+                            } else {
+                                awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
+                                const distToNeighbor = awayDirection3.length();
+                                if (distToNeighbor > 0) {
+                                    awayDirection3.divideScalar(distToNeighbor)
+                                } else {
+                                    awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+                                }
+                                const forceFactor = .5;
+                                unit.acceleration
+                                    .multiplyScalar(1 - forceFactor)
+                                    .addScaledVector(awayDirection3, maxForce * forceFactor)
+                                    .clampLength(0, maxForce);
+                            }
+                        } else {
+                            awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
+                            const distToNeighbor = awayDirection3.length();
+                            if (distToNeighbor > 0) {
+                                awayDirection3.divideScalar(distToNeighbor)
+                            } else {
+                                awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+                            }
+                            const forceFactor = .5;
+                            unit.acceleration
+                                .multiplyScalar(1 - forceFactor)
+                                .addScaledVector(awayDirection3, maxForce * forceFactor)
+                                .clampLength(0, maxForce);
+                        }
+                    }                    
 
-                    } else {
-                        // const forceFactor = (() => {
-                        //     if (unit.motionId > 0) {
-                        //         return .1;
-                        //     }
-                        //     return .01;
-                        // })();
-                        // unit.acceleration
-                        //     .addScaledVector(awayDirection3, maxForce * forceFactor)
-                        //     .clampLength(0, maxForce);
-                    }
+                    // awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
+                    // const distToNeighbor = awayDirection3.length();
+                    // if (distToNeighbor > 0) {
+                    //     awayDirection3.divideScalar(distToNeighbor)
+                    // } else {
+                    //     awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+                    // }
+
+                    // const canBeAffectedByNeighbor = (() => {
+                    //     const isEnemy1 = UnitUtils.isEnemy(unit);
+                    //     const isEnemy2 = UnitUtils.isEnemy(neighbor);
+                    //     if (isEnemy1 !== isEnemy2) {
+                    //         // enemies can't push each other
+                    //         return false;
+                    //     }
+                    //     return true;
+                    // })();
+
+                    // if (canBeAffectedByNeighbor) {
+                    //     const forceFactor = (() => {
+                    //         if (UnitUtils.isVehicle(neighbor)) {
+                    //             return .9;
+                    //         }
+                    //         if (unit.motionId > 0 && neighbor.motionId === 0) {
+                    //             return .2;
+                    //         }
+                    //         return .5;
+                    //     })();
+
+                    //     unit.acceleration
+                    //         .multiplyScalar(1 - forceFactor)
+                    //         .addScaledVector(awayDirection3, maxForce * forceFactor)
+                    //         .clampLength(0, maxForce);
+
+                    //     // more repulsion if units are closer
+                    //     const distance = Math.min(distToNeighbor, separations[unit.type]);
+                    //     const repulsionFactor = 1 - distance / separations[unit.type];
+                    //     unit.acceleration.addScaledVector(unit.acceleration, repulsionFactor * 5);
+                    // }
 
                     if (unit.motionId > 0) {
                         unit.onCollidedWhileMoving(neighbor);                        
@@ -503,19 +564,10 @@ export class UnitMotion {
         const needsMotion = isMoving || unit.collidingWith.length > 0;
         if (!needsMotion) {
             return;
-        }
+        }       
 
-        const _maxSpeed = (() => {
-            if (UnitUtils.isVehicle(unit)) {
-                const cell = getCellFromAddr(unit.coords);
-                if (cell.roadTile) {
-                    return maxSpeed * 1.5;
-                }
-            }
-            return maxSpeed;
-        })();
-
-        unit.velocity.addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, _maxSpeed);
+        const maxSpeed = UnitUtils.getMaxSpeed(unit);
+        unit.velocity.addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed);
         nextPos.copy(unit.visual.position).addScaledVector(unit.velocity, time.deltaTime);
 
         GameUtils.worldToMap(nextPos, nextMapCoords);

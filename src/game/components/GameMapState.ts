@@ -6,7 +6,7 @@ import { utils } from "../../engine/Utils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
 import { BuildingType, BuildingTypes, IBuildingInstance } from "../buildings/BuildingTypes";
-import { PathViewer } from "../pathfinding/PathViewer";
+import { PathViewer } from "../debug/PathViewer";
 import { depots } from "../buildings/Depots";
 import { evtActionCleared } from "../../Events";
 

@@ -1,6 +1,6 @@
 import { MathUtils, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
-import { IUnitAddr } from "./UnitAddr";
+import { IUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
 import { VehicleType, VehicleTypes } from "../GameDefinitions";
 import { Collision } from "../../engine/collision/Collision";
@@ -13,7 +13,7 @@ import { unitConfig } from "../config/UnitConfig";
 import sat from "sat";
 
 const direction = new Vector3();
-const { separations } = config.steering;
+const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
     "shoot": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12)),
@@ -69,7 +69,7 @@ export class UnitUtils {
             truckPoly2.pos.y = box2Pos.z;
             truckPoly2.setAngle(-unit2.visual.rotation.y);
             const isColliding = sat.testPolygonPolygon(truckPoly1, truckPoly2);
-            return isColliding;            
+            return isColliding;
 
         } else {
             if (unit1IsTruck) {
@@ -113,6 +113,16 @@ export class UnitUtils {
         const { arrivalDamping } = unitConfig[unit.type];
         mathUtils.smoothDampVec3(unit.velocity, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
         mathUtils.smoothDampVec3(unit.acceleration, GameUtils.vec3.zero, arrivalDamping, time.deltaTime);
+    }
+
+    public static getMaxSpeed(unit: IUnit) {
+        if (UnitUtils.isVehicle(unit)) {
+            const cell = getCellFromAddr(unit.coords);
+            if (cell.roadTile) {
+                return maxSpeed * 1.5;
+            }
+        }
+        return maxSpeed;
     }
 }
 

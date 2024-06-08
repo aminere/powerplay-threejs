@@ -35,6 +35,9 @@ import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
 import { Tutorial } from "./Tutorial";
 import { Sandbox } from "./Sandbox";
+import { Workers } from "../unit/Workers";
+import { ICharacterUnit } from "../unit/ICharacterUnit";
+import { unitAnimation } from "../unit/UnitAnimation";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -281,15 +284,13 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
         const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
         cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
-
-        // TODO remove
-        // if (false) {
-        //     meshes.load(`/models/resources/ak47.glb`).then(() => {
-        //         const solider = unitsManager.units.find(u => u.type === "worker")!;
-        //         Workers.pickResource(solider as ICharacterUnit, "ak47");
-        //         unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
-        //     });
-        // }        
+        
+        // equip ak47
+        meshes.load(`/models/resources/ak47.glb`).then(() => {
+            const solider = unitsManager.units.find(u => u.type === "worker")!;
+            Workers.pickResource(solider as ICharacterUnit, "ak47", solider.coords.mapCoords);
+            unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
+        });      
     }
 
     override dispose() {

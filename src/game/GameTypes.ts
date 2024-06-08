@@ -1,6 +1,6 @@
 import { Object3D, Vector2, Vector3 } from "three";
 import { BezierPath } from "./BezierPath";
-import { FlowfieldViewer } from "./pathfinding/FlowfieldViewer";
+import { FlowfieldViewer } from "./debug/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
 
