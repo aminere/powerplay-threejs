@@ -88,10 +88,10 @@ function getWorldRay(worldRayOut: Ray) {
     worldRayOut.copy(rayCaster.ray);
 }
 
-function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
+function moveCommand(units: IUnit[], _mapCoords: Vector2, targetCell: ICell, targetUnit?: IUnit) {
 
     // group units per sector
-    const groups = unitsManager.selectedUnits.reduce((prev, cur) => {
+    const groupsPerSector = units.reduce((prev, cur) => {
         if (UnitUtils.isEnemy(cur)) {
             return prev;
         }
@@ -108,16 +108,17 @@ function moveCommand(_mapCoords: Vector2, targetCell: ICell) {
     }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
 
     const commandId = unitMotion.createMotionCommandId();
-    for (const group of Object.values(groups)) {
+    const groups = Object.values(groupsPerSector);
+
+    for (const group of groups) {
         if (group.character.length > 0) {
-            unitMotion.moveGroup(commandId, group.character, _mapCoords, targetCell);
+            unitMotion.moveGroup(commandId, group.character, _mapCoords, targetCell, false, targetUnit);
         }
         if (group.vehicle.length > 0) {
-            unitMotion.moveGroup(commandId, group.vehicle, _mapCoords, targetCell, true);
+            unitMotion.moveGroup(commandId, group.vehicle, _mapCoords, targetCell, true, targetUnit);
         }
     }
 
-    evtMoveCommand.post(_mapCoords)
 }
 
 function onCellHovered(_cellCoords: Vector2, touchStart: Vector2) {
@@ -281,9 +282,9 @@ function checkKeyboardInput() {
     }
 }
 
-export class GameMapInput {
+class GameMapInput {
 
-    public static update() {
+    public update() {
         const state = GameMapState.instance;
         const resolution = state.tileSelector.resolution;
 
@@ -527,17 +528,20 @@ export class GameMapInput {
                                 }
                             }
 
+                            const units = unitsManager.selectedUnits;
                             if (intersections.length > 0) {
                                 intersections.sort((a, b) => a.distance - b.distance);
                                 const { unit: targetEnemy, building } = intersections[0];
                                 if (targetEnemy) {
-                                    moveCommand(targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords));
-                                    for (const _unit of unitsManager.selectedUnits) {
+                                    moveCommand(units, targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords), targetEnemy);
+                                    evtMoveCommand.post(targetEnemy.coords.mapCoords);
+
+                                    for (const _unit of units) {
                                         if (UnitUtils.isWorker(_unit)) {
                                             const attack = _unit.fsm.switchState(MeleeAttackState);
                                             attack.attackTarget(_unit as ICharacterUnit, targetEnemy);
                                             continue;
-                                        }            
+                                        }
                                         
                                         const tankState = _unit.fsm.getState(TankState);
                                         if (tankState) {
@@ -545,6 +549,8 @@ export class GameMapInput {
                                             continue;
                                         }
                                     }
+
+
                                 } else if (building) {
                                     // move to center of building
                                     const { size } = buildingConfig[building.buildingType];
@@ -552,10 +558,13 @@ export class GameMapInput {
                                         Math.floor(building.mapCoords.x + size.x / 2),
                                         Math.floor(building.mapCoords.y + size.z / 2)
                                     );
-                                    moveCommand(mapCoords, GameUtils.getCell(mapCoords)!);
+                                    moveCommand(units, mapCoords, GameUtils.getCell(mapCoords)!);
+                                    evtMoveCommand.post(mapCoords);
+
                                 }
                             } else {
-                                moveCommand(mapCoords, targetCell);
+                                moveCommand(units, mapCoords, targetCell);
+                                evtMoveCommand.post(mapCoords);
                             }
                         }
                     }
@@ -564,4 +573,6 @@ export class GameMapInput {
         }
     }
 }
+
+export const gameMapInput = new GameMapInput();
 

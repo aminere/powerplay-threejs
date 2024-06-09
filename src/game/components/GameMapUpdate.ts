@@ -6,7 +6,7 @@ import { buildings } from "../buildings/Buildings";
 import { conveyors } from "../Conveyors";
 import { unitsManager } from "../unit/UnitsManager";
 import { trees } from "../Trees";
-import { GameMapInput } from "../GameMapInput";
+import { gameMapInput } from "../GameMapInput";
 
 export class GameMapUpdate extends Component<ComponentProps> {
 
@@ -15,7 +15,7 @@ export class GameMapUpdate extends Component<ComponentProps> {
     }
 
     override update(_owner: Object3D) {
-        GameMapInput.update();
+        gameMapInput.update();
         conveyors.update();
         unitsManager.update();
         buildings.update();

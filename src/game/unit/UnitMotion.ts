@@ -30,7 +30,7 @@ const nextPos = new Vector3();
 
 const { mapRes, cellsPerVehicleCell } = config.game;
 const vehicleMapRes = mapRes / cellsPerVehicleCell;
-const { maxForce } = config.steering;
+const { maxForce, separations } = config.steering;
 
 function getBox3Helper(visual: Object3D) {
     return visual.getObjectByProperty("type", "Box3Helper") as Box3Helper;
@@ -41,12 +41,12 @@ const velocity2 = new Vector3();
 function movingInSameDirection(unit: IUnit, neighbor: IUnit) {
     velocity1.copy(unit.velocity).normalize();
     velocity2.copy(neighbor.velocity).normalize();
-    return velocity1.dot(velocity2) >= .98;
+    return velocity1.dot(velocity2) >= .9;
 }
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
-        flowField.removeMotion(unit.motionId);
+        flowField.removeMotion(unit);
     }
     unit.motionId = motionId;
     unit.motionCommandId = motionCommandId;
@@ -114,7 +114,7 @@ function getSectors(mapCoords: Vector2, srcSectorCoords: Vector2, destMapCoords:
 }
 
 function endMotion(unit: IUnit) {
-    flowField.removeMotion(unit.motionId);
+    flowField.removeMotion(unit);
     unit.motionId = 0;
     unit.motionCommandId = 0;
     unit.arriving = false;
@@ -298,6 +298,27 @@ function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
     nextCell.units.push(vehicle);
 }
 
+function moveAwayFrom(unit: IUnit, neighbor: IUnit) {
+    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
+    const distToNeighbor = awayDirection3.length();
+    if (distToNeighbor > 0) {
+        awayDirection3.divideScalar(distToNeighbor)
+    } else {
+        awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+    }
+
+    // more repulsion if units are closer
+    const separation = separations[unit.type] + separations[neighbor.type];
+    const distance = Math.min(distToNeighbor, separation);
+    const repulsionFactor = Math.max(1 - distance / separation, .2);
+
+    unit.acceleration
+        .multiplyScalar(.5)
+        .addScaledVector(awayDirection3, maxForce * repulsionFactor)
+        .clampLength(0, maxForce);
+
+}
+
 export class UnitMotion {    
 
     private _motionCommandId = 1;
@@ -333,7 +354,7 @@ export class UnitMotion {
         flowField.setMotionUnitCount(motionId, 1);
     }
 
-    public moveGroup(motionCommandId: number, units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads = false) {
+    public moveGroup(motionCommandId: number, units: IUnit[], destMapCoords: Vector2, destCell: ICell, favorRoads: boolean, targetUnit?: IUnit) {
         const sectors = getSectors(units[0].coords.mapCoords, units[0].coords.sectorCoords, destMapCoords, destCell);
         if (!sectors) {
             console.warn(`no sectors found for move from ${units[0].coords.mapCoords} to ${destMapCoords}`);
@@ -373,7 +394,7 @@ export class UnitMotion {
             }
     
             if (motionId === null) {
-                motionId = flowField.register(flowfields);
+                motionId = flowField.register(flowfields, targetUnit);
             }
     
             unit.clearAction();
@@ -477,36 +498,27 @@ export class UnitMotion {
                     if (canAffectEachOther) {
                         if (unit.motionId > 0) {
                             if (neighbor.motionId === 0) {
-                                // TODO
-                                // make neighbor move out of the way
-
-                            } else {
-                                awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
-                                const distToNeighbor = awayDirection3.length();
-                                if (distToNeighbor > 0) {
-                                    awayDirection3.divideScalar(distToNeighbor)
+                                if (UnitUtils.isVehicle(neighbor)) {
+                                    // vehicles are supposed to mark their cells as unwalkable, let the avoidance code in steer() handle it.
                                 } else {
-                                    awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+                                    if (!neighbor.isIdle) {
+                                        // TODO neighbor is busy, so try to avoid it
+                                    } else {
+                                        // no need to do anything, the stationary neighbor will move itself
+                                    }
                                 }
-                                const forceFactor = .5;
-                                unit.acceleration
-                                    .multiplyScalar(1 - forceFactor)
-                                    .addScaledVector(awayDirection3, maxForce * forceFactor)
-                                    .clampLength(0, maxForce);
+                            } else {
+                                // neighbor is also moving
+                                moveAwayFrom(unit, neighbor);
                             }
                         } else {
-                            awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
-                            const distToNeighbor = awayDirection3.length();
-                            if (distToNeighbor > 0) {
-                                awayDirection3.divideScalar(distToNeighbor)
-                            } else {
-                                awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
+                            if (unit.isIdle) {
+                                if (neighbor.motionId === 0) {
+                                    moveAwayFrom(unit, neighbor);
+                                } else {
+                                    // TODO
+                                }
                             }
-                            const forceFactor = .5;
-                            unit.acceleration
-                                .multiplyScalar(1 - forceFactor)
-                                .addScaledVector(awayDirection3, maxForce * forceFactor)
-                                .clampLength(0, maxForce);
                         }
                     }                    
 

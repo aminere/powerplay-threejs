@@ -2,6 +2,7 @@ import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
 import { ICell } from "../GameTypes";
+import { IUnit } from "../unit/IUnit";
 
 export type TFlowField = {
     integration: number;
@@ -54,6 +55,7 @@ export type TFlowFieldMap = Map<string, TFlowField[]>;
 type TFlowfieldMotion = {
     unitCount: number;
     flowfields: TFlowFieldMap;
+    targetUnit?: IUnit;
 }
 
 class FlowField {    
@@ -312,11 +314,12 @@ class FlowField {
         return this._motions.get(motionId)!;
     }
 
-    public register(flowfields: TFlowFieldMap) {
+    public register(flowfields: TFlowFieldMap, targetUnit?: IUnit) {
         const motionId = this._motionId;
         this._motions.set(motionId, {
             unitCount: 0,
-            flowfields
+            flowfields,
+            targetUnit
         });
         this._motionId++
         return motionId;
@@ -327,13 +330,13 @@ class FlowField {
         motion.unitCount = count;
     }
 
-    public removeMotion(motionId: number) {
-        const motion = this._motions.get(motionId)!;
+    public removeMotion(unit: IUnit) {
+        const motion = this._motions.get(unit.motionId)!;
         console.assert(motion);
         console.assert(motion.unitCount > 0);
         motion.unitCount--;
         if (motion.unitCount === 0) {
-            this._motions.delete(motionId);
+            this._motions.delete(unit.motionId);
         }    
         // console.log(`remaining motions: ${this._motions.size}`);
     }

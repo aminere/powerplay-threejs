@@ -10,6 +10,7 @@ import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
 import { SoldierState } from "./SoldierState";
+import { Vector2 } from "three";
 
 const hitFrequency = .5;
 const { separations } = config.steering;
@@ -22,6 +23,7 @@ enum MeleeAttackStateStep {
 export class MeleeAttackState extends State<ICharacterUnit> {
 
     private _target: IUnit | null = null;
+    private _targetCoords = new Vector2();
     private _hitTimer = 0;
     private _step = MeleeAttackStateStep.Follow;    
 
@@ -32,40 +34,45 @@ export class MeleeAttackState extends State<ICharacterUnit> {
 
     override update(unit: ICharacterUnit) {
 
-        const target = this._target;
-        if (target) {
-            if (!target.isAlive) {
-                this.endAttack(unit);
-                return;
-            }
+        const target = this._target!;
+        const validTarget = target?.isAlive;
+        if (!validTarget) {
+            this.endAttack(unit);
+            return;
         }
 
         switch (this._step) {
             case MeleeAttackStateStep.Follow: {
+                // TODO replace by group motion
+                if (!this._targetCoords.equals(target.coords.mapCoords)) {
+                    this._targetCoords.copy(target.coords.mapCoords);
+                    unitMotion.moveUnit(unit, target.coords.mapCoords, false);
+                }
+
                 const hasAk47 = unit.resource?.type === "ak47";
                 if (hasAk47) {
-                    if (!UnitUtils.isOutOfRange(unit, target!, config.combat.ak47Range - 1)) {
+                    if (!UnitUtils.isOutOfRange(unit, target, config.combat.ak47Range - 1)) {
                         unitMotion.endMotion(unit);
                         const soldier = unit.fsm.switchState(SoldierState);
-                        soldier.attackTarget(target!);
+                        soldier.attackTarget(target);
                     }
                 }
             }
             break;
 
             case MeleeAttackStateStep.Attack: {
-                const separation = separations[unit.type] + separations[target!.type];
-                const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separation * 1.5;
+                const separation = separations[unit.type] + separations[target.type];
+                const outOfRange = unit.visual.position.distanceTo(target.visual.position) > separation * 1.5;
                 if (outOfRange) {
                     this._step = MeleeAttackStateStep.Follow;
-                    unitMotion.moveUnit(unit, target!.coords.mapCoords, false);
+                    unitMotion.moveUnit(unit, target.coords.mapCoords, false);
                     unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
 
                 } else {
-                    UnitUtils.rotateToTarget(unit, target!);
+                    UnitUtils.rotateToTarget(unit, target);
                     if (this._hitTimer < 0) {
                         const damage = unitConfig[unit.type].damage;
-                        target!.setHitpoints(target!.hitpoints - damage);
+                        target.setHitpoints(target.hitpoints - damage);
                         this._hitTimer = hitFrequency;
                     } else {
                         this._hitTimer -= time.deltaTime;
@@ -78,6 +85,7 @@ export class MeleeAttackState extends State<ICharacterUnit> {
     public attackTarget(unit: ICharacterUnit, target: IUnit) {
         this._target = target;
         unit.isIdle = false;
+        this._targetCoords.copy(target.coords.mapCoords);
     }    
 
     public onColliding(unit: ICharacterUnit) {
