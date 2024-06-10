@@ -8,8 +8,6 @@ import { IUnit } from "./unit/IUnit";
 import { IBuildingInstance } from "./buildings/BuildingTypes";
 import { UnitUtils } from "./unit/UnitUtils";
 import { unitsManager } from "./unit/UnitsManager";
-import { ICell } from "./GameTypes";
-import { unitMotion } from "./unit/UnitMotion";
 import { cmdEndSelection, cmdOpenInGameMenu, cmdRotateMinimap, evtMoveCommand } from "../Events";
 import { onAction, onBeginDrag, onCancelDrag, onDrag, onEndDrag, raycastOnCells, setCameraPos, updateCameraSize } from "./GameMapUtils";
 import { time } from "../engine/core/Time";
@@ -21,6 +19,7 @@ import { ICharacterUnit } from "./unit/ICharacterUnit";
 import { buildingConfig } from "./config/BuildingConfig";
 import gsap from "gsap";
 import { TankState } from "./unit/states/TankState";
+import { unitMotion } from "./unit/UnitMotion";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -88,38 +87,6 @@ function getWorldRay(worldRayOut: Ray) {
     worldRayOut.copy(rayCaster.ray);
 }
 
-function moveCommand(units: IUnit[], _mapCoords: Vector2, targetCell: ICell, targetUnit?: IUnit) {
-
-    // group units per sector
-    const groupsPerSector = units.reduce((prev, cur) => {
-        if (UnitUtils.isEnemy(cur)) {
-            return prev;
-        }
-
-        const key = `${cur.coords.sectorCoords.x},${cur.coords.sectorCoords.y}`;
-        const units = prev[key];
-        const isVehicle = UnitUtils.isVehicle(cur);
-        if (!units) {
-            prev[key] = isVehicle ? { character: [], vehicle: [cur] } : { character: [cur], vehicle: [] };
-        } else {
-            units[isVehicle ? "vehicle" : "character"].push(cur);
-        }
-        return prev;
-    }, {} as Record<string, Record<"character" | "vehicle", IUnit[]>>);
-
-    const commandId = unitMotion.createMotionCommandId();
-    const groups = Object.values(groupsPerSector);
-
-    for (const group of groups) {
-        if (group.character.length > 0) {
-            unitMotion.moveGroup(commandId, group.character, _mapCoords, targetCell, false, targetUnit);
-        }
-        if (group.vehicle.length > 0) {
-            unitMotion.moveGroup(commandId, group.vehicle, _mapCoords, targetCell, true, targetUnit);
-        }
-    }
-
-}
 
 function onCellHovered(_cellCoords: Vector2, touchStart: Vector2) {
     const state = GameMapState.instance;
@@ -533,7 +500,7 @@ class GameMapInput {
                                 intersections.sort((a, b) => a.distance - b.distance);
                                 const { unit: targetEnemy, building } = intersections[0];
                                 if (targetEnemy) {
-                                    moveCommand(units, targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords), targetEnemy);
+                                    unitMotion.moveCommand(units, targetEnemy.coords.mapCoords, getCellFromAddr(targetEnemy.coords), targetEnemy);
                                     evtMoveCommand.post(targetEnemy.coords.mapCoords);
 
                                     for (const _unit of units) {
@@ -558,12 +525,12 @@ class GameMapInput {
                                         Math.floor(building.mapCoords.x + size.x / 2),
                                         Math.floor(building.mapCoords.y + size.z / 2)
                                     );
-                                    moveCommand(units, mapCoords, GameUtils.getCell(mapCoords)!);
+                                    unitMotion.moveCommand(units, mapCoords, GameUtils.getCell(mapCoords)!);
                                     evtMoveCommand.post(mapCoords);
 
                                 }
                             } else {
-                                moveCommand(units, mapCoords, targetCell);
+                                unitMotion.moveCommand(units, mapCoords, targetCell);
                                 evtMoveCommand.post(mapCoords);
                             }
                         }

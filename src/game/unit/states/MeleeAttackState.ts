@@ -10,7 +10,6 @@ import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
 import { SoldierState } from "./SoldierState";
-import { Vector2 } from "three";
 
 const hitFrequency = .5;
 const { separations } = config.steering;
@@ -22,8 +21,9 @@ enum MeleeAttackStateStep {
 
 export class MeleeAttackState extends State<ICharacterUnit> {
 
+    public get target() { return this._target; }
+
     private _target: IUnit | null = null;
-    private _targetCoords = new Vector2();
     private _hitTimer = 0;
     private _step = MeleeAttackStateStep.Follow;    
 
@@ -43,12 +43,6 @@ export class MeleeAttackState extends State<ICharacterUnit> {
 
         switch (this._step) {
             case MeleeAttackStateStep.Follow: {
-                // TODO replace by group motion
-                if (!this._targetCoords.equals(target.coords.mapCoords)) {
-                    this._targetCoords.copy(target.coords.mapCoords);
-                    unitMotion.moveUnit(unit, target.coords.mapCoords, false);
-                }
-
                 const hasAk47 = unit.resource?.type === "ak47";
                 if (hasAk47) {
                     if (!UnitUtils.isOutOfRange(unit, target, config.combat.ak47Range - 1)) {
@@ -85,7 +79,6 @@ export class MeleeAttackState extends State<ICharacterUnit> {
     public attackTarget(unit: ICharacterUnit, target: IUnit) {
         this._target = target;
         unit.isIdle = false;
-        this._targetCoords.copy(target.coords.mapCoords);
     }    
 
     public onColliding(unit: ICharacterUnit) {

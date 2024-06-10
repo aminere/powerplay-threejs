@@ -1,8 +1,9 @@
-import { Vector2 } from "three";
+import { TOUCH, Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
 import { ICell } from "../GameTypes";
 import { IUnit } from "../unit/IUnit";
+import { utils } from "../../engine/Utils";
 
 export type TFlowField = {
     integration: number;
@@ -53,12 +54,14 @@ const currentCoords = new Vector2();
 
 export type TFlowFieldMap = Map<string, TFlowField[]>;
 type TFlowfieldMotion = {
-    unitCount: number;
+    units: IUnit[];
     flowfields: TFlowFieldMap;
     targetUnit?: IUnit;
 }
 
-class FlowField {    
+class FlowField {
+
+    public get motions() { return this._motions; }
 
     private _motionId = 1;
     private _motions = new Map<number, TFlowfieldMotion>();
@@ -312,12 +315,12 @@ class FlowField {
 
     public getMotion(motionId: number) {
         return this._motions.get(motionId)!;
-    }
+    }    
 
     public register(flowfields: TFlowFieldMap, targetUnit?: IUnit) {
         const motionId = this._motionId;
         this._motions.set(motionId, {
-            unitCount: 0,
+            units: [],
             flowfields,
             targetUnit
         });
@@ -325,20 +328,17 @@ class FlowField {
         return motionId;
     }
 
-    public setMotionUnitCount(motionId: number, count: number) {
-        const motion = this._motions.get(motionId)!;
-        motion.unitCount = count;
-    }
-
     public removeMotion(unit: IUnit) {
         const motion = this._motions.get(unit.motionId)!;
         console.assert(motion);
-        console.assert(motion.unitCount > 0);
-        motion.unitCount--;
-        if (motion.unitCount === 0) {
+        console.assert(motion.units.length > 0);
+        const index = motion.units.indexOf(unit);
+        console.assert(index !== -1);
+        utils.fastDelete(motion.units, index);
+        if (motion.units.length === 0) {
             this._motions.delete(unit.motionId);
         }    
-        // console.log(`remaining motions: ${this._motions.size}`);
+        console.log(`remaining motions: ${this._motions.size}`);
     }
 }
 

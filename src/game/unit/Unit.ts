@@ -153,7 +153,7 @@ export class Unit implements IUnit {
     public clearAction() {
         const tankState = this.fsm.getState(TankState);
         if (tankState) {
-            tankState.stopAttack();
+            tankState.stopAttack(this);
         }
     }
     public onArrived() {}

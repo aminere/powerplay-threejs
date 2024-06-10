@@ -87,7 +87,7 @@ export class TankState extends State<ICharacterUnit> {
         const target = this._target;
         if (target) {
             if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, shootRange))) {
-                this.stopAttack();
+                this.stopAttack(unit);
                 this._search.reset();
             } else {
                 switch (this._step) {
@@ -97,6 +97,7 @@ export class TankState extends State<ICharacterUnit> {
                         if (!isMoving) {
                             this._step = TankStep.Attack;
                             this._attackTimer = attackDelay;
+                            unit.isIdle = false;
                         }
                     }
                         break;
@@ -106,6 +107,7 @@ export class TankState extends State<ICharacterUnit> {
                             unitMotion.endMotion(unit);
                             this._step = TankStep.Attack;
                             this._attackTimer = attackDelay;
+                            unit.isIdle = false;
                         }
                     }
                     break;
@@ -212,9 +214,10 @@ export class TankState extends State<ICharacterUnit> {
         }
     }
 
-    public stopAttack() {
+    public stopAttack(unit: IUnit) {
         this._step = TankStep.Idle;
         this._target = null;
+        unit.isIdle = true;
     }
 
     public followTarget(target: IUnit) {
