@@ -13,6 +13,9 @@ import { unitConfig } from "../config/UnitConfig";
 import sat from "sat";
 
 const direction = new Vector3();
+const velocity = new Vector3();
+const nextPos1 = new Vector3();
+const nextPos2 = new Vector3();
 const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
@@ -30,7 +33,10 @@ const truckWorldCorner1 = new Vector3();
 const truckWorldCorner2 = new Vector3();
 
 function truckCollidesWithUnit(truck: ITruckUnit, unit: IUnit) {
-    return Collision.obbIntersectsSphere(truck.visual, truckMin, truckMax, unit.visual.position, separations[unit.type]);
+    const maxSpeed1 = UnitUtils.getMaxSpeed(unit);
+    velocity.copy(unit.velocity).addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed1);
+    nextPos1.copy(unit.visual.position).addScaledVector(velocity, time.deltaTime);
+    return Collision.obbIntersectsSphere(truck.visual, truckMin, truckMax, nextPos1, separations[unit.type]);
 }
 
 export class UnitUtils {
@@ -76,17 +82,16 @@ export class UnitUtils {
                 return truckCollidesWithUnit(unit1 as ITruckUnit, unit2);
             } else if (unit2IsTruck) {
                 return truckCollidesWithUnit(unit2 as ITruckUnit, unit1);
-            } else {
-                const getNextPos = (unit: IUnit) => {
-                    // return unit.visual.position;
-                    const maxSpeed = UnitUtils.getMaxSpeed(unit);                    
-                    const velocity = unit.velocity.clone().addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed);
-                    const nextPos = unit.visual.position.clone().addScaledVector(velocity, time.deltaTime);
-                    return nextPos;
-                };
+            } else {                
                 // both have sphere collision
                 // const dist = unit1.visual.position.distanceTo(unit2.visual.position);
-                const dist = getNextPos(unit1).distanceTo(getNextPos(unit2));
+                const maxSpeed1 = UnitUtils.getMaxSpeed(unit1);
+                const maxSpeed2 = UnitUtils.getMaxSpeed(unit2);
+                velocity.copy(unit1.velocity).addScaledVector(unit1.acceleration, time.deltaTime).clampLength(0, maxSpeed1);
+                nextPos1.copy(unit1.visual.position).addScaledVector(velocity, time.deltaTime);
+                velocity.copy(unit2.velocity).addScaledVector(unit2.acceleration, time.deltaTime).clampLength(0, maxSpeed2);
+                nextPos2.copy(unit2.visual.position).addScaledVector(velocity, time.deltaTime);
+                const dist = nextPos1.distanceTo(nextPos2);
                 const separation = separations[unit1.type] + separations[unit2.type];
                 return dist < separation;
             }
@@ -95,12 +100,13 @@ export class UnitUtils {
 
     public static updateRotation(unit: IUnit, _direction: Vector3, halfDuration: number) {
         if (_direction.lengthSq() > 0.001) {
-            // direction.copy(_direction).normalize().negate();            
+            // direction.copy(_direction).normalize().negate();
             // unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, direction, GameUtils.vec3.up));
             // mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
             direction.copy(_direction).normalize();
             const angle = Math.atan2(direction.x, direction.z);
-            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, angle, halfDuration, time.deltaTime);
+            const closestAngle = unit.visual.rotation.y + mathUtils.deltaAngle(unit.visual.rotation.y, angle);
+            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, closestAngle, halfDuration, time.deltaTime);
         }
     }
 

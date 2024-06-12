@@ -324,23 +324,25 @@ function moveAwayFrom(unit: IUnit, neighbor: IUnit, currentAccel: number, repuls
 
 function avoidMovingNeighbor(unit: IUnit, neighbor: IUnit, factor: number) {
     // move away in a direction perpendicular to the neighbor's velocity
-    awayDirection3.copy(neighbor.velocity).normalize();
-    awayDirection3.setY(0).cross(GameUtils.vec3.up);
-    const dir = unit.visual.position.clone().sub(neighbor.visual.position).projectOnVector(awayDirection3).normalize();
-    unit.acceleration.addScaledVector(dir, maxForce * factor);
+    awayDirection3.copy(neighbor.velocity).setY(0).normalize();
+    awayDirection3.cross(GameUtils.vec3.up);
+    const perpendicularToMotion = lookDirection.subVectors(unit.visual.position, neighbor.visual.position).setY(0)
+        .projectOnVector(awayDirection3)
+        .normalize();
+    unit.acceleration.addScaledVector(perpendicularToMotion, maxForce * factor);
 }
 
 function slideAlongNeighbor(unit: IUnit, neighbor: IUnit) {
-    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).normalize();
-    awayDirection3.setY(0).cross(GameUtils.vec3.up);
+    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0).normalize();
+    awayDirection3.cross(GameUtils.vec3.up);
     unit.acceleration
         .multiplyScalar(.1)
         .addScaledVector(awayDirection3, maxForce)
         .clampLength(0, maxForce);
 }
 
-function isMovingTowards(unit: IUnit, neighbor: IUnit) {
-    const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).normalize();
+function isMovingTowards(unit: IUnit, neighbor: IUnit) {    
+    const toNeighbor = awayDirection3.subVectors(neighbor.visual.position, unit.visual.position).setY(0).normalize();
     return vectorsHaveSameDirection(toNeighbor, unit.velocity);
 }
 
@@ -458,21 +460,9 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-                // const motion = flowField.getMotion(unit.motionId);
-                // const averageDir = new Vector2();
-                // const direction = new Vector2();
-                // let neighborcount = 0;
-                // for (const _unit of motion.units) {
-                //     if (_unit.coords.mapCoords.distanceTo(unit.coords.mapCoords) < 2) {
-                //         getFlowfieldDirection(_unit, direction);
-                //         averageDir.add(direction);
-                //         neighborcount++;
-                //     }
-                // }
-                // const dir = averageDir.divideScalar(neighborcount).normalize();
-                const dir = getFlowfieldDirection(unit, new Vector2()); 
-                unit.acceleration.x += dir.x * maxForce;
-                unit.acceleration.z += dir.y * maxForce;
+                const direction = getFlowfieldDirection(unit, awayDirection); 
+                unit.acceleration.x += direction.x * maxForce;
+                unit.acceleration.z += direction.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);        
             }
             unit.motionTime += time.deltaTime;
@@ -573,6 +563,7 @@ export class UnitMotion {
                                         // neighbor is moving away from me
                                         (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
                                         unit.acceleration.copy(neighbor.acceleration);
+                                        // moveAwayFrom(unit, neighbor, 1, 1);
                                     }
                                 } else {
                                     // already moving away from the collision, do nothing
@@ -581,7 +572,7 @@ export class UnitMotion {
                         } else {
                             if (unit.isIdle) {
                                 if (neighbor.motionId === 0) {
-                                    moveAwayFrom(unit, neighbor, 0, 1);
+                                    moveAwayFrom(unit, neighbor, 1, 1);
                                 } else {
                                     avoidMovingNeighbor(unit, neighbor, .2);
                                 }
