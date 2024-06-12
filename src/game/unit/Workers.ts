@@ -15,6 +15,12 @@ const pickedAk47Offset = new Matrix4().compose(
     new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
     new Vector3(1, 1, 1).multiplyScalar(1.5)
 );
+const pickedRPGOffset = new Matrix4().compose(
+    new Vector3(0, .2, 0),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-43.45), MathUtils.degToRad(25.61), MathUtils.degToRad(16.95))),
+    new Vector3(1, 1, 1).multiplyScalar(1.2)
+);
+
 const pickedItemlocalToSkeleton = new Matrix4();
 
 export class Workers {
@@ -44,6 +50,11 @@ export class Workers {
                     }
                 }
                     break;
+                case "rpg": {
+                    const parent = skeleton.getObjectByName("HandR")!;
+                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedRPGOffset);                    
+                }
+                    break;
                 default: {
                     const parent = skeleton.getObjectByName("Spine2")!;
                     pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedItemOffset);
@@ -62,16 +73,20 @@ export class Workers {
         const mesh = _mesh.clone();
         visual.add(mesh);
     
-        if (resourceType === "ak47") {
-            objects.load("/prefabs/muzzle-flash.json")
-                .then(_obj => {
-                    const obj = _obj.clone();
-                    visual.add(obj);
-                    obj.visible = false;
-                });
-    
-            unit.fsm.switchState(SoldierState);
-        }
+        switch (resourceType) {
+            case "ak47": {
+                const _muzzleFlash = objects.loadImmediate("/prefabs/muzzle-flash.json")!;
+                const muzzleFlash = _muzzleFlash.clone();
+                visual.add(muzzleFlash);
+                muzzleFlash.visible = false;
+                unit.fsm.switchState(SoldierState);
+            }
+            break;
+            case "rpg": {
+                unit.fsm.switchState(SoldierState);
+            }
+            break;
+        }        
     
         mesh.castShadow = true;
         unit.resource = {

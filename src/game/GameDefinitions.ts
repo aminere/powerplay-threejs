@@ -35,7 +35,8 @@ export const ResourceTypes = [
     "rubber",
     "concrete",
     "glass",
-    "ak47",    
+    "ak47",
+    "rpg"
 ] as const;
 
 export const CharacterTypes = [

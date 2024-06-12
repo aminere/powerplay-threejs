@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { cmdRenderUI, evtScreenResized, cmdUpdateHealthBars, SelectedElems } from "../../Events";
-import { Color, Vector3 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
@@ -18,6 +18,7 @@ const partHeight = 8;
 const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
+const sectorCoords = new Vector2();
 const { cellSize, unitScale } = config.game;
 
 const headOffset = 2 * unitScale;
@@ -77,7 +78,7 @@ export function HealthBars() {
                         const building = selectedElemsRef.current.building;                        
                         const { visual, buildingType } = building;
                         const size = buildingConfig[buildingType].size;
-                        worldPos.copy(visual.position).addScaledVector(visual.up, size.y * cellSize);
+                        visual.getWorldPosition(worldPos).addScaledVector(visual.up, size.y * cellSize);
                         worldPos.x += size.x / 2 * cellSize;
                         worldPos.z += size.z / 2 * cellSize;
                         drawBar(ctx, worldPos, building.hitpoints, buildingConfig[buildingType].hitpoints);

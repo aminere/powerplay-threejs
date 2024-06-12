@@ -289,12 +289,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
         cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
         
-        // equip ak47
-        meshes.load(`/models/resources/ak47.glb`).then(() => {
+        // equip
+        meshes.load(`/models/resources/rpg.glb`).then(() => {
             const solider = unitsManager.units.find(u => u.type === "worker")!;
-            Workers.pickResource(solider as ICharacterUnit, "ak47", solider.coords.mapCoords);
+            Workers.pickResource(solider as ICharacterUnit, "rpg", solider.coords.mapCoords);
             unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
-        });      
+        });
     }
 
     override dispose() {

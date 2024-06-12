@@ -28,7 +28,16 @@ export const config = {
         tankScale: 2
     },
     combat: {
-        ak47Range: 6
+        ak47: {
+            range: 6,
+            damage: 5,
+            anim: "shoot"
+        },
+        rpg: {
+            range: 10,
+            damage: 10,
+            anim: "shoot-rpg"
+        }
     },
     incubators: {
         inputCapacity: 5,        

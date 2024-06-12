@@ -103,6 +103,7 @@ class UnitsManager {
                 { name: "carry-idle" },
                 { name: "carry-run" },
                 { name: "shoot" },
+                { name: "shoot-rpg" }
             ],
         });
 

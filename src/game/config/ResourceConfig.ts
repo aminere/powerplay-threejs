@@ -7,7 +7,8 @@ const factoryProduction: FactoryProduction = {
     "rubber": ["oil"],
     "concrete": ["stone", "iron"],
     "glass": ["stone"],
-    "ak47": ["iron"]
+    "ak47": ["iron"],
+    "rpg": ["steel"]
 };
 
 type RawResourceConfig = Record<RawResourceType, { capacity: number }>;
@@ -20,7 +21,7 @@ const rawResources: RawResourceConfig = {
     },
     "iron": {
         capacity: 100
-    },    
+    },
     "oil": {
         capacity: 1
     },    

@@ -43,12 +43,15 @@ export class MeleeAttackState extends State<ICharacterUnit> {
 
         switch (this._step) {
             case MeleeAttackStateStep.Follow: {
-                const hasAk47 = unit.resource?.type === "ak47";
-                if (hasAk47) {
-                    if (!UnitUtils.isOutOfRange(unit, target, config.combat.ak47Range - 1)) {
-                        unitMotion.endMotion(unit);
-                        const soldier = unit.fsm.switchState(SoldierState);
-                        soldier.attackTarget(target);
+                switch (unit.resource?.type) {
+                    case "ak47": 
+                    case "rpg": {
+                        const { range } = config.combat[unit.resource.type];
+                        if (!UnitUtils.isOutOfRange(unit, target, range - 1)) {
+                            unitMotion.endMotion(unit);
+                            const soldier = unit.fsm.switchState(SoldierState);
+                            soldier.attackTarget(target);
+                        }
                     }
                 }
             }

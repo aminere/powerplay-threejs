@@ -5,12 +5,10 @@ import { unitAnimation } from "../UnitAnimation";
 import { UnitSearch } from "../UnitSearch";
 import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
-import { unitConfig } from "../../config/UnitConfig";
-import { config } from "../../config/config";
 import { NPCState } from "./NPCState";
+import { config } from "../../config/config";
 
 const hitFrequency = .5;
-const { ak47Range } = config.combat;
 
 export class SoldierState extends State<ICharacterUnit> {
 
@@ -28,9 +26,16 @@ export class SoldierState extends State<ICharacterUnit> {
 
     override update(unit: ICharacterUnit) {
 
+        const weaponType = unit.resource?.type! as "ak47" | "rpg";
+        const {
+            damage,
+            range,
+            anim
+        } = config.combat[weaponType];
+
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, ak47Range)) {
+            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range)) {
                 this.stopAttack(unit);
                 this._search.reset();
                 this._target = null;
@@ -39,15 +44,13 @@ export class SoldierState extends State<ICharacterUnit> {
                 if (!isMoving) {
                     if (unit.isIdle) {
                         unit.isIdle = false;
-                        unitAnimation.setAnimation(unit, "shoot", { transitionDuration: .3, scheduleCommonAnim: true });
+                        unitAnimation.setAnimation(unit, anim, { transitionDuration: .3, scheduleCommonAnim: true });
                     } else {
 
                         UnitUtils.rotateToTarget(unit, target!);
 
                         // attack
                         if (this._hitTimer < 0) {
-                            const ak47DamageFactor = 2;
-                            const damage = unitConfig[unit.type].damage * ak47DamageFactor;
                             target!.setHitpoints(target!.hitpoints - damage);
                             this._hitTimer = hitFrequency;
 
@@ -67,7 +70,7 @@ export class SoldierState extends State<ICharacterUnit> {
                 }
             }
         } else {
-            const newTarget = this._search.find(unit, ak47Range, UnitUtils.isEnemy);
+            const newTarget = this._search.find(unit, range, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
             }
