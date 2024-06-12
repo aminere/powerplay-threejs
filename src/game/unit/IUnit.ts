@@ -19,6 +19,7 @@ export interface IUnit {
     coords: IUnitAddr;
     motionId: number;
     motionCommandId: number;
+    motionTime: number;
     lastCompletedMotionCommandId: number;
     collidingWith: IUnit[];
     isAlive: boolean;

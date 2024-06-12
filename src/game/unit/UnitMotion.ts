@@ -1,4 +1,4 @@
-import { Box3Helper, MathUtils, Object3D, Vector2, Vector3 } from "three";
+import { Box3Helper, LineBasicMaterial, MathUtils, Object3D, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
 import { TFlowField, TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
@@ -55,6 +55,7 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
     unit.motionId = motionId;
     unit.motionCommandId = motionCommandId;
     unit.arriving = false;
+    unit.motionTime = 0;
     computeUnitAddr(mapCoords, unit.targetCell);
 
     if (UnitUtils.isVehicle(unit)) {
@@ -301,7 +302,7 @@ function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
     nextCell.units.push(vehicle);
 }
 
-function moveAwayFrom(unit: IUnit, neighbor: IUnit, slowDownFactor: number) {
+function moveAwayFrom(unit: IUnit, neighbor: IUnit, currentAccel: number, repulsion: number) {
     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
     const distToNeighbor = awayDirection3.length();
     if (distToNeighbor > 0) {
@@ -316,8 +317,8 @@ function moveAwayFrom(unit: IUnit, neighbor: IUnit, slowDownFactor: number) {
     const repulsionFactor = Math.max(1 - distance / separation, .1);
 
     unit.acceleration
-        .multiplyScalar(slowDownFactor)
-        .addScaledVector(awayDirection3, maxForce * repulsionFactor)
+        .multiplyScalar(currentAccel)
+        .addScaledVector(awayDirection3, maxForce * repulsionFactor * repulsion)
         .clampLength(0, maxForce);
 }
 
@@ -327,6 +328,20 @@ function avoidMovingNeighbor(unit: IUnit, neighbor: IUnit, factor: number) {
     awayDirection3.setY(0).cross(GameUtils.vec3.up);
     const dir = unit.visual.position.clone().sub(neighbor.visual.position).projectOnVector(awayDirection3).normalize();
     unit.acceleration.addScaledVector(dir, maxForce * factor);
+}
+
+function slideAlongNeighbor(unit: IUnit, neighbor: IUnit) {
+    awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).normalize();
+    awayDirection3.setY(0).cross(GameUtils.vec3.up);
+    unit.acceleration
+        .multiplyScalar(.1)
+        .addScaledVector(awayDirection3, maxForce)
+        .clampLength(0, maxForce);
+}
+
+function isMovingTowards(unit: IUnit, neighbor: IUnit) {
+    const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).normalize();
+    return vectorsHaveSameDirection(toNeighbor, unit.velocity);
 }
 
 export class UnitMotion {
@@ -344,7 +359,9 @@ export class UnitMotion {
         this._collisionResults.clear();
         if (GameMapProps.instance.debugCollisions) {
             for (const unit of units) {
-                getBox3Helper(unit.visual).visible = false;
+                const box = getBox3Helper(unit.visual);
+                box.visible = false;
+                (box.material as LineBasicMaterial).color.set(0xffff00);
             }
         }
     }
@@ -458,6 +475,7 @@ export class UnitMotion {
                 unit.acceleration.z += dir.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);        
             }
+            unit.motionTime += time.deltaTime;
         }
 
         if (unit.collidable) {
@@ -514,7 +532,6 @@ export class UnitMotion {
                 })();
 
                 if (willCollide) {
-
                     // const canAffectEachOther = (() => {
                     //     const isEnemy1 = UnitUtils.isEnemy(unit);
                     //     const isEnemy2 = UnitUtils.isEnemy(neighbor);
@@ -524,88 +541,57 @@ export class UnitMotion {
                     //     }
                     //     return true;
                     // })();
-                    const canAffectEachOther = true;
 
-                    if (canAffectEachOther) {
+                    if (unit.motionTime < 1) {
+                        // fresh motion, simple separation
+                        moveAwayFrom(unit, neighbor, 1, .5);
+                    } else {
                         if (unit.motionId > 0) {
                             if (neighbor.motionId === 0) {
                                 if (UnitUtils.isVehicle(neighbor)) {
-                                    // Canceled: vehicles are supposed to mark their cells as unwalkable, let the avoidance code in steer() handle it.
-                                    avoidMovingNeighbor(neighbor, unit, .2);
+                                    if (neighbor.isIdle) {
+                                        // vehicles only detect neighboring vehicles
+                                        // so when in contact with a unit, the vehicle collision response must be done here 
+                                        // (from the unit collision handler)
+                                        avoidMovingNeighbor(neighbor, unit, .2);
+                                    } else {
+                                        slideAlongNeighbor(unit, neighbor);
+                                    }
                                 } else {
                                     if (neighbor.isIdle) {
                                         // no need to do anything, the stationary neighbor will move itself
                                     } else {
-                                        // slide along neighbor
-                                        awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).normalize();
-                                        awayDirection3.setY(0).cross(GameUtils.vec3.up);
-                                        unit.acceleration
-                                            .multiplyScalar(.5)
-                                            .addScaledVector(awayDirection3, maxForce * .5)
-                                            .clampLength(0, maxForce);
+                                        slideAlongNeighbor(unit, neighbor);
                                     }
                                 }
-                            } else {                                
-                                const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).normalize();
-                                if (vectorsHaveSameDirection(toNeighbor, unit.velocity)) {
-                                    moveAwayFrom(unit, neighbor, .1);
+                            } else {
+                                if (isMovingTowards(unit, neighbor)) {
+                                    if (isMovingTowards(neighbor, unit)) {
+                                        // slow down and move away from the collision
+                                        moveAwayFrom(unit, neighbor, .5, 1);
+                                    } else {
+                                        // neighbor is moving away from me
+                                        (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
+                                        unit.acceleration.copy(neighbor.acceleration);
+                                    }
                                 } else {
-                                    // do nothing, moving away from the collision
+                                    // already moving away from the collision, do nothing
                                 }
-                            }                            
+                            }
                         } else {
                             if (unit.isIdle) {
                                 if (neighbor.motionId === 0) {
-                                    moveAwayFrom(unit, neighbor, 1);
+                                    moveAwayFrom(unit, neighbor, 0, 1);
                                 } else {
                                     avoidMovingNeighbor(unit, neighbor, .2);
                                 }
-                            } else {
-                                // no avoidance, keep being busy
+                            } else {                                
+                                // keep being busy, but slightly move away from the collision
+                                moveAwayFrom(unit, neighbor, 1, .1);
                             }
                         }
-                    }
-
-                    // awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
-                    // const distToNeighbor = awayDirection3.length();
-                    // if (distToNeighbor > 0) {
-                    //     awayDirection3.divideScalar(distToNeighbor)
-                    // } else {
-                    //     awayDirection3.set(MathUtils.randFloat(-1, 1), 0, MathUtils.randFloat(-1, 1)).normalize();
-                    // }
-
-                    // const canBeAffectedByNeighbor = (() => {
-                    //     const isEnemy1 = UnitUtils.isEnemy(unit);
-                    //     const isEnemy2 = UnitUtils.isEnemy(neighbor);
-                    //     if (isEnemy1 !== isEnemy2) {
-                    //         // enemies can't push each other
-                    //         return false;
-                    //     }
-                    //     return true;
-                    // })();
-
-                    // if (canBeAffectedByNeighbor) {
-                    //     const forceFactor = (() => {
-                    //         if (UnitUtils.isVehicle(neighbor)) {
-                    //             return .9;
-                    //         }
-                    //         if (unit.motionId > 0 && neighbor.motionId === 0) {
-                    //             return .2;
-                    //         }
-                    //         return .5;
-                    //     })();
-
-                    //     unit.acceleration
-                    //         .multiplyScalar(1 - forceFactor)
-                    //         .addScaledVector(awayDirection3, maxForce * forceFactor)
-                    //         .clampLength(0, maxForce);
-
-                    //     // more repulsion if units are closer
-                    //     const distance = Math.min(distToNeighbor, separations[unit.type]);
-                    //     const repulsionFactor = 1 - distance / separations[unit.type];
-                    //     unit.acceleration.addScaledVector(unit.acceleration, repulsionFactor * 5);
-                    // }
-
+                    }                    
+                    
                     if (unit.motionId > 0) {
                         unit.onCollidedWhileMoving(neighbor);
                     }

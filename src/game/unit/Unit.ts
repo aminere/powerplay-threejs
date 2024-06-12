@@ -32,6 +32,7 @@ export class Unit implements IUnit {
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get motionCommandId() { return this._motionCommandId; }
+    public get motionTime() { return this._motionTime; }
     public get lastCompletedMotionCommandId() { return this._lastCompletedMotionCommandId; }
     public get collidingWith() { return this._collidingWith; }
     public get isAlive() { return this._isAlive; }
@@ -61,7 +62,8 @@ export class Unit implements IUnit {
             this._lastCompletedMotionCommandId = this._motionCommandId;
         }
         this._motionCommandId = value; 
-    }
+    }    
+    public set motionTime(value: number) { this._motionTime = value; }
 
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }    
@@ -77,6 +79,7 @@ export class Unit implements IUnit {
     private _motionId = 0;
     private _lastCompletedMotionCommandId = 0;
     private _motionCommandId = 0;
+    private _motionTime = 0;
     private _collidingWith: IUnit[] = [];
     private _isAlive = true;
     private _isIdle = true;
