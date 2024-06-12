@@ -94,21 +94,20 @@ export class FlowfieldViewer extends Object3D {
         const flowfield = flowfieldsMap.get(sectorId)!;
         const texts = this.children[2];
         if (!texts) {
-            _3dFonts.load("helvetiker_regular.typeface").then(font => {
-                this._font = font;
-                const _texts = utils.createObject(this, "Texts");
-                _texts.position.copy(sector.root.position);
-                for (let y = 0; y < mapRes; ++y) {
-                    for (let x = 0; x < mapRes; ++x) {
-                        const cellIndex = y * mapRes + x;
-                        const integration = flowfield[cellIndex].integration;
-                        const text = getText(integration, font);
-                        const mesh = new Mesh(text, new MeshBasicMaterial({ color: 0x00ff00 }));
-                        mesh.position.set(x * cellSize + cellSize / 2, 0, y * cellSize + cellSize / 2);
-                        _texts.add(mesh);
-                    }
+            const font = _3dFonts.loadImmediate("helvetiker_regular.typeface")!;
+            this._font = font;
+            const _texts = utils.createObject(this, "Texts");
+            _texts.position.copy(sector.root.position);
+            for (let y = 0; y < mapRes; ++y) {
+                for (let x = 0; x < mapRes; ++x) {
+                    const cellIndex = y * mapRes + x;
+                    const integration = flowfield[cellIndex].integration;
+                    const text = getText(integration, font);
+                    const mesh = new Mesh(text, new MeshBasicMaterial({ color: 0x00ff00 }));
+                    mesh.position.set(x * cellSize + cellSize / 2, 0, y * cellSize + cellSize / 2);
+                    _texts.add(mesh);
                 }
-            });
+            }
         } else {
             for (let y = 0; y < mapRes; ++y) {
                 for (let x = 0; x < mapRes; ++x) {

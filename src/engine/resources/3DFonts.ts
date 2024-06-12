@@ -5,6 +5,11 @@ class _3DFonts {
     private _cache = new Map<string, Font>();
     private _loading = new Map<string, Promise<Font>>();
 
+    loadImmediate(fontName: string) {
+        const cached = this._cache.get(fontName);
+        return cached;
+    }
+
     async load(fontName: string) {
         const cached = this._cache.get(fontName);
         if (cached) {
