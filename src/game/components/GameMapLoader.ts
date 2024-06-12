@@ -38,6 +38,7 @@ import { Sandbox } from "./Sandbox";
 import { Workers } from "../unit/Workers";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { unitAnimation } from "../unit/UnitAnimation";
+import { _3dFonts } from "../../engine/resources/3DFonts";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -247,6 +248,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await objects.load("/prefabs/explosion.json");
         await objects.load("/prefabs/muzzle-flash.json");
         await objects.load("/prefabs/smoke.json");        
+        await _3dFonts.load("helvetiker_regular.typeface");
     }
 
     private init(size: number, _cameraPos: Vector3, owner: Object3D) {
