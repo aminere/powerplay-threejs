@@ -151,14 +151,14 @@ export function GameMapUI() {
             textShadow: "1px 1px 0px black",
             textTransform: "uppercase"
         }}
-        onPointerEnter={() => {
+        onPointerEnter={_e => {
             const state = GameMapState.instance;
             if (!state) {
                 return;
             }
             state.cursorOverUI = true;
         }}
-        onPointerLeave={() => {
+        onPointerLeave={_e => {
             const state = GameMapState.instance;
             if (!state) {
                 return;

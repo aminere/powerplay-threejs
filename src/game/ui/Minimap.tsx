@@ -55,7 +55,7 @@ function updateCameraPos(clientX: number, clientY: number, offset: number) {
     const { sectorRes } = GameMapState.instance;
     const texRes = mapRes * sectorRes;
     mapCoords.multiplyScalar(texRes / minimapSize);
-    
+
     // convert to world space
     worldPos.set(mapCoords.x - mapRes / 2, 0, mapCoords.y - mapRes / 2).multiplyScalar(cellSize);
     setCameraPos(worldPos);
@@ -152,12 +152,12 @@ export function Minimap() {
                                 case "wood": {
                                     resourcesPixels.data.set([0, 128, 0, 255], resourcesIndex);
                                 }
-                                break;
+                                    break;
 
-                                default: 
-                                resourcesPixels.data.set([32, 32, 32, 255], resourcesIndex);
+                                default:
+                                    resourcesPixels.data.set([32, 32, 32, 255], resourcesIndex);
                             }
-                            
+
                         } else {
                             envPixels.data.set([196, 146, 111, 255], index); // sand
                         }
@@ -176,7 +176,7 @@ export function Minimap() {
         setInitialized(true);
 
         makeScreenToCanvasTransform(45, minimapSize / 2);
-        
+
     }, []);
 
     useEffect(() => {
@@ -198,7 +198,7 @@ export function Minimap() {
         const renderUI = () => {
             const { sectorRes } = GameMapState.instance;
             const texRes = mapRes * sectorRes;
-            
+
             const unitsCanvas = unitsRef.current!;
             const unitsCtx = unitsCanvas.getContext("2d")!;
             const { units } = unitsManager;
@@ -275,16 +275,25 @@ export function Minimap() {
             cmdRotateMinimap.detach(onRotateMinimap);
         }
 
-    }, [initialized]);    
+    }, [initialized]);
 
-    return <div ref={root} style={{ position: "absolute", left: "0", bottom: "0" }}>
+    return <div
+        ref={root}
+        style={{
+            position: "absolute",
+            left: "0",
+            bottom: "0",
+            pointerEvents: "none",
+        }}
+    >
         <div
             style={{
                 position: "relative",
                 height: "100%",
                 transform: `translate(${minimapPos.x}px, ${minimapPos.y}px) scaleY(.5) rotate(${45}deg)`,
                 transformOrigin: "center",
-                border: "1px solid white"
+                border: "1px solid white",
+                pointerEvents: "all"
             }}
             onPointerDown={e => {
                 const cameraCanvas = cameraRef.current!;
@@ -297,14 +306,14 @@ export function Minimap() {
                     const cameraCanvas = cameraRef.current!;
                     const size = cameraCanvas.width;
                     updateCameraPos(e.clientX, e.clientY, size / 2);
-                }                
+                }
             }}
         >
             <canvas ref={envRef} style={{ ...crispCanvasStyle, zIndex: 1 }} />
-            <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />            
+            <canvas ref={resourcesRef} style={{ ...crispCanvasStyle, zIndex: 2 }} />
             <canvas ref={unitsRef} style={{ ...crispCanvasStyle, zIndex: 3 }} />
             <canvas ref={fogRef} style={{ ...crispCanvasStyle, zIndex: 4 }} />
-            <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />            
+            <canvas ref={cameraRef} style={{ ...canvasStyle, zIndex: 5 }} />
         </div>
         {/* <canvas
             ref={unitsRef}
