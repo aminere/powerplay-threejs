@@ -75,6 +75,7 @@ class UnitsManager {
 
     public get units() { return this._units; }
     public get selectedUnits() { return this._selectedUnits; }
+    public get selection() { return this._selection; }
 
     public set owner(value: Object3D) { this._owner = value; }
 

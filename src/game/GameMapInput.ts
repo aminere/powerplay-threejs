@@ -249,7 +249,57 @@ function checkKeyboardInput() {
     }
 }
 
+function updateSelectionFromRaycast() {
+    const units = unitsManager.units;
+    getWorldRay(worldRay);
+    intersections.length = 0;
+    for (let i = 0; i < units.length; ++i) {
+        const unit = units[i];
+        if (!unit.isAlive) {
+            continue;
+        }
+        inverseMatrix.copy(unit.visual.matrixWorld).invert();
+        if (raycastOnUnit(worldRay, unit, intersection)) {
+            intersections.push({ unit, distance: worldRay.origin.distanceTo(intersection) });
+        }
+    }
+
+    const state = GameMapState.instance;
+    for (const [, building] of state.buildings) {
+        inverseMatrix.copy(building.visual.matrixWorld).invert();
+        localRay.copy(worldRay).applyMatrix4(inverseMatrix);
+        const boundingBox = buildings.getBoundingBox(building.buildingType);
+        if (localRay.intersectBox(boundingBox, intersection)) {
+            intersection.applyMatrix4(building.visual.matrixWorld); // convert intersection to world space
+            intersections.push({ building, distance: worldRay.origin.distanceTo(intersection) });
+        }
+    }
+
+    if (intersections.length > 0) {
+        intersections.sort((a, b) => a.distance - b.distance);
+        const { unit, building } = intersections[0];
+        if (unit) {
+            unitsManager.setSelection({ type: "units", units: [unit] });
+        } else if (building) {
+            unitsManager.setSelection({ type: "building", building });
+        }
+
+    } else {
+        if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
+            GameUtils.worldToMap(intersection, cellCoords);
+            const cell = GameUtils.getCell(cellCoords);
+            if (!cell || cell.isEmpty) {
+                unitsManager.setSelection(null);
+            } else {
+                unitsManager.setSelection({ type: "cell", cell, mapCoords: cellCoords.clone() });
+            }
+        }
+    }
+}
+
 class GameMapInput {
+
+    private _lastClickTime = 0;
 
     public update() {
         const state = GameMapState.instance;
@@ -367,7 +417,7 @@ class GameMapInput {
             }
 
         } else if (input.touchJustReleased) {
-
+           
             if (input.touchButton === 0) {
                 if (!state.config.input.leftClick) {
                     return;
@@ -384,7 +434,6 @@ class GameMapInput {
                     if (state.selectionInProgress) {
                         cmdEndSelection.post();
                         state.selectionInProgress = false;
-
                         if (unitsManager.selectedUnits.length > 0) {
                             unitsManager.setSelection({ type: "units", units: unitsManager.selectedUnits });
                         } else {
@@ -408,51 +457,27 @@ class GameMapInput {
                             state.selectionInProgress = false;
 
                         } else {
+                            const currentTime = time.time;
+                            const timeSinceLastClick = currentTime - this._lastClickTime;
+                            this._lastClickTime = currentTime;
 
-                            const units = unitsManager.units;
-                            getWorldRay(worldRay);
-                            intersections.length = 0;
-                            for (let i = 0; i < units.length; ++i) {
-                                const unit = units[i];
-                                if (!unit.isAlive) {
-                                    continue;
-                                }
-                                inverseMatrix.copy(unit.visual.matrixWorld).invert();
-                                if (raycastOnUnit(worldRay, unit, intersection)) {
-                                    intersections.push({ unit, distance: worldRay.origin.distanceTo(intersection) });
-                                }
-                            }
-
-                            for (const [, building] of state.buildings) {
-                                inverseMatrix.copy(building.visual.matrixWorld).invert();
-                                localRay.copy(worldRay).applyMatrix4(inverseMatrix);
-                                const boundingBox = buildings.getBoundingBox(building.buildingType);
-                                if (localRay.intersectBox(boundingBox, intersection)) {
-                                    intersection.applyMatrix4(building.visual.matrixWorld); // convert intersection to world space
-                                    intersections.push({ building, distance: worldRay.origin.distanceTo(intersection) });
-                                }
-                            }
-
-                            if (intersections.length > 0) {
-                                intersections.sort((a, b) => a.distance - b.distance);
-                                const { unit, building } = intersections[0];
-                                if (unit) {
-                                    unitsManager.setSelection({ type: "units", units: [unit] });
-                                } else if (building) {
-                                    unitsManager.setSelection({ type: "building", building })
-                                }
-
-                            } else {
-                                if (GameUtils.screenCastOnPlane(state.camera, input.touchPos, 0, intersection)) {
-                                    GameUtils.worldToMap(intersection, cellCoords);
-                                    const cell = GameUtils.getCell(cellCoords);
-                                    if (!cell || cell.isEmpty) {
-                                        unitsManager.setSelection(null);
-                                    } else {
-                                        unitsManager.setSelection({ type: "cell", cell, mapCoords: cellCoords.clone() });
+                            if (timeSinceLastClick < 0.3) {                                
+                                // try select all units of the same type
+                                updateSelectionFromRaycast();
+                                const selection = unitsManager.selection;
+                                switch (selection?.type) {
+                                    case "units": {
+                                        const type = selection.units[0].type;
+                                        const unitsOfSameType = unitsManager.units.filter(unit => unit.type === type);
+                                        unitsManager.setSelection({ type: "units", units: unitsOfSameType });
                                     }
+                                    break;
                                 }
+                                
+                            } else {
+                                updateSelectionFromRaycast();
                             }
+                            
                         }
                     }
                 }
