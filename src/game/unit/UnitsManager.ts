@@ -44,8 +44,8 @@ function getBoundingBox(mesh: Mesh) {
     }
 }
 
-async function loadVisual(type: UnitType) {
-    const visual = (await meshes.load(`/models/${type}.glb`))[0].clone();
+function loadVisual(type: UnitType) {    
+    const visual = meshes.loadImmediate(`/models/${type}.glb`)[0].clone();
     visual.traverse(child => {
         child.castShadow = true;
         child.userData.unserializable = true;
@@ -138,18 +138,19 @@ class UnitsManager {
         for (const unit of this._units) {
             if (unit.isAlive) {
                 unit.fsm.update();
-                unitMotion.applyForces(unit);
                 switch (unit.type) {
                     case "worker": Workers.update(unit as ICharacterUnit); break;
                 }
+
+                unitMotion.applyForces(unit);
             }
         }  
         
         if (this._unitsToKill.length > 0) {
             for (const unit of this._unitsToKill) {
                 const index = this._units.indexOf(unit);
-                console.assert(index >= 0, `unit ${unit.id} not found`);
-                utils.fastDelete(this._units, index);    
+                console.assert(index >= 0, `unit ${unit.type} not found`);
+                utils.fastDelete(this._units, index);
             }
             this._unitsToKill.length = 0;
         }
@@ -161,16 +162,15 @@ class UnitsManager {
     }
 
     public async spawn(mapCoords: Vector2, type: UnitType) {
-
-        const id = this._units.length;
+        
         switch (type) {
             case "truck": {
-                const visual = await loadVisual(type);
+                const visual = loadVisual(type);
                 GameUtils.mapToWorld(mapCoords, visual.position);
                 const boundingBox = getBoundingBox(visual);
-                const unit = new TruckUnit({ visual, boundingBox, type, states: [new TruckState()]}, id);                
-                visual.scale.multiplyScalar(truckScale);
+                const unit = new TruckUnit({ visual, boundingBox, type, states: [new TruckState()]});
                 this._units.push(unit);
+                visual.scale.multiplyScalar(truckScale);
                 this._owner.add(visual);
                 unit.fsm.switchState(TruckState);
 
@@ -183,13 +183,13 @@ class UnitsManager {
             break;
 
             case "tank": {
-                const visual = await loadVisual(type);
+                const visual = loadVisual(type);
                 visual.receiveShadow = true;
                 GameUtils.mapToWorld(mapCoords, visual.position);
-                const boundingBox = getBoundingBox(visual);                
-                const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]}, id);
-                visual.scale.multiplyScalar(tankScale);
+                const boundingBox = getBoundingBox(visual);
+                const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]});                
                 this._units.push(unit);
+                visual.scale.multiplyScalar(tankScale);
                 this._owner.add(visual);
                 unit.fsm.switchState(TankState);
 
@@ -229,7 +229,7 @@ class UnitsManager {
                         }
                     })(),
                     animation: skeletonManager.applyIdleAnim(skinnedMesh)
-                }, id);
+                });
                 this._units.push(unit);
                 this._owner.add(skinnedMesh);
                 

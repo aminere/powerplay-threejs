@@ -41,8 +41,12 @@ function getBox3Helper(visual: Object3D) {
 // function movingInSameDirection(unit: IUnit, neighbor: IUnit) {
 //     velocity1.copy(unit.velocity).normalize();
 //     velocity2.copy(neighbor.velocity).normalize();
-//     return velocity1.dot(velocity2) >= .98;
+//     return velocity1.dot(velocity2) >= 0;
 // }
+
+function vectorsHaveSameDirection(v1: Vector3, v2: Vector3) {
+    return v1.dot(v2) >= 0;
+}
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
     if (unit.motionId > 0) {
@@ -140,10 +144,10 @@ function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
     }
 }
 
-function applyFlowfieldForce(unit: IUnit, maxForce: number) {
+function getFlowfieldDirection(unit: IUnit, directionOut: Vector2) {
     const { motionId, coords } = unit;
 
-    function applyForce(unit: IUnit, _flowfield: TFlowField, maxForce: number) {
+    function getDirection(_flowfield: TFlowField) {
         const { directionIndex } = _flowfield;
         if (directionIndex < 0) {
             const mapCoords = unit.coords.mapCoords;
@@ -163,9 +167,8 @@ function applyFlowfieldForce(unit: IUnit, maxForce: number) {
             flowField.getDirection(directionIndex, cellDirection);
         }
 
-        unit.acceleration.x += cellDirection.x * maxForce;
-        unit.acceleration.z += cellDirection.y * maxForce;
-        unit.acceleration.clampLength(0, maxForce);
+        directionOut.set(cellDirection.x, cellDirection.y);
+        return directionOut;
     }
 
     const flowfields = flowField.getMotion(motionId).flowfields;
@@ -183,7 +186,7 @@ function applyFlowfieldForce(unit: IUnit, maxForce: number) {
         }
 
         const flowfieldInfo = _flowField[currentCellIndex];
-        return applyForce(unit, flowfieldInfo, maxForce);
+        return getDirection(flowfieldInfo);
 
     } else {
 
@@ -208,12 +211,12 @@ function applyFlowfieldForce(unit: IUnit, maxForce: number) {
             }
 
             const flowfieldInfo = newFlowfield[coords.cellIndex];
-            return applyForce(unit, flowfieldInfo, maxForce);
+            return getDirection(flowfieldInfo);
 
         } else {
             console.assert(false);
-            unit.velocity.set(0, 0, 0);
-            unit.acceleration.set(0, 0, 0);
+            directionOut.set(0, 0);
+            return directionOut;            
         }
     }
 }
@@ -298,7 +301,7 @@ function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
     nextCell.units.push(vehicle);
 }
 
-function moveAwayFrom(unit: IUnit, neighbor: IUnit) {
+function moveAwayFrom(unit: IUnit, neighbor: IUnit, slowDownFactor: number) {
     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
     const distToNeighbor = awayDirection3.length();
     if (distToNeighbor > 0) {
@@ -313,9 +316,17 @@ function moveAwayFrom(unit: IUnit, neighbor: IUnit) {
     const repulsionFactor = Math.max(1 - distance / separation, .1);
 
     unit.acceleration
-        // .multiplyScalar(.5)
+        .multiplyScalar(slowDownFactor)
         .addScaledVector(awayDirection3, maxForce * repulsionFactor)
         .clampLength(0, maxForce);
+}
+
+function avoidMovingNeighbor(unit: IUnit, neighbor: IUnit, factor: number) {
+    // move away in a direction perpendicular to the neighbor's velocity
+    awayDirection3.copy(neighbor.velocity).normalize();
+    awayDirection3.setY(0).cross(GameUtils.vec3.up);
+    const dir = unit.visual.position.clone().sub(neighbor.visual.position).projectOnVector(awayDirection3).normalize();
+    unit.acceleration.addScaledVector(dir, maxForce * factor);
 }
 
 export class UnitMotion {
@@ -430,7 +441,22 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-                applyFlowfieldForce(unit, maxForce);
+                // const motion = flowField.getMotion(unit.motionId);
+                // const averageDir = new Vector2();
+                // const direction = new Vector2();
+                // let neighborcount = 0;
+                // for (const _unit of motion.units) {
+                //     if (_unit.coords.mapCoords.distanceTo(unit.coords.mapCoords) < 2) {
+                //         getFlowfieldDirection(_unit, direction);
+                //         averageDir.add(direction);
+                //         neighborcount++;
+                //     }
+                // }
+                // const dir = averageDir.divideScalar(neighborcount).normalize();
+                const dir = getFlowfieldDirection(unit, new Vector2()); 
+                unit.acceleration.x += dir.x * maxForce;
+                unit.acceleration.z += dir.y * maxForce;
+                unit.acceleration.clampLength(0, maxForce);        
             }
         }
 
@@ -465,13 +491,13 @@ export class UnitMotion {
                 //     }
                 // }
 
-                const collisionTestId = `${unit.id},${neighbor.id}`;
-                const isColliding = (() => {
+                const collisionTestId = `${unit.visual.id},${neighbor.visual.id}`;
+                const willCollide = (() => {
                     const cachedResult = this._collisionResults.get(collisionTestId);
                     if (cachedResult === undefined) {
-                        const newResult = UnitUtils.collides(unit, neighbor);
+                        const newResult = UnitUtils.willCollide(unit, neighbor);
                         this._collisionResults.set(collisionTestId, newResult);
-                        const collisionTestId2 = `${neighbor.id},${unit.id}`;
+                        const collisionTestId2 = `${neighbor.visual.id},${unit.visual.id}`;
                         this._collisionResults.set(collisionTestId2, newResult);
                         if (newResult) {
                             unit.collidingWith.push(neighbor);
@@ -487,7 +513,7 @@ export class UnitMotion {
                     }
                 })();
 
-                if (isColliding) {
+                if (willCollide) {
 
                     // const canAffectEachOther = (() => {
                     //     const isEnemy1 = UnitUtils.isEnemy(unit);
@@ -504,37 +530,35 @@ export class UnitMotion {
                         if (unit.motionId > 0) {
                             if (neighbor.motionId === 0) {
                                 if (UnitUtils.isVehicle(neighbor)) {
-                                    // vehicles are supposed to mark their cells as unwalkable, let the avoidance code in steer() handle it.
+                                    // Canceled: vehicles are supposed to mark their cells as unwalkable, let the avoidance code in steer() handle it.
+                                    avoidMovingNeighbor(neighbor, unit, .2);
                                 } else {
                                     if (neighbor.isIdle) {
                                         // no need to do anything, the stationary neighbor will move itself
-                                    } else {                                        
+                                    } else {
                                         // slide along neighbor
                                         awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).normalize();
                                         awayDirection3.setY(0).cross(GameUtils.vec3.up);
                                         unit.acceleration
                                             .multiplyScalar(.5)
-                                            .addScaledVector(awayDirection3, maxForce)
+                                            .addScaledVector(awayDirection3, maxForce * .5)
                                             .clampLength(0, maxForce);
                                     }
                                 }
-                            } else {
-                                // neighbor is also moving
-                                // only one of them moves, for more stability
-                                // if (unit.id < neighbor.id) {
-                                    moveAwayFrom(unit, neighbor);
-                                // }
-                            }
+                            } else {                                
+                                const toNeighbor = new Vector3().subVectors(neighbor.visual.position, unit.visual.position).normalize();
+                                if (vectorsHaveSameDirection(toNeighbor, unit.velocity)) {
+                                    moveAwayFrom(unit, neighbor, .1);
+                                } else {
+                                    // do nothing, moving away from the collision
+                                }
+                            }                            
                         } else {
                             if (unit.isIdle) {
                                 if (neighbor.motionId === 0) {
-                                    moveAwayFrom(unit, neighbor);
+                                    moveAwayFrom(unit, neighbor, 1);
                                 } else {
-                                    // move away in a direction perpendicular to the neighbor's velocity
-                                    awayDirection3.copy(neighbor.velocity).normalize();
-                                    awayDirection3.setY(0).cross(GameUtils.vec3.up);
-                                    const dir = new Vector3().copy(unit.visual.position).sub(neighbor.visual.position).projectOnVector(awayDirection3).normalize();
-                                    unit.acceleration.addScaledVector(dir, maxForce * .2);
+                                    avoidMovingNeighbor(unit, neighbor, .2);
                                 }
                             } else {
                                 // no avoidance, keep being busy
@@ -606,7 +630,15 @@ export class UnitMotion {
         const nextCell = GameUtils.getCell(nextMapCoords);
 
         if (nextCell?.isWalkable) {
-            UnitUtils.updateRotation(unit, unit.velocity);
+            const rotationHalfDuration = (() => {
+                if (UnitUtils.isVehicle(unit)) {
+                    if (unit.collidingWith.length > 0) {
+                        return .25;
+                    }
+                }
+                return .1;
+            })();
+            UnitUtils.updateRotation(unit, unit.velocity, rotationHalfDuration);
             unit.visual.position.copy(nextPos);
 
             if (!nextMapCoords.equals(unit.coords.mapCoords)) {

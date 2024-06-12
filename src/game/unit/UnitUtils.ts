@@ -56,7 +56,7 @@ export class UnitUtils {
         worldPos.y = GameUtils.getMapHeight(coords.mapCoords, coords.localCoords, coords.sector, worldPos.x, worldPos.z);
     }
 
-    public static collides(unit1: IUnit, unit2: IUnit) {
+    public static willCollide(unit1: IUnit, unit2: IUnit) {
         const unit1IsTruck = unit1.type === "truck";
         const unit2IsTruck = unit2.type === "truck";
         if (unit1IsTruck && unit2IsTruck) {
@@ -77,23 +77,30 @@ export class UnitUtils {
             } else if (unit2IsTruck) {
                 return truckCollidesWithUnit(unit2 as ITruckUnit, unit1);
             } else {
+                const getNextPos = (unit: IUnit) => {
+                    // return unit.visual.position;
+                    const maxSpeed = UnitUtils.getMaxSpeed(unit);                    
+                    const velocity = unit.velocity.clone().addScaledVector(unit.acceleration, time.deltaTime).clampLength(0, maxSpeed);
+                    const nextPos = unit.visual.position.clone().addScaledVector(velocity, time.deltaTime);
+                    return nextPos;
+                };
                 // both have sphere collision
-                const dist = unit1.visual.position.distanceTo(unit2.visual.position);
+                // const dist = unit1.visual.position.distanceTo(unit2.visual.position);
+                const dist = getNextPos(unit1).distanceTo(getNextPos(unit2));
                 const separation = separations[unit1.type] + separations[unit2.type];
                 return dist < separation;
             }
         }
     }
 
-    public static updateRotation(unit: IUnit, _direction: Vector3) {
+    public static updateRotation(unit: IUnit, _direction: Vector3, halfDuration: number) {
         if (_direction.lengthSq() > 0.001) {
-            const rotationDamp = 0.1;
             // direction.copy(_direction).normalize().negate();            
             // unit.lookAt.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, direction, GameUtils.vec3.up));
             // mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
             direction.copy(_direction).normalize();
             const angle = Math.atan2(direction.x, direction.z);
-            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, angle, rotationDamp, time.deltaTime);
+            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, angle, halfDuration, time.deltaTime);
         }
     }
 
@@ -106,7 +113,7 @@ export class UnitUtils {
             direction.normalize().applyQuaternion(baseRotation);
         }
         
-        UnitUtils.updateRotation(unit, direction);
+        UnitUtils.updateRotation(unit, direction, .1);
     }
 
     public static slowDown(unit: IUnit) {

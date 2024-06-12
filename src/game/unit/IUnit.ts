@@ -10,7 +10,6 @@ export interface IUnitFlowfieldInfo {
 }
 
 export interface IUnit {
-    id: number;
     velocity: Vector3;
     acceleration: Vector3;
     arriving: boolean;

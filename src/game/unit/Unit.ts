@@ -38,7 +38,6 @@ export class Unit implements IUnit {
     public get isIdle() { return this._isIdle; }
     public get collidable() { return this._collidable; }
     public get type() { return this._type; }
-    public get id() { return this._id; }  
     public get hitpoints() { return this._hitpoints; }  
     public get attackers() { return this._attackers; }
     
@@ -90,12 +89,10 @@ export class Unit implements IUnit {
 
     private _lookAt = new Quaternion();
     private _fsm: StateMachine<IUnit>;
-    private _id: number;    
 
-    constructor(props: IUnitProps, id: number) {
+    constructor(props: IUnitProps) {
         this._visual = props.visual;
         this._type = props.type;
-        this._id = id;
         this._fsm = new StateMachine<IUnit>({ states: props.states, owner: this });
         this._boundingBox = props.boundingBox;
 
@@ -108,7 +105,7 @@ export class Unit implements IUnit {
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 
         const cell = GameUtils.getCell(this._coords.mapCoords)!;
-        console.assert(cell, `unit ${this._id} created at invalid position ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
+        console.assert(cell, `unit ${this._type} created at invalid position ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
         if (cell.units) {
             cell.units.push(this);
         } else {
@@ -129,7 +126,7 @@ export class Unit implements IUnit {
     
                 const cell = getCellFromAddr(this._coords);
                 const unitIndex = cell.units!.indexOf(this);
-                console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
+                console.assert(unitIndex >= 0, `unit ${this.type} not found in cell`);
                 utils.fastDelete(cell.units!, unitIndex);
                 evtUnitKilled.post(this);
             }

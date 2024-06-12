@@ -1,4 +1,4 @@
-import { TOUCH, Vector2 } from "three";
+import { Vector2 } from "three";
 import { GameUtils } from "../GameUtils";
 import { config } from "../config/config";
 import { ICell } from "../GameTypes";
@@ -33,6 +33,7 @@ const openList = new Set<string>();
 const visitedCells = new Map<string, boolean>();
 const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const diagonalNeighbors = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+// const flowfieldNeighbors = [...gridNeighbors, ...diagonalNeighbors];
 const lateralCellBlocked = [false, false];
 const verticalCellBlocked = [false, false];
 const neighborCoords = new Vector2();
@@ -90,7 +91,6 @@ class FlowField {
             visitedCells.set(targetCellId, true);
         }        
 
-        let processedCells = 0;
         while (openList.size > 0) {
             const currentCoordsStr = shiftSet(openList)!;
             const [x, y] = currentCoordsStr.split(",").map(Number);
@@ -129,11 +129,9 @@ class FlowField {
                     openList.add(`${neighborCoords.x},${neighborCoords.y}`);
                     neighborFlowfieldInfo.integration = endNodeCost;
                 }
-                ++processedCells;
             }            
         }
 
-        // console.log(`processed cells: ${processedCells}`);
         return flowfields;
     }
 

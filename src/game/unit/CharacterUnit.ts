@@ -60,8 +60,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _resource: ICarriedResource | null = null;
     private _targetBuilding: Vector2 | null = null;
 
-    constructor(props: ICharacterUnitProps, id: number) {
-        super({ ...props, boundingBox: props.visual.boundingBox }, id);
+    constructor(props: ICharacterUnitProps) {
+        super({ ...props, boundingBox: props.visual.boundingBox });
         this._animation = props.animation;
         this._skinnedMesh = props.visual;
     }

@@ -15,8 +15,8 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
     private _coords2x2 = makeUnitAddr();
     private _targetCell2x2 = makeUnitAddr();
 
-    constructor(props: IUnitProps, id: number) {
-        super(props, id);
+    constructor(props: IUnitProps) {
+        super(props);
         
         computeUnitAddr2x2(this.coords.mapCoords, this._coords2x2);
         const cell2x2 = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
@@ -28,7 +28,7 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
         if (willDie && this.isAlive) {
             const cell = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
             const unitIndex = cell.units!.indexOf(this);
-            console.assert(unitIndex >= 0, `unit ${this.id} not found in cell`);
+            console.assert(unitIndex >= 0, `unit ${this.type} not found in cell`);
             utils.fastDelete(cell.units!, unitIndex);    
         }
 

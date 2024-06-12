@@ -242,9 +242,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/resources/water.glb`);
         await meshes.load(`/models/resources/oil.glb`);
         await meshes.load(`/models/buildings/incubator-glass.glb`);
+        await meshes.load(`/models/truck.glb`);
+        await meshes.load(`/models/tank.glb`);
         await objects.load("/prefabs/explosion.json");
         await objects.load("/prefabs/muzzle-flash.json");
-        await objects.load("/prefabs/smoke.json");
+        await objects.load("/prefabs/smoke.json");        
     }
 
     private init(size: number, _cameraPos: Vector3, owner: Object3D) {

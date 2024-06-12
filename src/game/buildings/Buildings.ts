@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Material, Mesh, Object3D, Vector2 } from "three";
+import { Box3, Box3Helper, BufferAttribute, BufferGeometry, Material, Mesh, Object3D, Vector2 } from "three";
 import { config } from "../config/config";
 import { GameUtils } from "../GameUtils";
 import { cmdFogAddCircle, cmdFogRemoveCircle, evtBuildingCreated } from "../../Events";
@@ -84,9 +84,9 @@ class Buildings {
         visual.scale.multiplyScalar(cellSize);
         visual.name = `${buildingType}-${instanceId}`;
         
-        // const box3Helper = new Box3Helper(instance.boundingBox);
-        // visual.add(box3Helper);
-        // box3Helper.visible = true;
+        const box3Helper = new Box3Helper(instance.boundingBox);
+        visual.add(box3Helper);
+        box3Helper.visible = false;
 
         const { size, hitpoints } = buildingConfig[buildingType];
         const mapCoords = new Vector2(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
