@@ -3,25 +3,41 @@ import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
 import { unitAnimation } from "../UnitAnimation";
 import { UnitSearch } from "../UnitSearch";
-import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
-import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
+import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
+import { GameMapState } from "../../components/GameMapState";
+import { NPCState } from "./NPCState";
+import gsap from "gsap";
 
-const hitFrequency = .5;
+const targetPos = new Vector3();
+
+interface IRocket {
+    obj: Object3D;
+    tween: gsap.core.Tween | null;
+    progress: number;
+    startPos: Vector3;
+}
 
 export class SoldierState extends State<ICharacterUnit> {
 
     private _search = new UnitSearch();
     private _target: IUnit | null = null;
-    private _hitTimer = 0;
+    private _rocket: IRocket | null = null;
+    private _loopConsumed = false;
 
     override enter(_unit: IUnit) {
         console.log(`SoldierState enter`);
-    }    
+    }
     override exit(unit: IUnit) {
         console.log(`SoldierState exit`);
         unit.isIdle = true;
+
+        if (this._rocket) {
+            this._rocket.tween?.kill();
+            this._rocket.obj.removeFromParent();
+            this._rocket = null;
+        }
     }
 
     override update(unit: ICharacterUnit) {
@@ -30,7 +46,9 @@ export class SoldierState extends State<ICharacterUnit> {
         const {
             damage,
             range,
-            anim
+            anim,
+            animSpeed,
+            shootEventTime
         } = config.combat[weaponType];
 
         const target = this._target;
@@ -44,27 +62,67 @@ export class SoldierState extends State<ICharacterUnit> {
                 if (!isMoving) {
                     if (unit.isIdle) {
                         unit.isIdle = false;
-                        unitAnimation.setAnimation(unit, anim, { transitionDuration: .3, scheduleCommonAnim: true });
-                    } else {
+                        unitAnimation.setAnimation(unit, anim, {
+                            transitionDuration: .3,
+                            scheduleCommonAnim: weaponType === "ak47",
+                            destAnimSpeed: animSpeed,
+                        });
 
+                    } else {
                         UnitUtils.rotateToTarget(unit, target!);
 
-                        // attack
-                        if (this._hitTimer < 0) {
-                            target!.setHitpoints(target!.hitpoints - damage);
-                            this._hitTimer = hitFrequency;
+                        if (!this._loopConsumed) {
+                            if (unit.animation.action.time > shootEventTime) {
+                                this._loopConsumed = true;
 
-                            if (target!.isAlive) {
+                                // shoot
                                 const enemy = target as ICharacterUnit;
                                 if (enemy.isIdle && enemy.motionId === 0) {
                                     const npcState = enemy!.fsm.getState(NPCState);
                                     console.assert(npcState);
                                     npcState?.attackTarget(enemy, unit);
                                 }
-                            }
 
+                                switch (weaponType) {
+                                    case "rpg": {
+                                        if (!this._rocket) {
+                                            const rocketMesh = new Mesh(new SphereGeometry(.1), new MeshBasicMaterial({ color: 0xff0000 }));
+                                            const rocket: IRocket = { obj: rocketMesh, tween: null, progress: 0, startPos: new Vector3() };
+                                            this._rocket = rocket;
+                                            const { projectiles } = GameMapState.instance.layers;
+                                            projectiles.add(rocketMesh);
+                                        } else {
+                                            this._rocket.progress = 0;
+                                            this._rocket.obj.visible = true;
+                                        }
+                                        const rocketSlot = unit.resource!.visual.getObjectByName("rocket") as Mesh;
+                                        rocketSlot.getWorldPosition(this._rocket.startPos);
+                                        this._rocket.obj.position.copy(this._rocket.startPos);
+
+                                        this._rocket.tween?.kill();
+                                        this._rocket.tween = gsap.to(this._rocket, {
+                                            progress: 1,
+                                            duration: this._rocket.startPos.distanceTo(target.visual.position) / 8,
+                                            onUpdate: () => {
+                                                targetPos.copy(target.visual.position).setY(target.visual.position.y + 1.4);
+                                                this._rocket?.obj.position.lerpVectors(this._rocket.startPos, targetPos, this._rocket.progress);
+                                            },
+                                            onComplete: () => {
+                                                this._rocket!.tween = null;
+                                                this._rocket!.obj.visible = false;
+                                                if (target.isAlive) {
+                                                    target!.setHitpoints(target!.hitpoints - damage);
+                                                }
+                                            }
+                                        });
+                                    }
+                                        break;
+                                }
+                            }
                         } else {
-                            this._hitTimer -= time.deltaTime;
+                            if (unit.animation.action.time < shootEventTime) {
+                                this._loopConsumed = false;
+                            }
                         }
                     }
                 }
@@ -79,7 +137,7 @@ export class SoldierState extends State<ICharacterUnit> {
 
     public attackTarget(target: IUnit) {
         this._target = target;
-    }    
+    }
 
     public stopAttack(unit: ICharacterUnit) {
         unit.isIdle = true;

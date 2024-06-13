@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { cmdRenderUI, evtScreenResized, cmdUpdateHealthBars, SelectedElems } from "../../Events";
-import { Color, Vector2, Vector3 } from "three";
+import { Color, Vector3 } from "three";
 import { GameUtils } from "../GameUtils";
 import { engine } from "../../engine/Engine";
 import { config } from "../config/config";
@@ -18,7 +18,6 @@ const partHeight = 8;
 const totalWidth = partWidth * parts;
 const worldPos = new Vector3();
 const screenPos = new Vector3();
-const sectorCoords = new Vector2();
 const { cellSize, unitScale } = config.game;
 
 const headOffset = 2 * unitScale;

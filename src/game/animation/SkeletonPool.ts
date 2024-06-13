@@ -14,7 +14,7 @@ export interface IUniqueSkeleton {
     skeleton: Skeleton;
     armature: Object3D;
     mixer: AnimationMixer;
-    timeout: NodeJS.Timeout | null;
+    tween: gsap.core.Tween | null;
 }
 
 export function getSkeletonId(srcAnim: string, destAnim: string) {
@@ -76,7 +76,7 @@ class SkeletonPool {
                 skeleton: _skeleton, 
                 armature,
                 mixer,
-                timeout: null
+                tween: null
             };
             skeletons.push(skeleton);
             armature.name = `${armature.name}-${id}`;
@@ -144,9 +144,9 @@ class SkeletonPool {
 
     public releaseSkeleton(unit: ICharacterUnit) {
         unit.skeleton!.isFree = true;
-        if (unit.skeleton!.timeout) {
-            clearTimeout(unit.skeleton!.timeout);
-            unit.skeleton!.timeout = null;
+        if (unit.skeleton!.tween) {
+            unit.skeleton!.tween.kill();
+            unit.skeleton!.tween = null;
         }
         unit.skeleton = null;
     }

@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { objects } from "../../engine/resources/Objects";
@@ -11,13 +11,18 @@ import { time } from "../../engine/core/Time";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(
-    new Vector3(),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
-    new Vector3(1, 1, 1).multiplyScalar(1.5)
+    new Vector3(-.01, -.13, .02),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-129.8), MathUtils.degToRad(42.24), MathUtils.degToRad(-134.23))),
+    new Vector3(1, 1, 1)
 );
 const pickedRPGOffset = new Matrix4().compose(
-    new Vector3(0, .2, 0),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-43.45), MathUtils.degToRad(25.61), MathUtils.degToRad(16.95))),
+    new Vector3(-.04, .27, -.31),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-111.2), MathUtils.degToRad(-22.97), MathUtils.degToRad(105.58))),
+    new Vector3(1, 1, 1).multiplyScalar(1.2)
+);
+const shootingRPGOffset = new Matrix4().compose(
+    new Vector3(-.11, .16, .04),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-19.55), MathUtils.degToRad(20.25), MathUtils.degToRad(8.47))),
     new Vector3(1, 1, 1).multiplyScalar(1.2)
 );
 
@@ -52,7 +57,8 @@ export class Workers {
                     break;
                 case "rpg": {
                     const parent = skeleton.getObjectByName("HandR")!;
-                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedRPGOffset);                    
+                    const matrix = unit.animation.name.startsWith("shoot") ? shootingRPGOffset : pickedRPGOffset;
+                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, matrix);                    
                 }
                     break;
                 default: {
@@ -83,6 +89,10 @@ export class Workers {
             }
             break;
             case "rpg": {
+                const rocket = new Object3D();
+                rocket.name = "rocket";
+                rocket.position.set(.58, .15, .48);
+                visual.add(rocket);
                 unit.fsm.switchState(SoldierState);
             }
             break;

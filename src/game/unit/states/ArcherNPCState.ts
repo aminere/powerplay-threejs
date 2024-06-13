@@ -86,7 +86,7 @@ export class ArcherNPCState extends State<IUnit> {
                     if (inRange) {
 
                         toTarget.subVectors(target.visual.position, unit.visual.position);
-                        UnitUtils.updateRotation(unit, toTarget);
+                        UnitUtils.updateRotation(unit, toTarget, .2);
 
                         switch (this._attackStep) {
                             case AttackStep.Draw: {                               

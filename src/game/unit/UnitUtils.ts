@@ -1,4 +1,4 @@
-import { MathUtils, Quaternion, Vector3 } from "three";
+import { Euler, MathUtils, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { IUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
@@ -19,8 +19,9 @@ const nextPos2 = new Vector3();
 const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
-    "shoot": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(12)),
-    "attack": new Quaternion().setFromAxisAngle(GameUtils.vec3.up, MathUtils.degToRad(60))
+    "shoot": new Quaternion().setFromEuler(new Euler(0, MathUtils.degToRad(12), 0)),
+    "shoot-rpg": new Quaternion().setFromEuler(new Euler(0, MathUtils.degToRad(50), 0)),
+    "attack": new Quaternion().setFromEuler(new Euler(0, MathUtils.degToRad(60), 0))
 }
 
 const { truckScale } = config.game;
