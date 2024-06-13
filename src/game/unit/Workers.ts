@@ -1,12 +1,10 @@
-import { Euler, MathUtils, Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
-import { objects } from "../../engine/resources/Objects";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { GameMapState } from "../components/GameMapState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { unitAnimation } from "./UnitAnimation";
-import { SoldierState } from "./states/SoldierState";
 import { time } from "../../engine/core/Time";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
@@ -77,26 +75,7 @@ export class Workers {
         visual.matrixWorldAutoUpdate = false;
         const [_mesh] = meshes.loadImmediate(`/models/resources/${resourceType}.glb`);
         const mesh = _mesh.clone();
-        visual.add(mesh);
-    
-        switch (resourceType) {
-            case "ak47": {
-                const _muzzleFlash = objects.loadImmediate("/prefabs/muzzle-flash.json")!;
-                const muzzleFlash = _muzzleFlash.clone();
-                visual.add(muzzleFlash);
-                muzzleFlash.visible = false;
-                unit.fsm.switchState(SoldierState);
-            }
-            break;
-            case "rpg": {
-                const rocket = new Object3D();
-                rocket.name = "rocket";
-                rocket.position.set(-.55, .16, -.58);
-                visual.add(rocket);
-                unit.fsm.switchState(SoldierState);
-            }
-            break;
-        }        
+        visual.add(mesh);        
     
         mesh.castShadow = true;
         unit.resource = {

@@ -1,5 +1,5 @@
 
-import { SkinnedMesh, Vector2 } from "three";
+import { Object3D, SkinnedMesh, Vector2 } from "three";
 import { IUniqueSkeleton, skeletonPool } from "../animation/SkeletonPool";
 import { Unit } from "./Unit";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
@@ -28,6 +28,7 @@ import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
 import gsap from "gsap";
+import { objects } from "../../engine/resources/Objects";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -45,9 +46,35 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             return;
         }
         if (this._resource) {
-            this._resource.visual.removeFromParent();
+            this._resource.visual.removeFromParent();           
         }
+
         this._resource = value;
+
+        const soldierState = this.fsm.getState(SoldierState);
+        if (soldierState) {
+            this.fsm.switchState(null);
+        }
+        
+        switch (value?.type) {
+            case "ak47": {
+                const _muzzleFlash = objects.loadImmediate("/prefabs/muzzle-flash.json")!;
+                const muzzleFlash = _muzzleFlash.clone();
+                value!.visual.add(muzzleFlash);
+                muzzleFlash.visible = false;
+                this.fsm.switchState(SoldierState);
+            }
+            break;
+            case "rpg": {
+                const rocket = new Object3D();
+                rocket.name = "rocket";
+                rocket.position.set(-.55, .16, -.58);
+                value!.visual.add(rocket);
+                this.fsm.switchState(SoldierState);
+            }
+            break;
+        }        
+
         evtUnitStateChanged.post(this);
     }
 

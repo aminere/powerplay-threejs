@@ -104,6 +104,9 @@ export class SoldierState extends State<ICharacterUnit> {
                                         }
                                         const rocketSlot = unit.resource!.visual.getObjectByName("rocket") as Mesh;
                                         rocketSlot.getWorldPosition(this._rocket.startPos);
+
+                                        const toTarget = target.visual.position.clone().sub(this._rocket.startPos).normalize();
+                                        this._rocket.obj.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), toTarget);                                        
                                         this._rocket.obj.position.copy(this._rocket.startPos);
 
                                         this._rocket.tween?.kill();
