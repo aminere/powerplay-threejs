@@ -1,9 +1,12 @@
-import { Color, MathUtils, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Object3D, Quaternion, Vector2, Vector3 } from "three";
 import { time } from "../../core/Time";
 import { ParticlesProps } from "./ParticlesProps";
 import { ParticlesState } from "./ParticlesState";
 import { TArray } from "../../serialization/TArray";
 
+const worldPos = new Vector3();
+const worldRotation = new Quaternion();
+const worldScale = new Vector3();
 const particleVelocity = new Vector3();
 const particlePos = new Vector3();
 const white = new Color(0xffffff);
@@ -47,7 +50,7 @@ export class ParticlesEmitter {
         state.isEmitting = true;
     }
 
-    public static update(state: ParticlesState, props: ParticlesProps) {
+    public static update(state: ParticlesState, props: ParticlesProps, owner: Object3D) {
         let particlesToEmit = 0;
 
         const deltaTime = time.deltaTime;
@@ -73,6 +76,11 @@ export class ParticlesEmitter {
 
         let emittedParticles = 0;
         let particlesToProcess = particlesToEmit + state.particleCount;
+
+        if (props.worldSpace) {
+            owner.getWorldQuaternion(worldRotation);
+        }
+
         for (let i = 0; i < maxParticles; ++i) {
             if (particlesToProcess === 0) {
                 // early break if no more particles to process
@@ -104,13 +112,25 @@ export class ParticlesEmitter {
                         case "up": particleVelocity.set(0, 1, 0); break;
                         default: particleVelocity.copy(particlePos);
                     }
-                    state.setVector3("velocity", i, particleVelocity.multiplyScalar(randomRange(props.initialSpeed)));
+                    if (props.worldSpace) {
+                        particleVelocity.applyQuaternion(worldRotation);
+                    }
+                    particleVelocity.multiplyScalar(randomRange(props.initialSpeed));
+                    state.setVector3("velocity", i, particleVelocity);
 
                     // position
                     switch (props.emitLocation) {
                         case "surface": particlePos.multiplyScalar(props.radius); break;
                         default: particlePos.multiplyScalar(MathUtils.randFloat(0, props.radius));
+                    }                    
+
+                    if (props.worldSpace) {
+                        owner.getWorldPosition(worldPos);
+                        owner.getWorldScale(worldScale);
+                        particlePos.multiply(worldScale);
+                        particlePos.add(worldPos);
                     }
+
                     state.setVector3("position", i, particlePos);
 
                     // color

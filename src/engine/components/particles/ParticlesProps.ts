@@ -35,13 +35,15 @@ export class ParticlesProps extends ComponentProps {
     initialColor1 = new Color(0xffffff);
     initialColor2 = new Color(0xffffff);
     initialAlpha = 1;
-    radius = 1;
+    radius = 1;    
 
     @Attributes.enumOptions(ParticleDirections)
     direction: ParticleDirection = "up";
     
     @Attributes.enumOptions(EmitLocations)
     emitLocation: EmitLocation = "volume";
+
+    worldSpace = false;
 
     sizeOverLife = new TArray(Number);
     speedOverLife = new TArray(Number);

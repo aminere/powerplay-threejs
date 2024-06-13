@@ -40,7 +40,7 @@ export class Particles extends Component<ParticlesProps, ParticlesState> {
     }
 
     override update(owner: Object3D) {
-        ParticlesEmitter.update(this.state, this.props);        
+        ParticlesEmitter.update(this.state, this.props, owner);        
         this.updateGeometry(owner as Points);
     }
 

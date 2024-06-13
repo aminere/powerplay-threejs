@@ -34,7 +34,7 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
     }
 
     override update(owner: InstancedMesh) {
-        ParticlesEmitter.update(this.state, this.props);
+        ParticlesEmitter.update(this.state, this.props, owner);
         this.updateGeometry(owner);
     }
 
@@ -45,6 +45,10 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         owner.onBeforeRender = (_renderer: Renderer, _scene: Scene, camera: Camera) => {
             const { worldRotation: cameraRotation } = camera.userData;
             owner.userData.cameraRotation.copy(cameraRotation);
+
+            if (this.props.worldSpace) {
+                owner.matrixWorld.identity();
+            }
         };
     }
 
@@ -56,7 +60,15 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
         // world = parent * local
         // local = world * invParent
         const { cameraRotation } = owner.userData;
-        const worldRotation = owner.getWorldQuaternion(quaternion);
+
+        const worldRotation = (() => {
+            if (this.props.worldSpace) {
+                return quaternion.identity();
+            } else {
+                return owner.getWorldQuaternion(quaternion);
+            }
+        })();
+        
         const invWorldRotation = worldRotation.invert();
         const localParticleRotation = invWorldRotation.multiply(cameraRotation);
 
@@ -71,7 +83,8 @@ export class InstancedParticles extends Component<ParticlesProps, ParticlesState
                 continue;
             }
 
-            this.state.getVector3("position", i, particlePos);
+            this.state.getVector3("position", i, particlePos);            
+
             const lengthSq = particlePos.lengthSq();
             if (lengthSq > radiusSq) {
                 radiusSq = lengthSq;
