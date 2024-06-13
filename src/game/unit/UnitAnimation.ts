@@ -1,8 +1,8 @@
+import { utils } from "../../engine/Utils";
 import { LoopMode } from "../../engine/serialization/Types";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
 import { ICharacterUnit } from "./ICharacterUnit";
-import gsap from "gsap";
 
 class UnitAnimation {
 
@@ -53,7 +53,8 @@ class UnitAnimation {
                 if (unit.skeleton!.tween) {
                     unit.skeleton!.tween.kill();
                 }
-                unit.skeleton!.tween = gsap.delayedCall(transitionDuration + .2, () => {
+
+                unit.skeleton!.tween = utils.postpone(transitionDuration + .2, () => {
                     unit.skeleton!.tween = null;
                     this.setCommonAnimation(unit, animation, destAnimSpeed);
                 });

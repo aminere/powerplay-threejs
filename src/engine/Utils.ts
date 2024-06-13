@@ -148,7 +148,7 @@ class Utils {
     }
 
     public postpone(delay: number, cb: () => void) {
-        gsap.to({}, { duration: delay, onComplete: cb });
+        return gsap.delayedCall(delay, cb);
     }
 }
 

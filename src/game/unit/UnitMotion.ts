@@ -217,7 +217,7 @@ function getFlowfieldDirection(unit: IUnit, directionOut: Vector2) {
         } else {
             console.assert(false);
             directionOut.set(0, 0);
-            return directionOut;            
+            return directionOut;
         }
     }
 }
@@ -341,7 +341,7 @@ function slideAlongNeighbor(unit: IUnit, neighbor: IUnit) {
         .clampLength(0, maxForce);
 }
 
-function isMovingTowards(unit: IUnit, neighbor: IUnit) {    
+function isMovingTowards(unit: IUnit, neighbor: IUnit) {
     const toNeighbor = awayDirection3.subVectors(neighbor.visual.position, unit.visual.position).setY(0).normalize();
     return vectorsHaveSameDirection(toNeighbor, unit.velocity);
 }
@@ -460,10 +460,10 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-                const direction = getFlowfieldDirection(unit, awayDirection); 
+                const direction = getFlowfieldDirection(unit, awayDirection);
                 unit.acceleration.x += direction.x * maxForce;
                 unit.acceleration.z += direction.y * maxForce;
-                unit.acceleration.clampLength(0, maxForce);        
+                unit.acceleration.clampLength(0, maxForce);
             }
             unit.motionTime += time.deltaTime;
         }
@@ -501,6 +501,20 @@ export class UnitMotion {
 
                 const collisionTestId = `${unit.visual.id},${neighbor.visual.id}`;
                 const willCollide = (() => {
+                    const canAffectEachOther = (() => {
+                        const isEnemy1 = UnitUtils.isEnemy(unit);
+                        const isEnemy2 = UnitUtils.isEnemy(neighbor);
+                        if (isEnemy1 !== isEnemy2) {
+                            // enemies can't push each other
+                            return false;
+                        }
+                        return true;
+                    })();
+
+                    if (!canAffectEachOther) {
+                        return false;
+                    }
+
                     const cachedResult = this._collisionResults.get(collisionTestId);
                     if (cachedResult === undefined) {
                         const newResult = UnitUtils.willCollide(unit, neighbor);
@@ -522,16 +536,6 @@ export class UnitMotion {
                 })();
 
                 if (willCollide) {
-                    // const canAffectEachOther = (() => {
-                    //     const isEnemy1 = UnitUtils.isEnemy(unit);
-                    //     const isEnemy2 = UnitUtils.isEnemy(neighbor);
-                    //     if (isEnemy1 !== isEnemy2) {
-                    //         // enemies can't push each other
-                    //         return false;
-                    //     }
-                    //     return true;
-                    // })();
-
                     if (unit.motionTime < 1) {
                         // fresh motion, simple separation
                         moveAwayFrom(unit, neighbor, 1, .5);
@@ -576,13 +580,13 @@ export class UnitMotion {
                                 } else {
                                     avoidMovingNeighbor(unit, neighbor, .2);
                                 }
-                            } else {                                
+                            } else {
                                 // keep being busy, but slightly move away from the collision
-                                moveAwayFrom(unit, neighbor, 1, .1);
+                                // moveAwayFrom(unit, neighbor, 1, .1);
                             }
                         }
-                    }                    
-                    
+                    }
+
                     if (unit.motionId > 0) {
                         unit.onCollidedWhileMoving(neighbor);
                     }

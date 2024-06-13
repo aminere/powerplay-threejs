@@ -115,7 +115,6 @@ export class NPCState extends State<ICharacterUnit> {
     public attackTarget(unit: ICharacterUnit, target: IUnit) {
         this._target = target;
         this._step = NpcStep.Follow;
-        unit.isIdle = false;
         unitMotion.moveUnit(unit, target.coords.mapCoords);
     }   
 
@@ -123,6 +122,7 @@ export class NPCState extends State<ICharacterUnit> {
         unitMotion.endMotion(unit);
         this._step = NpcStep.Attack;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
+        unit.isIdle = false;
     }
 }
 

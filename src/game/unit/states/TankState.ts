@@ -11,7 +11,6 @@ import { utils } from "../../../engine/Utils";
 import { objects } from "../../../engine/resources/Objects";
 import { engineState } from "../../../engine/EngineState";
 import { unitConfig } from "../../config/UnitConfig";
-import gsap from "gsap";
 import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitMotion } from "../UnitMotion";
@@ -164,7 +163,8 @@ export class TankState extends State<ICharacterUnit> {
                                 GameUtils.getCell(cellCoords, sectorCoords);
                                 const smokeSector = GameUtils.getSector(sectorCoords)!;
                                 smokeSector.layers.fx.attach(smoke);
-                                const smokeTween = gsap.delayedCall(2, () => {
+
+                                const smokeTween = utils.postpone(2, () => {
                                     engineState.removeObject(smoke);
                                     this._tweens.splice(0, 1);
                                 });
@@ -191,7 +191,7 @@ export class TankState extends State<ICharacterUnit> {
                                     ease: "bounce.inOut"
                                 });
 
-                                const tween = gsap.delayedCall(2, () => {
+                                const tween = utils.postpone(2, () => {
                                     engineState.removeObject(explosion);
                                     this._tweens.splice(0, 1);
                                 });

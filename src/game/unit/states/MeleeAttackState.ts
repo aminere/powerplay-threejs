@@ -79,9 +79,8 @@ export class MeleeAttackState extends State<ICharacterUnit> {
         }        
     }
 
-    public attackTarget(unit: ICharacterUnit, target: IUnit) {
+    public attackTarget(_unit: ICharacterUnit, target: IUnit) {
         this._target = target;
-        unit.isIdle = false;
     }    
 
     public onColliding(unit: ICharacterUnit) {
@@ -123,6 +122,7 @@ export class MeleeAttackState extends State<ICharacterUnit> {
     private startAttack(unit: ICharacterUnit) {
         unitMotion.endMotion(unit);
         this._step = MeleeAttackStateStep.Attack;
+        unit.isIdle = false;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
     }
 

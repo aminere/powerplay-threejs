@@ -11,6 +11,7 @@ import { NPCState } from "./NPCState";
 import gsap from "gsap";
 import { objects } from "../../../engine/resources/Objects";
 import { utils } from "../../../engine/Utils";
+import { InstancedParticles } from "../../../engine/components/particles/InstancedParticles";
 
 const targetPos = new Vector3();
 
@@ -96,7 +97,10 @@ export class SoldierState extends State<ICharacterUnit> {
                                             projectiles.add(rocketMesh);
                                         } else {
                                             this._rocket.progress = 0;
-                                            this._rocket.obj.visible = true;
+                                            this._rocket!.obj.visible = true;
+                                            const particlesOwner = this._rocket!.obj.getObjectByName("Particles")!;
+                                            const particles = utils.getComponent(InstancedParticles, particlesOwner)!;
+                                            particles.state.isEmitting = true;
                                         }
                                         const rocketSlot = unit.resource!.visual.getObjectByName("rocket") as Mesh;
                                         rocketSlot.getWorldPosition(this._rocket.startPos);
@@ -113,6 +117,9 @@ export class SoldierState extends State<ICharacterUnit> {
                                             onComplete: () => {
                                                 this._rocket!.tween = null;
                                                 this._rocket!.obj.visible = false;
+                                                const particlesOwner = this._rocket!.obj.getObjectByName("Particles")!;
+                                                const particles = utils.getComponent(InstancedParticles, particlesOwner)!;
+                                                particles.state.isEmitting = false;
                                                 if (target.isAlive) {
                                                     target!.setHitpoints(target!.hitpoints - damage);
                                                 }
