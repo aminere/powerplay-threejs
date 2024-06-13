@@ -247,7 +247,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/tank.glb`);
         await objects.load("/prefabs/explosion.json");
         await objects.load("/prefabs/muzzle-flash.json");
-        await objects.load("/prefabs/smoke.json");        
+        await objects.load("/prefabs/smoke.json");
+        await objects.load("/prefabs/rocket.json");
         await _3dFonts.load("helvetiker_regular.typeface");
     }
 

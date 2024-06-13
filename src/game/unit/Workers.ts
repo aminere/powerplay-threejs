@@ -21,8 +21,8 @@ const pickedRPGOffset = new Matrix4().compose(
     new Vector3(1, 1, 1).multiplyScalar(1.2)
 );
 const shootingRPGOffset = new Matrix4().compose(
-    new Vector3(-.11, .16, .04),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-19.55), MathUtils.degToRad(20.25), MathUtils.degToRad(8.47))),
+    new Vector3(-.28, .22, .05),
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(109.82), MathUtils.degToRad(-19.49), MathUtils.degToRad(-157.42))),
     new Vector3(1, 1, 1).multiplyScalar(1.2)
 );
 
@@ -91,7 +91,7 @@ export class Workers {
             case "rpg": {
                 const rocket = new Object3D();
                 rocket.name = "rocket";
-                rocket.position.set(.58, .15, .48);
+                rocket.position.set(-.55, .16, -.58);
                 visual.add(rocket);
                 unit.fsm.switchState(SoldierState);
             }

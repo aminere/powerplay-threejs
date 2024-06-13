@@ -9,6 +9,8 @@ import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "thre
 import { GameMapState } from "../../components/GameMapState";
 import { NPCState } from "./NPCState";
 import gsap from "gsap";
+import { objects } from "../../../engine/resources/Objects";
+import { utils } from "../../../engine/Utils";
 
 const targetPos = new Vector3();
 
@@ -76,17 +78,18 @@ export class SoldierState extends State<ICharacterUnit> {
                                 this._loopConsumed = true;
 
                                 // shoot
-                                const enemy = target as ICharacterUnit;
-                                if (enemy.isIdle && enemy.motionId === 0) {
-                                    const npcState = enemy!.fsm.getState(NPCState);
-                                    console.assert(npcState);
-                                    npcState?.attackTarget(enemy, unit);
-                                }
+                                // const enemy = target as ICharacterUnit;
+                                // if (enemy.isIdle && enemy.motionId === 0) {
+                                //     const npcState = enemy!.fsm.getState(NPCState);
+                                //     console.assert(npcState);
+                                //     npcState?.attackTarget(enemy, unit);
+                                // }
 
                                 switch (weaponType) {
                                     case "rpg": {
                                         if (!this._rocket) {
-                                            const rocketMesh = new Mesh(new SphereGeometry(.1), new MeshBasicMaterial({ color: 0xff0000 }));
+                                            const _rocketMesh = objects.loadImmediate("/prefabs/rocket.json")!;
+                                            const rocketMesh = utils.instantiate(_rocketMesh);
                                             const rocket: IRocket = { obj: rocketMesh, tween: null, progress: 0, startPos: new Vector3() };
                                             this._rocket = rocket;
                                             const { projectiles } = GameMapState.instance.layers;

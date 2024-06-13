@@ -10,6 +10,8 @@ import { Grass, GrassProps } from "./Grass";
 import { Test, TestProps } from "./Test";
 import { Water, WaterProps } from "./Water";
 import { registerEngineComponents } from "../../engine/components/EngineComponentRegistration";
+import { ComponentProps } from "../../engine/ecs/ComponentProps";
+import { Rocket } from "./Rocket";
 
 export function registerComponents() {
 
@@ -23,5 +25,6 @@ export function registerComponents() {
     componentFactory.register<GameMapLoaderProps>(GameMapLoader);
     componentFactory.register<FadeoutProps>(Fadeout);
     componentFactory.register<EnvPropsProps>(EnvProps);
+    componentFactory.register<ComponentProps>(Rocket);
 }
 

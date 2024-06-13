@@ -1,22 +1,16 @@
 
 interface ITime {
-    time: number;
     deltaTime: number;
     fps: number;
     currentFrame: number;
-    update(): void;
-    advance(): void;
+    update: () => void;
 }
 
 class VariableTime implements ITime {
     get time() { return this._time; }
     get deltaTime() { return this._deltaTime; }
     get fps() { return this._fps; }
-    get currentFrame() { return 0; }
-
-    advance() {
-        this._time += this._deltaTime;
-    }
+    get currentFrame() { return 0; }    
 
     update() {
         const time = performance.now();
@@ -39,38 +33,35 @@ class FixedTime implements ITime {
     get currentFrame() { return 0; }
 
     private _deltaTime = 1 / 60;
-    private _time = 0;
-
-    advance() {
-        this._time += this._deltaTime;
-    }
+    private _time = 0;    
 
     update() {
-        
     }
 }
 
 class Time implements ITime {
-    get time() { return this._impl.time; }
+    get time() { return this._time; }
     get deltaTime() { return this._impl.deltaTime; }
     get fps() { return this._impl.fps; }
     get currentFrame() { return this._currentFrame; }
     
     public setFixed(fixed: boolean) {
-        this._impl = fixed ? this._fixedImpl : this._variableImpl;
+        const newImpl = fixed ? this._fixedImpl : this._variableImpl;
+        this._impl = newImpl;
     }
 
     private _fixedImpl = new FixedTime();
     private _variableImpl = new VariableTime();
     private _impl: ITime = this._variableImpl;
     private _currentFrame = 0;
+    private _time = 0;
 
     public update() {
         this._impl.update();
     }
 
     public advance() {
-        this._impl.advance();
+        this._time += this._impl.deltaTime;
         this._currentFrame++;
     }
 }
