@@ -10,6 +10,8 @@ import { Explode } from "../components/Explode";
 import { UnitUtils } from "./UnitUtils";
 import { cmdFogRemoveCircle } from "../../Events";
 import { Fadeout } from "../components/Fadeout";
+import { objects } from "../../engine/resources/Objects";
+import { AutoDestroy } from "../components/AutoDestroy";
 
 export interface IVehicleUnit extends IUnit {
     coords2x2: IUnitAddr;
@@ -66,6 +68,14 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
         engineState.setComponent(chunks, new Explode({
             impulse: 5
         }));
+
+        const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
+        const explosion = utils.instantiate(_explosion);
+        this.visual.getWorldPosition(explosion.position).setY(1);
+        explosion.scale.multiplyScalar(1.5);
+        explosion.updateMatrixWorld();
+        this.coords.sector.layers.fx.attach(explosion);
+        engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
 
         this.visual.removeFromParent();
         const fadeDuration = 1;

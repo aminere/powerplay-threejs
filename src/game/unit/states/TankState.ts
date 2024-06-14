@@ -1,4 +1,4 @@
-import { MathUtils, Matrix4, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { MathUtils, Matrix4, Object3D, Quaternion, Vector3 } from "three";
 import { time } from "../../../engine/core/Time";
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../ICharacterUnit";
@@ -10,18 +10,19 @@ import { mathUtils } from "../../MathUtils";
 import { utils } from "../../../engine/Utils";
 import { objects } from "../../../engine/resources/Objects";
 import { engineState } from "../../../engine/EngineState";
-import { unitConfig } from "../../config/UnitConfig";
 import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitMotion } from "../UnitMotion";
 import { AutoDestroy } from "../../components/AutoDestroy";
 import gsap from "gsap";
+import { GameMapState } from "../../components/GameMapState";
 
-const shootRange = 10;
-const splashRadius = 1;
+const shootRange = 15;
 const attackDelay = .8;
 const attackFrequency = 1;
 const { separations } = config.steering;
+const { unitScale } = config.game;
+const headOffset = unitScale;
 
 enum TankStep {
     Idle,
@@ -32,10 +33,8 @@ enum TankStep {
 const localPos = new Vector3();
 const localRotation = new Quaternion();
 const matrix = new Matrix4();
-const cellCoords = new Vector2();
-const sectorCoords = new Vector2();
-const cannonOffset = new Vector3(0, 0.12, 1.48);
-const smokePosition = new Vector3();
+const targetPos = new Vector3();
+const cannonOffset = new Vector3(0, 0.12, 1.38);
 
 function aimCannon(cannon: Object3D, target: Vector3) {
     const damping = 0.25;
@@ -63,7 +62,6 @@ export class TankState extends State<ICharacterUnit> {
     private _cannon!: Object3D;
     private _cannonRotator!: Object3D;
     private _cannonRoot!: Object3D;
-    private _muzzleFlash!: Object3D;
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
@@ -73,13 +71,6 @@ export class TankState extends State<ICharacterUnit> {
         this._cannonRotator = utils.createObject(unit.visual, "cannon-rotator");
         this._cannonRoot.add(this._cannonRotator);
         this._cannonRotator.attach(this._cannon);
-
-        const flash = objects.loadImmediate("/prefabs/muzzle-flash.json")!;
-        this._muzzleFlash = flash.clone();
-        this._muzzleFlash.quaternion.identity();
-        this._muzzleFlash.position.copy(cannonOffset);
-        this._cannon.add(this._muzzleFlash);
-        this._muzzleFlash.visible = false;
     }
 
     override exit(_unit: IUnit) {
@@ -89,125 +80,99 @@ export class TankState extends State<ICharacterUnit> {
     override update(unit: ICharacterUnit) {
 
         const target = this._target;
-        if (target) {
-            if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, shootRange))) {
-                this.stopAttack(unit);
-                this._search.reset();
-            } else {
-                switch (this._step) {
-                    case TankStep.Idle: {
-                        resetCannon(this._cannonRotator);
-                        const isMoving = unit.motionId > 0;
-                        if (!isMoving) {
-                            this._step = TankStep.Attack;
-                            this._attackTimer = attackDelay;
-                            unit.isIdle = false;
-                        }
-                    }
-                        break;
-
-                    case TankStep.Follow: {
-                        if (!UnitUtils.isOutOfRange(unit, target!, shootRange - 1)) {
-                            if (unit.motionId > 0) {
-                                unitMotion.endMotion(unit);
-                            }
-                            this._step = TankStep.Attack;
-                            this._attackTimer = attackDelay;
-                            unit.isIdle = false;
-                        }
-                    }
-                    break;
-
-                    case TankStep.Attack: {
-                        aimCannon(this._cannonRotator, target.visual.position);
-
-                        const separation = separations[unit.type] + separations[target!.type];
-                        const tooClose = unit.visual.position.distanceTo(target!.visual.position) < separation * 1.5;
-                        if (tooClose) {                            
-                            // can't shoot if too close
-
-                        } else {
-                            if (this._attackTimer < 0) {
-                                const { mapCoords } = target.coords;
-
-                                let unitCount = 0;
-                                smokePosition.set(0, 0, 0);
-                                const damage = unitConfig[unit.type].damage;
-                                for (let y = mapCoords.y - splashRadius; y <= mapCoords.y + splashRadius; y++) {
-                                    for (let x = mapCoords.x - splashRadius; x <= mapCoords.x + splashRadius; x++) {
-                                        cellCoords.set(x, y);
-                                        const units = GameUtils.getCell(cellCoords)?.units;
-                                        if (units) {
-                                            for (const enemy of units) {
-                                                if (UnitUtils.isEnemy(enemy)) {
-                                                    enemy.setHitpoints(enemy!.hitpoints - damage);
-                                                    smokePosition.add(enemy.visual.position);
-                                                    unitCount++;
-
-                                                    if (enemy.isAlive) {
-                                                        const _enemy = enemy as ICharacterUnit;
-                                                        if (enemy.isIdle && enemy.motionId === 0) {
-                                                            const npcState = enemy!.fsm.getState(NPCState);
-                                                            console.assert(npcState);
-                                                            npcState?.attackTarget(_enemy, unit);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // spawn smoke
-                                GameUtils.worldToMap(smokePosition, cellCoords);
-                                GameUtils.getCell(cellCoords, sectorCoords);
-                                const smokeSector = GameUtils.getSector(sectorCoords)!;
-                                smokePosition.divideScalar(unitCount);
-                                smokePosition.x += MathUtils.randFloat(-1, 1);
-                                smokePosition.z += MathUtils.randFloat(-1, 1);
-                                const _smoke = objects.loadImmediate("/prefabs/smoke.json")!;
-                                const smoke = utils.instantiate(_smoke);
-                                smoke.position.copy(smokePosition);
-                                smoke.updateMatrixWorld();
-                                smokeSector.layers.fx.attach(smoke);
-                                engineState.setComponent(smoke, new AutoDestroy({ delay: 1 }));
-
-                                this._muzzleFlash.visible = true;
-                                utils.postpone(MathUtils.randFloat(.05, .2), () => this._muzzleFlash.visible = false);
-                                
-                                const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
-                                const explosion = utils.instantiate(_explosion);
-                                explosion.position.set(0, .12, 1.48);
-                                explosion.scale.setScalar(.6);
-                                this._cannon.add(explosion);
-                                explosion.updateMatrixWorld();                                
-                                unit.coords.sector.layers.fx.attach(explosion);
-                                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
-
-                                // recoil
-                                gsap.to(this._cannon.position, {
-                                    duration: MathUtils.randFloat(.05, .08),
-                                    z: `-=.15`,
-                                    yoyo: true,
-                                    repeat: 3,
-                                    ease: "bounce.inOut"
-                                });                                
-
-                                this._attackTimer = attackFrequency;
-                            } else {
-                                this._attackTimer -= time.deltaTime;
-                            }
-                        }
-                    }
-                        break;
-                }
-            }
-        } else {
+        if (!target) {
             resetCannon(this._cannonRotator);
             const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
             }
+            return;
+        }
+
+        if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, shootRange))) {
+            this.stopAttack(unit);
+            this._search.reset();
+            return;
+        }
+
+        switch (this._step) {
+            case TankStep.Idle: {
+                resetCannon(this._cannonRotator);
+                const isMoving = unit.motionId > 0;
+                if (!isMoving) {
+                    this._step = TankStep.Attack;
+                    this._attackTimer = attackDelay;
+                    unit.isIdle = false;
+                }
+            }
+                break;
+
+            case TankStep.Follow: {
+                if (!UnitUtils.isOutOfRange(unit, target!, shootRange - 1)) {
+                    if (unit.motionId > 0) {
+                        unitMotion.endMotion(unit);
+                    }
+                    this._step = TankStep.Attack;
+                    this._attackTimer = attackDelay;
+                    unit.isIdle = false;
+                }
+            }
+                break;
+
+            case TankStep.Attack: {
+                aimCannon(this._cannonRotator, target.visual.position);
+
+                const separation = separations[unit.type] + separations[target!.type];
+                const tooClose = unit.visual.position.distanceTo(target!.visual.position) < separation * 1.5;
+                if (tooClose) {
+                    // can't shoot if too close
+                    break;
+                }
+
+                if (this._attackTimer > 0) {
+                    this._attackTimer -= time.deltaTime;
+                    break;
+                }
+
+                const enemy = target as ICharacterUnit;
+                if (enemy.isIdle && enemy.motionId === 0) {
+                    const npcState = enemy!.fsm.getState(NPCState);
+                    console.assert(npcState);
+                    npcState?.attackTarget(enemy, unit);
+                }
+
+                const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
+                const rocket = utils.instantiate(_rocket);
+                const { projectiles } = GameMapState.instance.layers;
+                rocket.position.copy(cannonOffset);
+                this._cannon.add(rocket);
+                rocket.updateMatrixWorld();
+                projectiles.attach(rocket);
+                targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
+                const toTarget = targetPos.sub(rocket.position).normalize();
+                rocket.quaternion.setFromUnitVectors(GameUtils.vec3.forward, toTarget);
+
+                const _explosion = objects.loadImmediate("/prefabs/tank-shot.json")!;
+                const explosion = utils.instantiate(_explosion);
+                explosion.position.set(0, .12, 1.48);
+                explosion.scale.setScalar(.6);
+                this._cannon.add(explosion);
+                explosion.updateMatrixWorld();
+                unit.coords.sector.layers.fx.attach(explosion);
+                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
+
+                // recoil
+                gsap.to(this._cannon.position, {
+                    duration: MathUtils.randFloat(.05, .08),
+                    z: `-=.15`,
+                    yoyo: true,
+                    repeat: 3,
+                    ease: "bounce.inOut"
+                });
+
+                this._attackTimer = attackFrequency;
+            }
+                break;
         }
     }
 
