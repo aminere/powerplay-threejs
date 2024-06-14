@@ -92,7 +92,7 @@ export function HealthBars() {
                             if (!isAlive) {
                                 continue;
                             }
-                            worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);                    
+                            worldPos.copy(visual.position).addScaledVector(visual.up, headOffset);
                             drawBar(ctx, worldPos, units[i].hitpoints, unitConfig[unit.type].hitpoints);
                         }
                     }

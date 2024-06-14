@@ -67,7 +67,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             break;
             case "rpg": {
                 const rocket = new Object3D();
-                rocket.name = "rocket";
+                rocket.name = "rocketSlot";
                 rocket.position.set(-.55, .16, -.58);
                 value!.visual.add(rocket);
                 this.fsm.switchState(SoldierState);

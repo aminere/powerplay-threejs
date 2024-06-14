@@ -346,6 +346,59 @@ function isMovingTowards(unit: IUnit, neighbor: IUnit) {
     return vectorsHaveSameDirection(toNeighbor, unit.velocity);
 }
 
+function collisionResponse(unit: IUnit, neighbor: IUnit) {
+    if (unit.motionTime < 1) {
+        // fresh motion, simple separation
+        moveAwayFrom(unit, neighbor, 1, .5);
+    } else {
+        if (unit.motionId > 0) {
+            if (neighbor.motionId === 0) {
+                if (UnitUtils.isVehicle(neighbor)) {
+                    if (neighbor.isIdle) {
+                        // vehicles only detect neighboring vehicles
+                        // so when in contact with a unit, the vehicle collision response must be done here 
+                        // (from the unit collision handler)
+                        avoidMovingNeighbor(neighbor, unit, .2);
+                    } else {
+                        slideAlongNeighbor(unit, neighbor);
+                    }
+                } else {
+                    if (neighbor.isIdle) {
+                        // no need to do anything, the stationary neighbor will move itself
+                    } else {
+                        slideAlongNeighbor(unit, neighbor);
+                    }
+                }
+            } else {
+                if (isMovingTowards(unit, neighbor)) {
+                    if (isMovingTowards(neighbor, unit)) {
+                        // slow down and move away from the collision
+                        moveAwayFrom(unit, neighbor, .5, 1);
+                    } else {
+                        // neighbor is moving away from me
+                        (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
+                        unit.acceleration.copy(neighbor.acceleration);
+                        // moveAwayFrom(unit, neighbor, 1, 1);
+                    }
+                } else {
+                    // already moving away from the collision, do nothing
+                }
+            }
+        } else {
+            if (unit.isIdle) {
+                if (neighbor.motionId === 0) {
+                    moveAwayFrom(unit, neighbor, 1, 1);
+                } else {
+                    avoidMovingNeighbor(unit, neighbor, .2);
+                }
+            } else {
+                // keep being busy, but slightly move away from the collision
+                // moveAwayFrom(unit, neighbor, 1, .1);
+            }
+        }
+    }
+}
+
 export class UnitMotion {
 
     private _motionCommandId = 1;
@@ -501,20 +554,6 @@ export class UnitMotion {
 
                 const collisionTestId = `${unit.visual.id},${neighbor.visual.id}`;
                 const willCollide = (() => {
-                    const canAffectEachOther = (() => {
-                        const isEnemy1 = UnitUtils.isEnemy(unit);
-                        const isEnemy2 = UnitUtils.isEnemy(neighbor);
-                        if (isEnemy1 !== isEnemy2) {
-                            // enemies can't push each other
-                            return false;
-                        }
-                        return true;
-                    })();
-
-                    if (!canAffectEachOther) {
-                        return false;
-                    }
-
                     const cachedResult = this._collisionResults.get(collisionTestId);
                     if (cachedResult === undefined) {
                         const newResult = UnitUtils.willCollide(unit, neighbor);
@@ -536,55 +575,18 @@ export class UnitMotion {
                 })();
 
                 if (willCollide) {
-                    if (unit.motionTime < 1) {
-                        // fresh motion, simple separation
-                        moveAwayFrom(unit, neighbor, 1, .5);
-                    } else {
-                        if (unit.motionId > 0) {
-                            if (neighbor.motionId === 0) {
-                                if (UnitUtils.isVehicle(neighbor)) {
-                                    if (neighbor.isIdle) {
-                                        // vehicles only detect neighboring vehicles
-                                        // so when in contact with a unit, the vehicle collision response must be done here 
-                                        // (from the unit collision handler)
-                                        avoidMovingNeighbor(neighbor, unit, .2);
-                                    } else {
-                                        slideAlongNeighbor(unit, neighbor);
-                                    }
-                                } else {
-                                    if (neighbor.isIdle) {
-                                        // no need to do anything, the stationary neighbor will move itself
-                                    } else {
-                                        slideAlongNeighbor(unit, neighbor);
-                                    }
-                                }
-                            } else {
-                                if (isMovingTowards(unit, neighbor)) {
-                                    if (isMovingTowards(neighbor, unit)) {
-                                        // slow down and move away from the collision
-                                        moveAwayFrom(unit, neighbor, .5, 1);
-                                    } else {
-                                        // neighbor is moving away from me
-                                        (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
-                                        unit.acceleration.copy(neighbor.acceleration);
-                                        // moveAwayFrom(unit, neighbor, 1, 1);
-                                    }
-                                } else {
-                                    // already moving away from the collision, do nothing
-                                }
-                            }
-                        } else {
-                            if (unit.isIdle) {
-                                if (neighbor.motionId === 0) {
-                                    moveAwayFrom(unit, neighbor, 1, 1);
-                                } else {
-                                    avoidMovingNeighbor(unit, neighbor, .2);
-                                }
-                            } else {
-                                // keep being busy, but slightly move away from the collision
-                                // moveAwayFrom(unit, neighbor, 1, .1);
-                            }
+                    const canAffectEachOther = (() => {
+                        const isEnemy1 = UnitUtils.isEnemy(unit);
+                        const isEnemy2 = UnitUtils.isEnemy(neighbor);
+                        if (isEnemy1 !== isEnemy2) {
+                            // enemies can't push each other
+                            return false;
                         }
+                        return true;
+                    })();
+
+                    if (canAffectEachOther) {
+                        collisionResponse(unit, neighbor);
                     }
 
                     if (unit.motionId > 0) {

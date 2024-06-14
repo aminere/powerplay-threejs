@@ -30,14 +30,12 @@ export const config = {
     combat: {
         ak47: {
             range: 6,
-            damage: 5,
             anim: "shoot",
             animSpeed: .5,
             shootEventTime: 1
         },
         rpg: {
             range: 10,
-            damage: 10,
             anim: "shoot-rpg",
             animSpeed: 1,
             shootEventTime: 1.52

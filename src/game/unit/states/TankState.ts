@@ -14,6 +14,8 @@ import { unitConfig } from "../../config/UnitConfig";
 import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitMotion } from "../UnitMotion";
+import { AutoDestroy } from "../../components/AutoDestroy";
+import gsap from "gsap";
 
 const shootRange = 10;
 const splashRadius = 1;
@@ -59,7 +61,6 @@ export class TankState extends State<ICharacterUnit> {
     private _cannon!: Object3D;
     private _cannonRotator!: Object3D;
     private _muzzleFlash!: Object3D;
-    private _tweens: gsap.core.Tween[] = [];
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
@@ -77,6 +78,7 @@ export class TankState extends State<ICharacterUnit> {
         this._cannon.add(this._muzzleFlash);
         this._muzzleFlash.visible = false;
     }
+
     override exit(_unit: IUnit) {
         console.log(`TankState exit`);
     }
@@ -163,12 +165,7 @@ export class TankState extends State<ICharacterUnit> {
                                 GameUtils.getCell(cellCoords, sectorCoords);
                                 const smokeSector = GameUtils.getSector(sectorCoords)!;
                                 smokeSector.layers.fx.attach(smoke);
-
-                                const smokeTween = utils.postpone(2, () => {
-                                    engineState.removeObject(smoke);
-                                    this._tweens.splice(0, 1);
-                                });
-                                this._tweens.push(smokeTween);
+                                engineState.setComponent(smoke, new AutoDestroy({ delay: 2 }));
 
                                 this._muzzleFlash.visible = true;
                                 setTimeout(() => this._muzzleFlash.visible = false, MathUtils.randInt(50, 100));
@@ -181,6 +178,7 @@ export class TankState extends State<ICharacterUnit> {
                                 explosion.updateMatrixWorld();
                                 const sector = unit.coords.sector;
                                 sector.layers.fx.attach(explosion);
+                                engineState.setComponent(explosion, new AutoDestroy({ delay: 2 }));
 
                                 // recoil
                                 gsap.to(this._cannon.position, {
@@ -189,13 +187,8 @@ export class TankState extends State<ICharacterUnit> {
                                     yoyo: true,
                                     repeat: 3,
                                     ease: "bounce.inOut"
-                                });
+                                });                                
 
-                                const tween = utils.postpone(2, () => {
-                                    engineState.removeObject(explosion);
-                                    this._tweens.splice(0, 1);
-                                });
-                                this._tweens.push(tween);
                                 this._attackTimer = attackFrequency;
                             } else {
                                 this._attackTimer -= time.deltaTime;
@@ -223,13 +216,6 @@ export class TankState extends State<ICharacterUnit> {
     public followTarget(target: IUnit) {
         this._target = target;
         this._step = TankStep.Follow;
-    }
-
-    override dispose() {
-        for (const tween of this._tweens) {
-            tween.kill();
-        }
-        this._tweens.length = 0;
     }
 }
 

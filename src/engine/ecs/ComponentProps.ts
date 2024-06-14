@@ -4,7 +4,7 @@ import { TArray } from "../serialization/TArray";
 export class ComponentProps {
     public active = true;
 
-    protected deserialize(props?: Partial<ComponentProps>) {
+    public deserialize(props?: Partial<ComponentProps>) {
         if (props) {
             for (const [prop, _value] of Object.entries(props)) {
                 const value = _value as any;

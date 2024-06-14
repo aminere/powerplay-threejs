@@ -62,8 +62,11 @@ class SkeletonManager {
         skinnedMeshes.forEach((skinnedMesh, i) => {
             const rootBone = skinnedMesh.skeleton.bones[0];
             const armature = rootBone.parent!;
+            // this is purely for debugging purposes
+            // it's dangerous since the armature is fetched by name in PropertyBinding constructor
+            // this only works because the armature was already bound at this point, in Animator.start()
             armature.name = `${armature.name}-${props.animations[i].name}`;
-            skeletons.add(armature);            
+            skeletons.add(armature);
         });
 
         skins.forEach((skin, i) => {

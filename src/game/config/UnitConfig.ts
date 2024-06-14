@@ -16,7 +16,7 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         arrivalDamping: characterArrivalDamping
     },
     "enemy-melee": {
-        hitpoints: 500,
+        hitpoints: 20,
         damage: 2,
         arrivalDamping: characterArrivalDamping
     },

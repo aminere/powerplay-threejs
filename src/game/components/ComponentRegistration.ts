@@ -12,6 +12,7 @@ import { Water, WaterProps } from "./Water";
 import { registerEngineComponents } from "../../engine/components/EngineComponentRegistration";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { Rocket } from "./Rocket";
+import { AutoDestroy, AutoDestroyProps } from "./AutoDestroy";
 
 export function registerComponents() {
 
@@ -26,5 +27,6 @@ export function registerComponents() {
     componentFactory.register<FadeoutProps>(Fadeout);
     componentFactory.register<EnvPropsProps>(EnvProps);
     componentFactory.register<ComponentProps>(Rocket);
+    componentFactory.register<AutoDestroyProps>(AutoDestroy);
 }
 
