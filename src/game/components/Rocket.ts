@@ -107,8 +107,7 @@ export class Rocket extends Component<ComponentProps, RocketState> {
         this.state.hit = true;
         const mesh = owner.getObjectByName("mesh")!;
         mesh.visible = false;
-        const particlesOwner = owner.getObjectByName("Particles")!;
-        const particles = utils.getComponent(InstancedParticles, particlesOwner)!;
+        const particles = utils.getComponent(InstancedParticles, owner.getObjectByName("Particles")!)!;
         particles.state.isEmitting = false;
         engineState.setComponent(owner, new AutoDestroy({ delay: 1 }));
     }

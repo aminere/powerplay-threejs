@@ -33,7 +33,7 @@ class EngineState {
     public getComponents<U extends Component<ComponentProps>>(ctor: new () => U) {
         const components = this._componentsMap.get(ctor.name) as IComponentInstance<U>[];
         return components.filter(c => c.component.props.active);
-    }    
+    }
 
     public removeComponent<U extends Component<ComponentProps>>(ctor: new () => U, owner: Object3D) {
         const componentType = ctor.name;
@@ -43,27 +43,17 @@ class EngineState {
     public removeComponentByType(componentType: string, owner: Object3D) {
         const instance = owner.userData.components?.[componentType] as Component<ComponentProps>;
         if (instance) {
-            instance.dispose(owner);            
+            instance.dispose(owner);
             this.unregisterComponent(instance, owner);
             delete owner.userData.components[componentType];
         }
     }
 
-    public removeObject(obj: Object3D) {
-        const unregisterComponents = (_obj: Object3D) => {
-            const components = _obj.userData.components;
-            if (components) {
-                for (const value of Object.values(components)) {
-                    const instance = value as Component<ComponentProps>;
-                    instance.dispose(_obj);
-                    this.unregisterComponent(instance, _obj);
-                }
-            }
-        }
+    public removeObject(obj: Object3D) {        
         obj.traverse(o => {
-            unregisterComponents(o);
+            this.unregisterComponents(o);
             this.unregisterAnimations(o);
-        });        
+        });
         obj.removeFromParent();
     }
 
@@ -84,11 +74,11 @@ class EngineState {
         const list = this._componentsMap.get(typename);
         if (list) {
             const index = list.findIndex(i => i.owner === owner);
-            console.assert(index >= 0);            
+            console.assert(index >= 0);
             utils.fastDelete(list, index);
         } else {
             console.assert(false);
-        }       
+        }
     }
 
     public registerAnimations(obj: Object3D) {
@@ -116,6 +106,17 @@ class EngineState {
             this.registerComponent(instance.component, instance.owner);
         }
         this._componentsToRegister.length = 0;
+    }
+
+    private unregisterComponents(obj: Object3D) {
+        const components = obj.userData.components;
+        if (components) {
+            for (const value of Object.values(components)) {
+                const instance = value as Component<ComponentProps>;
+                instance.dispose(obj);
+                this.unregisterComponent(instance, obj);
+            }
+        }
     }
 }
 

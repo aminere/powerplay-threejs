@@ -156,6 +156,9 @@ export class TankState extends State<ICharacterUnit> {
                                 }
 
                                 // spawn smoke
+                                GameUtils.worldToMap(smokePosition, cellCoords);
+                                GameUtils.getCell(cellCoords, sectorCoords);
+                                const smokeSector = GameUtils.getSector(sectorCoords)!;
                                 smokePosition.divideScalar(unitCount);
                                 smokePosition.x += MathUtils.randFloat(-1, 1);
                                 smokePosition.z += MathUtils.randFloat(-1, 1);
@@ -163,23 +166,19 @@ export class TankState extends State<ICharacterUnit> {
                                 const smoke = utils.instantiate(_smoke);
                                 smoke.position.copy(smokePosition);
                                 smoke.updateMatrixWorld();
-                                GameUtils.worldToMap(smokePosition, cellCoords);
-                                GameUtils.getCell(cellCoords, sectorCoords);
-                                const smokeSector = GameUtils.getSector(sectorCoords)!;
                                 smokeSector.layers.fx.attach(smoke);
                                 engineState.setComponent(smoke, new AutoDestroy({ delay: 1 }));
 
                                 this._muzzleFlash.visible = true;
-                                setTimeout(() => this._muzzleFlash.visible = false, MathUtils.randInt(50, 100));
-
+                                utils.postpone(MathUtils.randFloat(.05, .2), () => this._muzzleFlash.visible = false);
+                                
                                 const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
                                 const explosion = utils.instantiate(_explosion);
                                 explosion.position.set(0, .12, 1.48);
                                 explosion.scale.setScalar(.6);
                                 this._cannon.add(explosion);
-                                explosion.updateMatrixWorld();
-                                const sector = unit.coords.sector;
-                                sector.layers.fx.attach(explosion);
+                                explosion.updateMatrixWorld();                                
+                                unit.coords.sector.layers.fx.attach(explosion);
                                 engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
 
                                 // recoil
