@@ -245,6 +245,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/buildings/incubator-glass.glb`);
         await meshes.load(`/models/truck.glb`);
         await meshes.load(`/models/tank.glb`);
+        await meshes.load(`/models/enemy-tank.glb`);
         await meshes.load(`/models/tank-chunks.glb`);
         await objects.load("/prefabs/tank-shot.json");
         await objects.load("/prefabs/explosion.json");

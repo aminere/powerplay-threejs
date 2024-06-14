@@ -13,12 +13,14 @@ import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "./AutoDestroy";
 import { ISector } from "../GameTypes";
 import { config } from "../config/config";
+import { IUnit } from "../unit/IUnit";
 
 class RocketState {
     initialized = false;
     hit = false;
     lifeTime = 0;
     velocity = new Vector3();
+    shooter: IUnit = null!;
 }
 
 const cellCoords = new Vector2();
@@ -79,8 +81,11 @@ export class Rocket extends Component<ComponentProps, RocketState> {
         const units = cell?.units;
         if (units) {
             let hit = false;
+
+            const shooterIsEnemy = UnitUtils.isEnemy(this.state.shooter);
             for (const unit of units) {
-                if (UnitUtils.isEnemy(unit)) {
+                const canDamage = shooterIsEnemy !== UnitUtils.isEnemy(unit);
+                if (canDamage) {
                     // TODO check the bounding box
                     // for now just hit all the enemies in the cell
                     hit = true;

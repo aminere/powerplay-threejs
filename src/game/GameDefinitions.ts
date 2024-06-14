@@ -47,7 +47,8 @@ export const CharacterTypes = [
 
 export const VehicleTypes = [
     "truck",
-    "tank"
+    "tank",
+    "enemy-tank"
 ] as const;
 
 export const UnitTypes = [

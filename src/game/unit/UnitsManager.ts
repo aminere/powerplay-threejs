@@ -165,91 +165,93 @@ class UnitsManager {
 
     public async spawn(mapCoords: Vector2, type: UnitType) {
         
-        switch (type) {
-            case "truck": {
-                const visual = loadVisual(type);
-                GameUtils.mapToWorld(mapCoords, visual.position);
-                const boundingBox = getBoundingBox(visual);
-                const unit = new TruckUnit({ visual, boundingBox, type, states: [new TruckState()]});
-                this._units.push(unit);
-                visual.scale.multiplyScalar(truckScale);
-                this._owner.add(visual);
-                unit.fsm.switchState(TruckState);
-
-                cmdFogAddCircle.post({ mapCoords, radius: 10 });    
-                const box3Helper = new Box3Helper(boundingBox);
-                visual.add(box3Helper);
-                box3Helper.visible = false;
-                evtUnitSpawned.post(unit);
-            }
-            break;
-
-            case "tank": {
-                const visual = loadVisual(type);
-                visual.receiveShadow = true;
-                GameUtils.mapToWorld(mapCoords, visual.position);
-                const boundingBox = getBoundingBox(visual);
-                const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]});                
-                this._units.push(unit);
-                visual.scale.multiplyScalar(tankScale);
-                this._owner.add(visual);
-                unit.fsm.switchState(TankState);
-
-                cmdFogAddCircle.post({ mapCoords, radius: 10 });
-                const box3Helper = new Box3Helper(boundingBox);                
-                visual.add(box3Helper);
-                box3Helper.visible = false;
-                evtUnitSpawned.post(unit);
-            }
-            break;
-
-            default: {
-                // character mesh
-                const sharedMesh = skeletonManager.getSharedSkinnedMesh(type)!;
-                const boundingBox = skeletonManager.boundingBox;
-                const skinnedMesh = sharedMesh.clone();
-                skinnedMesh.scale.multiplyScalar(unitScale);
-                skinnedMesh.boundingBox = boundingBox;
-                skinnedMesh.bindMode = "detached";
-
-                skinnedMesh.userData.unserializable = true;
-                GameUtils.mapToWorld(mapCoords, skinnedMesh.position);
-
-                const unit = new CharacterUnit({ 
-                    visual: skinnedMesh,
-                    type, 
-                    states: (() => {
-                        switch (type) {
-                            case "worker": return [
-                                new MiningState(), 
-                                new SoldierState(),
-                                new MeleeDefendState(), 
-                                new MeleeAttackState()
-                            ];
-                            case "enemy-melee": return [new NPCState()]
-                            default: return [];
-                        }
-                    })(),
-                    animation: skeletonManager.applyIdleAnim(skinnedMesh)
-                });
-                this._units.push(unit);
-                this._owner.add(skinnedMesh);
-                
-                if (UnitUtils.isEnemy(unit)) {
-                    switch (type) {
-                        case "enemy-melee":
-                            unit.fsm.switchState(NPCState);
-                            break;
-                    }
-                } else {
-                    cmdFogAddCircle.post({ mapCoords, radius: 10 });
+        const unit = (() => {
+            switch (type) {
+                case "truck": {
+                    const visual = loadVisual(type);
+                    GameUtils.mapToWorld(mapCoords, visual.position);
+                    const boundingBox = getBoundingBox(visual);
+                    const unit = new TruckUnit({ visual, boundingBox, type, states: [new TruckState()]});
+                    this._units.push(unit);
+                    visual.scale.multiplyScalar(truckScale);
+                    this._owner.add(visual);
+                    unit.fsm.switchState(TruckState);
+    
+                    const box3Helper = new Box3Helper(boundingBox);
+                    visual.add(box3Helper);
+                    box3Helper.visible = false;
+                    evtUnitSpawned.post(unit);
+                    return unit;
                 }
+    
+                case "tank": 
+                case "enemy-tank": {
+                    const visual = loadVisual(type);
+                    visual.receiveShadow = true;
+                    GameUtils.mapToWorld(mapCoords, visual.position);
+                    const boundingBox = getBoundingBox(visual);
+                    const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]});                
+                    this._units.push(unit);
+                    visual.scale.multiplyScalar(tankScale);
+                    this._owner.add(visual);
+                    unit.fsm.switchState(TankState);
+    
+                    const box3Helper = new Box3Helper(boundingBox);                
+                    visual.add(box3Helper);
+                    box3Helper.visible = false;
+                    evtUnitSpawned.post(unit);
+                    return unit;
+                }                
+    
+                default: {
+                    // character mesh
+                    const sharedMesh = skeletonManager.getSharedSkinnedMesh(type)!;
+                    const boundingBox = skeletonManager.boundingBox;
+                    const skinnedMesh = sharedMesh.clone();
+                    skinnedMesh.scale.multiplyScalar(unitScale);
+                    skinnedMesh.boundingBox = boundingBox;
+                    skinnedMesh.bindMode = "detached";
+    
+                    skinnedMesh.userData.unserializable = true;
+                    GameUtils.mapToWorld(mapCoords, skinnedMesh.position);
+    
+                    const unit = new CharacterUnit({ 
+                        visual: skinnedMesh,
+                        type, 
+                        states: (() => {
+                            switch (type) {
+                                case "worker": return [
+                                    new MiningState(), 
+                                    new SoldierState(),
+                                    new MeleeDefendState(), 
+                                    new MeleeAttackState()
+                                ];
+                                case "enemy-melee": return [new NPCState()]
+                                default: return [];
+                            }
+                        })(),
+                        animation: skeletonManager.applyIdleAnim(skinnedMesh)
+                    });
+                    this._units.push(unit);
+                    this._owner.add(skinnedMesh);                
+    
+                    const box3Helper = new Box3Helper(skinnedMesh.boundingBox!);
+                    skinnedMesh.add(box3Helper);
+                    box3Helper.visible = false;
+                    evtUnitSpawned.post(unit);
+                    return unit;
+                }    
+            }
+        })();
 
-                const box3Helper = new Box3Helper(skinnedMesh.boundingBox!);
-                skinnedMesh.add(box3Helper);
-                box3Helper.visible = false;
-                evtUnitSpawned.post(unit);
-            }    
+        if (UnitUtils.isEnemy(unit)) {
+            switch (type) {
+                case "enemy-melee":
+                    unit.fsm.switchState(NPCState);
+                    break;
+            }
+        } else {
+            cmdFogAddCircle.post({ mapCoords, radius: 10 });
         }
     }
 

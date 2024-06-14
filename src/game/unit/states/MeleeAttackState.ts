@@ -79,7 +79,7 @@ export class MeleeAttackState extends State<ICharacterUnit> {
         }        
     }
 
-    public attackTarget(_unit: ICharacterUnit, target: IUnit) {
+    public attackTarget(target: IUnit) {
         this._target = target;
     }    
 

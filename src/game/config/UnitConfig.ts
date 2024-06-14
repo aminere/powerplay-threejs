@@ -9,9 +9,15 @@ interface IUnitConfig {
     arrivalDamping: number;
 }
 
+const tankConfig: IUnitConfig = {
+    hitpoints: 250,
+    damage: 5,
+    arrivalDamping: vehicleArrivalDamping
+}
+
 export const unitConfig: Record<UnitType, IUnitConfig> = {
     "worker": {
-        hitpoints: 100,
+        hitpoints: 20,
         damage: 2,
         arrivalDamping: characterArrivalDamping
     },
@@ -25,11 +31,8 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         damage: 2,
         arrivalDamping: characterArrivalDamping
     },
-    "tank": {
-        hitpoints: 250,
-        damage: 5,
-        arrivalDamping: vehicleArrivalDamping
-    },
+    "tank": tankConfig,
+    "enemy-tank": tankConfig,
     "truck": {
         hitpoints: 20,
         damage: 0,

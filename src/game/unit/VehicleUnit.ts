@@ -4,7 +4,6 @@ import { meshes } from "../../engine/resources/Meshes";
 import { IUnit } from "./IUnit";
 import { IUnitProps, Unit } from "./Unit";
 import { IUnitAddr, computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
-import { TankState } from "./states/TankState";
 import { engineState } from "../../engine/EngineState";
 import { Explode } from "../components/Explode";
 import { UnitUtils } from "./UnitUtils";
@@ -47,7 +46,6 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
 
     public override onDeath() {
         const _meshes = meshes.loadImmediate("/models/tank-chunks.glb");
-        const tankState = this.fsm.getState(TankState)!;
         const chunks = new Object3D();
         chunks.name = "tank-chunks";
         this.visual.getWorldPosition(chunks.position);
@@ -59,8 +57,9 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
             const mesh = _mesh.clone();            
             chunks.add(mesh);
         }
-        chunks.add(tankState.cannonRoot);
-        tankState.cannonRoot.traverse(child => {
+
+        const cannonRoot = this.visual.getObjectByName("cannon-root")!;
+        cannonRoot.traverse(child => {
             if ((child as Mesh).isMesh) {
                 child.castShadow = false;
             }

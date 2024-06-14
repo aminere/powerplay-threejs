@@ -16,6 +16,9 @@ import { unitMotion } from "../UnitMotion";
 import { AutoDestroy } from "../../components/AutoDestroy";
 import gsap from "gsap";
 import { GameMapState } from "../../components/GameMapState";
+import { Rocket } from "../../components/Rocket";
+import { MeleeAttackState } from "./MeleeAttackState";
+import { IVehicleUnit } from "../VehicleUnit";
 
 const shootRange = 15;
 const attackDelay = .8;
@@ -51,9 +54,7 @@ function resetCannon(cannon: Object3D) {
     mathUtils.smoothDampQuat(cannon.quaternion, localRotation, damping, time.deltaTime);
 }
 
-export class TankState extends State<ICharacterUnit> {
-
-    public get cannonRoot() { return this._cannonRoot; }
+export class TankState extends State<IVehicleUnit> {
 
     private _search = new UnitSearch();
     private _target: IUnit | null = null;
@@ -61,15 +62,14 @@ export class TankState extends State<ICharacterUnit> {
     private _attackTimer = 0;
     private _cannon!: Object3D;
     private _cannonRotator!: Object3D;
-    private _cannonRoot!: Object3D;
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
         this._cannon = unit.visual.getObjectByName("cannon")!;
-        this._cannonRoot = utils.createObject(unit.visual, "cannon-root");
-        this._cannonRoot.position.copy(this._cannon.position);
+        const cannonRoot = utils.createObject(unit.visual, "cannon-root");
+        cannonRoot.position.copy(this._cannon.position);
         this._cannonRotator = utils.createObject(unit.visual, "cannon-rotator");
-        this._cannonRoot.add(this._cannonRotator);
+        cannonRoot.add(this._cannonRotator);
         this._cannonRotator.attach(this._cannon);
     }
 
@@ -77,12 +77,19 @@ export class TankState extends State<ICharacterUnit> {
         console.log(`TankState exit`);
     }
 
-    override update(unit: ICharacterUnit) {
+    override update(unit: IVehicleUnit) {
 
         const target = this._target;
         if (!target) {
             resetCannon(this._cannonRotator);
-            const newTarget = this._search.find(unit, shootRange, UnitUtils.isEnemy);
+
+            const newTarget = this._search.find(unit, shootRange, other => {
+                if (UnitUtils.isEnemy(unit)) {
+                    return !UnitUtils.isEnemy(other);
+                } else {
+                    return UnitUtils.isEnemy(other);
+                }
+            });
             if (newTarget) {
                 this._target = newTarget;
             }
@@ -134,15 +141,31 @@ export class TankState extends State<ICharacterUnit> {
                     break;
                 }
 
-                const enemy = target as ICharacterUnit;
-                if (enemy.isIdle && enemy.motionId === 0) {
-                    const npcState = enemy!.fsm.getState(NPCState);
-                    console.assert(npcState);
-                    npcState?.attackTarget(enemy, unit);
-                }
+                // get the attacked unit to defend itself
+                if (UnitUtils.isEnemy(unit)) {
+                    if (UnitUtils.isWorker(target)) {
+                        const worker = target as ICharacterUnit;
+                        if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
+                            const meleeState = worker.fsm.switchState(MeleeAttackState);                            
+                            unitMotion.moveUnit(worker, unit.coords.mapCoords);
+                            meleeState.attackTarget(unit);
+                        }
+                    }
+                } else {
+                    const enemy = target as ICharacterUnit;
+                    if (enemy.isIdle && enemy.motionId === 0) {
+                        const npcState = enemy!.fsm.getState(NPCState);
+                        console.assert(npcState);
+                        npcState?.attackTarget(enemy, unit);
+                    }
+                }                
 
                 const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
                 const rocket = utils.instantiate(_rocket);
+
+                const rocketComponent = utils.getComponent(Rocket, rocket)!;
+                rocketComponent.state.shooter = unit;
+
                 const { projectiles } = GameMapState.instance.layers;
                 rocket.position.copy(cannonOffset);
                 this._cannon.add(rocket);

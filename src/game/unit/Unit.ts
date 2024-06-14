@@ -125,10 +125,10 @@ export class Unit implements IUnit {
                     unitMotion.endMotion(this);
                 }
 
+                this._fsm.switchState(null);
                 this._collidable = false;                
                 this._collidingWith.length = 0;
                 this.onDeath();
-                this._fsm.switchState(null);
     
                 const cell = getCellFromAddr(this._coords);
                 const unitIndex = cell.units!.indexOf(this);

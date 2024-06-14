@@ -534,7 +534,7 @@ class GameMapInput {
                                     for (const _unit of units) {
                                         if (UnitUtils.isWorker(_unit)) {
                                             const attack = _unit.fsm.switchState(MeleeAttackState);
-                                            attack.attackTarget(_unit as ICharacterUnit, targetEnemy);
+                                            attack.attackTarget(targetEnemy);
                                             continue;
                                         }
                                         

@@ -94,6 +94,7 @@ export const config = {
             "enemy-melee": .5,
             "enemy-ranged": .5,
             "tank": 2,
+            "enemy-tank": 2,
             "truck": 2
         }
     }
