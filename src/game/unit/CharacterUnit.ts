@@ -34,11 +34,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
     public get skeleton() { return this._skeleton; }
     public get skinnedMesh() { return this._skinnedMesh; }
-    public get muzzleFlashTimer() { return this._muzzleFlashTimer; }
     public get resource() { return this._resource; }
     public get targetBuilding() { return this._targetBuilding; }
 
-    public set muzzleFlashTimer(value: number) { this._muzzleFlashTimer = value; }
     public set skeleton(value: IUniqueSkeleton | null) { this._skeleton = value; }
 
     public set resource(value: ICarriedResource | null) {

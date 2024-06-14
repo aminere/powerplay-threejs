@@ -5,11 +5,12 @@ import { unitAnimation } from "../UnitAnimation";
 import { UnitSearch } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { config } from "../../config/config";
-import { Mesh, Vector3 } from "three";
+import { MathUtils, Mesh, Vector3 } from "three";
 import { GameMapState } from "../../components/GameMapState";
 import { objects } from "../../../engine/resources/Objects";
 import { utils } from "../../../engine/Utils";
 import { GameUtils } from "../../GameUtils";
+import { NPCState } from "./NPCState";
 
 const { unitScale } = config.game;
 const headOffset = unitScale;
@@ -36,7 +37,8 @@ export class SoldierState extends State<ICharacterUnit> {
             range,
             anim,
             animSpeed,
-            shootEventTime
+            shootEventTime,
+            damage
         } = config.combat[weaponType];
 
         const target = this._target;
@@ -64,26 +66,37 @@ export class SoldierState extends State<ICharacterUnit> {
                                 this._loopConsumed = true;
 
                                 // shoot
-                                // const enemy = target as ICharacterUnit;
-                                // if (enemy.isIdle && enemy.motionId === 0) {
-                                //     const npcState = enemy!.fsm.getState(NPCState);
-                                //     console.assert(npcState);
-                                //     npcState?.attackTarget(enemy, unit);
-                                // }
+                                const enemy = target as ICharacterUnit;
+                                if (enemy.isIdle && enemy.motionId === 0) {
+                                    const npcState = enemy!.fsm.getState(NPCState);
+                                    console.assert(npcState);
+                                    npcState?.attackTarget(enemy, unit);
+                                }
 
                                 switch (weaponType) {
                                     case "rpg": {
                                         const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
                                         const rocket = utils.instantiate(_rocket);
+
                                         const { projectiles } = GameMapState.instance.layers;
                                         projectiles.add(rocket);
 
                                         const rocketSlot = unit.resource!.visual.getObjectByName("rocketSlot") as Mesh;
                                         rocketSlot.getWorldPosition(rocket.position);
 
-                                        targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);           
+                                        targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
                                         const toTarget = targetPos.sub(rocket.position).normalize();
                                         rocket.quaternion.setFromUnitVectors(GameUtils.vec3.forward, toTarget);
+                                    }
+                                        break;
+
+                                    case "ak47": {
+                                        const visual = unit.resource!.visual;
+                                        const muzzleFlash = visual.getObjectByName("muzzle-flash")!;
+                                        muzzleFlash.visible = true;
+                                        utils.postpone(MathUtils.randFloat(.05, .2), () => muzzleFlash.visible = false);
+
+                                        target.setHitpoints(target.hitpoints - damage);
                                     }
                                         break;
                                 }

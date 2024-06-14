@@ -12,6 +12,7 @@ import { UnitUtils } from "../unit/UnitUtils";
 import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "./AutoDestroy";
 import { ISector } from "../GameTypes";
+import { config } from "../config/config";
 
 class RocketState {
     initialized = false;
@@ -25,14 +26,6 @@ const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
 
-class RocketProps extends ComponentProps {
-    damage = 10;
-    constructor(props?: Partial<RocketProps>) {
-        super();
-        this.deserialize(props);
-    }
-}
-
 function spawnSmoke(sector: ISector, worldPos: Vector3, groundLevel: number) {        
     const _smoke = objects.loadImmediate("/prefabs/smoke.json")!;
     const smoke = utils.instantiate(_smoke);
@@ -42,10 +35,12 @@ function spawnSmoke(sector: ISector, worldPos: Vector3, groundLevel: number) {
     engineState.setComponent(smoke, new AutoDestroy({ delay: 2 }));
 }
 
-export class Rocket extends Component<RocketProps, RocketState> {    
+export class Rocket extends Component<ComponentProps, RocketState> {    
 
-    constructor(props?: Partial<RocketProps>) {
-        super(new RocketProps(props));
+    constructor(props?: Partial<ComponentProps>) {
+        const _props = new ComponentProps();
+        _props.deserialize(props)
+        super(_props);
     }
 
     override start(_owner: Object3D) {
@@ -78,7 +73,6 @@ export class Rocket extends Component<RocketProps, RocketState> {
         const groundLevel = cell ? GameUtils.getMapHeight(cellCoords, localCoords, sector, owner.position.x, owner.position.z) : 0;
 
         if (owner.position.y < groundLevel) {
-            console.log("rocket hit ground");
             this.onHit(owner);
             if (sector) {
                 spawnSmoke(sector, owner.position, groundLevel);
@@ -96,7 +90,7 @@ export class Rocket extends Component<RocketProps, RocketState> {
                     // for now just hit all the enemies in the cell
                     hit = true;
                     if (unit.isAlive) {
-                        unit.setHitpoints(unit.hitpoints - this.props.damage);
+                        unit.setHitpoints(unit.hitpoints - config.combat.rpg.damage);
                     }
                 }
             }
@@ -116,6 +110,8 @@ export class Rocket extends Component<RocketProps, RocketState> {
 
     private onHit(owner: Object3D) {
         this.state.hit = true;
+        const mesh = owner.getObjectByName("mesh")!;
+        mesh.visible = false;
         const particlesOwner = owner.getObjectByName("Particles")!;
         const particles = utils.getComponent(InstancedParticles, particlesOwner)!;
         particles.state.isEmitting = false;

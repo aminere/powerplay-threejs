@@ -14,7 +14,6 @@ export interface ICharacterUnit extends IUnit {
     skinnedMesh: SkinnedMesh;
     animation: IUnitAnim;
     skeleton: IUniqueSkeleton | null;
-    muzzleFlashTimer: number;
     resource: ICarriedResource | null;
     targetBuilding: Vector2 | null;
     clearResource: () => void;

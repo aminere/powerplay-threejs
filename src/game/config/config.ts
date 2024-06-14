@@ -32,13 +32,15 @@ export const config = {
             range: 6,
             anim: "shoot",
             animSpeed: .5,
-            shootEventTime: 1
+            shootEventTime: .14,
+            damage: 3
         },
         rpg: {
             range: 10,
             anim: "shoot-rpg",
             animSpeed: 1,
-            shootEventTime: 1.52
+            shootEventTime: 1.52,
+            damage: 10
         }
     },
     incubators: {

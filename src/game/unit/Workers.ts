@@ -10,8 +10,8 @@ import { time } from "../../engine/core/Time";
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(
     new Vector3(-.01, -.13, .02),
-    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-129.8), MathUtils.degToRad(42.24), MathUtils.degToRad(-134.23))),
-    new Vector3(1, 1, 1)
+    new Quaternion().setFromEuler(new Euler(MathUtils.degToRad(-158), MathUtils.degToRad(61), MathUtils.degToRad(-76))),
+    new Vector3(1, 1, 1).multiplyScalar(1.5)
 );
 const pickedRPGOffset = new Matrix4().compose(
     new Vector3(-.04, .27, -.31),
@@ -37,20 +37,7 @@ export class Workers {
             switch (resource.type) {
                 case "ak47": {
                     const parent = skeleton.getObjectByName("HandR")!;
-                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);
-                    const muzzleFlash = visual.getObjectByName("muzzle-flash");
-                    if (muzzleFlash) {
-                        if (unit.animation.name === "shoot") {
-                            if (unit.muzzleFlashTimer < 0) {
-                                unit.muzzleFlashTimer = MathUtils.randFloat(.05, .2);
-                                muzzleFlash.visible = !muzzleFlash.visible;
-                            } else {
-                                unit.muzzleFlashTimer -= time.deltaTime;
-                            }
-                        } else {
-                            muzzleFlash.visible = false;
-                        }
-                    }
+                    pickedItemlocalToSkeleton.multiplyMatrices(parent.matrixWorld, pickedAk47Offset);                    
                 }
                     break;
                 case "rpg": {
