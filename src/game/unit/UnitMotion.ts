@@ -350,52 +350,55 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
     if (unit.motionTime < 1) {
         // fresh motion, simple separation
         moveAwayFrom(unit, neighbor, 1, .5);
-    } else {
-        if (unit.motionId > 0) {
-            if (neighbor.motionId === 0) {
-                if (UnitUtils.isVehicle(neighbor)) {
-                    if (neighbor.isIdle) {
-                        // vehicles only detect neighboring vehicles
-                        // so when in contact with a unit, the vehicle collision response must be done here 
-                        // (from the unit collision handler)
-                        avoidMovingNeighbor(neighbor, unit, .2);
-                    } else {
-                        slideAlongNeighbor(unit, neighbor);
-                    }
+        return;
+    }
+
+    if (unit.motionId > 0) {
+        if (neighbor.motionId === 0) {
+            if (UnitUtils.isVehicle(neighbor)) {
+                if (neighbor.isIdle) {
+                    // vehicles only detect neighboring vehicles
+                    // so when in contact with a unit, the vehicle collision response must be done here 
+                    // (from the unit collision handler)
+                    avoidMovingNeighbor(neighbor, unit, .2);
                 } else {
-                    if (neighbor.isIdle) {
-                        // no need to do anything, the stationary neighbor will move itself
-                    } else {
-                        slideAlongNeighbor(unit, neighbor);
-                    }
+                    slideAlongNeighbor(unit, neighbor);
                 }
             } else {
-                if (isMovingTowards(unit, neighbor)) {
-                    if (isMovingTowards(neighbor, unit)) {
-                        // slow down and move away from the collision
-                        moveAwayFrom(unit, neighbor, .5, 1);
-                    } else {
-                        // neighbor is moving away from me
-                        (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
-                        unit.acceleration.copy(neighbor.acceleration);
-                        // moveAwayFrom(unit, neighbor, 1, 1);
-                    }
+                if (neighbor.isIdle) {
+                    // no need to do anything, the stationary neighbor will move itself
                 } else {
-                    // already moving away from the collision, do nothing
+                    slideAlongNeighbor(unit, neighbor);
                 }
             }
         } else {
-            if (unit.isIdle) {
-                if (neighbor.motionId === 0) {
-                    moveAwayFrom(unit, neighbor, 1, 1);
+            if (isMovingTowards(unit, neighbor)) {
+                if (isMovingTowards(neighbor, unit)) {
+                    // slow down and move away from the collision
+                    moveAwayFrom(unit, neighbor, .5, 1);
                 } else {
-                    avoidMovingNeighbor(unit, neighbor, .2);
+                    // neighbor is moving away from me
+                    (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
+                    unit.acceleration.copy(neighbor.acceleration);
+                    // moveAwayFrom(unit, neighbor, 1, 1);
                 }
             } else {
-                // keep being busy, but slightly move away from the collision
-                // moveAwayFrom(unit, neighbor, 1, .1);
+                // already moving away from the collision, do nothing
             }
         }
+        return;
+    }
+
+    // unit is not moving
+    if (unit.isIdle) {
+        if (neighbor.motionId === 0) {
+            moveAwayFrom(unit, neighbor, 1, 1);
+        } else {
+            avoidMovingNeighbor(unit, neighbor, .2);
+        }
+    } else {
+        // keep being busy, but slightly move away from the collision
+        moveAwayFrom(unit, neighbor, 1, .01);
     }
 }
 
