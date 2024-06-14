@@ -19,7 +19,6 @@ class RocketState {
     hit = false;
     lifeTime = 0;
     velocity = new Vector3();
-    tween: gsap.core.Tween | null = null;
 }
 
 const cellCoords = new Vector2();
@@ -32,7 +31,7 @@ function spawnSmoke(sector: ISector, worldPos: Vector3, groundLevel: number) {
     smoke.position.copy(worldPos).setY(groundLevel);
     smoke.updateMatrixWorld();        
     sector.layers.fx.attach(smoke);
-    engineState.setComponent(smoke, new AutoDestroy({ delay: 2 }));
+    engineState.setComponent(smoke, new AutoDestroy({ delay: 1 }));
 }
 
 export class Rocket extends Component<ComponentProps, RocketState> {    
@@ -45,11 +44,7 @@ export class Rocket extends Component<ComponentProps, RocketState> {
 
     override start(_owner: Object3D) {
         this.setState(new RocketState());
-    }
-    
-    override dispose() {
-        this.state?.tween?.kill();
-    }
+    }    
 
     override update(owner: Object3D) {
         if (!this.state.initialized) {
@@ -115,10 +110,7 @@ export class Rocket extends Component<ComponentProps, RocketState> {
         const particlesOwner = owner.getObjectByName("Particles")!;
         const particles = utils.getComponent(InstancedParticles, particlesOwner)!;
         particles.state.isEmitting = false;
-        this.state.tween = utils.postpone(2, () => {
-            this.state.tween = null;
-            engineState.removeObject(owner);
-        });
+        engineState.setComponent(owner, new AutoDestroy({ delay: 1 }));
     }
 }
 

@@ -6,6 +6,7 @@ import { ICell, ISector } from "./GameTypes";
 import { engine } from "../engine/Engine";
 
 const { mapRes, cellSize, elevationStep } = config.game;
+const halfRes = mapRes / 2;
 const verticesPerRow = mapRes + 1;
 const mapSize = mapRes * cellSize;
 const halfMapSize = mapSize / 2;
@@ -50,7 +51,6 @@ export class GameUtils {
     }
 
     public static worldToMap(worldPos: Vector3, mapCoordsOut: Vector2) {
-        const halfRes = mapRes / 2;
         mapCoordsOut.set(Math.floor(worldPos.x / cellSize) + halfRes, Math.floor(worldPos.z / cellSize) + halfRes);
         return mapCoordsOut;
     }

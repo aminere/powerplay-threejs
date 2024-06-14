@@ -165,7 +165,7 @@ export class TankState extends State<ICharacterUnit> {
                                 GameUtils.getCell(cellCoords, sectorCoords);
                                 const smokeSector = GameUtils.getSector(sectorCoords)!;
                                 smokeSector.layers.fx.attach(smoke);
-                                engineState.setComponent(smoke, new AutoDestroy({ delay: 2 }));
+                                engineState.setComponent(smoke, new AutoDestroy({ delay: 1 }));
 
                                 this._muzzleFlash.visible = true;
                                 setTimeout(() => this._muzzleFlash.visible = false, MathUtils.randInt(50, 100));
@@ -178,7 +178,7 @@ export class TankState extends State<ICharacterUnit> {
                                 explosion.updateMatrixWorld();
                                 const sector = unit.coords.sector;
                                 sector.layers.fx.attach(explosion);
-                                engineState.setComponent(explosion, new AutoDestroy({ delay: 2 }));
+                                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
 
                                 // recoil
                                 gsap.to(this._cannon.position, {
