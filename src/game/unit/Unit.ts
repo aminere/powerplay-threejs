@@ -120,10 +120,13 @@ export class Unit implements IUnit {
         this._hitpoints = value;
         if (value <= 0) {
             if (this._isAlive) {
-                this._fsm.switchState(null);
                 this._isAlive = false;
-                this._collidable = false;
-                this._motionId = 0;
+                if (this._motionId > 0) {
+                    unitMotion.endMotion(this);
+                }
+
+                this._fsm.switchState(null);                
+                this._collidable = false;                
                 this._collidingWith.length = 0;
                 this.onDeath();
     

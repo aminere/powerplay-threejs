@@ -81,7 +81,6 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _animation: IUnitAnim;
     private _skeleton: IUniqueSkeleton | null = null;
     private _skinnedMesh: SkinnedMesh;
-    private _muzzleFlashTimer = 0;
     private _resource: ICarriedResource | null = null;
     private _targetBuilding: Vector2 | null = null;
 

@@ -105,7 +105,9 @@ export class TankState extends State<ICharacterUnit> {
 
                     case TankStep.Follow: {
                         if (!UnitUtils.isOutOfRange(unit, target!, shootRange - 1)) {
-                            unitMotion.endMotion(unit);
+                            if (unit.motionId > 0) {
+                                unitMotion.endMotion(unit);
+                            }
                             this._step = TankStep.Attack;
                             this._attackTimer = attackDelay;
                             unit.isIdle = false;
