@@ -297,6 +297,16 @@ function updateSelectionFromRaycast() {
     }
 }
 
+function endMultiSelection() {
+    cmdEndSelection.post();
+    GameMapState.instance.selectionInProgress = false;
+    if (unitsManager.selectedUnits.length > 0) {
+        unitsManager.setSelection({ type: "units", units: unitsManager.selectedUnits });
+    } else {
+        unitsManager.setSelection(null);
+    }
+}
+
 class GameMapInput {
 
     private _lastClickTime = 0;
@@ -432,13 +442,7 @@ class GameMapInput {
                         onCancelDrag();
                     }
                     if (state.selectionInProgress) {
-                        cmdEndSelection.post();
-                        state.selectionInProgress = false;
-                        if (unitsManager.selectedUnits.length > 0) {
-                            unitsManager.setSelection({ type: "units", units: unitsManager.selectedUnits });
-                        } else {
-                            unitsManager.setSelection(null);
-                        }
+                        endMultiSelection();
                     }
                     canceled = true;
                 }
@@ -453,8 +457,7 @@ class GameMapInput {
                     } else {
 
                         if (state.selectionInProgress) {
-                            cmdEndSelection.post();
-                            state.selectionInProgress = false;
+                            endMultiSelection();
 
                         } else {
                             const currentTime = time.time;

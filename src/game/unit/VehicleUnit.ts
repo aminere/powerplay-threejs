@@ -1,7 +1,15 @@
+import { Mesh, Object3D } from "three";
 import { utils } from "../../engine/Utils";
+import { meshes } from "../../engine/resources/Meshes";
 import { IUnit } from "./IUnit";
 import { IUnitProps, Unit } from "./Unit";
 import { IUnitAddr, computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
+import { TankState } from "./states/TankState";
+import { engineState } from "../../engine/EngineState";
+import { Explode } from "../components/Explode";
+import { UnitUtils } from "./UnitUtils";
+import { cmdFogRemoveCircle } from "../../Events";
+import { Fadeout } from "../components/Fadeout";
 
 export interface IVehicleUnit extends IUnit {
     coords2x2: IUnitAddr;
@@ -17,7 +25,7 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
 
     constructor(props: IUnitProps) {
         super(props);
-        
+
         computeUnitAddr2x2(this.coords.mapCoords, this._coords2x2);
         const cell2x2 = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
         cell2x2.units.push(this);
@@ -29,10 +37,47 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
             const cell = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
             const unitIndex = cell.units!.indexOf(this);
             console.assert(unitIndex >= 0, `unit ${this.type} not found in cell`);
-            utils.fastDelete(cell.units!, unitIndex);    
+            utils.fastDelete(cell.units!, unitIndex);
         }
 
         super.setHitpoints(value);
+    }
+
+    public override onDeath() {
+        const _meshes = meshes.loadImmediate("/models/tank-chunks.glb");
+        const tankState = this.fsm.getState(TankState)!;
+        const chunks = new Object3D();
+        chunks.name = "tank-chunks";
+        this.visual.getWorldPosition(chunks.position);
+        this.visual.getWorldQuaternion(chunks.quaternion);
+        this.visual.getWorldScale(chunks.scale);
+        chunks.updateMatrixWorld();
+        this.coords.sector.layers.fx.attach(chunks);
+        for (const _mesh of _meshes) {
+            const mesh = _mesh.clone();            
+            chunks.add(mesh);
+        }
+        chunks.add(tankState.cannonRoot);
+        tankState.cannonRoot.traverse(child => {
+            if ((child as Mesh).isMesh) {
+                child.castShadow = false;
+            }
+        });
+        engineState.setComponent(chunks, new Explode({
+            impulse: 5
+        }));
+
+        this.visual.removeFromParent();
+        const fadeDuration = 1;
+        engineState.setComponent(chunks, new Fadeout({
+            duration: fadeDuration,
+            keepShadows: true
+        }));
+        if (!UnitUtils.isEnemy(this)) {
+            utils.postpone(fadeDuration, () => {
+                cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+            });
+        }
     }
 }
 

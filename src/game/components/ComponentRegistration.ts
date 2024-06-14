@@ -13,6 +13,7 @@ import { registerEngineComponents } from "../../engine/components/EngineComponen
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import { Rocket } from "./Rocket";
 import { AutoDestroy, AutoDestroyProps } from "./AutoDestroy";
+import { Explode } from "./Explode";
 
 export function registerComponents() {
 
@@ -28,5 +29,6 @@ export function registerComponents() {
     componentFactory.register<EnvPropsProps>(EnvProps);
     componentFactory.register<ComponentProps>(Rocket);
     componentFactory.register<AutoDestroyProps>(AutoDestroy);
+    componentFactory.register<ComponentProps>(Explode);
 }
 

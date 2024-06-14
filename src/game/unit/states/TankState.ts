@@ -54,21 +54,24 @@ function resetCannon(cannon: Object3D) {
 
 export class TankState extends State<ICharacterUnit> {
 
+    public get cannonRoot() { return this._cannonRoot; }
+
     private _search = new UnitSearch();
     private _target: IUnit | null = null;
     private _step = TankStep.Idle;
     private _attackTimer = 0;
     private _cannon!: Object3D;
     private _cannonRotator!: Object3D;
+    private _cannonRoot!: Object3D;
     private _muzzleFlash!: Object3D;
 
     override enter(unit: IUnit) {
         console.log(`TankState enter`);
         this._cannon = unit.visual.getObjectByName("cannon")!;
-        const cannonRoot = utils.createObject(unit.visual, "cannon-root");
-        cannonRoot.position.copy(this._cannon.position);
+        this._cannonRoot = utils.createObject(unit.visual, "cannon-root");
+        this._cannonRoot.position.copy(this._cannon.position);
         this._cannonRotator = utils.createObject(unit.visual, "cannon-rotator");
-        cannonRoot.add(this._cannonRotator);
+        this._cannonRoot.add(this._cannonRotator);
         this._cannonRotator.attach(this._cannon);
 
         const flash = objects.loadImmediate("/prefabs/muzzle-flash.json")!;

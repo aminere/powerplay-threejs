@@ -379,8 +379,7 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
                 } else {
                     // neighbor is moving away from me
                     (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
-                    unit.acceleration.copy(neighbor.acceleration);
-                    // moveAwayFrom(unit, neighbor, 1, 1);
+                    moveAwayFrom(unit, neighbor, 1, .01);
                 }
             } else {
                 // already moving away from the collision, do nothing
