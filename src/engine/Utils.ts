@@ -107,9 +107,10 @@ class Utils {
     }
 
     public fastDelete<T>(array: T[], index: number) {
-        const lastElem = array[array.length - 1];
+        const newLength = array.length - 1;
+        const lastElem = array[newLength];
         array[index] = lastElem;
-        array.length--;
+        array.length = newLength;
     }
 
     public isPointInRect(x: number, y: number, rect: DOMRect) {

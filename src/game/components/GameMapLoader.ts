@@ -39,6 +39,7 @@ import { Workers } from "../unit/Workers";
 import { ICharacterUnit } from "../unit/ICharacterUnit";
 import { unitAnimation } from "../unit/UnitAnimation";
 import { _3dFonts } from "../../engine/resources/3DFonts";
+import { flowField } from "../pathfinding/Flowfield";
 
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
@@ -313,6 +314,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         trees.dispose();
         unitsManager.dispose();
         fogOfWar.dispose();
+        flowField.dispose();
         this.state.dispose();
         GameUtils.clearCellCache();
     }   

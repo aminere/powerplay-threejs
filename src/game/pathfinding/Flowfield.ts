@@ -67,6 +67,10 @@ class FlowField {
     private _motionId = 1;
     private _motions = new Map<number, TFlowfieldMotion>();
 
+    public dispose() {
+        this._motions.clear();
+    }
+
     public compute(targetCoords: Vector2, sectors: Vector2[], getCellCost: (cell: ICell) => number, fastMode: boolean) {
 
         GameUtils.getCell(targetCoords, sectorCoords, localCoords);            
@@ -335,7 +339,7 @@ class FlowField {
         utils.fastDelete(motion.units, index);
         if (motion.units.length === 0) {
             this._motions.delete(unit.motionId);
-        }    
+        }
         console.log(`remaining motions: ${this._motions.size}`);
     }
 }
