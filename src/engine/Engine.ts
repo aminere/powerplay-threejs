@@ -159,28 +159,13 @@ class Engine {
         });
     }
 
-    private updateComponents() {
-        const componentsMap = engineState.components;
+    private updateComponents() {        
         if (!this._sceneStarted) {
-            for (const [, components] of componentsMap) {
-                for (const instance of components) {
-                    if (instance.component.props.active) {
-                        instance.component.start(instance.owner);
-                    }
-                }
-            }
+            engineState.startComponents();
             this._sceneStarted = true;
         }
 
-        engineState.handleComponentsToRegister();
-
-        for (const [, components] of componentsMap) {
-            for (const instance of components) {
-                if (instance.component.props.active) {
-                    instance.component.update(instance.owner);
-                }
-            }
-        }
+        engineState.updateComponents();        
     }
 }
 

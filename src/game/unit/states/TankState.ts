@@ -21,7 +21,6 @@ import { MeleeAttackState } from "./MeleeAttackState";
 import { IVehicleUnit } from "../VehicleUnit";
 import { unitConfig } from "../../config/UnitConfig";
 
-const shootRange = 15;
 const attackDelay = .8;
 const attackFrequency = 1;
 const { separations } = config.steering;
@@ -80,24 +79,25 @@ export class TankState extends State<IVehicleUnit> {
 
     override update(unit: IVehicleUnit) {
 
+        const { range } = unitConfig[unit.type];
         const target = this._target;
         if (!target) {
             resetCannon(this._cannonRotator);
 
-            const newTarget = this._search.find(unit, shootRange, other => {
-                if (UnitUtils.isEnemy(unit)) {
-                    return !UnitUtils.isEnemy(other);
-                } else {
-                    return UnitUtils.isEnemy(other);
-                }
-            });
+            const isEnemy = UnitUtils.isEnemy(unit);            
+            const newTarget = this._search.find(unit, range.vision, other => isEnemy !== UnitUtils.isEnemy(other));
             if (newTarget) {
-                this._target = newTarget;
+                if (UnitUtils.isOutOfRange(unit, newTarget, range.attack)) {
+                    unitMotion.moveUnit(unit, newTarget.coords.mapCoords);
+                    this.followTarget(newTarget);
+                } else {
+                    this._target = newTarget;
+                }
             }
             return;
         }
 
-        if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, shootRange))) {
+        if (!target.isAlive || (this._step === TankStep.Attack && UnitUtils.isOutOfRange(unit, target, range.attack))) {
             this.stopAttack(unit);
             this._search.reset();
             return;
@@ -116,7 +116,8 @@ export class TankState extends State<IVehicleUnit> {
                 break;
 
             case TankStep.Follow: {
-                if (!UnitUtils.isOutOfRange(unit, target!, shootRange - 1)) {
+                resetCannon(this._cannonRotator);
+                if (!UnitUtils.isOutOfRange(unit, target!, range.attack - 1)) {
                     if (unit.motionId > 0) {
                         unitMotion.endMotion(unit);
                     }

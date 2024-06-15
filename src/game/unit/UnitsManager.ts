@@ -28,6 +28,7 @@ import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { VehicleUnit } from "./VehicleUnit";
+import { unitConfig } from "../config/UnitConfig";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -93,7 +94,7 @@ class UnitsManager {
             skins: {
                 "worker": "/models/characters/Worker.json",
                 "enemy-melee": "/models/characters/NPC.json",
-                "enemy-ranged": "/models/characters/Astronaut.json"
+                // "enemy-ranged": "/models/characters/Astronaut.json"
             },
             // globally shared animations
             animations: [
@@ -251,7 +252,8 @@ class UnitsManager {
                     break;
             }
         } else {
-            cmdFogAddCircle.post({ mapCoords, radius: 10 });
+            const { range } = unitConfig[type];
+            cmdFogAddCircle.post({ mapCoords, radius: range.vision });
         }
     }
 

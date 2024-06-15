@@ -146,7 +146,8 @@ export class Unit implements IUnit {
         if (!UnitUtils.isEnemy(this)) {
             utils.postpone(fadeDuration, () => {
                 engineState.removeObject(this._visual);
-                cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
+                const { range } = unitConfig[this.type];
+                cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: range.vision });
             });
         }
     }

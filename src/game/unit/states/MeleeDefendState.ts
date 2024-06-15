@@ -23,7 +23,8 @@ export class MeleeDefendState extends State<ICharacterUnit> {
 
         const target = this._target;
         if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, 1)) {
+            const { range } = unitConfig[unit.type];
+            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range.attack)) {
                 unit.fsm.switchState(null);
             } else {
                 UnitUtils.rotateToTarget(unit, target!);

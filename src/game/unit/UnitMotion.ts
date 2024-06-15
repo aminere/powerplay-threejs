@@ -17,6 +17,7 @@ import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { IVehicleUnit } from "./VehicleUnit";
+import { unitConfig } from "../config/UnitConfig";
 
 const cellDirection = new Vector2();
 const destSectorCoords = new Vector2();
@@ -379,10 +380,12 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
                 } else {
                     // neighbor is moving away from me
                     (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
-                    moveAwayFrom(unit, neighbor, 1, .01);
+                    moveAwayFrom(unit, neighbor, 1, 1);
                 }
             } else {
-                // already moving away from the collision, do nothing
+                (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0x0000ff);
+                // already moving away from the collision
+                moveAwayFrom(unit, neighbor, 1, 1);
             }
         }
         return;
@@ -397,7 +400,8 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
         }
     } else {
         // keep being busy, but slightly move away from the collision
-        moveAwayFrom(unit, neighbor, 1, .01);
+        (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0x00ff00);
+        moveAwayFrom(unit, neighbor, 1, 1);
     }
 }
 
@@ -631,7 +635,8 @@ export class UnitMotion {
                 const dx = nextMapCoords.x - unit.coords.mapCoords.x;
                 const dy = nextMapCoords.y - unit.coords.mapCoords.y;
                 if (!UnitUtils.isEnemy(unit)) {
-                    cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: 10, dx, dy });
+                    const { range } = unitConfig[unit.type];
+                    cmdFogMoveCircle.post({ mapCoords: unit.coords.mapCoords, radius: range.vision, dx, dy });
                 }
 
                 const currentCell = unit.coords.sector!.cells[unit.coords.cellIndex];

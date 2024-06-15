@@ -11,6 +11,7 @@ import { cmdFogRemoveCircle } from "../../Events";
 import { Fadeout } from "../components/Fadeout";
 import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "../components/AutoDestroy";
+import { unitConfig } from "../config/UnitConfig";
 
 export interface IVehicleUnit extends IUnit {
     coords2x2: IUnitAddr;
@@ -85,7 +86,8 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
 
         if (!UnitUtils.isEnemy(this)) {
             utils.postpone(fadeDuration, () => {
-                cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+                const { range } = unitConfig[this.type];
+                cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: range.vision });
             });
         }
     }

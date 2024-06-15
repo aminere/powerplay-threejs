@@ -25,7 +25,7 @@ export class MeleeAttackState extends State<ICharacterUnit> {
 
     private _target: IUnit | null = null;
     private _hitTimer = 0;
-    private _step = MeleeAttackStateStep.Follow;    
+    private _step = MeleeAttackStateStep.Follow;
 
     override exit(unit: ICharacterUnit) {
         unit.isIdle = true;

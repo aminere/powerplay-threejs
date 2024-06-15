@@ -41,8 +41,7 @@ export const ResourceTypes = [
 
 export const CharacterTypes = [
     "worker",
-    "enemy-melee",
-    "enemy-ranged",
+    "enemy-melee"
 ] as const;
 
 export const PlayerVehicleTypes = [

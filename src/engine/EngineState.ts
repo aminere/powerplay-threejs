@@ -5,7 +5,6 @@ import { utils } from "./Utils";
 
 class EngineState {
 
-    public get components() { return this._componentsMap; }
     public get animations() { return this._animations; }
 
     private _componentsMap = new Map<string, IComponentInstance<Component<ComponentProps>>[]>();
@@ -99,14 +98,31 @@ class EngineState {
         }
     }
 
-    public handleComponentsToRegister() {
-        if (this._componentsToRegister.length === 0) {
-            return;
+    public startComponents() {
+        for (const [, components] of this._componentsMap) {
+            for (const instance of components) {
+                if (instance.component.props.active) {
+                    instance.component.start(instance.owner);
+                }
+            }
         }
-        for (const instance of this._componentsToRegister) {
-            this.registerComponent(instance.component, instance.owner);
+    }
+
+    public updateComponents() {
+        if (this._componentsToRegister.length > 0) {
+            for (const instance of this._componentsToRegister) {
+                this.registerComponent(instance.component, instance.owner);
+            }
+            this._componentsToRegister.length = 0;    
+        }        
+
+        for (const [, components] of this._componentsMap) {
+            for (const instance of components) {
+                if (instance.component.props.active) {
+                    instance.component.update(instance.owner);
+                }
+            }
         }
-        this._componentsToRegister.length = 0;
     }
 
     private unregisterComponents(obj: Object3D) {

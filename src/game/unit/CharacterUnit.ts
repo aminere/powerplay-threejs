@@ -29,6 +29,7 @@ import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
 import gsap from "gsap";
 import { objects } from "../../engine/resources/Objects";
+import { unitConfig } from "../config/UnitConfig";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -122,7 +123,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     skeletonPool.releaseSkeleton(this);
                     engineState.removeObject(this.visual);
                     if (!UnitUtils.isEnemy(this)) {
-                        cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
+                        const { range } = unitConfig[this.type];
+                        cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: range.vision });
                     }
                 }
             }, `>0`);
