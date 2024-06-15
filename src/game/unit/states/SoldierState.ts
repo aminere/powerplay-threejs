@@ -43,81 +43,86 @@ export class SoldierState extends State<ICharacterUnit> {
         } = config.combat[weaponType];
 
         const target = this._target;
-        if (target) {
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range)) {
-                this.stopAttack(unit);
-                this._search.reset();
-                this._target = null;
-            } else {
-                const isMoving = unit.motionId > 0;
-                if (!isMoving) {
-                    if (unit.isIdle) {
-                        unit.isIdle = false;
-                        unitAnimation.setAnimation(unit, anim, {
-                            transitionDuration: .3,
-                            scheduleCommonAnim: weaponType === "ak47",
-                            destAnimSpeed: animSpeed,
-                        });
-
-                    } else {
-                        UnitUtils.rotateToTarget(unit, target!);
-
-                        if (!this._loopConsumed) {
-                            if (unit.animation.action.time > shootEventTime) {
-                                this._loopConsumed = true;
-
-                                // shoot
-                                const enemy = target as ICharacterUnit;
-                                if (enemy.isIdle && enemy.motionId === 0) {
-                                    const npcState = enemy!.fsm.getState(NPCState);
-                                    console.assert(npcState);
-                                    npcState?.attackTarget(enemy, unit);
-                                }
-
-                                switch (weaponType) {
-                                    case "rpg": {
-                                        const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
-                                        const rocket = utils.instantiate(_rocket);
-                                        const rocketComponent = utils.getComponent(Rocket, rocket)!;
-                                        rocketComponent.state.shooter = unit;
-                                        rocketComponent.state.damage = config.combat.rpg.damage;
-
-                                        const { projectiles } = GameMapState.instance.layers;
-                                        projectiles.add(rocket);
-
-                                        const rocketSlot = unit.resource!.visual.getObjectByName("rocketSlot") as Mesh;
-                                        rocketSlot.getWorldPosition(rocket.position);
-
-                                        targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
-                                        const toTarget = targetPos.sub(rocket.position).normalize();
-                                        rocket.quaternion.setFromUnitVectors(GameUtils.vec3.forward, toTarget);
-                                    }
-                                        break;
-
-                                    case "ak47": {
-                                        const visual = unit.resource!.visual;
-                                        const muzzleFlash = visual.getObjectByName("muzzle-flash")!;
-                                        muzzleFlash.visible = true;
-                                        utils.postpone(MathUtils.randFloat(.05, .2), () => muzzleFlash.visible = false);
-
-                                        target.setHitpoints(target.hitpoints - damage);
-                                    }
-                                        break;
-                                }
-                            }
-                        } else {
-                            if (unit.animation.action.time < shootEventTime) {
-                                this._loopConsumed = false;
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
+        if (!target) {
             const newTarget = this._search.find(unit, range, UnitUtils.isEnemy);
             if (newTarget) {
                 this._target = newTarget;
             }
+            return;
+        }
+
+        if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range)) {
+            this.stopAttack(unit);
+            this._search.reset();
+            this._target = null;
+            return;
+        }
+
+        if (unit.motionId > 0) {
+            return;
+        }
+
+        if (unit.isIdle) {
+            unit.isIdle = false;
+            this._loopConsumed = false;
+            unitAnimation.setAnimation(unit, anim, {
+                transitionDuration: .3,
+                scheduleCommonAnim: weaponType === "ak47",
+                destAnimSpeed: animSpeed,
+            });
+        }
+
+        UnitUtils.rotateToTarget(unit, target!);
+
+        if (this._loopConsumed) {
+            if (unit.animation.action.time < shootEventTime) {
+                this._loopConsumed = false;
+            }
+            return;
+        } else {
+            if (unit.animation.action.time < shootEventTime) {
+                return;
+            }
+        }
+        
+        // shoot
+        this._loopConsumed = true;        
+        const enemy = target as ICharacterUnit;
+        if (enemy.isIdle && enemy.motionId === 0) {
+            const npcState = enemy!.fsm.getState(NPCState);
+            console.assert(npcState);
+            npcState?.attackTarget(enemy, unit);
+        }
+
+        switch (weaponType) {
+            case "rpg": {
+                const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
+                const rocket = utils.instantiate(_rocket);
+                const rocketComponent = utils.getComponent(Rocket, rocket)!;
+                rocketComponent.state.shooter = unit;
+                rocketComponent.state.damage = config.combat.rpg.damage;
+
+                const { projectiles } = GameMapState.instance.layers;
+                projectiles.add(rocket);
+
+                const rocketSlot = unit.resource!.visual.getObjectByName("rocketSlot") as Mesh;
+                rocketSlot.getWorldPosition(rocket.position);
+
+                targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
+                const toTarget = targetPos.sub(rocket.position).normalize();
+                rocket.quaternion.setFromUnitVectors(GameUtils.vec3.forward, toTarget);
+            }
+                break;
+
+            case "ak47": {
+                const visual = unit.resource!.visual;
+                const muzzleFlash = visual.getObjectByName("muzzle-flash")!;
+                muzzleFlash.visible = true;
+                utils.postpone(MathUtils.randFloat(.05, .2), () => muzzleFlash.visible = false);
+
+                target.setHitpoints(target.hitpoints - damage);
+            }
+                break;
         }
     }
 
