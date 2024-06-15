@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Quaternion, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, Mesh, MeshStandardMaterial, ObjectLoader, PCFSoftShadowMap, Quaternion, Scene, Vector2, Vector3, WebGLRenderer } from "three";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";
@@ -34,6 +34,7 @@ class Engine {
     private _runtime: Runtime = "game";
     private _screenRect = { left: 0, top: 0, width: 0, height: 0 };
     private _paused = false;
+    private _loader = new ObjectLoader();
 
     public init(width: number, height: number, runtime: Runtime) {
         console.assert(this._renderer === null);
@@ -71,6 +72,7 @@ class Engine {
 
         input.update();
         this.updateComponents();
+
         cmdUpdateUI.post();
         input.postUpdate();
     }
@@ -110,7 +112,7 @@ class Engine {
             });
         }
 
-        const scene = new ObjectLoader().parse(data) as Scene;
+        const scene = this._loader.parse(data) as Scene;
         this._scene = scene;
         this._sceneStarted = false;
         const cameras: Camera[] = [];

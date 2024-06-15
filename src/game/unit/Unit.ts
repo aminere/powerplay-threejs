@@ -44,7 +44,6 @@ export class Unit implements IUnit {
     
     public get unitsInRange() { return this._unitsInRange; }
 
-    public get lookAt() { return this._lookAt; }
     public get fsm() { return this._fsm; }   
     public get boundingBox() { return this._boundingBox; }
 
@@ -90,7 +89,6 @@ export class Unit implements IUnit {
     private _unitsInRange: Array<[IUnit, number]> = [];
     private _boundingBox: Box3;
 
-    private _lookAt = new Quaternion();
     private _fsm: StateMachine<IUnit>;
 
     constructor(props: IUnitProps) {
@@ -104,7 +102,7 @@ export class Unit implements IUnit {
 
         GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
-        UnitUtils.applyElevation(this._coords, this._visual.position);
+        UnitUtils.applyElevation(this);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 
         const cell = GameUtils.getCell(this._coords.mapCoords)!;

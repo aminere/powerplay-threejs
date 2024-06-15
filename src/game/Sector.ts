@@ -35,7 +35,7 @@ export class Sector {
         const buildings = utils.createObject(sectorRoot, "buildings");
         const fx = utils.createObject(sectorRoot, "fx");
 
-        const flowfield = new FlowfieldViewer();
+        const flowfieldViewer = new FlowfieldViewer();
         const { sectors } = GameMapState.instance;
         const sector: ISector = {
             cells,
@@ -51,11 +51,11 @@ export class Sector {
                 terrain: cellTextureData,
                 highlight: highlightTextureData
             },
-            flowfieldViewer: flowfield
+            flowfieldViewer
         };
         sectors.set(`${x},${y}`, sector);
         sectorRoot.add(mesh);
-        sectorRoot.add(flowfield);
+        sectorRoot.add(flowfieldViewer);
         return sector;
     }
 

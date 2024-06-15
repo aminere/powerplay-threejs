@@ -300,6 +300,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             Workers.pickResource(solider as ICharacterUnit, "rpg", solider.coords.mapCoords);
             unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
         });
+
+        // this.state.debug.normals.setSector(this.state.sectors.get("0,0")!);
     }
 
     override dispose() {

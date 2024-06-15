@@ -15,7 +15,6 @@ import { GameMapProps } from "./components/GameMapProps";
 import { buildings } from "./buildings/Buildings";
 import { getCellFromAddr } from "./unit/UnitAddr";
 import { MeleeAttackState } from "./unit/states/MeleeAttackState";
-import { ICharacterUnit } from "./unit/ICharacterUnit";
 import { buildingConfig } from "./config/BuildingConfig";
 import gsap from "gsap";
 import { TankState } from "./unit/states/TankState";

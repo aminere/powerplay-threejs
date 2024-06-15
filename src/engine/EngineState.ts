@@ -18,6 +18,7 @@ class EngineState {
     public clear() {
         this._animations.clear();
         this._componentsMap.clear();
+        this._componentsToRegister.length = 0;
     }
 
     public setComponent<U extends Component<ComponentProps>>(owner: Object3D, component: U) {

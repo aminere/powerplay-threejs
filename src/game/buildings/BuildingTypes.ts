@@ -1,6 +1,6 @@
 
 import { Object3D, Vector2 } from "three";
-import { ResourceType, RawResourceType, MineralType, VehicleType } from "../GameDefinitions";
+import { ResourceType, RawResourceType, MineralType, PlayerVehicleType } from "../GameDefinitions";
 
 export const BuildingTypes = [
     "mine",
@@ -83,7 +83,7 @@ export interface IAssemblyState {
     reserve: Map<RawResourceType | ResourceType, number>;
     inputTimer: number;
     inputFull: boolean;
-    output: VehicleType | null;
+    output: PlayerVehicleType | null;
     outputRequests: number;    
 }
 

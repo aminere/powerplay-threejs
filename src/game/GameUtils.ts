@@ -1,5 +1,5 @@
 
-import { Camera, Vector2, Vector3, Raycaster, Plane, Line3, Mesh, BufferGeometry, BufferAttribute, MathUtils } from "three";
+import { Camera, Vector2, Vector3, Raycaster, Plane, Line3, Mesh, BufferGeometry, BufferAttribute, MathUtils, Triangle } from "three";
 import { config } from "./config/config";
 import { GameMapState } from "./components/GameMapState";
 import { ICell, ISector } from "./GameTypes";
@@ -17,6 +17,9 @@ const normalizedPos2d = new Vector2();
 const ground = new Plane();
 const line = new Line3();
 const rayEnd = new Vector3();
+const localCellPos = new Vector3();
+const cellAxis = new Vector3(1, 0, 1);
+const triangle = new Triangle(new Vector3(), new Vector3(), new Vector3());
 
 type TCellCache = {
     cell: ICell;
@@ -177,6 +180,39 @@ export class GameUtils {
         const heightA = MathUtils.lerp(height1, height2, xFactor);
         const heightB = MathUtils.lerp(height3, height4, xFactor);
         const height = MathUtils.lerp(heightA, heightB, localZ / cellSize) * elevationStep;
+        return height;
+    }
+
+    public static getMapHeightAndNormal(mapCoords: Vector2, localCoords: Vector2, sector: ISector, worldX: number, worldZ: number, normalOut: Vector3) {
+        const cellWorldX = mapCoords.x * cellSize - halfMapSize;
+        const cellWorldZ = mapCoords.y * cellSize - halfMapSize;
+        const localX = worldX - cellWorldX;
+        const localZ = worldZ - cellWorldZ;
+        const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
+        const position = geometry.getAttribute("position") as BufferAttribute;
+        const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;        
+        const height1 = position.getY(startVertexIndex);
+        const height2 = position.getY(startVertexIndex + 1);
+        const height3 = position.getY(startVertexIndex + verticesPerRow);
+        const height4 = position.getY(startVertexIndex + verticesPerRow + 1);
+        const xFactor = localX / cellSize;
+        const heightA = MathUtils.lerp(height1, height2, xFactor);
+        const heightB = MathUtils.lerp(height3, height4, xFactor);
+        const height = MathUtils.lerp(heightA, heightB, localZ / cellSize) * elevationStep;
+
+        localCellPos.set(localX, 0, localZ);        
+        const yDir = cellAxis.cross(localCellPos).y;
+        if (yDir < 0) {
+            triangle.a.set(position.getX(startVertexIndex), height1 * elevationStep, position.getZ(startVertexIndex));
+            triangle.b.set(position.getX(startVertexIndex + verticesPerRow), height3 * elevationStep, position.getZ(startVertexIndex + verticesPerRow));
+            triangle.c.set(position.getX(startVertexIndex + verticesPerRow + 1), height4 * elevationStep, position.getZ(startVertexIndex + verticesPerRow + 1));
+            triangle.getNormal(normalOut);
+        } else {
+            triangle.a.set(position.getX(startVertexIndex), height1 * elevationStep, position.getZ(startVertexIndex));
+            triangle.b.set(position.getX(startVertexIndex + verticesPerRow + 1), height4 * elevationStep, position.getZ(startVertexIndex + verticesPerRow + 1));
+            triangle.c.set(position.getX(startVertexIndex + 1), height2 * elevationStep, position.getZ(startVertexIndex + 1));                
+            triangle.getNormal(normalOut);
+        }
         return height;
     }
 }

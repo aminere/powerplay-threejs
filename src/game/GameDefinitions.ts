@@ -45,9 +45,13 @@ export const CharacterTypes = [
     "enemy-ranged",
 ] as const;
 
-export const VehicleTypes = [
+export const PlayerVehicleTypes = [
     "truck",
-    "tank",
+    "tank"
+] as const;
+
+export const VehicleTypes = [
+    ...PlayerVehicleTypes,
     "enemy-tank"
 ] as const;
 
@@ -70,6 +74,7 @@ export type ResourceType = typeof ResourceTypes[number];
 export type CharacterType = typeof CharacterTypes[number];
 export type UnitType = typeof UnitTypes[number];
 export type VehicleType = typeof VehicleTypes[number];
+export type PlayerVehicleType = typeof PlayerVehicleTypes[number];
 export type ElevationType = typeof ElevationTypes[number];
 
 

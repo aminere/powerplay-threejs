@@ -1,4 +1,4 @@
-import { ResourceType, ResourceTypes, VehicleType, VehicleTypes } from "../GameDefinitions";
+import { ResourceType, ResourceTypes, PlayerVehicleTypes, PlayerVehicleType } from "../GameDefinitions";
 import { resourceConfig } from "../config/ResourceConfig";
 import { Icon } from "./Icon";
 import { InlineIcon } from "./InlineIcon";
@@ -39,8 +39,8 @@ class Tooltips {
             </div>
         }
 
-        if (VehicleTypes.includes(actionId as VehicleType)) {
-            const inputs = resourceConfig.assemblyProduction[actionId as VehicleType];
+        if (PlayerVehicleTypes.includes(actionId as PlayerVehicleType)) {
+            const inputs = resourceConfig.assemblyProduction[actionId as PlayerVehicleType];
             return <div style={{
                 display: "flex",
                 flexDirection: "column",

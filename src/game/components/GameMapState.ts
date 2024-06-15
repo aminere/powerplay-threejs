@@ -9,6 +9,7 @@ import { BuildingType, BuildingTypes, IBuildingInstance } from "../buildings/Bui
 import { PathViewer } from "../debug/PathViewer";
 import { depots } from "../buildings/Depots";
 import { evtActionCleared } from "../../Events";
+import { NormalsViewer } from "../debug/NormalsViewer";
 
 interface IBuildingCreationFilter {
     click?: (mapCoords: Vector2) => boolean;
@@ -119,7 +120,8 @@ export class GameMapState {
 
     public debug = {
         path: new PathViewer(),
-        selectedElem: new PathViewer()
+        selectedElem: new PathViewer(),
+        normals: new NormalsViewer()
     };
 
     public get cursorOverUI() { return this._cursorOverUI; }
@@ -171,16 +173,18 @@ export class GameMapState {
         camera.position.z = 150;
         camera.far = 300;
         light.shadow.camera.far = 200;
-        light.position.set(51, 87, 15);        
+        light.position.set(51, 87, 15);
 
         const [, rotationY] = config.camera.rotation;
         this.cameraAngleRad = MathUtils.degToRad(rotationY);
 
         this.tileSelector = new TileSector();
         this.tileSelector.visible = false;
-        root().add(this.tileSelector);        
-        root().add(this.debug.path);
-        root().add(this.debug.selectedElem);
+        root().add(this.tileSelector);    
+        
+        for (const debug of Object.values(this.debug)) {
+            root().add(debug);
+        }        
     }   
 
     public dispose() {

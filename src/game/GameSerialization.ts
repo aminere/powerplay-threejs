@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from "three";
 import { Axis, IConveyorConfig, IRail, IRailConfig } from "./GameTypes";
 import { BuildingType, IAssemblyState, IBuildingInstance, IFactoryState } from "./buildings/BuildingTypes";
-import { RawResourceType, ResourceType, UnitType, VehicleType } from "./GameDefinitions";
+import { RawResourceType, ResourceType, UnitType, PlayerVehicleType } from "./GameDefinitions";
 import { BufferAttribute, BufferGeometry, Mesh } from "three";
 import { GameMapState } from "./components/GameMapState";
 
@@ -33,7 +33,7 @@ export interface ISerializedFactory extends ISerializedBuilding {
 }
 
 export interface ISerializedAssembly extends ISerializedBuilding {
-    output: VehicleType | null;
+    output: PlayerVehicleType | null;
 }
 
 export type TSerializedBuilding = ISerializedBuilding | ISerializedFactory | ISerializedAssembly;

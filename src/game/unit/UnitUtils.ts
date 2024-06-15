@@ -1,6 +1,6 @@
 import { Euler, MathUtils, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
-import { IUnitAddr, getCellFromAddr } from "./UnitAddr";
+import { getCellFromAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
 import { VehicleType, VehicleTypes } from "../GameDefinitions";
 import { Collision } from "../../engine/collision/Collision";
@@ -16,6 +16,7 @@ const direction = new Vector3();
 const velocity = new Vector3();
 const nextPos1 = new Vector3();
 const nextPos2 = new Vector3();
+const normal = new Vector3();
 const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
@@ -59,8 +60,17 @@ export class UnitUtils {
         return VehicleTypes.includes(unit.type as VehicleType);
     }
 
-    public static applyElevation(coords: IUnitAddr, worldPos: Vector3) {
-        worldPos.y = GameUtils.getMapHeight(coords.mapCoords, coords.localCoords, coords.sector, worldPos.x, worldPos.z);
+    public static applyElevation(unit: IUnit) {
+        const { coords, visual } = unit;
+        if (UnitUtils.isVehicle(unit)) {
+            visual.position.y = GameUtils.getMapHeightAndNormal(coords.mapCoords, coords.localCoords, coords.sector, visual.position.x, visual.position.z, normal);
+            // TODO orient using the normal
+            // make sure the sat collision code no longer uses visual.rotation.y, instead, dedicate an angle value representing the 2D rotation of the vehicle
+            // then construct a forward vector from the 2D rotation and the normal
+            // and update the visual rotation using Quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, forward, normal));
+        } else {
+            visual.position.y = GameUtils.getMapHeight(coords.mapCoords, coords.localCoords, coords.sector, visual.position.x, visual.position.z);
+        }
     }
 
     public static willCollide(unit1: IUnit, unit2: IUnit) {

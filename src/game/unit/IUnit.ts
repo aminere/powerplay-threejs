@@ -1,4 +1,4 @@
-import { Box3, Object3D, Quaternion, Vector2, Vector3 } from "three";
+import { Box3, Object3D, Vector2, Vector3 } from "three";
 import { IUnitAddr } from "./UnitAddr";
 import { UnitType } from "../GameDefinitions";
 import { StateMachine } from "../fsm/StateMachine";
@@ -27,7 +27,6 @@ export interface IUnit {
     collidable: boolean;
     type: UnitType;
     fsm: StateMachine<IUnit>;
-    lookAt: Quaternion;
     hitpoints: number;
     unitsInRange: Array<[IUnit, number]>;
     boundingBox: Box3;

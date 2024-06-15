@@ -712,8 +712,8 @@ export class UnitMotion {
                     }
                 }
             }
-
-            UnitUtils.applyElevation(unit.coords, unit.visual.position);
+            
+            UnitUtils.applyElevation(unit);
 
         } else {
 

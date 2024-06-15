@@ -1,4 +1,4 @@
-import { VehicleType, VehicleTypes } from "../GameDefinitions";
+import { PlayerVehicleType, PlayerVehicleTypes } from "../GameDefinitions";
 import { ActionButton } from "./ActionButton";
 import { IAssemblyState, IBuildingInstance } from "../buildings/BuildingTypes";
 import { useEffect, useState } from "react";
@@ -30,7 +30,7 @@ function getAssemblyState(assembly: IBuildingInstance | null) {
 export function AssemblyOutputPanel(props: AssemblyOutputPanelProps) {
     const { selectedElems } = props;
     const [assembly, setAssembly] = useState<IBuildingInstance | null>(getAssembly(selectedElems));
-    const [output, setOutput] = useState<VehicleType | null>(getAssemblyState(getAssembly(selectedElems))?.output ?? null);
+    const [output, setOutput] = useState<PlayerVehicleType | null>(getAssemblyState(getAssembly(selectedElems))?.output ?? null);
 
     useEffect(() => {
         const _assembly = getAssembly(selectedElems);
@@ -43,7 +43,7 @@ export function AssemblyOutputPanel(props: AssemblyOutputPanelProps) {
     }
 
     return <OutputPanel open={props.open}>
-        {VehicleTypes.map(vehicle => {
+        {PlayerVehicleTypes.map(vehicle => {
                 return <ActionButton
                     key={vehicle}
                     tooltipId={vehicle}

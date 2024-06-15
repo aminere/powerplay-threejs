@@ -100,7 +100,8 @@ export function MainMenu() {
                 style={{
                     color: "#fbe184",
                 }}
-            >powerplayrts.com
+            >
+                powerplayrts.com
             </a>
         </div>
 

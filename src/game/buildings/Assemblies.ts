@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 import { IAssemblyState, IBuildingInstance } from "./BuildingTypes";
-import { ResourceType, VehicleType } from "../GameDefinitions";
+import { PlayerVehicleType, ResourceType } from "../GameDefinitions";
 import { buildings } from "./Buildings";
 import { time } from "../../engine/core/Time";
 import { BuildingUtils } from "./BuildingUtils";
@@ -41,7 +41,7 @@ function canAcceptResource(instance: IBuildingInstance, type: ResourceType) {
 }
 
 export class Assemblies {
-    public static create(sectorCoords: Vector2, localCoords: Vector2, output: VehicleType | null) {
+    public static create(sectorCoords: Vector2, localCoords: Vector2, output: PlayerVehicleType | null) {
 
         const instance = buildings.create("assembly", sectorCoords, localCoords);
         const state: IAssemblyState = {
@@ -156,7 +156,7 @@ export class Assemblies {
         return false;
     }
 
-    public static setOutput(instance: IBuildingInstance, type: VehicleType) {
+    public static setOutput(instance: IBuildingInstance, type: PlayerVehicleType) {
         const state = instance.state as IAssemblyState;
         state.output = type;
         state.reserve.clear();

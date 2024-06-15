@@ -5,7 +5,6 @@ import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { GameMapState } from "../components/GameMapState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { unitAnimation } from "./UnitAnimation";
-import { time } from "../../engine/core/Time";
 
 const pickedItemOffset = new Matrix4().makeTranslation(-.5, 0, 0);
 const pickedAk47Offset = new Matrix4().compose(

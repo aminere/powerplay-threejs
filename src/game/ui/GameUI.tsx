@@ -10,7 +10,6 @@ import { IVector2 } from "../GameTypes";
 import "./GameUI.css";
 
 export interface IGameUIProps {
-    isWeb: boolean;
     rawPointerPos: IVector2;
 }
 
