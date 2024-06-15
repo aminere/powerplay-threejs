@@ -147,6 +147,7 @@ export class Unit implements IUnit {
         engineState.setComponent(this._visual, new Fadeout({ duration: fadeDuration }));
         if (!UnitUtils.isEnemy(this)) {
             utils.postpone(fadeDuration, () => {
+                engineState.removeObject(this._visual);
                 cmdFogRemoveCircle.post({ mapCoords: this._coords.mapCoords, radius: 10 });
             });
         }

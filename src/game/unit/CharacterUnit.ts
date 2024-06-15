@@ -108,8 +108,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         unitAnimation.setAnimation(this, "death", {
             transitionDuration: 1,
             destAnimLoopMode: "Once"
-        });        
-        
+        });
+
         const fadeDuration = 1;
         gsap.timeline()
             .to({}, { duration: 2 })
@@ -120,6 +120,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 },
                 onComplete: () => {
                     skeletonPool.releaseSkeleton(this);
+                    engineState.removeObject(this.visual);
                     if (!UnitUtils.isEnemy(this)) {
                         cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
                     }

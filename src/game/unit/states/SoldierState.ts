@@ -11,6 +11,7 @@ import { objects } from "../../../engine/resources/Objects";
 import { utils } from "../../../engine/Utils";
 import { GameUtils } from "../../GameUtils";
 import { NPCState } from "./NPCState";
+import { Rocket } from "../../components/Rocket";
 
 const { unitScale } = config.game;
 const headOffset = unitScale;
@@ -77,6 +78,9 @@ export class SoldierState extends State<ICharacterUnit> {
                                     case "rpg": {
                                         const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
                                         const rocket = utils.instantiate(_rocket);
+                                        const rocketComponent = utils.getComponent(Rocket, rocket)!;
+                                        rocketComponent.state.shooter = unit;
+                                        rocketComponent.state.damage = config.combat.rpg.damage;
 
                                         const { projectiles } = GameMapState.instance.layers;
                                         projectiles.add(rocket);

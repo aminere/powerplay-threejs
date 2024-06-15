@@ -19,6 +19,7 @@ import { GameMapState } from "../../components/GameMapState";
 import { Rocket } from "../../components/Rocket";
 import { MeleeAttackState } from "./MeleeAttackState";
 import { IVehicleUnit } from "../VehicleUnit";
+import { unitConfig } from "../../config/UnitConfig";
 
 const shootRange = 15;
 const attackDelay = .8;
@@ -146,8 +147,8 @@ export class TankState extends State<IVehicleUnit> {
                     if (UnitUtils.isWorker(target)) {
                         const worker = target as ICharacterUnit;
                         if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                            const meleeState = worker.fsm.switchState(MeleeAttackState);                            
                             unitMotion.moveUnit(worker, unit.coords.mapCoords);
+                            const meleeState = worker.fsm.getState(MeleeAttackState) ?? worker.fsm.switchState(MeleeAttackState);
                             meleeState.attackTarget(unit);
                         }
                     }
@@ -165,6 +166,7 @@ export class TankState extends State<IVehicleUnit> {
 
                 const rocketComponent = utils.getComponent(Rocket, rocket)!;
                 rocketComponent.state.shooter = unit;
+                rocketComponent.state.damage = unitConfig[unit.type].damage;
 
                 const { projectiles } = GameMapState.instance.layers;
                 rocket.position.copy(cannonOffset);
@@ -177,8 +179,8 @@ export class TankState extends State<IVehicleUnit> {
 
                 const _explosion = objects.loadImmediate("/prefabs/tank-shot.json")!;
                 const explosion = utils.instantiate(_explosion);
-                explosion.position.set(0, .12, 1.48);
-                explosion.scale.setScalar(.6);
+                explosion.position.copy(cannonOffset);
+                explosion.scale.setScalar(.4);
                 this._cannon.add(explosion);
                 explosion.updateMatrixWorld();
                 unit.coords.sector.layers.fx.attach(explosion);

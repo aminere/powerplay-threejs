@@ -12,15 +12,15 @@ import { UnitUtils } from "../unit/UnitUtils";
 import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "./AutoDestroy";
 import { ISector } from "../GameTypes";
-import { config } from "../config/config";
 import { IUnit } from "../unit/IUnit";
 
 class RocketState {
     initialized = false;
     hit = false;
     lifeTime = 0;
-    velocity = new Vector3();
+    velocity = new Vector3();    
     shooter: IUnit = null!;
+    damage = 10;
 }
 
 const cellCoords = new Vector2();
@@ -90,7 +90,7 @@ export class Rocket extends Component<ComponentProps, RocketState> {
                     // for now just hit all the enemies in the cell
                     hit = true;
                     if (unit.isAlive) {
-                        unit.setHitpoints(unit.hitpoints - config.combat.rpg.damage);
+                        unit.setHitpoints(unit.hitpoints - this.state.damage);
                     }
                 }
             }

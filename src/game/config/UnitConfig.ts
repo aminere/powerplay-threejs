@@ -10,8 +10,8 @@ interface IUnitConfig {
 }
 
 const tankConfig: IUnitConfig = {
-    hitpoints: 250,
-    damage: 5,
+    hitpoints: 50,
+    damage: 15,
     arrivalDamping: vehicleArrivalDamping
 }
 

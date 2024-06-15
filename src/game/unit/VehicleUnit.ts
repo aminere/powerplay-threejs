@@ -45,7 +45,7 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
     }
 
     public override onDeath() {
-        const _meshes = meshes.loadImmediate("/models/tank-chunks.glb");
+        const _chunks = meshes.loadImmediate("/models/tank-chunks.glb");
         const chunks = new Object3D();
         chunks.name = "tank-chunks";
         this.visual.getWorldPosition(chunks.position);
@@ -53,9 +53,9 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
         this.visual.getWorldScale(chunks.scale);
         chunks.updateMatrixWorld();
         this.coords.sector.layers.fx.attach(chunks);
-        for (const _mesh of _meshes) {
-            const mesh = _mesh.clone();            
-            chunks.add(mesh);
+        for (const _chunk of _chunks) {
+            const chunk = _chunk.clone();            
+            chunks.add(chunk);
         }
 
         const cannonRoot = this.visual.getObjectByName("cannon-root")!;
@@ -64,9 +64,7 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
                 child.castShadow = false;
             }
         });
-        engineState.setComponent(chunks, new Explode({
-            impulse: 5
-        }));
+        chunks.attach(cannonRoot);        
 
         const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
         const explosion = utils.instantiate(_explosion);
@@ -78,10 +76,13 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
 
         this.visual.removeFromParent();
         const fadeDuration = 1;
+        engineState.setComponent(chunks, new Explode({ impulse: 5 }));
         engineState.setComponent(chunks, new Fadeout({
             duration: fadeDuration,
             keepShadows: true
         }));
+        engineState.setComponent(chunks, new AutoDestroy({ delay: 1.5 }));
+
         if (!UnitUtils.isEnemy(this)) {
             utils.postpone(fadeDuration, () => {
                 cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: 10 });
