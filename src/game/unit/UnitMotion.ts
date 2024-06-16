@@ -20,6 +20,12 @@ import { IVehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
 
 const cellDirection = new Vector2();
+const cellDirection0 = new Vector2();
+const cellDirectionx1 = new Vector2();
+const cellDirectionx2 = new Vector2();
+const cellDirectiony1 = new Vector2();
+const cellDirectiony2 = new Vector2();
+
 const destSectorCoords = new Vector2();
 
 const cellCoords = new Vector2();
@@ -28,8 +34,12 @@ const awayDirection3 = new Vector3();
 const lookDirection = new Vector3();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
+const sectorCoords = new Vector2();
+const localCoords = new Vector2();
 
-const { mapRes, cellsPerVehicleCell } = config.game;
+const { mapRes, cellSize, cellsPerVehicleCell } = config.game;
+const mapSize = mapRes * cellSize;
+const halfMapSize = mapSize / 2;
 const vehicleMapRes = mapRes / cellsPerVehicleCell;
 const { maxForce, separations } = config.steering;
 
@@ -143,6 +153,113 @@ function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
             return false;
         }
     }
+}
+
+function getFlowfieldDirectionBilinear(unit: IUnit, directionOut: Vector2) {
+
+    function getDirection(_flowfield: TFlowField, _mapCoords: Vector2, dirOut: Vector2) {
+        const { direction } = _flowfield;
+        if (direction) {
+            return dirOut.copy(direction);
+        } else {
+            const flowfields = flowField.getMotion(unit.motionId).flowfields;
+            const computed = flowField.computeDirection(flowfields, _mapCoords, cellDirection);
+            if (computed) {
+                _flowfield.direction = cellDirection.clone();
+                return dirOut.copy(cellDirection);
+
+            } else {
+                endMotion(unit);
+                unit.onArrived();
+                return dirOut.set(0, 0);
+            }
+        }
+    }
+
+    const flowfields = flowField.getMotion(unit.motionId).flowfields;
+
+    function get(_mapCoords: Vector2, dirOut: Vector2,  _saveFlowfield?: (cellIndex: number, _sectorCoords: Vector2) => void) {
+        if (!GameUtils.getCell(_mapCoords, sectorCoords, localCoords)) {
+            return null;
+        }
+
+        const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+        const sector = GameUtils.getSector(sectorCoords)!;
+        const cellIndex = localCoords.y * mapRes + localCoords.x;
+        const _flowField = flowfields.get(sectorId);
+        if (_flowField) {
+            const flowfieldInfo = _flowField[cellIndex];
+            _saveFlowfield?.(cellIndex, sectorCoords);
+            return getDirection(flowfieldInfo, _mapCoords, dirOut);
+    
+        } else {
+    
+            console.log(`flowfield not found for ${sectorId}`);
+            if (unit.lastKnownFlowfield) {
+                const lastKnownSector = unit.lastKnownFlowfield.sectorCoords;
+                const _flowField = flowfields.get(`${lastKnownSector.x},${lastKnownSector.y}`)!;
+                console.assert(_flowField);
+                console.log(`computing based on ${lastKnownSector.x},${lastKnownSector.y}`);
+                const neighborCellIndex = unit.lastKnownFlowfield.cellIndex;
+                const neighborDist = _flowField[neighborCellIndex].integration;
+                const cell = sector!.cells[cellIndex];
+                const cellDist = neighborDist + cell.flowFieldCost;
+                const newFlowfield = flowField.computeSector(cellDist, localCoords, sectorCoords);
+                flowfields.set(sectorId, newFlowfield);
+
+                _saveFlowfield?.(cellIndex, sectorCoords);
+    
+                if (GameMapProps.instance.debugPathfinding) {
+                    sector!.flowfieldViewer.update(flowfields, sector!, sectorCoords);
+                    sector!.flowfieldViewer.visible = true;
+                }
+    
+                const flowfieldInfo = newFlowfield[cellIndex];
+                return getDirection(flowfieldInfo, _mapCoords, dirOut);
+    
+            } else {
+                console.assert(false);
+                directionOut.set(0, 0);
+                return directionOut;
+            }
+        }
+    }
+
+    function saveFlowfield(cellIndex: number, _sectorCoords: Vector2) {
+        if (unit.lastKnownFlowfield) {
+            unit.lastKnownFlowfield.cellIndex = cellIndex;
+            unit.lastKnownFlowfield.sectorCoords.copy(_sectorCoords);
+        } else {
+            unit.lastKnownFlowfield = {
+                cellIndex,
+                sectorCoords: _sectorCoords.clone()
+            };
+        }
+    }
+
+    const d = get(unit.coords.mapCoords, cellDirection0, saveFlowfield)!;
+    const dx1 = get(cellCoords.set(unit.coords.mapCoords.x - 1, unit.coords.mapCoords.y), cellDirectionx1) ?? d;
+    const dx2 = get(cellCoords.set(unit.coords.mapCoords.x + 1, unit.coords.mapCoords.y), cellDirectionx2) ?? d;
+    const dy1 = get(cellCoords.set(unit.coords.mapCoords.x, unit.coords.mapCoords.y - 1), cellDirectiony1) ?? d;
+    const dy2 = get(cellCoords.set(unit.coords.mapCoords.x, unit.coords.mapCoords.y + 1), cellDirectiony2) ?? d;
+
+    const worldX = unit.visual.position.x;
+    const worldZ = unit.visual.position.z;
+    const cellWorldX = unit.coords.mapCoords.x * cellSize - halfMapSize;
+    const cellWorldZ = unit.coords.mapCoords.y * cellSize - halfMapSize;
+    const localX = worldX - cellWorldX;
+    const localZ = worldZ - cellWorldZ;
+
+    const xFactor = localX / cellSize;
+    const dax = MathUtils.lerp(dx1.x, dx2.x, xFactor);
+    const day = MathUtils.lerp(dx1.y, dx2.y, xFactor);
+    const dbx = MathUtils.lerp(dy1.x, dy2.x, xFactor);
+    const dby = MathUtils.lerp(dy1.y, dy2.y, xFactor);
+
+    const xFactor2 = localZ / cellSize;
+    const dx = MathUtils.lerp(dax, dbx, xFactor2);
+    const dy = MathUtils.lerp(day, dby, xFactor2);
+    return directionOut.set(dx, dy).normalize();
 }
 
 function getFlowfieldDirection(unit: IUnit, directionOut: Vector2) {
@@ -514,9 +631,7 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-
                 const direction = getFlowfieldDirection(unit, awayDirection);
-
                 unit.acceleration.x += direction.x * maxForce;
                 unit.acceleration.z += direction.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);
