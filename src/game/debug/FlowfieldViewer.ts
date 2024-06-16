@@ -72,8 +72,6 @@ export class FlowfieldViewer extends Object3D {
            
             const computed = flowField.computeDirection(flowfieldsMap, currentCoords, cellDirection);
             if (computed) {
-                const index = flowField.computeDirectionIndex(cellDirection);       
-                flowField.getDirection(index, cellDirection);
                 GameUtils.mapToWorld(currentCoords, worldPos1);
                 linePoints.push(worldPos1.clone());
                 cellDirection3.set(cellDirection.x, 0, cellDirection.y);

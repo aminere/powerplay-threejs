@@ -1,5 +1,5 @@
 
-import { ACESFilmicToneMapping, Camera, Mesh, MeshStandardMaterial, ObjectLoader, PCFSoftShadowMap, Quaternion, Scene, Vector2, Vector3, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Camera, ObjectLoader, PCFSoftShadowMap, Quaternion, Scene, WebGLRenderer } from "three";
 import { registerComponents } from "../game/components/ComponentRegistration";
 import { Component } from "./ecs/Component";
 import { ComponentProps } from "./ecs/ComponentProps";

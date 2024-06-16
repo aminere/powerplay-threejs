@@ -1,4 +1,4 @@
-import { Box3, Object3D, Quaternion, Vector3 } from "three"
+import { Box3, Object3D, Vector3 } from "three"
 import { GameUtils } from "../GameUtils";
 import { State, StateMachine } from "../fsm/StateMachine";
 import { engineState } from "../../engine/EngineState";

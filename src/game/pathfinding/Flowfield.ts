@@ -7,7 +7,7 @@ import { utils } from "../../engine/Utils";
 
 export type TFlowField = {
     integration: number;
-    directionIndex: number; 
+    direction: Vector2 | null;
 };
 
 const { mapRes } = config.game;
@@ -17,7 +17,7 @@ function initFlowField(flowField: TFlowField[]) {
     for (let i = 0; i < cellCount; ++i) {
         flowField.push({
             integration: 0xffff,
-            directionIndex: -1            
+            direction: null
         });
     }
 }
@@ -39,16 +39,6 @@ const verticalCellBlocked = [false, false];
 const neighborCoords = new Vector2();
 const neighborSectorCoords = new Vector2();
 const neighborLocalCoords = new Vector2();
-const directionPalette = [
-    new Vector2(-1, -1).normalize(),
-    new Vector2(0, -1).normalize(),
-    new Vector2(1, -1).normalize(),
-    new Vector2(-1, 0).normalize(),
-    new Vector2(1, 0).normalize(),
-    new Vector2(-1, 1).normalize(),
-    new Vector2(0, 1).normalize(),
-    new Vector2(1, 1).normalize()
-];
 const sectorCoords = new Vector2();
 const localCoords = new Vector2();
 const currentCoords = new Vector2();
@@ -189,6 +179,7 @@ class FlowField {
     }
 
     public computeDirection(flowfields: TFlowFieldMap, mapCoords: Vector2, directionOut: Vector2) {        
+
         let minCost = 0xffff;
         let toNeighborX = 0;
         let toNeighborY = 0;
@@ -281,38 +272,6 @@ class FlowField {
         }
         directionOut.set(0, 0);
         return false;
-    }
-
-    public computeDirectionIndex(direction: Vector2) {
-        if (direction.x < 0) {
-            if (direction.y < 0) {
-                return 0;
-            } else if (direction.y > 0) {
-                return 5;
-            } else {
-                return 3;
-            }
-        } else if (direction.x > 0) {
-            if (direction.y < 0) {
-                return 2;
-            } else if (direction.y > 0) {
-                return 7;
-            } else {
-                return 4;
-            }
-        } else {
-            if (direction.y < 0) {
-                return 1;
-            } else if (direction.y > 0) {
-                return 6;
-            }
-        }
-        console.assert(false);
-        return -1;
-    }
-
-    public getDirection(index: number, directionOut: Vector2) {
-        directionOut.copy(directionPalette[index]);
     }
 
     public getMotion(motionId: number) {

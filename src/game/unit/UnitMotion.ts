@@ -132,17 +132,16 @@ function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
     const { mapCoords, sectorCoords, cellIndex } = unit.coords;
     const _flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
     const flowfieldInfo = _flowField[cellIndex];
-    if (flowfieldInfo.directionIndex < 0) {
+    if (flowfieldInfo.direction) {
+        return true;
+    } else {
         const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
         if (computed) {
-            const index = flowField.computeDirectionIndex(cellDirection);
-            flowfieldInfo.directionIndex = index;
+            flowfieldInfo.direction = cellDirection.clone();
             return true;
         } else {
             return false;
         }
-    } else {
-        return true;
     }
 }
 
@@ -150,27 +149,23 @@ function getFlowfieldDirection(unit: IUnit, directionOut: Vector2) {
     const { motionId, coords } = unit;
 
     function getDirection(_flowfield: TFlowField) {
-        const { directionIndex } = _flowfield;
-        if (directionIndex < 0) {
+        const { direction } = _flowfield;
+        if (direction) {
+            return directionOut.copy(direction);
+        } else {
             const mapCoords = unit.coords.mapCoords;
             const flowfields = flowField.getMotion(motionId).flowfields;
             const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
             if (computed) {
-                const index = flowField.computeDirectionIndex(cellDirection);
-                flowField.getDirection(index, cellDirection);
-                _flowfield.directionIndex = index;
+                _flowfield.direction = cellDirection.clone();
+                return directionOut.copy(cellDirection);
+
             } else {
-                cellDirection.set(0, 0);
                 endMotion(unit);
                 unit.onArrived();
+                return directionOut.set(0, 0);
             }
-
-        } else {
-            flowField.getDirection(directionIndex, cellDirection);
         }
-
-        directionOut.set(cellDirection.x, cellDirection.y);
-        return directionOut;
     }
 
     const flowfields = flowField.getMotion(motionId).flowfields;
@@ -519,7 +514,9 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
+
                 const direction = getFlowfieldDirection(unit, awayDirection);
+
                 unit.acceleration.x += direction.x * maxForce;
                 unit.acceleration.z += direction.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);
