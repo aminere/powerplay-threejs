@@ -347,12 +347,14 @@ export function onEndDrag(start: Vector2, current: Vector2) {
                     return true;
                 })();
 
-                conveyors.clearLooseCorners(previousConveyors[i]);
                 if (allowed) {
                     if (depotsInRange) {
                         depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
                     }
                     conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
+                } else {
+                    conveyors.clearLooseCorners(previousConveyors[i]);
+                    break;
                 }
             }
 
