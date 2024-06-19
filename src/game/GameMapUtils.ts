@@ -92,7 +92,7 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
     return selectedVertexIndex;
 }
 
-export function raycastOnCells(screenPos: Vector2, camera: Camera, cellCoordsOut: Vector2, resolution: number, sectorCoordsOut?: Vector2) {
+export function raycastOnCells(screenPos: Vector2, camera: Camera, resolution: number, cellCoordsOut: Vector2, sectorCoordsOut?: Vector2) {
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
     }
@@ -194,7 +194,8 @@ function clearCell(mapCoords: Vector2) {
 export function onDrag(start: Vector2, current: Vector2) { // map coords
 
     const state = GameMapState.instance;
-    const { resolution } = state.tileSelector;
+    const { resolution, buildableType } = state.tileSelector;    
+
     switch (state.action) {
         case "destroy": {
             clearCell(current);
@@ -202,7 +203,7 @@ export function onDrag(start: Vector2, current: Vector2) { // map coords
             break;
 
         case "building": {
-            switch (GameMapProps.instance.buildableType) {
+            switch (buildableType) {
                 case "road": {
                     state.previousRoad.forEach(road => roads.clear(road));
                     state.previousRoad.length = 0;
@@ -260,10 +261,11 @@ export function onBeginDrag(start: Vector2, current: Vector2) { // map coords
         }
     }
 
+    const { buildableType } = state.tileSelector;
     switch (state.action) {
 
         case "building": {
-            switch (GameMapProps.instance.buildableType) {
+            switch (buildableType) {
                 case "rail": {
                     for (const offset of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
                         neighborCoord.set(start.x + offset[0], start.y + offset[1]);
@@ -345,14 +347,12 @@ export function onEndDrag(start: Vector2, current: Vector2) {
                     return true;
                 })();
 
+                conveyors.clearLooseCorners(previousConveyors[i]);
                 if (allowed) {
                     if (depotsInRange) {
                         depots.removeFromDepots(depotsInRange, buildingType, previousConveyors[i]);
                     }
                     conveyors.create(cell, previousConveyors[i], direction, startAxis as Axis, endAxis);
-                } else {
-                    conveyors.clearLooseCorners(previousConveyors[i]);
-                    break;
                 }
             }
 
@@ -375,7 +375,8 @@ export function onCancelDrag() {
 }
 
 function onElevation(mapCoords: Vector2) {
-    const { brushSize, brushHeight, relativeBrush, elevationType } = GameMapProps.instance;
+    const { elevationType } = GameMapState.instance.tileSelector;
+    const { brushSize, brushHeight, relativeBrush } = GameMapProps.instance;
     const cell = GameUtils.getCell(mapCoords);
     if (!cell?.isEmpty) {
         return;
@@ -426,8 +427,7 @@ function rejectBuilding(error: string) {
 };
 
 function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2) {
-    const props = GameMapProps.instance;
-    const { buildableType } = props;
+    const { buildableType } = GameMapState.instance.tileSelector;
     const { size } = buildingConfig[buildableType];
 
     let depotsInRange: Array<IBuildingInstance> | null = null;
@@ -542,22 +542,21 @@ function onBuilding(_sectorCoords: Vector2, _localCoords: Vector2) {
             depots.removeFromDepots(depotsInRange, buildableType, cellCoords);
         }
 
-        // exit build mode, except in sandbox
-        if (!GameMapState.instance.config.sandbox) {
+        if (!GameMapState.instance.config.freeBuildings) {
+            // exit build mode
             GameMapState.instance.action = null;
         }
-
     }
 
 }
 
 function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) {
-    const type = GameMapProps.instance.resourceType;
-    switch (type) {
+    const { resourceType } = GameMapState.instance.tileSelector;
+    switch (resourceType) {
         case "oil":
         case "water": {
             cellCoords.set(_sectorCoords.x * mapRes + _localCoords.x, _sectorCoords.y * mapRes + _localCoords.y);
-            elevation.createLiquidPatch(cellCoords, 1, type);
+            elevation.createLiquidPatch(cellCoords, 1, resourceType);
         }
             break;
 
@@ -566,8 +565,8 @@ function onResource(_sectorCoords: Vector2, _localCoords: Vector2, cell: ICell) 
             const sector = sectors.get(`${_sectorCoords.x},${_sectorCoords.y}`)!;
             const units = cell.units?.length ?? 0;
             if (cell.isEmpty && units === 0) {
-                resources.create(sector, _sectorCoords, _localCoords, cell, type);
-                if (type === "wood") {
+                resources.create(sector, _sectorCoords, _localCoords, cell, resourceType);
+                if (resourceType === "wood") {
                     const { visual, instanceIndex } = cell.resource!;
                     trees.revealTree(visual as InstancedMesh, instanceIndex!);
                 }
@@ -693,6 +692,7 @@ export function onAction() {
         return state.raycastedCellCoords;
     })();
 
+    const { buildableType, unit } = state.tileSelector;
     const cell = GameUtils.getCell(_cellCoords, sectorCoords, localCoords);
     if (!cell) {
 
@@ -722,7 +722,7 @@ export function onAction() {
                 break;
 
             case "building": {
-                switch (GameMapProps.instance.buildableType) {
+                switch (buildableType) {
                     case "road": return onRoad(sectorCoords, localCoords);
                     case "conveyor": return onConveyor(sectorCoords, localCoords, cell);
                     case "rail": {
@@ -763,7 +763,7 @@ export function onAction() {
 
             case "unit": {
                 if (cell.isEmpty) {
-                    unitsManager.spawn(_cellCoords, GameMapProps.instance.unit);
+                    unitsManager.spawn(_cellCoords, unit);
                 }
             }
                 break;

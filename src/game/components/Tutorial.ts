@@ -11,7 +11,6 @@ import { CharacterUnit } from "../unit/CharacterUnit";
 import { depots } from "../buildings/Depots";
 import { engine } from "../../engine/Engine";
 import { GameUtils } from "../GameUtils";
-import { GameMapProps } from "./GameMapProps";
 import { unitMotion } from "../unit/UnitMotion";
 import { engineState } from "../../engine/EngineState";
 import { UnitUtils } from "../unit/UnitUtils";
@@ -327,7 +326,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                                 }
                             }
 
-                            GameMapProps.instance.buildableType = "conveyor";
+                            const { tileSelector } = GameMapState.instance;
+                            tileSelector.buildableType = "conveyor";
                             GameMapState.instance.action = "building";                            
                             cmdSetIndicator.post({
                                 indicator: {

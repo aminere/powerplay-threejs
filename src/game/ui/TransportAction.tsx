@@ -1,4 +1,3 @@
-import { GameMapProps } from "../components/GameMapProps";
 import { GameMapState } from "../components/GameMapState";
 import { ActionButton } from "./ActionButton";
 
@@ -21,9 +20,9 @@ export function TransportAction(props: ITransportActionProps) {
             if (props.selected) {
                 gameMapState.action = null;
                 props.onCleared();
-            } else {
-                GameMapProps.instance.buildableType = props.type;
+            } else {                
                 const gameMapState = GameMapState.instance;
+                gameMapState.tileSelector.buildableType = props.type;
                 gameMapState.action = "building";
                 gameMapState.tileSelector.color = "yellow";
                 gameMapState.tileSelector.setSize(1, 1);

@@ -33,23 +33,21 @@ const worldRay = new Ray();
 const inverseMatrix = new Matrix4();
 const intersections: Array<{ unit?: IUnit; building?: IBuildingInstance; distance: number; }> = [];
 
-const enemiesAroundCell = new Array<IUnit>();
-function getEnemiesAroundCell(mapCoords: Vector2, radius: number) {
-    enemiesAroundCell.length = 0;
+const unitsAroundCell = new Array<IUnit>();
+function getUnitsAroundCell(mapCoords: Vector2, radius: number, filter: (unit: IUnit) => boolean, unitsOut: IUnit[]) {
     for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
         for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
             cellCoords.set(x, y);
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const unit of units) {
-                    if (UnitUtils.isEnemy(unit)) {
-                        enemiesAroundCell.push(unit);
+                    if (filter(unit)) {
+                        unitsOut.push(unit);
                     }
                 }
             }
         }
     }
-    return enemiesAroundCell;
 }
 
 const buildingsAroundCell = new Set<IBuildingInstance>();
@@ -249,11 +247,21 @@ function checkKeyboardInput() {
 }
 
 function updateSelectionFromRaycast() {
-    const units = unitsManager.units;
+
+    const state = GameMapState.instance;
+    const resolution = state.tileSelector.resolution;
+    const targetCell = raycastOnCells(input.touchPos, state.camera, resolution, mapCoords);
+    if (!targetCell) {
+        return;
+    }
+
     getWorldRay(worldRay);
     intersections.length = 0;
-    for (let i = 0; i < units.length; ++i) {
-        const unit = units[i];
+
+    unitsAroundCell.length = 0;
+    getUnitsAroundCell(mapCoords, 2, () => true, unitsAroundCell);
+    for (let i = 0; i < unitsAroundCell.length; ++i) {
+        const unit = unitsAroundCell[i];
         if (!unit.isAlive) {
             continue;
         }
@@ -263,8 +271,8 @@ function updateSelectionFromRaycast() {
         }
     }
 
-    const state = GameMapState.instance;
-    for (const [, building] of state.buildings) {
+    const _buildings = getBuildingsAroundCell(mapCoords, 4);
+    for (const building of _buildings) {
         inverseMatrix.copy(building.visual.matrixWorld).invert();
         localRay.copy(worldRay).applyMatrix4(inverseMatrix);
         const boundingBox = buildings.getBoundingBox(building.buildingType);
@@ -334,7 +342,7 @@ class GameMapInput {
                         }
                     }
                 } else {
-                    if (raycastOnCells(input.touchPos, state.camera, cellCoords, resolution)) {
+                    if (raycastOnCells(input.touchPos, state.camera, resolution, cellCoords)) {
                         if (!cellCoords.equals(state.raycastedCellCoords)) {
                             state.raycastedCellCoords.copy(cellCoords);
                             if (state.action) {
@@ -498,14 +506,15 @@ class GameMapInput {
                 } else {
 
                     if (unitsManager.selectedUnits.length > 0) {
-                        const targetCell = raycastOnCells(input.touchPos, state.camera, mapCoords, resolution);
+                        const targetCell = raycastOnCells(input.touchPos, state.camera, resolution, mapCoords);
                         if (targetCell) {
 
                             getWorldRay(worldRay);
                             intersections.length = 0;
 
-                            const enemies = getEnemiesAroundCell(mapCoords, 2);
-                            for (const enemy of enemies) {
+                            unitsAroundCell.length = 0;
+                            getUnitsAroundCell(mapCoords, 2, UnitUtils.isEnemy, unitsAroundCell);
+                            for (const enemy of unitsAroundCell) {
                                 if (raycastOnUnit(worldRay, enemy, intersection)) {
                                     intersections.push({ unit: enemy, distance: worldRay.origin.distanceTo(intersection) });
                                 }

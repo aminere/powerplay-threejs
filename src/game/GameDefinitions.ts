@@ -64,6 +64,13 @@ export const ElevationTypes = [
     "decrease"
 ] as const;
 
+
+export const GameModes = [    
+    "survival",
+    "tutorial",
+    "sandbox"
+] as const;
+
 export type UIType = "gamemap" | "mainmenu";
 export type Action = typeof Actions[number];
 export type TileType = typeof TileTypes[number];
@@ -75,5 +82,5 @@ export type UnitType = typeof UnitTypes[number];
 export type VehicleType = typeof VehicleTypes[number];
 export type PlayerVehicleType = typeof PlayerVehicleTypes[number];
 export type ElevationType = typeof ElevationTypes[number];
-
+export type GameMode = typeof GameModes[number];
 

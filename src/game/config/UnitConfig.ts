@@ -46,7 +46,7 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         damage: 15,
         arrivalDamping: vehicleArrivalDamping,
         range: {
-            vision: 30, // for demo
+            vision: 20,
             attack: 15
         }
     },

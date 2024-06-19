@@ -4,8 +4,9 @@ import { config } from "./config/config";
 import { GameUtils } from "./GameUtils";
 import { textures } from "../engine/resources/Textures";
 import { ISector } from "./GameTypes";
-import { BuildingType } from "./buildings/BuildingTypes";
+import { BuildableType, BuildingType } from "./buildings/BuildingTypes";
 import { buildings } from "./buildings/Buildings";
+import { ElevationType, RawResourceType, UnitType } from "./GameDefinitions";
 
 const { cellSize, mapRes } = config.game;
 const verticesPerRow = mapRes + 1;
@@ -14,6 +15,11 @@ const sectorCoords = new Vector2();
 const localCoords = new Vector2();
 
 export class TileSector extends Object3D {
+
+    public resourceType: RawResourceType = "wood";
+    public buildableType: BuildableType = "depot";
+    public elevationType: ElevationType = "increase";
+    public unit: UnitType = "worker";
 
     public get size() { return this._size; }
     public get resolution() { return this._resolution; }

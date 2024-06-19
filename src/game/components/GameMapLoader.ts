@@ -24,7 +24,7 @@ import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
-import { UnitType } from "../GameDefinitions";
+import { GameMode, UnitType } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
 import { meshes } from "../../powerplay";
 import { Mines } from "../buildings/Mines";
@@ -35,9 +35,6 @@ import { Factories } from "../buildings/Factories";
 import { Assemblies } from "../buildings/Assemblies";
 import { Tutorial } from "./Tutorial";
 import { Sandbox } from "./Sandbox";
-import { Workers } from "../unit/Workers";
-import { ICharacterUnit } from "../unit/ICharacterUnit";
-import { unitAnimation } from "../unit/UnitAnimation";
 import { _3dFonts } from "../../engine/resources/3DFonts";
 import { flowField } from "../pathfinding/Flowfield";
 
@@ -100,12 +97,12 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         if (this.props.path.length > 0) {
             this.load(owner);
         } else {
-            const sectorRes = GameMapProps.instance.size;
+            const { size: sectorRes, gameMode } = GameMapProps.instance;
             createSectors(sectorRes);
             this.preload()
                 .then(() => {
                     trees.init(sectorRes);
-                    this.init(sectorRes, GameUtils.vec3.zero, owner)
+                    this.init(sectorRes, GameUtils.vec3.zero, gameMode, owner)
                 });
         }
     }
@@ -166,7 +163,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
             }            
         }
 
-        this.init(data.size, data.cameraPos, owner);
+        this.init(data.size, data.cameraPos, data.gameMode, owner);
 
         // create units and structure after all sectors are created and fogOfWar is initialized
         for (const [coords, units] of unitsToSpawn) {
@@ -256,7 +253,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await _3dFonts.load("helvetiker_regular.typeface");
     }
 
-    private init(size: number, _cameraPos: Vector3, owner: Object3D) {
+    private init(size: number, cameraPos: Vector3, gameMode: GameMode, owner: Object3D) {
         this.state.sectorRes = size;
 
         // const water = utils.createObject(root(), "water");
@@ -272,17 +269,15 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         unitsManager.owner = owner;
         updateCameraSize();
 
-        const cameraPos = _cameraPos ?? GameUtils.vec3.zero;
         setCameraPos(cameraPos);
         cmdShowUI.post("gamemap");
 
         const updator = utils.createObject(root(), "GameMapUpdate");
         engineState.setComponent(updator, new GameMapUpdate());
-
-        if (this.props.path.includes("tutorial")) {
-            engineState.setComponent(updator, new Tutorial());
-        } else if (this.props.path.includes("sandbox")) {
-            engineState.setComponent(updator, new Sandbox());
+        
+        switch (gameMode) {
+            case "tutorial": engineState.setComponent(updator, new Tutorial()); break;
+            case "sandbox": engineState.setComponent(updator, new Sandbox()); break;
         }
 
         fogOfWar.init(size);
@@ -295,11 +290,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
         
         // equip
-        meshes.load(`/models/resources/rpg.glb`).then(() => {
-            const solider = unitsManager.units.find(u => u.type === "worker")!;
-            Workers.pickResource(solider as ICharacterUnit, "rpg", solider.coords.mapCoords);
-            unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
-        });
+        // meshes.load(`/models/resources/rpg.glb`).then(() => {
+        //     const solider = unitsManager.units.find(u => u.type === "worker")!;
+        //     Workers.pickResource(solider as ICharacterUnit, "rpg", solider.coords.mapCoords);
+        //     unitAnimation.setAnimation(solider as ICharacterUnit, "idle");
+        // });
 
         // this.state.debug.normals.setSector(this.state.sectors.get("0,0")!);
     }

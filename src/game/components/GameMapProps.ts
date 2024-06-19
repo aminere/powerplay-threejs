@@ -1,9 +1,8 @@
-import { RawResourceTypes, type RawResourceType, type UnitType, UnitTypes, ElevationTypes, type ElevationType } from "../GameDefinitions";
 import { ComponentProps } from "../../engine/ecs/ComponentProps";
 import * as Attributes from "../../engine/serialization/Attributes";
 import { Vector2 } from "three";
-import { BuildableTypes, type BuildableType } from "../buildings/BuildingTypes";
 import { TArray } from "../../engine/serialization/TArray";
+import { type GameMode, GameModes } from "../GameDefinitions";
 
 export class GameMapProps extends ComponentProps {
 
@@ -28,27 +27,12 @@ export class GameMapProps extends ComponentProps {
     @Attributes.command("save")
     saveCommand = true;
 
-    // @Attributes.enumOptions(TileTypes)
-    // tileType: TileType = "sand";
-
-    @Attributes.enumOptions(RawResourceTypes)
-    resourceType: RawResourceType = "wood";
-
-    @Attributes.enumOptions(BuildableTypes)
-    buildableType: BuildableType = "depot";
-
-    @Attributes.enumOptions(ElevationTypes)
-    elevationType: ElevationType = "increase";
-
-    // @Attributes.enumOptions(Array.from(new Set([...ResourceTypes, ...RawResourceTypes])))
-    // depotType: RawResourceType | ResourceType = "wood";
+    @Attributes.enumOptions(GameModes)
+    gameMode: GameMode = "sandbox";
 
     brushSize = 1;
     brushHeight = 1;
     relativeBrush = false;
-
-    @Attributes.enumOptions(UnitTypes)
-    unit: UnitType = "worker";    
 
     @Attributes.command("trees")
     treesCommand = true;

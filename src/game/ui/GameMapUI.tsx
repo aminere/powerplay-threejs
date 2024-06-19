@@ -3,7 +3,6 @@ import { HealthBars } from "./HealthBars";
 import { SelectionRect } from "./SelectionRect";
 import { Minimap } from "./Minimap";
 import { GameMapState } from "../components/GameMapState";
-import { GameMapProps } from "../components/GameMapProps";
 import { BuildableType, BuildingType, BuildingTypes } from "../buildings/BuildingTypes";
 import { SelectedElems, cmdOpenBuildSection, cmdOpenInGameMenu, cmdRefreshUI, cmdSetSelectedElems, cmdTutorialComplete, evtActionCleared, evtBuildError, evtFogOfWarChanged, evtGameMapUIMounted } from "../../Events";
 import { buildingConfig } from "../config/BuildingConfig";
@@ -192,7 +191,7 @@ export function GameMapUI() {
                 open={openSection === "building"}
                 onSelected={action => {
                     const type = action as BuildableType;
-                    GameMapProps.instance.buildableType = type;
+                    gameMapState.tileSelector.buildableType = type;
                     gameMapState.action = "building";
                     gameMapState.tileSelector.color = "yellow";
                     const size = buildingConfig[type].size;
@@ -234,7 +233,7 @@ export function GameMapUI() {
                         open={openSection === "resource"}
                         onSelected={action => {
                             const type = action as RawResourceType;
-                            GameMapProps.instance.resourceType = type;
+                            gameMapState.tileSelector.resourceType = type;
                             gameMapState.action = "resource";    
                             gameMapState.tileSelector.color = "yellow";        
                             gameMapState.tileSelector.setSize(1, 1);
@@ -245,13 +244,13 @@ export function GameMapUI() {
                     />
                     <ActionSection
                         name="unit"
-                        actions={["worker", "enemy-melee"]}
+                        actions={["worker", "enemy-melee", "tank", "enemy-tank"]}
                         open={openSection === "unit"}
                         onSelected={selection => {
                             const type = selection as UnitType;
                             const gameMapState = GameMapState.instance;
                             gameMapState.action = "unit";
-                            GameMapProps.instance.unit = type;
+                            gameMapState.tileSelector.unit = type;
                             gameMapState.tileSelector.color = "yellow";
                             gameMapState.tileSelector.setSize(1, 1);
                             gameMapState.tileSelector.resolution = 1;
@@ -265,7 +264,7 @@ export function GameMapUI() {
                         open={openSection === "elevation"}
                         onSelected={selection => {
                             const type = selection as ElevationType;
-                            GameMapProps.instance.elevationType = type;
+                            gameMapState.tileSelector.elevationType = type;
                             gameMapState.action = "elevation";    
                             gameMapState.tileSelector.color = "yellow";        
                             gameMapState.tileSelector.setSize(1, 1);

@@ -152,6 +152,9 @@ export class TankState extends State<IVehicleUnit> {
                             const meleeState = worker.fsm.getState(MeleeAttackState) ?? worker.fsm.switchState(MeleeAttackState);
                             meleeState.attackTarget(unit);
                         }
+                    } else if (target.type === "tank") {
+                        const tankState = target.fsm.getState(TankState);
+                        tankState?.followTarget(unit);
                     }
                 } else {
                     const enemy = target as ICharacterUnit;
