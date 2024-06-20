@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Quaternion, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { getCellFromAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
@@ -11,12 +11,17 @@ import { time } from "../../engine/core/Time";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { unitConfig } from "../config/UnitConfig";
 import sat from "sat";
+import { IVehicleUnit } from "./VehicleUnit";
 
 const direction = new Vector3();
 const velocity = new Vector3();
 const nextPos1 = new Vector3();
 const nextPos2 = new Vector3();
 const normal = new Vector3();
+const forward = new Vector3();
+const surfaceForward = new Vector3();
+const quaternion = new Quaternion();
+const matrix = new Matrix4();
 const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
@@ -64,10 +69,8 @@ export class UnitUtils {
         const { coords, visual } = unit;
         if (UnitUtils.isVehicle(unit)) {
             visual.position.y = GameUtils.getMapHeightAndNormal(coords.mapCoords, coords.localCoords, coords.sector, visual.position.x, visual.position.z, normal);
-            // TODO orient using the normal
-            // make sure the sat collision code no longer uses visual.rotation.y, instead, dedicate an angle value representing the 2D rotation of the vehicle
-            // then construct a forward vector from the 2D rotation and the normal
-            // and update the visual rotation using Quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, forward, normal));
+            const vehicle = unit as IVehicleUnit;
+            vehicle.normal.copy(normal);
         } else {
             visual.position.y = GameUtils.getMapHeight(coords.mapCoords, coords.localCoords, coords.sector, visual.position.x, visual.position.z);
         }
@@ -80,11 +83,11 @@ export class UnitUtils {
             const box1Pos = unit1.visual.localToWorld(truckWorldCorner1.copy(truckCorner));
             truckPoly1.pos.x = box1Pos.x;
             truckPoly1.pos.y = box1Pos.z;
-            truckPoly1.setAngle(-unit1.visual.rotation.y);
+            truckPoly1.setAngle(-unit1.angle);
             const box2Pos = unit2.visual.localToWorld(truckWorldCorner2.copy(truckCorner));
             truckPoly2.pos.x = box2Pos.x;
             truckPoly2.pos.y = box2Pos.z;
-            truckPoly2.setAngle(-unit2.visual.rotation.y);
+            truckPoly2.setAngle(-unit2.angle);
             const isColliding = sat.testPolygonPolygon(truckPoly1, truckPoly2);
             return isColliding;
 
@@ -98,10 +101,11 @@ export class UnitUtils {
                 // const dist = unit1.visual.position.distanceTo(unit2.visual.position);
                 const maxSpeed1 = UnitUtils.getMaxSpeed(unit1);
                 const maxSpeed2 = UnitUtils.getMaxSpeed(unit2);
-                velocity.copy(unit1.velocity).addScaledVector(unit1.acceleration, time.deltaTime).clampLength(0, maxSpeed1);
-                nextPos1.copy(unit1.visual.position).addScaledVector(velocity, time.deltaTime);
-                velocity.copy(unit2.velocity).addScaledVector(unit2.acceleration, time.deltaTime).clampLength(0, maxSpeed2);
-                nextPos2.copy(unit2.visual.position).addScaledVector(velocity, time.deltaTime);
+                const dt = time.deltaTime;
+                velocity.copy(unit1.velocity).addScaledVector(unit1.acceleration, dt).clampLength(0, maxSpeed1);
+                nextPos1.copy(unit1.visual.position).addScaledVector(velocity, dt);
+                velocity.copy(unit2.velocity).addScaledVector(unit2.acceleration, dt).clampLength(0, maxSpeed2);
+                nextPos2.copy(unit2.visual.position).addScaledVector(velocity, dt);
                 const dist = nextPos1.distanceTo(nextPos2);
                 const separation = separations[unit1.type] + separations[unit2.type];
                 return dist < separation;
@@ -116,8 +120,19 @@ export class UnitUtils {
             // mathUtils.smoothDampQuat(unit.visual.quaternion, unit.lookAt, rotationDamp, time.deltaTime);
             direction.copy(_direction).normalize();
             const angle = Math.atan2(direction.x, direction.z);
-            const closestAngle = unit.visual.rotation.y + mathUtils.deltaAngle(unit.visual.rotation.y, angle);
-            unit.visual.rotation.y = mathUtils.smoothDampAngle(unit.visual.rotation.y, closestAngle, halfDuration, time.deltaTime);
+            const closestAngle = unit.angle + mathUtils.deltaAngle(unit.angle, angle);
+            unit.angle = mathUtils.smoothDampAngle(unit.angle, closestAngle, halfDuration, time.deltaTime);            
+            if (UnitUtils.isVehicle(unit)) {
+                forward.set(Math.sin(unit.angle), 0, Math.cos(unit.angle));
+                const vehicle = unit as IVehicleUnit;
+                const right = forward.cross(vehicle.normal);
+                surfaceForward.crossVectors(vehicle.normal, right);
+                console.log(surfaceForward);
+                quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, surfaceForward.negate(), vehicle.normal));
+                unit.visual.quaternion.slerp(quaternion, .1);
+            } else {
+                unit.visual.quaternion.setFromAxisAngle(GameUtils.vec3.up, unit.angle);
+            }
         }
     }
 

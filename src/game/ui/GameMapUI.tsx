@@ -244,7 +244,7 @@ export function GameMapUI() {
                     />
                     <ActionSection
                         name="unit"
-                        actions={["worker", "enemy-melee", "tank", "enemy-tank"]}
+                        actions={["worker", "enemy-melee", "tank", "enemy-tank", "truck"]}
                         open={openSection === "unit"}
                         onSelected={selection => {
                             const type = selection as UnitType;

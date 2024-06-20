@@ -29,6 +29,7 @@ export class Unit implements IUnit {
     public get lastKnownFlowfield() { return this._lastKnownFlowfield; }
     public get targetCell() { return this._targetCell; }
     public get visual() { return this._visual; }    
+    public get angle() { return this._angle; }
     public get coords() { return this._coords; }
     public get motionId() { return this._motionId; }
     public get motionCommandId() { return this._motionCommandId; }
@@ -67,6 +68,7 @@ export class Unit implements IUnit {
     public set isIdle(value: boolean) { this._isIdle = value; }
     public set collidable(value: boolean) { this._collidable = value; }    
     public set lastKnownFlowfield(value: IUnitFlowfieldInfo | null) { this._lastKnownFlowfield = value; }
+    public set angle(value: number) { this._angle = value; }
 
     private _acceleration = new Vector3();
     private _velocity = new Vector3();
@@ -74,6 +76,7 @@ export class Unit implements IUnit {
     private _lastKnownFlowfield: IUnitFlowfieldInfo | null = null;
     private _targetCell = makeUnitAddr();
     private _visual: Object3D;
+    private _angle = 0;
     private _coords = makeUnitAddr();
     private _motionId = 0;
     private _lastCompletedMotionCommandId = 0;
@@ -102,7 +105,6 @@ export class Unit implements IUnit {
 
         GameUtils.worldToMap(this._visual.position, this._coords.mapCoords);
         computeUnitAddr(this._coords.mapCoords, this._coords);
-        UnitUtils.applyElevation(this);
         // console.log(`unit ${this._id} created at ${this._coords.mapCoords.x},${this._coords.mapCoords.y}`);
 
         const cell = GameUtils.getCell(this._coords.mapCoords)!;

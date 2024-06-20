@@ -542,16 +542,8 @@ export class UnitMotion {
         GameUtils.worldToMap(nextPos, nextMapCoords);
         const nextCell = GameUtils.getCell(nextMapCoords);
 
-        if (nextCell?.isWalkable) {
-            const rotationHalfDuration = (() => {
-                if (UnitUtils.isVehicle(unit)) {
-                    if (unit.collidingWith.length > 0) {
-                        return .25;
-                    }
-                }
-                return .1;
-            })();
-            UnitUtils.updateRotation(unit, unit.velocity, rotationHalfDuration);
+        if (nextCell?.isWalkable) {            
+
             unit.visual.position.copy(nextPos);
 
             if (!nextMapCoords.equals(unit.coords.mapCoords)) {
@@ -642,7 +634,17 @@ export class UnitMotion {
                 }
             }
             
+            const rotationHalfDuration = (() => {
+                if (UnitUtils.isVehicle(unit)) {
+                    if (unit.collidingWith.length > 0) {
+                        return .25;
+                    }
+                }
+                return .1;
+            })();
+
             UnitUtils.applyElevation(unit);
+            UnitUtils.updateRotation(unit, unit.velocity, rotationHalfDuration);
 
         } else {
 

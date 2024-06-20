@@ -245,6 +245,7 @@ class UnitsManager {
             }
         })();
 
+        UnitUtils.applyElevation(unit);
         if (UnitUtils.isEnemy(unit)) {
             switch (type) {
                 case "enemy-melee":

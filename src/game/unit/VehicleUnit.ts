@@ -1,4 +1,4 @@
-import { Mesh, Object3D } from "three";
+import { Mesh, Object3D, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { IUnit } from "./IUnit";
@@ -16,14 +16,17 @@ import { unitConfig } from "../config/UnitConfig";
 export interface IVehicleUnit extends IUnit {
     coords2x2: IUnitAddr;
     targetCell2x2: IUnitAddr;
+    normal: Vector3;
 }
 
 export class VehicleUnit extends Unit implements IVehicleUnit {
     public get coords2x2() { return this._coords2x2; }
     public get targetCell2x2() { return this._targetCell2x2; }
+    public get normal() { return this._normal; }
 
     private _coords2x2 = makeUnitAddr();
     private _targetCell2x2 = makeUnitAddr();
+    private _normal = new Vector3(0, 1, 0);
 
     constructor(props: IUnitProps) {
         super(props);

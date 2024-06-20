@@ -145,23 +145,38 @@ export class TankState extends State<IVehicleUnit> {
 
                 // get the attacked unit to defend itself
                 if (UnitUtils.isEnemy(unit)) {
-                    if (UnitUtils.isWorker(target)) {
-                        const worker = target as ICharacterUnit;
-                        if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                            unitMotion.moveUnit(worker, unit.coords.mapCoords);
-                            const meleeState = worker.fsm.getState(MeleeAttackState) ?? worker.fsm.switchState(MeleeAttackState);
-                            meleeState.attackTarget(unit);
+                    switch (target.type) {
+                        case "worker": {
+                            const worker = target as ICharacterUnit;
+                            if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
+                                unitMotion.moveUnit(worker, unit.coords.mapCoords);
+                                const meleeState = worker.fsm.getState(MeleeAttackState) ?? worker.fsm.switchState(MeleeAttackState);
+                                meleeState.attackTarget(unit);
+                            }
                         }
-                    } else if (target.type === "tank") {
-                        const tankState = target.fsm.getState(TankState);
-                        tankState?.followTarget(unit);
+                        break;
+                        case "tank": {
+                            const tankState = target.fsm.getState(TankState);
+                            tankState?.followTarget(unit);
+                        }
                     }
                 } else {
-                    const enemy = target as ICharacterUnit;
-                    if (enemy.isIdle && enemy.motionId === 0) {
-                        const npcState = enemy!.fsm.getState(NPCState);
-                        console.assert(npcState);
-                        npcState?.attackTarget(enemy, unit);
+                    switch (target.type) {
+                        case "enemy-tank": {
+                            const tankState = target.fsm.getState(TankState);
+                            tankState?.followTarget(unit);
+                        }
+                        break;
+
+                        case "enemy-melee": {
+                            const enemy = target as ICharacterUnit;
+                            if (enemy.isIdle && enemy.motionId === 0) {
+                                const npcState = enemy!.fsm.getState(NPCState);
+                                console.assert(npcState);
+                                npcState?.attackTarget(enemy, unit);
+                            }
+                        }
+                        break;
                     }
                 }                
 

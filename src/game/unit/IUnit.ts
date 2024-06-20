@@ -16,6 +16,7 @@ export interface IUnit {
     lastKnownFlowfield: IUnitFlowfieldInfo | null;
     targetCell: IUnitAddr;
     visual: Object3D;
+    angle: number;
     coords: IUnitAddr;
     motionId: number;
     motionCommandId: number;
