@@ -29,11 +29,16 @@ import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { VehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
+import { engineState } from "../../engine/EngineState";
+import { Fadeout } from "../components/Fadeout";
+import { AutoDestroy } from "../components/AutoDestroy";
+import { objects } from "../../engine/resources/Objects";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
 const minCell = new Vector2();
 const maxCell = new Vector2();
+const sectorCoords = new Vector2();
 const { unitScale, truckScale, tankScale, cellSize } = config.game;
 
 function getBoundingBox(mesh: Mesh) {
@@ -266,6 +271,30 @@ class UnitsManager {
         switch (this._selection.type) {
             case "building": {
                 const building = this._selection.building;
+
+                GameUtils.getCell(building.mapCoords, sectorCoords);
+                const sector = GameUtils.getSector(sectorCoords)!;
+                const mesh = building.visual.getObjectByProperty("isMesh", true) as Mesh;
+                const shadow = new Mesh(mesh.geometry, mesh.material);
+                mesh.getWorldPosition(shadow.position);
+                engineState.setComponent(shadow, new Fadeout({
+                    duration: .5,
+                    keepShadows: true
+                }));
+                engineState.setComponent(shadow, new AutoDestroy({ delay: .5 }));
+
+                const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
+                const explosion = utils.instantiate(_explosion);                
+                explosion.position.copy(shadow.position).setY(2);
+                const { size } = buildingConfig[building.buildingType];
+                explosion.position.x += size.x / 2 * cellSize;
+                explosion.position.z += size.z / 2 * cellSize;
+                explosion.scale.multiplyScalar(2);
+                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
+
+                sector.layers.fx.attach(shadow);
+                sector.layers.fx.attach(explosion);
+                
                 buildings.clear(building.id);
             }
             break;

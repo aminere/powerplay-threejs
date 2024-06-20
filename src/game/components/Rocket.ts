@@ -31,7 +31,6 @@ function spawnSmoke(sector: ISector, worldPos: Vector3, groundLevel: number) {
     const _smoke = objects.loadImmediate("/prefabs/smoke.json")!;
     const smoke = utils.instantiate(_smoke);
     smoke.position.copy(worldPos).setY(groundLevel);
-    smoke.updateMatrixWorld();        
     sector.layers.fx.attach(smoke);
     engineState.setComponent(smoke, new AutoDestroy({ delay: 1 }));
 }

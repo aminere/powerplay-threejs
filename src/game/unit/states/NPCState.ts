@@ -36,6 +36,9 @@ export class NPCState extends State<ICharacterUnit> {
                 this._target = null;
                 unit.isIdle = true;
                 this._step = NpcStep.Idle;
+                if (unit.motionId > 0) {
+                    unitMotion.endMotion(unit);
+                }
                 unitAnimation.setAnimation(unit, "idle", { transitionDuration: .2, scheduleCommonAnim: true })
             }
         }

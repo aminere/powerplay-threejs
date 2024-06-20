@@ -190,7 +190,6 @@ export class TankState extends State<IVehicleUnit> {
                 const { projectiles } = GameMapState.instance.layers;
                 rocket.position.copy(cannonOffset);
                 this._cannon.add(rocket);
-                rocket.updateMatrixWorld();
                 projectiles.attach(rocket);
                 targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
                 const toTarget = targetPos.sub(rocket.position).normalize();
@@ -201,7 +200,6 @@ export class TankState extends State<IVehicleUnit> {
                 explosion.position.copy(cannonOffset);
                 explosion.scale.setScalar(.4);
                 this._cannon.add(explosion);
-                explosion.updateMatrixWorld();
                 unit.coords.sector.layers.fx.attach(explosion);
                 engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
 

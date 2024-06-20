@@ -49,32 +49,33 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
     }
 
     public override onDeath() {
-        const _chunks = meshes.loadImmediate("/models/tank-chunks.glb");
+        
         const chunks = new Object3D();
-        chunks.name = "tank-chunks";
+        chunks.name = `${this.type}-chunks`;
+        const _chunks = meshes.loadImmediate(`/models/${chunks.name}.glb`);
         this.visual.getWorldPosition(chunks.position);
         this.visual.getWorldQuaternion(chunks.quaternion);
         this.visual.getWorldScale(chunks.scale);
-        chunks.updateMatrixWorld();
         this.coords.sector.layers.fx.attach(chunks);
         for (const _chunk of _chunks) {
             const chunk = _chunk.clone();            
             chunks.add(chunk);
         }
 
-        const cannonRoot = this.visual.getObjectByName("cannon-root")!;
-        cannonRoot.traverse(child => {
-            if ((child as Mesh).isMesh) {
-                child.castShadow = false;
-            }
-        });
-        chunks.attach(cannonRoot);        
+        const cannonRoot = this.visual.getObjectByName("cannon-root");
+        if (cannonRoot) {
+            cannonRoot.traverse(child => {
+                if ((child as Mesh).isMesh) {
+                    child.castShadow = false;
+                }
+            });
+            chunks.attach(cannonRoot);
+        }
 
         const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
         const explosion = utils.instantiate(_explosion);
         this.visual.getWorldPosition(explosion.position).setY(1);
         explosion.scale.multiplyScalar(1.5);
-        explosion.updateMatrixWorld();
         this.coords.sector.layers.fx.attach(explosion);
         engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
 

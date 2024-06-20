@@ -51,6 +51,7 @@ export class Unit implements IUnit {
     public set arriving(value: boolean) { 
         this._arriving = value; 
         if (value) {
+            this.onArriving();
             console.assert(this._motionCommandId > 0, "unit is arriving without a motion command");
             this._lastCompletedMotionCommandId = this._motionCommandId;
         }

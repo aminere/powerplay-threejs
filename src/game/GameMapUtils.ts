@@ -92,6 +92,7 @@ function pickSectorTriangle(sectorX: number, sectorY: number, screenPos: Vector2
     return selectedVertexIndex;
 }
 
+const neighborSectors = new Array<[number, number]>();
 export function raycastOnCells(screenPos: Vector2, camera: Camera, resolution: number, cellCoordsOut: Vector2, sectorCoordsOut?: Vector2) {
     if (!GameUtils.screenCastOnPlane(camera, screenPos, 0, intersection)) {
         return null;
@@ -106,7 +107,7 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, resolution: n
 
     if (selectedVertexIndex < 0 && cell) {
         // check neighboring sectors, from closest to farthest
-        const neighborSectors = new Array<[number, number]>();
+        neighborSectors.length = 0;
         const { sectors } = GameMapState.instance;
         for (const offsetY of [-1, 0, 1]) {
             for (const offsetX of [-1, 0, 1]) {
@@ -156,38 +157,37 @@ export function raycastOnCells(screenPos: Vector2, camera: Camera, resolution: n
 
 function clearCell(mapCoords: Vector2) {
     const cell = GameUtils.getCell(mapCoords);
-    if (cell) {
-        if (cell.building) {
-            buildings.clear(cell.building);
-        } else if (cell.resource) {
+    if (!cell) {
+        return;
+    }
 
-            switch (cell.resource.type) {
-                case "water":
-                case "oil": {
-                    elevation.clearLiquidPatch(mapCoords, 1, cell.resource.type);
-                }
-                    break;
-                default: {
-                    cell.resource = undefined;
-                }
-            }
+    if (cell.building) {
+        buildings.clear(cell.building);
+    } else if (cell.resource) {
 
-        } else if (cell.roadTile !== undefined) {
-            roads.clear(mapCoords);
-        } else if (cell.rail) {
-            Rails.clear(cell);
-        } else if (cell.conveyor) {
-            conveyors.clear(mapCoords);
-            conveyors.clearLooseCorners(mapCoords);
+        switch (cell.resource.type) {
+            case "water":
+            case "oil":
+                elevation.clearLiquidPatch(mapCoords, 1, cell.resource.type);
+                break;
+            default: cell.resource = undefined;
         }
 
-        if (cell.units) {
-            const units = [...cell.units];
-            for (const unit of units) {
-                unit.setHitpoints(0);
-            }
-            console.assert(cell.units.length === 0);
+    } else if (cell.roadTile !== undefined) {
+        roads.clear(mapCoords);
+    } else if (cell.rail) {
+        Rails.clear(cell);
+    } else if (cell.conveyor) {
+        conveyors.clear(mapCoords);
+        conveyors.clearLooseCorners(mapCoords);
+    }
+
+    if (cell.units) {
+        const units = [...cell.units];
+        for (const unit of units) {
+            unit.setHitpoints(0);
         }
+        console.assert(cell.units.length === 0);
     }
 }
 

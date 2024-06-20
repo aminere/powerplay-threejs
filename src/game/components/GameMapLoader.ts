@@ -242,9 +242,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         await meshes.load(`/models/resources/oil.glb`);
         await meshes.load(`/models/buildings/incubator-glass.glb`);
         await meshes.load(`/models/truck.glb`);
+        await meshes.load(`/models/truck-chunks.glb`);
         await meshes.load(`/models/tank.glb`);
-        await meshes.load(`/models/enemy-tank.glb`);
         await meshes.load(`/models/tank-chunks.glb`);
+        await meshes.load(`/models/enemy-tank.glb`);
+        await meshes.load(`/models/enemy-tank-chunks.glb`);        
         await objects.load("/prefabs/tank-shot.json");
         await objects.load("/prefabs/explosion.json");
         await objects.load("/prefabs/muzzle-flash.json");
@@ -285,9 +287,9 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         // reveal wherever the camera is
         // cameraPos = (mapCoords - (mapRes / 2)) * cellSize;
         // mapCoords = (cameraPos / cellSize) + mapRes / 2;
-        const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
-        const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
-        cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
+        // const cellX = Math.round((cameraPos.x / cellSize) + mapRes / 2);
+        // const cellY = Math.round((cameraPos.z / cellSize) + mapRes / 2);
+        // cmdFogAddCircle.post({ mapCoords: new Vector2(cellX, cellY), radius: Math.round(mapRes / 1.5) });        
         
         // equip
         // meshes.load(`/models/resources/rpg.glb`).then(() => {

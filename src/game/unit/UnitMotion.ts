@@ -617,7 +617,6 @@ export class UnitMotion {
                             }
 
                             unit.arriving = true;
-                            unit.onArriving();
                         })();
                     }
                 }
