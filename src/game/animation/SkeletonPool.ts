@@ -14,7 +14,8 @@ export interface IUniqueSkeleton {
     skeleton: Skeleton;
     armature: Object3D;
     mixer: AnimationMixer;
-    tween: gsap.core.Tween | null;
+    scheduleCommonAnim: gsap.core.Tween | null;
+    syncToCommonAnim: gsap.core.Tween | null;
 }
 
 export function getSkeletonId(srcAnim: string, destAnim: string) {
@@ -76,7 +77,8 @@ class SkeletonPool {
                 skeleton: _skeleton, 
                 armature,
                 mixer,
-                tween: null
+                scheduleCommonAnim: null,
+                syncToCommonAnim: null
             };
             skeletons.push(skeleton);
             armature.name = `${armature.name}-${id}`;
@@ -144,11 +146,19 @@ class SkeletonPool {
 
     public releaseSkeleton(unit: ICharacterUnit) {
         unit.skeleton!.isFree = true;
-        if (unit.skeleton!.tween) {
-            unit.skeleton!.tween.kill();
-            unit.skeleton!.tween = null;
-        }
+        this.releaseSkeletonTweens(unit.skeleton!);
         unit.skeleton = null;
+    }
+
+    public releaseSkeletonTweens(skeleton: IUniqueSkeleton) {
+        if (skeleton.scheduleCommonAnim) {
+            skeleton.scheduleCommonAnim.kill();
+            skeleton.scheduleCommonAnim = null;
+        }
+        if (skeleton.syncToCommonAnim) {
+            skeleton.syncToCommonAnim.kill();
+            skeleton.syncToCommonAnim = null;
+        }
     }
 }
 
