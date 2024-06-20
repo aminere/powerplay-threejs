@@ -127,7 +127,6 @@ export class UnitUtils {
                 const vehicle = unit as IVehicleUnit;
                 const right = forward.cross(vehicle.normal);
                 surfaceForward.crossVectors(vehicle.normal, right);
-                console.log(surfaceForward);
                 quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, surfaceForward.negate(), vehicle.normal));
                 unit.visual.quaternion.slerp(quaternion, .1);
             } else {
