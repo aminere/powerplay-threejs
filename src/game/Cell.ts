@@ -2,6 +2,7 @@ import { InstancedMesh } from "three";
 import { ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
 import { trees } from "./Trees";
 import { IUnit } from "./unit/IUnit";
+import { IBuildingInstance } from "../powerplay";
 
 export class Cell implements ICell {
 
@@ -20,7 +21,7 @@ export class Cell implements ICell {
     }
 
     public get building() { return this._building; }
-    public set building(value: string | undefined) { 
+    public set building(value: IBuildingInstance | undefined) { 
         this._building = value;       
 
         const empty = (() => {
@@ -93,7 +94,7 @@ export class Cell implements ICell {
     private _isEmpty = true;
     private _isWalkable = true;
     private _flowFieldCost = 1;
-    private _building: string | undefined = undefined;
+    private _building: IBuildingInstance | undefined = undefined;
     private _rail: IRail | undefined = undefined;
     private _resource: IRawResource | undefined = undefined;
     private _conveyor: IConveyor | undefined = undefined;

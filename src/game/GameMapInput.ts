@@ -58,8 +58,7 @@ function getBuildingsAroundCell(mapCoords: Vector2, radius: number) {
             cellCoords.set(x, y);
             const building = GameUtils.getCell(cellCoords)?.building;
             if (building) {
-                const instance = GameMapState.instance.buildings.get(building)!;
-                buildingsAroundCell.add(instance);
+                buildingsAroundCell.add(building);
             }
         }
     }

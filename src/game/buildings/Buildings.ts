@@ -101,7 +101,13 @@ class Buildings {
         };
 
         const { buildings } = GameMapState.instance;
-        buildings.set(instanceId, buildingInstance);
+        const sectorId = `${_sectorCoords.x},${_sectorCoords.y}`;
+        const list = buildings.get(sectorId);
+        if (list) {
+            list.push(buildingInstance);        
+        } else {
+            buildings.set(sectorId, [buildingInstance]);        
+        }
 
         if (buildingType === "depot") {
             const { depotsCache } = GameMapState.instance;
@@ -119,7 +125,7 @@ class Buildings {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
-                cell.building = instanceId;
+                cell.building = buildingInstance;
 
                 const x = Math.floor(localCoords.x / cellsPerVehicleCell);
                 const y = Math.floor(localCoords.y / cellsPerVehicleCell);
@@ -183,10 +189,15 @@ class Buildings {
         return visual;
     }
 
-    public clear(instanceId: string) {
+    public clear(instance: IBuildingInstance) {
         const { buildings } = GameMapState.instance;
-        const instance = buildings.get(instanceId)!;
-        buildings.delete(instanceId);
+
+        GameUtils.getCell(instance.mapCoords, sectorCoords)
+        const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
+        const list = buildings.get(sectorId)!;
+        const index = list.indexOf(instance);
+        console.assert(index >= 0, `building ${instance.id} not found in sector ${sectorId}`);
+        utils.fastDelete(list, index);
         instance.deleted = true;
         instance.visual.removeFromParent();
 
@@ -216,17 +227,15 @@ class Buildings {
                     const visual = resourceCell.resource!.visual!;
                     console.assert(visual.visible === false);
                     visual.visible = true;
-                }                
+                }
             }
                 break;
 
             case "depot": {
                 // remove from the depot cache
                 const { depotsCache } = GameMapState.instance;
-                GameUtils.getCell(instance.mapCoords, sectorCoords)
-                const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
                 const list = depotsCache.get(sectorId)!;
-                const index = list.findIndex(item => item.id === instanceId);
+                const index = list.findIndex(item => item === instance);
                 utils.fastDelete(list, index);
                 if (list.length === 0) {
                     depotsCache.delete(sectorId);
@@ -241,13 +250,15 @@ class Buildings {
 
     public update() {
         const { buildings } = GameMapState.instance;
-        buildings.forEach(instance => {
-            switch (instance.buildingType) {
-                case "mine": Mines.update(instance); break;
-                case "factory": Factories.update(instance); break;
-                case "depot": depots.update(instance); break;
-                case "incubator": Incubators.update(instance); break;
-                case "assembly": Assemblies.update(instance); break;
+        buildings.forEach(instances => {
+            for (const instance of instances) {
+                switch (instance.buildingType) {
+                    case "mine": Mines.update(instance); break;
+                    case "factory": Factories.update(instance); break;
+                    case "depot": depots.update(instance); break;
+                    case "incubator": Incubators.update(instance); break;
+                    case "assembly": Assemblies.update(instance); break;
+                }
             }
         });
     }

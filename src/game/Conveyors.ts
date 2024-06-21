@@ -205,7 +205,7 @@ class Conveyors {
 
             const building = neighborCell?.building;
             if (building) {
-                buildingNeighbor = GameMapState.instance.buildings.get(building)!;
+                buildingNeighbor = building;
                 break;
             }
 

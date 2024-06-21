@@ -62,7 +62,7 @@ export class GameMapState {
         flyingItems: utils.createObject(root(), "flyingItems"),
         projectiles: utils.createObject(root(), "projectiles")        
     };
-    public buildings = new Map<string, IBuildingInstance>();
+    public buildings = new Map<string, IBuildingInstance[]>();
     public depotsCache = new Map<string, IBuildingInstance[]>();
     public rails = new Map<string, Object3D>();
     public initialDragAxis: "x" | "z" | null= null;

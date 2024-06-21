@@ -19,10 +19,12 @@ import { gameState } from "../GameState";
 
 function getBuildingOfType(type: BuildingType) {
     const buildings = GameMapState.instance.buildings;
-    for (const [, instance] of buildings) {
-        if (instance.buildingType === type) {
-            return instance;
-        }
+    for (const [, instances] of buildings) {
+        for (const instance of instances) {
+            if (instance.buildingType === type) {
+                return instance;
+            }
+        }        
     }
     return null;
 }
@@ -730,8 +732,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             case MissionStep.DepositStone: {
                 const building = GameUtils.getCell(mapCoords)?.building;
                 if (building) {
-                    const buildingType = GameMapState.instance.buildings.get(building)?.buildingType;
-                    if (buildingType === "depot") {
+                    if (building.buildingType === "depot") {
                         cmdSetIndicator.post(null);
                     }
                 }
@@ -749,8 +750,7 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
             case MissionStep.DepositWater: {
                 const building = GameUtils.getCell(mapCoords)?.building;
                 if (building) {
-                    const buildingType = GameMapState.instance.buildings.get(building)?.buildingType;
-                    if (buildingType === "incubator") {
+                    if (building.buildingType === "incubator") {
                         cmdSetIndicator.post(null);
                     }
                 }

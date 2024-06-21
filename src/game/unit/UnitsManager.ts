@@ -33,6 +33,7 @@ import { engineState } from "../../engine/EngineState";
 import { Fadeout } from "../components/Fadeout";
 import { AutoDestroy } from "../components/AutoDestroy";
 import { objects } from "../../engine/resources/Objects";
+import { AttackBuildingState } from "./states/AttackBuildingState";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -257,7 +258,7 @@ class UnitsManager {
                                     new MeleeDefendState(), 
                                     new MeleeAttackState()
                                 ];
-                                case "enemy-melee": return [new NPCState()]
+                                case "enemy-melee": return [new NPCState(), new AttackBuildingState()]
                                 default: return [];
                             }
                         })(),
@@ -279,7 +280,7 @@ class UnitsManager {
         if (UnitUtils.isEnemy(unit)) {
             switch (type) {
                 case "enemy-melee":
-                    unit.fsm.switchState(NPCState);
+                    unit.fsm.switchState(AttackBuildingState);
                     break;
             }
         } else {
@@ -320,7 +321,7 @@ class UnitsManager {
                 sector.layers.fx.attach(shadow);
                 sector.layers.fx.attach(explosion);
                 
-                buildings.clear(building.id);
+                buildings.clear(building);
             }
             break;
 

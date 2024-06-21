@@ -2,7 +2,6 @@
 import { Object3D } from "three";
 import { RawResourceType, ResourceType } from "../GameDefinitions";
 import { ICell } from "../GameTypes";
-import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { TruckState } from "./states/TruckState";
 import { IVehicleUnit, VehicleUnit } from "./VehicleUnit";
@@ -40,13 +39,13 @@ export class TruckUnit extends VehicleUnit implements ITruckUnit {
     }
 
     public override onReachedBuilding(cell: ICell) {
-        const instance = GameMapState.instance.buildings.get(cell.building!)!;
+        const instance = cell.building!;
         switch (instance.buildingType) {
             case "depot": {         
                 const state = instance.state as IDepotState;
                 const truckResourceType = this.resources?.type ?? null;
                 const depotAmount = state.slots.slots.reduce((acc, slot) => {
-                    const slotAmount = (() => {                        
+                    const slotAmount = (() => {
                         if (truckResourceType === null || slot.type === truckResourceType) {
                             return slot.amount;
                         }

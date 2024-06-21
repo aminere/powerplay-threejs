@@ -10,7 +10,6 @@ import { cmdFogRemoveCircle, evtUnitStateChanged } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
 import { utils } from "../../engine/Utils";
 import { ICell, ICarriedResource } from "../GameTypes";
-import { GameMapState } from "../components/GameMapState";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
 import { unitMotion } from "./UnitMotion";
@@ -193,7 +192,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
 
     public override onReachedBuilding(cell: ICell) {
 
-        const instance = GameMapState.instance.buildings.get(cell.building!)!;
+        const instance = cell.building!;
         if (this.resource) {
 
             const sourceCell = this.resource.sourceCell;
@@ -234,8 +233,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     const sourceBuilding = GameUtils.getCell(sourceCell)?.building;
                     if (sourceBuilding) {
                         // avoid pick/deposit loop on the same building
-                        const sourceInstance = GameMapState.instance.buildings.get(sourceBuilding)!;
-                        return sourceInstance.id !== instance.id;
+                        return sourceBuilding.id !== instance.id;
                     }
                     return true;
                 })();

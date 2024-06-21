@@ -138,23 +138,25 @@ export function serializeGameMap() {
     });
 
     const buildings: Record<string, TSerializedBuilding[]> = {};
-    for (const [, instance] of state.buildings) {
-        const buildingType = instance.buildingType;
-        const list = buildings[buildingType];
-
-        const serialized = (() => {
-            switch (buildingType) {
-                case "factory": return serializeFactory(instance);
-                case "assembly": return serializeAssembly(instance);
-                default: return serializeBuilding(instance);
+    for (const [, instances] of state.buildings) {
+        for (const instance of instances) {
+            const buildingType = instance.buildingType;
+            const list = buildings[buildingType];
+    
+            const serialized = (() => {
+                switch (buildingType) {
+                    case "factory": return serializeFactory(instance);
+                    case "assembly": return serializeAssembly(instance);
+                    default: return serializeBuilding(instance);
+                }
+            })();
+    
+            if (list) {
+                list.push(serialized);
+            } else {
+                buildings[buildingType] = [serialized];
             }
-        })();
-
-        if (list) {
-            list.push(serialized);         
-        } else {
-            buildings[buildingType] = [serialized];
-        }
+        }        
     }
 
     const result: ISerializedGameMap = {

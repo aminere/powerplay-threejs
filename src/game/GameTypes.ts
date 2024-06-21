@@ -3,6 +3,7 @@ import { BezierPath } from "./BezierPath";
 import { FlowfieldViewer } from "./debug/FlowfieldViewer";
 import { IUnit } from "./unit/IUnit";
 import { RawResourceType, ResourceType } from "./GameDefinitions";
+import { IBuildingInstance } from "./buildings/BuildingTypes";
 
 export type RailTip = "start" | "end";
 export type Axis = "x" | "z";
@@ -93,7 +94,7 @@ export interface ICell {
 
     roadTile?: number;
     conveyor?: IConveyor;
-    building?: string;    
+    building?: IBuildingInstance;
     rail?: IRail;
     resource?: IRawResource;
     
