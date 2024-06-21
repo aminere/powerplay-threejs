@@ -2,7 +2,6 @@
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
-import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
@@ -11,8 +10,8 @@ import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
 import { SoldierState } from "./SoldierState";
 
-const hitFrequency = .5;
 const { separations } = config.steering;
+const { attackTimes} = config.combat.melee;
 
 enum MeleeAttackStateStep {
     Follow,
@@ -24,8 +23,9 @@ export class MeleeAttackState extends State<ICharacterUnit> {
     public get target() { return this._target; }
 
     private _target: IUnit | null = null;
-    private _hitTimer = 0;
     private _step = MeleeAttackStateStep.Follow;
+    private _loopConsumed = false;
+    private _attackIndex = 0;
 
     override exit(unit: ICharacterUnit) {
         unit.isIdle = true;
@@ -58,23 +58,37 @@ export class MeleeAttackState extends State<ICharacterUnit> {
             break;
 
             case MeleeAttackStateStep.Attack: {
+
+                UnitUtils.rotateToTarget(unit, target);
+
                 const separation = separations[unit.type] + separations[target.type];
                 const outOfRange = unit.visual.position.distanceTo(target.visual.position) > separation * 1.5;
                 if (outOfRange) {
                     this._step = MeleeAttackStateStep.Follow;
                     unitMotion.moveUnit(unit, target.coords.mapCoords, false);
                     unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
-
+                    break;
+                }                
+                
+                if (this._loopConsumed) {
+                    if (unit.animation.action.time < attackTimes[0]) {
+                        this._loopConsumed = false;
+                    }
+                    break;
                 } else {
-                    UnitUtils.rotateToTarget(unit, target);
-                    if (this._hitTimer < 0) {
-                        const damage = unitConfig[unit.type].damage;
-                        target.setHitpoints(target.hitpoints - damage);
-                        this._hitTimer = hitFrequency;
+                    if (unit.animation.action.time < attackTimes[this._attackIndex]) {
+                        break;
                     } else {
-                        this._hitTimer -= time.deltaTime;
+                        this._attackIndex = (this._attackIndex + 1) % attackTimes.length;
+                        if (this._attackIndex === 0) {
+                            this._loopConsumed = true;
+                        }
                     }
                 }
+
+                // attack
+                const damage = unitConfig[unit.type].damage;
+                target.setHitpoints(target.hitpoints - damage);                
             }
         }        
     }
@@ -123,6 +137,8 @@ export class MeleeAttackState extends State<ICharacterUnit> {
         unitMotion.endMotion(unit);
         this._step = MeleeAttackStateStep.Attack;
         unit.isIdle = false;
+        this._loopConsumed = false;
+        this._attackIndex = 0;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
     }
 

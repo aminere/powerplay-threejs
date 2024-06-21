@@ -2,17 +2,18 @@
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
-import { time } from "../../../engine/core/Time";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
 import { unitConfig } from "../../config/UnitConfig";
+import { config } from "../../config/config";
 
-const hitFrequency = .5;
+const { attackTimes } = config.combat.melee;
 
 export class MeleeDefendState extends State<ICharacterUnit> {
 
     private _target: IUnit | null = null;
-    private _hitTimer = 0;
+    private _loopConsumed = false;
+    private _attackIndex = 0;
 
     override exit(unit: ICharacterUnit) {
         unit.isIdle = true;
@@ -22,28 +23,45 @@ export class MeleeDefendState extends State<ICharacterUnit> {
     override update(unit: ICharacterUnit) {
 
         const target = this._target;
-        if (target) {
-            const { range } = unitConfig[unit.type];
-            if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range.attack)) {
-                unit.fsm.switchState(null);
+        if (!target) {
+            unit.fsm.switchState(null);
+            return;
+        }
+        
+        const { range } = unitConfig[unit.type];
+        if (!target.isAlive || UnitUtils.isOutOfRange(unit, target, range.attack)) {
+            unit.fsm.switchState(null);
+            return;
+        }
+
+        UnitUtils.rotateToTarget(unit, target!);
+
+        if (this._loopConsumed) {
+            if (unit.animation.action.time < attackTimes[0]) {
+                this._loopConsumed = false;
+            }
+            return;
+        } else {
+            if (unit.animation.action.time < attackTimes[this._attackIndex]) {
+                return;
             } else {
-                UnitUtils.rotateToTarget(unit, target!);
-                if (this._hitTimer < 0) {
-                    const damage = unitConfig[unit.type].damage;
-                    target!.setHitpoints(target!.hitpoints - damage);
-                    this._hitTimer = hitFrequency;
-                } else {
-                    this._hitTimer -= time.deltaTime;
+                this._attackIndex = (this._attackIndex + 1) % attackTimes.length;
+                if (this._attackIndex === 0) {
+                    this._loopConsumed = true;
                 }
             }
-        } else {
-            unit.fsm.switchState(null);
         }
+
+        // attack
+        const damage = unitConfig[unit.type].damage;
+        target!.setHitpoints(target!.hitpoints - damage);
     }
 
     public startAttack(unit: ICharacterUnit, target: IUnit) {
         this._target = target;
         unit.isIdle = false;
+        this._loopConsumed = false;
+        this._attackIndex = 0;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
     }
 }

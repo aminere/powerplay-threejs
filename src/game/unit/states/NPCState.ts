@@ -1,5 +1,4 @@
 import { State } from "../../fsm/StateMachine";
-import { time } from "../../../engine/core/Time";
 import { unitMotion } from "../UnitMotion";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
@@ -17,16 +16,17 @@ enum NpcStep {
 }
 
 const vision = 4;
-const hitFrequency = .5;
 const { separations } = config.steering;
+const { attackTimes} = config.combat.melee;
 
 export class NPCState extends State<ICharacterUnit> {
 
     public get target() { return this._target; }
 
     private _target: IUnit | null = null;
-    private _hitTimer = 1;
     private _step = NpcStep.Idle;
+    private _loopConsumed = false;
+    private _attackIndex = 0;
 
     override update(unit: ICharacterUnit): void {
 
@@ -54,32 +54,41 @@ export class NPCState extends State<ICharacterUnit> {
 
             case NpcStep.Attack: {
 
+                UnitUtils.rotateToTarget(unit, target!);
+
                 const separation = separations[unit.type] + separations[target!.type];
                 const outOfRange = unit.visual.position.distanceTo(target!.visual.position) > separation * 1.1;
-                if (outOfRange) {
-                    
+                if (outOfRange) {                    
                     this._step = NpcStep.Follow;
                     unitMotion.moveUnit(unit, target!.coords.mapCoords, false);
                     unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
+                    break;
+                }
 
+                if (this._loopConsumed) {
+                    if (unit.animation.action.time < attackTimes[0]) {
+                        this._loopConsumed = false;
+                    }
+                    break;
                 } else {
-
-                    UnitUtils.rotateToTarget(unit, target!);
-                    if (this._hitTimer < 0) {
-                        const damage = unitConfig[unit.type].damage;
-                        target!.setHitpoints(target!.hitpoints - damage);
-
-                        if (target!.isAlive && UnitUtils.isWorker(target!)) {
-                            const worker = target as ICharacterUnit;
-                            if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                                const meleeState = target!.fsm.getState(MeleeDefendState) ?? target!.fsm.switchState(MeleeDefendState);
-                                meleeState.startAttack(target as ICharacterUnit, unit);
-                            }
-                        }
-
-                        this._hitTimer = hitFrequency;
+                    if (unit.animation.action.time < attackTimes[this._attackIndex]) {
+                        break;
                     } else {
-                        this._hitTimer -= time.deltaTime;
+                        this._attackIndex = (this._attackIndex + 1) % attackTimes.length;
+                        if (this._attackIndex === 0) {
+                            this._loopConsumed = true;
+                        }
+                    }
+                }
+
+                // attack
+                const damage = unitConfig[unit.type].damage;
+                target!.setHitpoints(target!.hitpoints - damage);
+                if (target!.isAlive && UnitUtils.isWorker(target!)) {
+                    const worker = target as ICharacterUnit;
+                    if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
+                        const meleeState = target!.fsm.getState(MeleeDefendState) ?? target!.fsm.switchState(MeleeDefendState);
+                        meleeState.startAttack(target as ICharacterUnit, unit);
                     }
                 }
             }
@@ -124,6 +133,8 @@ export class NPCState extends State<ICharacterUnit> {
     private startAttack(unit: ICharacterUnit) {
         unitMotion.endMotion(unit);
         this._step = NpcStep.Attack;
+        this._loopConsumed = false;
+        this._attackIndex = 0;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
         unit.isIdle = false;
     }

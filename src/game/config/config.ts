@@ -41,6 +41,12 @@ export const config = {
             animSpeed: 1,
             shootEventTime: 1.52,
             damage: 10
+        },
+        melee: {
+            attackTimes: [
+                .95,
+                2
+            ]
         }
     },
     incubators: {
