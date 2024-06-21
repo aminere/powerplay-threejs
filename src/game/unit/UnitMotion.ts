@@ -48,7 +48,7 @@ function getBox3Helper(visual: Object3D) {
 // }
 
 function vectorsHaveSameDirection(v1: Vector3, v2: Vector3) {
-    return v1.dot(v2) >= 0;
+    return v1.dot(v2) >= .8;
 }
 
 function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoords: Vector2, bindSkeleton = true) {
@@ -280,22 +280,12 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
 
     if (unit.motionId > 0) {
         if (neighbor.motionId === 0) {
-            if (UnitUtils.isVehicle(neighbor)) {
-                if (neighbor.isIdle) {
-                    // vehicles only detect neighboring vehicles
-                    // so when in contact with a unit, the vehicle collision response must be done here 
-                    // (from the unit collision handler)
-                    avoidMovingNeighbor(neighbor, unit, .2);
-                } else {
-                    slideAlongNeighbor(unit, neighbor);
-                }
+            if (neighbor.isIdle) {
+                // no need to do anything, the stationary neighbor will move itself
             } else {
-                if (neighbor.isIdle) {
-                    // no need to do anything, the stationary neighbor will move itself
-                } else {
-                    slideAlongNeighbor(unit, neighbor);
-                }
+                slideAlongNeighbor(unit, neighbor);
             }
+
         } else {
             if (isMovingTowards(unit, neighbor)) {
                 if (isMovingTowards(neighbor, unit)) {
@@ -456,14 +446,15 @@ export class UnitMotion {
             const neighbors = (() => {
                 if (UnitUtils.isVehicle(unit)) {
                     const truck = unit as IVehicleUnit;
-                    const neighbors2x2 = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
-                    return neighbors2x2;
+                    const vehicleNeighbors = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
+                    const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
+                    return _neighbors.concat(vehicleNeighbors);
                 } else {
                     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
                     const { x, y } = unit.coords.mapCoords;
                     const mapCoords2x2 = cellCoords.set(Math.floor(x / cellsPerVehicleCell), Math.floor(y / cellsPerVehicleCell));
-                    const neighbors2x2 = getCellUnits2x2(mapCoords2x2, 1);
-                    return _neighbors.concat(neighbors2x2);
+                    const vehicleNeighbors = getCellUnits2x2(mapCoords2x2, 1);
+                    return _neighbors.concat(vehicleNeighbors);
                 }
             })();
 

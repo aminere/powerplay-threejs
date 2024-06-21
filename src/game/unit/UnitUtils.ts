@@ -123,12 +123,18 @@ export class UnitUtils {
             const closestAngle = unit.angle + mathUtils.deltaAngle(unit.angle, angle);
             unit.angle = mathUtils.smoothDampAngle(unit.angle, closestAngle, halfDuration, time.deltaTime);            
             if (UnitUtils.isVehicle(unit)) {
-                forward.set(Math.sin(unit.angle), 0, Math.cos(unit.angle));
                 const vehicle = unit as IVehicleUnit;
-                const right = forward.cross(vehicle.normal);
-                surfaceForward.crossVectors(vehicle.normal, right);
-                quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, surfaceForward.negate(), vehicle.normal));
-                unit.visual.quaternion.slerp(quaternion, .1);
+                if (vehicle.normal.y < 1) {
+                    forward.set(Math.sin(unit.angle), 0, Math.cos(unit.angle));
+                    const right = forward.cross(vehicle.normal);
+                    surfaceForward.crossVectors(vehicle.normal, right);
+                    quaternion.setFromRotationMatrix(matrix.lookAt(GameUtils.vec3.zero, surfaceForward.negate(), vehicle.normal));
+                    mathUtils.smoothDampQuat(unit.visual.quaternion, quaternion, .05, time.deltaTime);
+                } else {
+                    // moving on flat surface, keep it simple
+                    quaternion.setFromAxisAngle(GameUtils.vec3.up, unit.angle);
+                    mathUtils.smoothDampQuat(unit.visual.quaternion, quaternion, .01, time.deltaTime);
+                }
             } else {
                 unit.visual.quaternion.setFromAxisAngle(GameUtils.vec3.up, unit.angle);
             }

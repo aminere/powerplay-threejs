@@ -18,7 +18,7 @@ import { conveyorItems } from "../ConveyorItems";
 import { trees } from "../Trees";
 import { railFactory } from "../RailFactory";
 import { fogOfWar } from "../FogOfWar";
-import { cmdFogAddCircle, cmdRenderUI, cmdShowUI } from "../../Events";
+import { cmdRenderUI, cmdShowUI } from "../../Events";
 import { engine } from "../../engine/Engine";
 import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
@@ -54,7 +54,7 @@ export class GameMapLoaderProps extends ComponentProps {
     }
 }
 
-const { mapRes, cellSize } = config.game;
+const { mapRes } = config.game;
 function calcLocalCoords(cellIndex: number, localCoordsOut: Vector2) {
     const cellY = Math.floor(cellIndex / mapRes);
     const cellX = cellIndex - cellY * mapRes;
