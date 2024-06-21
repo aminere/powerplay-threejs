@@ -23,7 +23,7 @@ import { buildingConfig } from "../config/BuildingConfig";
 import { MiningState } from "./states/MiningState";
 import { buildings } from "../buildings/Buildings";
 import { conveyors } from "../Conveyors";
-import { IUnit } from "./IUnit";
+import { IUnit, UnitState } from "./IUnit";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
@@ -76,6 +76,8 @@ function showSelectionLines(_minCell: Vector2, _maxCell: Vector2) {
     selectedElem.setPoints([c1, c2, c3, c4, c1.clone()]);
     selectedElem.visible = true;
 }
+
+const unitsToRemove = new Array<IUnit>();
 
 class UnitsManager {
 
@@ -130,8 +132,12 @@ class UnitsManager {
         for (const unit of this._units) {
             unit.dispose();
         }
+        for (const unit of this._unitsToKill) {
+            unit.dispose();
+        }
 
         this._units.length = 0;
+        this._unitsToKill.length = 0;
         this._selectedUnits.length = 0;
         this._dragStarted = false;
         this._spawnUnitRequest = null;
@@ -156,11 +162,30 @@ class UnitsManager {
         
         if (this._unitsToKill.length > 0) {
             for (const unit of this._unitsToKill) {
-                const index = this._units.indexOf(unit);
-                console.assert(index >= 0, `unit ${unit.type} not found`);
-                utils.fastDelete(this._units, index);
+                switch (unit.state) {
+                    case UnitState.Dying: {
+                        const index = this._units.indexOf(unit);
+                        console.assert(index >= 0, `unit ${unit.type} not found`);
+                        utils.fastDelete(this._units, index);
+                        unit.state = UnitState.DyingAnim;
+                    }
+                    break;
+
+                    case UnitState.Dead: {
+                        unitsToRemove.push(unit);
+                    }
+                    break;
+                }                
+            }      
+            
+            if (unitsToRemove.length > 0) {
+                for (const unit of unitsToRemove) {
+                    const index = this._unitsToKill.indexOf(unit);
+                    console.assert(index >= 0, `unit ${unit.type} not found in units to kill`);
+                    utils.fastDelete(this._unitsToKill, index);
+                }
+                unitsToRemove.length = 0;
             }
-            this._unitsToKill.length = 0;
         }
 
         for (const unit of this._units) {

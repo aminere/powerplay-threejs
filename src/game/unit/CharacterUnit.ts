@@ -22,14 +22,14 @@ import { Factories } from "../buildings/Factories";
 import { Incubators } from "../buildings/Incubators";
 import { MiningState } from "./states/MiningState";
 import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit";
-import { IUnit } from "./IUnit";
+import { IUnit, UnitState } from "./IUnit";
 import { GameUtils } from "../GameUtils";
 import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
-import gsap from "gsap";
 import { objects } from "../../engine/resources/Objects";
 import { unitConfig } from "../config/UnitConfig";
+import gsap from "gsap";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -84,6 +84,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     private _skinnedMesh: SkinnedMesh;
     private _resource: ICarriedResource | null = null;
     private _targetBuilding: Vector2 | null = null;
+    private _timeline: gsap.core.Timeline | null = null;
 
     constructor(props: ICharacterUnitProps) {
         super({ ...props, boundingBox: props.visual.boundingBox });
@@ -112,7 +113,7 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
         });
 
         const fadeDuration = 1;
-        gsap.timeline()
+        this._timeline = gsap.timeline()
             .to({}, { duration: 2 })
             .to({}, {
                 duration: fadeDuration,
@@ -120,6 +121,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                     engineState.setComponent(this.visual, new Fadeout({ duration: fadeDuration }));
                 },
                 onComplete: () => {
+                    this._timeline = null;
+                    this._state = UnitState.Dead;                    
                     skeletonPool.releaseSkeleton(this);
                     engineState.removeObject(this.visual);
                     if (!UnitUtils.isEnemy(this)) {
@@ -331,6 +334,15 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             unitMotion.endMotion(this);
             this.onArrived();
         }
+    }
+
+    public override dispose() {
+        if (this._timeline) {
+            this._timeline.kill();
+            this._timeline = null;
+        
+        }
+        super.dispose();
     }
 }
 

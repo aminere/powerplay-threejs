@@ -9,6 +9,13 @@ export interface IUnitFlowfieldInfo {
     sectorCoords: Vector2;
 }
 
+export enum UnitState {
+    Alive,
+    Dying,
+    DyingAnim,
+    Dead
+}
+
 export interface IUnit {
     velocity: Vector3;
     acceleration: Vector3;
@@ -23,8 +30,9 @@ export interface IUnit {
     motionTime: number;
     lastCompletedMotionCommandId: number;
     collidingWith: IUnit[];
-    isAlive: boolean;
+    isAlive: boolean;    
     isIdle: boolean;
+    state: UnitState;
     collidable: boolean;
     type: UnitType;
     fsm: StateMachine<IUnit>;

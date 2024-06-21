@@ -1,7 +1,7 @@
 import { Mesh, Object3D, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
-import { IUnit } from "./IUnit";
+import { IUnit, UnitState } from "./IUnit";
 import { IUnitProps, Unit } from "./Unit";
 import { IUnitAddr, computeUnitAddr2x2, makeUnitAddr } from "./UnitAddr";
 import { engineState } from "../../engine/EngineState";
@@ -86,14 +86,16 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
             duration: fadeDuration,
             keepShadows: true
         }));
-        engineState.setComponent(chunks, new AutoDestroy({ delay: 1.5 }));
+        engineState.setComponent(chunks, new AutoDestroy({ delay: 1.5 }));        
 
-        if (!UnitUtils.isEnemy(this)) {
-            utils.postpone(fadeDuration, () => {
+        this._tween = utils.postpone(fadeDuration, () => {
+            this._tween = null;
+            this._state = UnitState.Dead;
+            if (!UnitUtils.isEnemy(this)) {
                 const { range } = unitConfig[this.type];
                 cmdFogRemoveCircle.post({ mapCoords: this.coords.mapCoords, radius: range.vision });
-            });
-        }
+            }
+        });
     }
 }
 
