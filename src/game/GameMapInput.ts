@@ -17,8 +17,8 @@ import { getCellFromAddr } from "./unit/UnitAddr";
 import { MeleeAttackState } from "./unit/states/MeleeAttackState";
 import { buildingConfig } from "./config/BuildingConfig";
 import gsap from "gsap";
-import { TankState } from "./unit/states/TankState";
 import { unitMotion } from "./unit/UnitMotion";
+import { TankAttackUnit } from "./unit/states/TankAttackUnit";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -539,16 +539,18 @@ class GameMapInput {
                                     evtMoveCommand.post(targetEnemy.coords.mapCoords);
 
                                     for (const _unit of units) {
-                                        if (UnitUtils.isWorker(_unit)) {
-                                            const attack = _unit.fsm.switchState(MeleeAttackState);
-                                            attack.attackTarget(targetEnemy);
-                                            continue;
-                                        }
-                                        
-                                        const tankState = _unit.fsm.getState(TankState);
-                                        if (tankState) {
-                                            tankState.followTarget(targetEnemy);
-                                            continue;
+                                        switch (_unit.type) {
+                                            case "worker": {
+                                                const attack = _unit.fsm.getState(MeleeAttackState) ?? _unit.fsm.switchState(MeleeAttackState);
+                                                attack.setTarget(targetEnemy);                                            
+                                            }
+                                            break;
+
+                                            case "tank": {
+                                                const attack = _unit.fsm.getState(TankAttackUnit) ?? _unit.fsm.switchState(TankAttackUnit);
+                                                attack.setTarget(targetEnemy);
+                                            }
+                                            break;
                                         }
                                     }
 

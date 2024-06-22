@@ -5,24 +5,27 @@ import { unitConfig } from "../../config/UnitConfig";
 import { State } from "../../fsm/StateMachine";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { IUnit } from "../IUnit";
-import { spiralFind } from "../UnitSearch";
+import { UnitSearch } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { AttackBuilding } from "./AttackBuilding";
 import { AttackUnit } from "./AttackUnit";
 
 export class IdleEnemy extends State<ICharacterUnit> {
 
+    private _search = new UnitSearch();
+
     override update(unit: IUnit) {
         const { buildings } = GameMapState.instance;
         const { sectorCoords, mapCoords } = unit.coords;
         const { vision } = unitConfig[unit.type].range;        
         
-        const targetUnit = spiralFind(unit, vision, target => !UnitUtils.isEnemy(target));
+        const targetUnit = this._search.find(unit, vision, target => !UnitUtils.isEnemy(target));
         if (targetUnit) {
             const attack = unit.fsm.switchState(AttackUnit);
-            attack.setTarget(targetUnit); 
-            return;                      
-        }        
+            attack.setTarget(targetUnit);
+            this._search.reset();
+            return;
+        }
 
         const minX = mapCoords.x - vision;
         const minY = mapCoords.y - vision;

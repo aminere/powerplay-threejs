@@ -96,7 +96,6 @@ export class AttackUnit extends State<ICharacterUnit> {
 
     public setTarget(target: IUnit) {
         if (this._target?.isAlive) {
-            // already have a target
             return;
         }
         this._target = target;

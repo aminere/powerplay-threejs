@@ -15,7 +15,6 @@ import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
 import { SoldierState } from "./states/SoldierState";
 import { UnitUtils } from "./UnitUtils";
-import { TankState } from "./states/TankState";
 import { Workers } from "./Workers";
 import { TruckState } from "./states/TruckState";
 import { buildingConfig } from "../config/BuildingConfig";
@@ -26,12 +25,14 @@ import { IUnit, UnitState } from "./IUnit";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
-import { VehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
 import { AttackBuilding } from "./states/AttackBuilding";
 import { EnemyCharacter } from "./EnemyCharacter";
 import { IdleEnemy } from "./states/IdleEnemy";
 import { AttackUnit } from "./states/AttackUnit";
+import { TankAttackUnit } from "./states/TankAttackUnit";
+import { IdleTank } from "./states/IdleTank";
+import { TankUnit } from "./TankUnit";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -219,11 +220,11 @@ class UnitsManager {
                     visual.receiveShadow = true;
                     GameUtils.mapToWorld(mapCoords, visual.position);
                     const boundingBox = getBoundingBox(visual);
-                    const unit = new VehicleUnit({ visual, boundingBox, type, states: [new TankState()]});                
+                    const unit = new TankUnit({ visual, boundingBox, type, states: [new IdleTank(), new TankAttackUnit()]});                
                     this._units.push(unit);
                     visual.scale.multiplyScalar(tankScale);
                     this._owner.add(visual);
-                    unit.fsm.switchState(TankState);
+                    unit.fsm.switchState(IdleTank);
     
                     const box3Helper = new Box3Helper(boundingBox);                
                     visual.add(box3Helper);

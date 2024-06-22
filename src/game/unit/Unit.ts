@@ -9,7 +9,6 @@ import { ICell } from "../GameTypes";
 import { UnitType } from "../GameDefinitions";
 import { utils } from "../../engine/Utils";
 import { UnitUtils } from "./UnitUtils";
-import { TankState } from "./states/TankState";
 import { unitMotion } from "./UnitMotion";
 import { unitConfig } from "../config/UnitConfig";
 import { IUnit, IUnitFlowfieldInfo, UnitState } from "./IUnit";
@@ -165,12 +164,7 @@ export class Unit implements IUnit {
     }
 
     public onMove(_bindSkeleton: boolean) { }
-    public clearAction() {
-        const tankState = this.fsm.getState(TankState);
-        if (tankState) {
-            tankState.stopAttack(this);
-        }
-    }
+    public clearAction() { }
     public onArrived() { }
     public onArriving() { }
     public onColliding() { }
