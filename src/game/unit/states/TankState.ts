@@ -10,16 +10,16 @@ import { mathUtils } from "../../MathUtils";
 import { utils } from "../../../engine/Utils";
 import { objects } from "../../../engine/resources/Objects";
 import { engineState } from "../../../engine/EngineState";
-import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitMotion } from "../UnitMotion";
 import { AutoDestroy } from "../../components/AutoDestroy";
-import gsap from "gsap";
 import { GameMapState } from "../../components/GameMapState";
 import { Rocket } from "../../components/Rocket";
 import { MeleeAttackState } from "./MeleeAttackState";
 import { IVehicleUnit } from "../VehicleUnit";
 import { unitConfig } from "../../config/UnitConfig";
+import gsap from "gsap";
+import { AttackUnit } from "./AttackUnit";
 
 const attackDelay = .8;
 const attackFrequency = 1;
@@ -171,9 +171,8 @@ export class TankState extends State<IVehicleUnit> {
                         case "enemy-melee": {
                             const enemy = target as ICharacterUnit;
                             if (enemy.isIdle && enemy.motionId === 0) {
-                                const npcState = enemy!.fsm.getState(NPCState);
-                                console.assert(npcState);
-                                npcState?.attackTarget(enemy, unit);
+                                const attack = enemy!.fsm.getState(AttackUnit) ?? enemy!.fsm.switchState(AttackUnit);
+                                attack.setTarget(unit);
                             }
                         }
                         break;

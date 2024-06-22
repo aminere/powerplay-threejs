@@ -8,77 +8,43 @@ import { unitAnimation } from "../UnitAnimation";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { Vector2 } from "three";
 import { config } from "../../config/config";
-import { GameMapState } from "../../components/GameMapState";
 import { unitConfig } from "../../config/UnitConfig";
 import { buildings } from "../../buildings/Buildings";
+import { IdleEnemy } from "./IdleEnemy";
 
-enum AttackBuildingStep {
+enum AttackStep {
     Idle,
-    GoToBuilding,
+    Approach,
     Attack
 }
 
 const mapCoords = new Vector2();
 const { attackTimes } = config.combat.melee;
 
-export class AttackBuildingState extends State<IUnit> {
+export class AttackBuilding extends State<IUnit> {
 
     private _target: IBuildingInstance | null = null;
-    private _step = AttackBuildingStep.Idle;
+    private _step = AttackStep.Idle;
     private _loopConsumed = false;
-    private _attackIndex = 0;
-
-    override enter(_unit: IUnit) {
-        console.log("AttackBuildingState enter");
-    }
-    
-    override exit(_unit: IUnit) {
-        console.log("AttackBuildingState exit");
-    }
+    private _attackIndex = 0;   
 
     override update(unit: ICharacterUnit) {
         
         const target = this._target;
-        if (!target) {
-            const { buildings } = GameMapState.instance;
-            const { sectorCoords, mapCoords } = unit.coords;
-            const vision = 4;
-            const minX = mapCoords.x - vision;
-            const minY = mapCoords.y - vision;
-            const maxX = mapCoords.x + vision;
-            const maxY = mapCoords.y + vision;
-            for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
-                const sectorX = sectorCoords.x + dx;
-                const sectorY = sectorCoords.y + dy;
-                const sectorId = `${sectorX},${sectorY}`;
-                const list = buildings.get(sectorId);
-                if (!list) {
-                    continue;
-                }
-                for (const building of list) {
-                    const { size } = buildingConfig[building.buildingType];
-                    const startX = building.mapCoords.x;
-                    const startY = building.mapCoords.y;
-                    const endX = startX + size.x - 1;
-                    const endY = startY + size.z - 1;
-                    if (endX < minX || startX > maxX || endY < minY || startY > maxY) {
-                        continue;
-                    }
-                    this._target = building;
-                    break;
-                }
+        if (!target || target.deleted) {
+            if (unit.motionId > 0) {
+                unitMotion.endMotion(unit);
             }
-            return;
-        }
-
-        if (target.deleted) {
+            unit.isIdle = true;
+            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
+            this._step = AttackStep.Idle;
             this._target = null;
-            this._step = AttackBuildingStep.Idle;
+            unit.fsm.switchState(IdleEnemy);
             return;
         }
 
         switch (this._step) {
-            case AttackBuildingStep.Idle: {
+            case AttackStep.Idle: {
                 // move to center of building
                 const { size } = buildingConfig[target.buildingType];
                 mapCoords.set(
@@ -87,11 +53,11 @@ export class AttackBuildingState extends State<IUnit> {
                 );
                 unitMotion.moveUnit(unit, mapCoords, false);
                 unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
-                this._step = AttackBuildingStep.GoToBuilding;
+                this._step = AttackStep.Approach;
             }
                 break;
 
-            case AttackBuildingStep.Attack: {
+            case AttackStep.Attack: {
                 if (this._loopConsumed) {
                     if (unit.animation.action.time < attackTimes[0]) {
                         this._loopConsumed = false;
@@ -114,11 +80,7 @@ export class AttackBuildingState extends State<IUnit> {
                 if (target.hitpoints <= 0) {
                     target.hitpoints = 0;
                     buildings.clear(target);
-
                     this._target = null;
-                    this._step = AttackBuildingStep.Idle;
-                    unit.isIdle = true;
-                    unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
                 }
             }
             break;
@@ -126,14 +88,19 @@ export class AttackBuildingState extends State<IUnit> {
     }
 
     public startAttack(unit: ICharacterUnit) {
-        if (this._step === AttackBuildingStep.Attack) {
+        if (this._step === AttackStep.Attack) {
+            console.assert(false);
             return;
         }
-        this._step = AttackBuildingStep.Attack;
+        this._step = AttackStep.Attack;
         unit.isIdle = false;
         this._loopConsumed = false;
         this._attackIndex = 0;
         unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
+    }
+
+    public setTarget(target: IBuildingInstance) {
+        this._target = target;
     }
 }
 

@@ -11,7 +11,6 @@ import { config } from "../config/config";
 import { UnitType } from "../GameDefinitions";
 import { meshes } from "../../engine/resources/Meshes";
 import { CharacterUnit } from "./CharacterUnit";
-import { NPCState } from "./states/NPCState";
 import { TruckUnit } from "./TruckUnit";
 import { unitMotion } from "./UnitMotion";
 import { SoldierState } from "./states/SoldierState";
@@ -29,18 +28,15 @@ import { MeleeDefendState } from "./states/MeleeDefendState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { VehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
-import { engineState } from "../../engine/EngineState";
-import { Fadeout } from "../components/Fadeout";
-import { AutoDestroy } from "../components/AutoDestroy";
-import { objects } from "../../engine/resources/Objects";
-import { AttackBuildingState } from "./states/AttackBuildingState";
+import { AttackBuilding } from "./states/AttackBuilding";
 import { EnemyCharacter } from "./EnemyCharacter";
+import { IdleEnemy } from "./states/IdleEnemy";
+import { AttackUnit } from "./states/AttackUnit";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
 const minCell = new Vector2();
 const maxCell = new Vector2();
-const sectorCoords = new Vector2();
 const { unitScale, truckScale, tankScale, cellSize } = config.game;
 
 function getBoundingBox(mesh: Mesh) {
@@ -254,7 +250,7 @@ class UnitsManager {
                                 visual: skinnedMesh,
                                 type,
                                 animation: skeletonManager.applyIdleAnim(skinnedMesh),
-                                states: [new NPCState(), new AttackBuildingState()],                                
+                                states: [new IdleEnemy(), new AttackUnit(), new AttackBuilding()],                                
                             });
                         }
                         
@@ -287,7 +283,7 @@ class UnitsManager {
         if (UnitUtils.isEnemy(unit)) {
             switch (type) {
                 case "enemy-melee":
-                    unit.fsm.switchState(AttackBuildingState);
+                    unit.fsm.switchState(IdleEnemy);
                     break;
             }
         } else {

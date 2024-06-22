@@ -5,10 +5,10 @@ import { IUnit } from "../IUnit";
 import { UnitUtils } from "../UnitUtils";
 import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
-import { NPCState } from "./NPCState";
 import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
 import { SoldierState } from "./SoldierState";
+import { AttackUnit } from "./AttackUnit";
 
 const { separations } = config.steering;
 const { attackTimes} = config.combat.melee;
@@ -115,9 +115,9 @@ export class MeleeAttackState extends State<ICharacterUnit> {
                 this.startAttack(unit);
             } else {
                 (() => {
-                    const npcState = target.fsm.getState(NPCState);
-                    if (npcState) {
-                        if (npcState.target === unit) {
+                    const attack = target.fsm.getState(AttackUnit);
+                    if (attack) {
+                        if (attack.target === unit) {
                             // avoid orbiting into each other
                             this.endAttack(unit);
                             return;

@@ -23,12 +23,12 @@ import { MiningState } from "./states/MiningState";
 import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit";
 import { IUnit, UnitState } from "./IUnit";
 import { GameUtils } from "../GameUtils";
-import { NPCState } from "./states/NPCState";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
 import { objects } from "../../engine/resources/Objects";
 import { unitConfig } from "../config/UnitConfig";
 import gsap from "gsap";
+import { AttackUnit } from "./states/AttackUnit";
 
 export class CharacterUnit extends Unit implements ICharacterUnit {
     public get animation() { return this._animation; }
@@ -178,11 +178,12 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
             }
         }
 
-        const npcState = this.fsm.getState(NPCState);
-        if (npcState) {
-            npcState.onColliding(this);
+        const attack = this.fsm.getState(AttackUnit);
+        if (attack) {
+            attack.onColliding(this);
             return;
         }
+        
         const meleeAttackState = this.fsm.getState(MeleeAttackState);
         if (meleeAttackState) {
             meleeAttackState.onColliding(this);

@@ -13,12 +13,12 @@ import { utils } from "../../engine/Utils";
 import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./IUnit";
 import { UnitUtils } from "./UnitUtils";
-import { NPCState } from "./states/NPCState";
 import { ICharacterUnit } from "./ICharacterUnit";
 import { MeleeAttackState } from "./states/MeleeAttackState";
 import { IVehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
 import { FlowfieldUtils } from "../pathfinding/FlowfieldUtils";
+import { AttackUnit } from "./states/AttackUnit";
 
 const cellDirection = new Vector2();
 
@@ -595,9 +595,9 @@ export class UnitMotion {
                     })();
                     if (reachedTarget) {
                         (() => {
-                            const npcState = unit.fsm.getState(NPCState);
-                            if (npcState) {
-                                npcState.onReachedTarget(unit as ICharacterUnit);
+                            const attack = unit.fsm.getState(AttackUnit);
+                            if (attack) {
+                                attack.onReachedTarget(unit as ICharacterUnit);
                                 return;
                             }
 

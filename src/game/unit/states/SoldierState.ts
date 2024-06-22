@@ -10,8 +10,8 @@ import { GameMapState } from "../../components/GameMapState";
 import { objects } from "../../../engine/resources/Objects";
 import { utils } from "../../../engine/Utils";
 import { GameUtils } from "../../GameUtils";
-import { NPCState } from "./NPCState";
 import { Rocket } from "../../components/Rocket";
+import { AttackUnit } from "./AttackUnit";
 
 const { unitScale } = config.game;
 const headOffset = unitScale;
@@ -89,9 +89,8 @@ export class SoldierState extends State<ICharacterUnit> {
         this._loopConsumed = true;        
         const enemy = target as ICharacterUnit;
         if (enemy.isIdle && enemy.motionId === 0) {
-            const npcState = enemy!.fsm.getState(NPCState);
-            console.assert(npcState);
-            npcState?.attackTarget(enemy, unit);
+            const attack = enemy!.fsm.getState(AttackUnit) ?? enemy!.fsm.switchState(AttackUnit);
+            attack.setTarget(unit);
         }
 
         switch (weaponType) {
