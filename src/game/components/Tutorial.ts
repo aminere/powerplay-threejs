@@ -229,9 +229,9 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 this.state.step = MissionStep.DepositStone;
                 const resource = (unit as CharacterUnit)!.resource!.type;
                 console.assert(resource === "stone");
-                const { depotsCache } = GameMapState.instance;
-                const depots = Array.from(depotsCache.values());
-                const depot = depots[0][0];
+                const { buildings } = GameMapState.instance;
+                const instances = Array.from(buildings.values());
+                const depot = instances[0].find(b => b.buildingType === "depot")!;
                 cmdSetIndicator.post({
                     indicator: {
                         type: "building",
@@ -695,8 +695,8 @@ export class Tutorial extends Component<ComponentProps, TutorialState> {
                 GameMapState.instance.config.bottomPanels.inputEnabled = false;
 
                 // for demo disable auto ouput so glass remains in the depot
-                const { depotsCache } = GameMapState.instance;
-                const depot = Array.from(depotsCache.values())[0][0];
+                const { buildings } = GameMapState.instance;
+                const depot = Array.from(buildings.values())[0].find(b => b.buildingType === "depot")!;
                 const depotState = depot.state as IDepotState;
                 depotState.autoOutput = false;
             }

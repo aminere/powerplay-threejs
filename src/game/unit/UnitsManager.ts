@@ -34,6 +34,7 @@ import { Fadeout } from "../components/Fadeout";
 import { AutoDestroy } from "../components/AutoDestroy";
 import { objects } from "../../engine/resources/Objects";
 import { AttackBuildingState } from "./states/AttackBuildingState";
+import { EnemyCharacter } from "./EnemyCharacter";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -247,23 +248,29 @@ class UnitsManager {
                     skinnedMesh.userData.unserializable = true;
                     GameUtils.mapToWorld(mapCoords, skinnedMesh.position);
     
-                    const unit = new CharacterUnit({ 
-                        visual: skinnedMesh,
-                        type, 
-                        states: (() => {
-                            switch (type) {
-                                case "worker": return [
-                                    new MiningState(), 
-                                    new SoldierState(),
-                                    new MeleeDefendState(), 
-                                    new MeleeAttackState()
-                                ];
-                                case "enemy-melee": return [new NPCState(), new AttackBuildingState()]
-                                default: return [];
-                            }
-                        })(),
-                        animation: skeletonManager.applyIdleAnim(skinnedMesh)
-                    });
+                    const unit = (() => {
+                        if (type.startsWith("enemy")) {
+                            return new EnemyCharacter({ 
+                                visual: skinnedMesh,
+                                type,
+                                animation: skeletonManager.applyIdleAnim(skinnedMesh),
+                                states: [new NPCState(), new AttackBuildingState()],                                
+                            });
+                        }
+                        
+                        return new CharacterUnit({ 
+                            visual: skinnedMesh,
+                            type,
+                            animation: skeletonManager.applyIdleAnim(skinnedMesh),
+                            states: [
+                                new MiningState(), 
+                                new SoldierState(),
+                                new MeleeDefendState(), 
+                                new MeleeAttackState()
+                            ]                            
+                        });
+                    })();                   
+
                     this._units.push(unit);
                     this._owner.add(skinnedMesh);                
     
@@ -296,31 +303,7 @@ class UnitsManager {
 
         switch (this._selection.type) {
             case "building": {
-                const building = this._selection.building;
-
-                GameUtils.getCell(building.mapCoords, sectorCoords);
-                const sector = GameUtils.getSector(sectorCoords)!;
-                const mesh = building.visual.getObjectByProperty("isMesh", true) as Mesh;
-                const shadow = new Mesh(mesh.geometry, mesh.material);
-                mesh.getWorldPosition(shadow.position);
-                engineState.setComponent(shadow, new Fadeout({
-                    duration: .5,
-                    keepShadows: true
-                }));
-                engineState.setComponent(shadow, new AutoDestroy({ delay: .5 }));
-
-                const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
-                const explosion = utils.instantiate(_explosion);                
-                explosion.position.copy(shadow.position).setY(2);
-                const { size } = buildingConfig[building.buildingType];
-                explosion.position.x += size.x / 2 * cellSize;
-                explosion.position.z += size.z / 2 * cellSize;
-                explosion.scale.multiplyScalar(2);
-                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
-
-                sector.layers.fx.attach(shadow);
-                sector.layers.fx.attach(explosion);
-                
+                const building = this._selection.building;                
                 buildings.clear(building);
             }
             break;

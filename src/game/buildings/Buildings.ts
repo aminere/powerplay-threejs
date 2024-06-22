@@ -15,6 +15,9 @@ import { Assemblies } from "./Assemblies";
 import { elevation } from "../Elevation";
 import { objects } from "../../engine/resources/Objects";
 import { InstancedParticles } from "../../engine/components/particles/InstancedParticles";
+import { engineState } from "../../engine/EngineState";
+import { Fadeout } from "../components/Fadeout";
+import { AutoDestroy } from "../components/AutoDestroy";
 
 const { cellSize, mapRes, cellsPerVehicleCell, elevationStep } = config.game;
 const vehicleMapRes = mapRes / cellsPerVehicleCell;
@@ -107,18 +110,7 @@ class Buildings {
             list.push(buildingInstance);        
         } else {
             buildings.set(sectorId, [buildingInstance]);        
-        }
-
-        if (buildingType === "depot") {
-            const { depotsCache } = GameMapState.instance;
-            const sectorId = `${_sectorCoords.x},${_sectorCoords.y}`;
-            const list = depotsCache.get(sectorId);
-            if (list) {
-                list.push(buildingInstance);
-            } else {
-                depotsCache.set(sectorId, [buildingInstance]);
-            }
-        }
+        }        
         
         let maxY = 0;
         for (let i = 0; i < size.z; i++) {
@@ -192,17 +184,41 @@ class Buildings {
     public clear(instance: IBuildingInstance) {
         const { buildings } = GameMapState.instance;
 
-        GameUtils.getCell(instance.mapCoords, sectorCoords)
+        GameUtils.getCell(instance.mapCoords, sectorCoords);
+        const sector = GameUtils.getSector(sectorCoords)!;
+        const mesh = instance.visual.getObjectByProperty("isMesh", true) as Mesh;
+        const shadow = new Mesh(mesh.geometry, mesh.material);
+        mesh.getWorldPosition(shadow.position);
+        engineState.setComponent(shadow, new Fadeout({
+            duration: .5,
+            keepShadows: true
+        }));
+        engineState.setComponent(shadow, new AutoDestroy({ delay: .5 }));
+
+        const _explosion = objects.loadImmediate("/prefabs/explosion.json")!;
+        const explosion = utils.instantiate(_explosion);                
+        explosion.position.copy(shadow.position).setY(2);
+        const { size } = buildingConfig[instance.buildingType];
+        explosion.position.x += size.x / 2 * cellSize;
+        explosion.position.z += size.z / 2 * cellSize;
+        explosion.scale.multiplyScalar(2);
+        engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
+
+        sector.layers.fx.attach(shadow);
+        sector.layers.fx.attach(explosion);
+
         const sectorId = `${sectorCoords.x},${sectorCoords.y}`;
         const list = buildings.get(sectorId)!;
         const index = list.indexOf(instance);
         console.assert(index >= 0, `building ${instance.id} not found in sector ${sectorId}`);
         utils.fastDelete(list, index);
+        if (list.length === 0) {
+            buildings.delete(sectorId);
+        }
         instance.deleted = true;
         instance.visual.removeFromParent();
 
         const buildingType = instance.buildingType;
-        const size = buildingConfig[buildingType].size;
         for (let i = 0; i < size.z; i++) {
             for (let j = 0; j < size.x; j++) {
                 cellCoords.set(instance.mapCoords.x + j, instance.mapCoords.y + i);
@@ -230,18 +246,6 @@ class Buildings {
                 }
             }
                 break;
-
-            case "depot": {
-                // remove from the depot cache
-                const { depotsCache } = GameMapState.instance;
-                const list = depotsCache.get(sectorId)!;
-                const index = list.findIndex(item => item === instance);
-                utils.fastDelete(list, index);
-                if (list.length === 0) {
-                    depotsCache.delete(sectorId);
-                }
-            }
-            break;
         }
 
         cellCoords.set(instance.mapCoords.x + Math.round(size.x / 2), instance.mapCoords.y + Math.round(size.z / 2));

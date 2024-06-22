@@ -249,23 +249,26 @@ class Depots {
         const maxX = cellCoords.x + size.x - 1;
         const minY = cellCoords.y;
         const maxY = cellCoords.y + size.z - 1;
-        const { depotsCache } = GameMapState.instance;
+        const { buildings } = GameMapState.instance;
         for (const [dx, dy] of [[0, 0], [-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
             neighborSectorCoords.set(_sectorCoords.x + dx, _sectorCoords.y + dy);
             const sectorId = `${neighborSectorCoords.x},${neighborSectorCoords.y}`;
-            const list = depotsCache.get(sectorId);
+            const list = buildings.get(sectorId);
             if (!list) {
                 continue;
             }
-            for (const depot of list) {
-                const startX = depot.mapCoords.x - range;
-                const startY = depot.mapCoords.y - range;
+            for (const building of list) {
+                if (building.buildingType !== "depot") {
+                    continue;
+                }
+                const startX = building.mapCoords.x - range;
+                const startY = building.mapCoords.y - range;
                 const endX = startX + range * 2 + depotSize.x - 1;
                 const endY = startY + range * 2 + depotSize.z - 1;
                 if (endX < minX || startX > maxX || endY < minY || startY > maxY) {
                     continue;
                 }
-                depots.push(depot);
+                depots.push(building);
             }
         }
         return depots;
@@ -273,9 +276,9 @@ class Depots {
 
     public testDepots(depots: IBuildingInstance[], buildingType: BuildableType, showError = true) {
 
-        const { depotsCache } = GameMapState.instance;
+        const { buildings } = GameMapState.instance;
         if (buildingType === "depot") {            
-            if (depotsCache.size === 0) {
+            if (buildings.size === 0) {
                 //first depot is free
                 return true;
             }
@@ -391,12 +394,15 @@ class Depots {
         this._highlighted = highlight;
         const { range } = config.depots;
         const { size: depotSize } = buildingConfig.depot;
-        const { depotsCache } = GameMapState.instance;
-        for (const [sectorId, depots] of depotsCache) {
-            const [sectorX, sectorY] = sectorId.split(",").map(Number);
-            sectorCoords.set(sectorX, sectorY);
-            for (const depot of depots) {
-                minCell.set(depot.mapCoords.x - range, depot.mapCoords.y - range);
+        const { buildings } = GameMapState.instance;
+        for (const [sectorId, instances] of buildings) {
+            for (const building of instances) {
+                if (building.buildingType !== "depot") {
+                    continue;
+                }
+                const [sectorX, sectorY] = sectorId.split(",").map(Number);
+                sectorCoords.set(sectorX, sectorY);
+                minCell.set(building.mapCoords.x - range, building.mapCoords.y - range);
                 maxCell.set(minCell.x + range * 2 + depotSize.x, minCell.y + range * 2 + depotSize.z);
                 for (let y = minCell.y; y < maxCell.y; y++) {
                     for (let x = minCell.x; x < maxCell.x; x++) {

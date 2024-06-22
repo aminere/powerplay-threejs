@@ -28,6 +28,7 @@ type TCellCache = {
 };
 
 const cellCache = new Map<string, TCellCache>();
+const rayCaster = new Raycaster();
 
 export class GameUtils {
 
@@ -39,7 +40,7 @@ export class GameUtils {
         one: new Vector3(1, 1, 1)
     };
 
-    public static rayCaster = new Raycaster();
+    public static get rayCaster() { return rayCaster; }
 
     public static worldToScreen(worldPos: Vector3, camera: Camera, screenPosOut: Vector3) {
         const { width, height } = engine.screenRect;
@@ -155,8 +156,8 @@ export class GameUtils {
     public static screenCastOnPlane(camera: Camera, screenPos: Vector2, yHeight: number, intersectionOut: Vector3) {
         const { width, height } = engine.screenRect;
         normalizedPos2d.set((screenPos.x / width) * 2 - 1, -(screenPos.y / height) * 2 + 1);
-        GameUtils.rayCaster.setFromCamera(normalizedPos2d, camera);
-        const { ray } = GameUtils.rayCaster;
+        rayCaster.setFromCamera(normalizedPos2d, camera);
+        const { ray } = rayCaster;
         const { up } = GameUtils.vec3;
         ground.set(up, -yHeight);        
         rayEnd.copy(ray.origin).addScaledVector(ray.direction, 999);
@@ -200,9 +201,11 @@ export class GameUtils {
         const heightB = MathUtils.lerp(height3, height4, xFactor);
         const height = MathUtils.lerp(heightA, heightB, localZ / cellSize) * elevationStep;
 
+        // determine which triangle to sample
         localCellPos.set(localX, 0, localZ);        
         const yDir = cellAxis.cross(localCellPos).y;
         if (yDir < 0) {
+            // define triangle in CCW order to get a normal pointing up
             triangle.a.set(position.getX(startVertexIndex), height1 * elevationStep, position.getZ(startVertexIndex));
             triangle.b.set(position.getX(startVertexIndex + verticesPerRow), height3 * elevationStep, position.getZ(startVertexIndex + verticesPerRow));
             triangle.c.set(position.getX(startVertexIndex + verticesPerRow + 1), height4 * elevationStep, position.getZ(startVertexIndex + verticesPerRow + 1));
