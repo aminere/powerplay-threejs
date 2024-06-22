@@ -58,6 +58,7 @@ export class TankAttackUnit extends State<ITankUnit> {
                 break;
 
             case AttackStep.Approach: {
+                unit.resetCannon();
                 if (!UnitUtils.isOutOfRange(unit, target!, range.attack - 1)) {
                     if (unit.motionId > 0) {
                         unitMotion.endMotion(unit);

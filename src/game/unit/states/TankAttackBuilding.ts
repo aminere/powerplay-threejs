@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { Vector2, Vector3, Vector4 } from "three";
 import { unitConfig } from "../../config/UnitConfig";
 import { State } from "../../fsm/StateMachine";
 import { ITankUnit } from "../TankUnit";
@@ -8,6 +8,7 @@ import { IVehicleUnit } from "../VehicleUnit";
 import { IdleTank } from "./IdleTank";
 import { time } from "../../../engine/core/Time";
 import { IBuildingInstance } from "../../buildings/BuildingTypes";
+import { GameUtils } from "../../GameUtils";
 
 enum AttackStep {
     Idle,
@@ -17,6 +18,9 @@ enum AttackStep {
 
 const attackDelay = .8;
 const attackFrequency = 1;
+const mapCoords = new Vector2();
+const worldPos = new Vector3();
+
 export class TankAttackBuilding extends State<ITankUnit> {
 
     private _target: IBuildingInstance | null = null;
@@ -49,6 +53,7 @@ export class TankAttackBuilding extends State<ITankUnit> {
                 break;
 
             case AttackStep.Approach: {
+                unit.resetCannon();
                 if (!UnitUtils.isBuildingOutOfRange(unit, target!, range.attack - 1)) {
                     if (unit.motionId > 0) {
                         unitMotion.endMotion(unit);
@@ -59,14 +64,16 @@ export class TankAttackBuilding extends State<ITankUnit> {
                 break;
 
             case AttackStep.Attack: {
-                unit.aimCannon(target.visual.position);                
+                UnitUtils.getBuildingCenter(target, mapCoords);
+                GameUtils.mapToWorld(mapCoords, worldPos);
+                unit.aimCannon(worldPos);
 
                 if (this._attackTimer > 0) {
                     this._attackTimer -= time.deltaTime;
                     break;
                 }
 
-                unit.shoot(new Vector3());
+                unit.shoot(worldPos);
                 this._attackTimer = attackFrequency;
             }
                 break;

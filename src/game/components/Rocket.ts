@@ -13,6 +13,7 @@ import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "./AutoDestroy";
 import { ISector } from "../GameTypes";
 import { IUnit } from "../unit/IUnit";
+import { buildings } from "../buildings/Buildings";
 
 class RocketState {
     initialized = false;
@@ -66,15 +67,7 @@ export class Rocket extends Component<ComponentProps, RocketState> {
         GameUtils.worldToMap(owner.position, cellCoords);
         const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords);
         const sector = GameUtils.getSector(sectorCoords)!;
-        const groundLevel = cell ? GameUtils.getMapHeight(cellCoords, localCoords, sector, owner.position.x, owner.position.z) : 0;
-
-        if (owner.position.y < groundLevel) {
-            this.onHit(owner);
-            if (sector) {
-                spawnSmoke(sector, owner.position, groundLevel);
-            }
-            return;
-        }
+        const groundLevel = cell ? GameUtils.getMapHeight(cellCoords, localCoords, sector, owner.position.x, owner.position.z) : 0;        
 
         // check for enemies
         if (cell?.units) {
@@ -98,10 +91,24 @@ export class Rocket extends Component<ComponentProps, RocketState> {
                 spawnSmoke(sector, owner.position, groundLevel);
                 return;
             }
-        } else if (cell?.building) {
-            // TODO apply building damage
+            
+        } else if (cell?.building) {            
+
+            cell.building.hitpoints -= this.state.damage;
+            if (cell.building.hitpoints <= 0) {
+                cell.building.hitpoints = 0;
+                buildings.clear(cell.building);                
+            }
+
             this.onHit(owner);
             spawnSmoke(sector, owner.position, groundLevel);
+            return;
+
+        } else if (owner.position.y < groundLevel) {
+            this.onHit(owner);
+            if (sector) {
+                spawnSmoke(sector, owner.position, groundLevel);
+            }
             return;
         }
 

@@ -186,13 +186,16 @@ export class UnitUtils {
         return maxSpeed;
     }
 
-    public static moveToBuilding(unit: IUnit, building: IBuildingInstance) {
-        // move to center of building
+    public static getBuildingCenter(building: IBuildingInstance, centerOut: Vector2) {
         const { size } = buildingConfig[building.buildingType];
-        mapCoords.set(
+        centerOut.set(
             Math.floor(building.mapCoords.x + size.x / 2),
             Math.floor(building.mapCoords.y + size.z / 2)
         );
+    }    
+
+    public static moveToBuilding(unit: IUnit, building: IBuildingInstance) {
+        UnitUtils.getBuildingCenter(building, mapCoords);
         unitMotion.moveUnit(unit, mapCoords, false);
     }
 }
