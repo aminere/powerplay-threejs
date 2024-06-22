@@ -77,12 +77,11 @@ export class Rocket extends Component<ComponentProps, RocketState> {
         }
 
         // check for enemies
-        const units = cell?.units;
-        if (units) {
+        if (cell?.units) {
             let hit = false;
 
             const shooterIsEnemy = UnitUtils.isEnemy(this.state.shooter);
-            for (const unit of units) {
+            for (const unit of cell.units) {
                 const canDamage = shooterIsEnemy !== UnitUtils.isEnemy(unit);
                 if (canDamage) {
                     // TODO check the bounding box
@@ -99,7 +98,12 @@ export class Rocket extends Component<ComponentProps, RocketState> {
                 spawnSmoke(sector, owner.position, groundLevel);
                 return;
             }
-        }       
+        } else if (cell?.building) {
+            // TODO apply building damage
+            this.onHit(owner);
+            spawnSmoke(sector, owner.position, groundLevel);
+            return;
+        }
 
         this.state.lifeTime += time.deltaTime;
         if (this.state.lifeTime > 3) {

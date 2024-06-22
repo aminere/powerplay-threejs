@@ -33,6 +33,7 @@ import { AttackUnit } from "./states/AttackUnit";
 import { TankAttackUnit } from "./states/TankAttackUnit";
 import { IdleTank } from "./states/IdleTank";
 import { TankUnit } from "./TankUnit";
+import { TankAttackBuilding } from "./states/TankAttackBuilding";
 
 const screenPos = new Vector3();
 const cellCoords = new Vector2();
@@ -220,7 +221,16 @@ class UnitsManager {
                     visual.receiveShadow = true;
                     GameUtils.mapToWorld(mapCoords, visual.position);
                     const boundingBox = getBoundingBox(visual);
-                    const unit = new TankUnit({ visual, boundingBox, type, states: [new IdleTank(), new TankAttackUnit()]});                
+                    const unit = new TankUnit({
+                        visual,
+                        boundingBox,
+                        type,
+                        states: [
+                            new IdleTank(),
+                            new TankAttackUnit(),
+                            new TankAttackBuilding()
+                        ]
+                    });        
                     this._units.push(unit);
                     visual.scale.multiplyScalar(tankScale);
                     this._owner.add(visual);

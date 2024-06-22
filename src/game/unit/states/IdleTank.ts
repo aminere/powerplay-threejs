@@ -4,6 +4,7 @@ import { ITankUnit } from "../TankUnit";
 import { UnitSearch } from "../UnitSearch";
 import { UnitUtils } from "../UnitUtils";
 import { IVehicleUnit } from "../VehicleUnit";
+import { TankAttackBuilding } from "./TankAttackBuilding";
 import { TankAttackUnit } from "./TankAttackUnit";
 
 export class IdleTank extends State<IVehicleUnit> {
@@ -20,6 +21,15 @@ export class IdleTank extends State<IVehicleUnit> {
             return;                      
         }
 
+        if (UnitUtils.isEnemy(unit)) {
+            const closestBuilding = this._search.findBuilding(unit, vision);
+            if (closestBuilding) {
+                const attack = unit.fsm.switchState(TankAttackBuilding);
+                attack.setTarget(closestBuilding);
+                return;
+            }
+        }
+        
         unit.resetCannon();
     }
 }

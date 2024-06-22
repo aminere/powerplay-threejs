@@ -2,15 +2,14 @@
 import { IBuildingInstance } from "../../buildings/BuildingTypes";
 import { State } from "../../fsm/StateMachine";
 import { IUnit } from "../IUnit";
-import { buildingConfig } from "../../config/BuildingConfig";
 import { unitMotion } from "../UnitMotion";
 import { unitAnimation } from "../UnitAnimation";
 import { ICharacterUnit } from "../ICharacterUnit";
-import { Vector2 } from "three";
 import { config } from "../../config/config";
 import { unitConfig } from "../../config/UnitConfig";
 import { buildings } from "../../buildings/Buildings";
 import { IdleEnemy } from "./IdleEnemy";
+import { UnitUtils } from "../UnitUtils";
 
 enum AttackStep {
     Idle,
@@ -18,7 +17,6 @@ enum AttackStep {
     Attack
 }
 
-const mapCoords = new Vector2();
 const { attackTimes } = config.combat.melee;
 
 export class AttackBuilding extends State<IUnit> {
@@ -45,13 +43,7 @@ export class AttackBuilding extends State<IUnit> {
 
         switch (this._step) {
             case AttackStep.Idle: {
-                // move to center of building
-                const { size } = buildingConfig[target.buildingType];
-                mapCoords.set(
-                    Math.floor(target.mapCoords.x + size.x / 2),
-                    Math.floor(target.mapCoords.y + size.z / 2)
-                );
-                unitMotion.moveUnit(unit, mapCoords, false);
+                UnitUtils.moveToBuilding(unit, target);
                 unitAnimation.setAnimation(unit, "run", { transitionDuration: .2, scheduleCommonAnim: true });
                 this._step = AttackStep.Approach;
             }

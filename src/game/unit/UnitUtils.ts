@@ -1,4 +1,4 @@
-import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from "three";
+import { Euler, MathUtils, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { IUnit } from "./IUnit";
 import { getCellFromAddr } from "./UnitAddr";
 import { GameUtils } from "../GameUtils";
@@ -12,6 +12,9 @@ import { ICharacterUnit } from "./ICharacterUnit";
 import { unitConfig } from "../config/UnitConfig";
 import sat from "sat";
 import { IVehicleUnit } from "./VehicleUnit";
+import { IBuildingInstance } from "../buildings/BuildingTypes";
+import { buildingConfig } from "../config/BuildingConfig";
+import { unitMotion } from "./UnitMotion";
 
 const direction = new Vector3();
 const velocity = new Vector3();
@@ -22,6 +25,7 @@ const forward = new Vector3();
 const surfaceForward = new Vector3();
 const quaternion = new Quaternion();
 const matrix = new Matrix4();
+const mapCoords = new Vector2();
 const { separations, maxSpeed } = config.steering;
 
 const baseRotations = {
@@ -53,12 +57,25 @@ export class UnitUtils {
         return dx > radius || dy > radius;
     }
 
+    public static isBuildingOutOfRange(unit: IUnit, target: IBuildingInstance, radius: number) {        
+        const { size } = buildingConfig[target.buildingType];
+        const centerX = target.mapCoords.x + size.x / 2;
+        const centerY = target.mapCoords.y + size.z / 2;
+        const dx = Math.abs(centerX - unit.coords.mapCoords.x);
+        const dy = Math.abs(centerY - unit.coords.mapCoords.y);
+        return dx > radius || dy > radius;
+    }
+
     public static isEnemy(unit: IUnit) {
         return unit.type.startsWith("enemy");
     }
 
     public static isWorker(unit: IUnit) {
         return unit.type === "worker";
+    }
+
+    public static isTank(unit: IUnit) {
+        return unit.type.includes("tank");
     }
 
     public static isVehicle(unit: IUnit) {
@@ -167,6 +184,16 @@ export class UnitUtils {
             }
         }
         return maxSpeed;
+    }
+
+    public static moveToBuilding(unit: IUnit, building: IBuildingInstance) {
+        // move to center of building
+        const { size } = buildingConfig[building.buildingType];
+        mapCoords.set(
+            Math.floor(building.mapCoords.x + size.x / 2),
+            Math.floor(building.mapCoords.y + size.z / 2)
+        );
+        unitMotion.moveUnit(unit, mapCoords, false);
     }
 }
 

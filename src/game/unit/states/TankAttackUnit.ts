@@ -1,4 +1,4 @@
-import { MathUtils, Vector3 } from "three";
+import { Vector3 } from "three";
 import { unitConfig } from "../../config/UnitConfig";
 import { config } from "../../config/config";
 import { State } from "../../fsm/StateMachine";
@@ -8,18 +8,10 @@ import { unitMotion } from "../UnitMotion";
 import { UnitUtils } from "../UnitUtils";
 import { IVehicleUnit } from "../VehicleUnit";
 import { IdleTank } from "./IdleTank";
-import gsap from "gsap";
 import { time } from "../../../engine/core/Time";
 import { ICharacterUnit } from "../ICharacterUnit";
 import { MeleeAttackState } from "./MeleeAttackState";
 import { AttackUnit } from "./AttackUnit";
-import { objects } from "../../../engine/resources/Objects";
-import { utils } from "../../../engine/Utils";
-import { Rocket } from "../../components/Rocket";
-import { GameMapState } from "../../components/GameMapState";
-import { GameUtils } from "../../GameUtils";
-import { engineState } from "../../../engine/EngineState";
-import { AutoDestroy } from "../../components/AutoDestroy";
 
 enum AttackStep {
     Idle,
@@ -31,7 +23,6 @@ const attackDelay = .8;
 const attackFrequency = 1;
 const { separations } = config.steering;
 const targetPos = new Vector3();
-const cannonOffset = new Vector3(0, 0.12, 1.38);
 const { unitScale } = config.game;
 const headOffset = unitScale;
 
@@ -92,7 +83,10 @@ export class TankAttackUnit extends State<ITankUnit> {
                 }
 
                 // get the attacked unit to defend itself
-                if (UnitUtils.isEnemy(unit)) {
+                if (UnitUtils.isTank(target)) {
+                    const attack = target.fsm.getState(TankAttackUnit) ?? target.fsm.switchState(TankAttackUnit);
+                    attack.setTarget(unit);
+                } else {
                     switch (target.type) {
                         case "worker": {
                             const worker = target as ICharacterUnit;
@@ -102,21 +96,7 @@ export class TankAttackUnit extends State<ITankUnit> {
                                 meleeState.setTarget(unit);
                             }
                         }
-                            break;
-
-                        case "tank": {
-                            const attack = target.fsm.getState(TankAttackUnit) ?? target.fsm.switchState(TankAttackUnit);
-                            attack.setTarget(unit);
-                        }
-                    }
-                } else {
-                    switch (target.type) {
-                        case "enemy-tank": {
-                            const attack = target.fsm.getState(TankAttackUnit) ?? target.fsm.switchState(TankAttackUnit);
-                            attack.setTarget(unit);
-                        }
-                            break;
-
+                        break;
                         case "enemy-melee": {
                             const enemy = target as ICharacterUnit;
                             if (enemy.isIdle && enemy.motionId === 0) {
@@ -124,42 +104,12 @@ export class TankAttackUnit extends State<ITankUnit> {
                                 attack.setTarget(unit);
                             }
                         }
-                            break;
+                        break;
                     }
                 }
 
-                const _rocket = objects.loadImmediate("/prefabs/rocket.json")!;
-                const rocket = utils.instantiate(_rocket);
-
-                const rocketComponent = utils.getComponent(Rocket, rocket)!;
-                rocketComponent.state.shooter = unit;
-                rocketComponent.state.damage = unitConfig[unit.type].damage;
-
-                const { projectiles } = GameMapState.instance.layers;
-                rocket.position.copy(cannonOffset);
-                unit.cannon.add(rocket);
-                projectiles.attach(rocket);
                 targetPos.copy(target.visual.position).addScaledVector(target.visual.up, headOffset);
-                const toTarget = targetPos.sub(rocket.position).normalize();
-                rocket.quaternion.setFromUnitVectors(GameUtils.vec3.forward, toTarget);
-
-                const _explosion = objects.loadImmediate("/prefabs/tank-shot.json")!;
-                const explosion = utils.instantiate(_explosion);
-                explosion.position.copy(cannonOffset);
-                explosion.scale.setScalar(.4);
-                unit.cannon.add(explosion);
-                unit.coords.sector.layers.fx.attach(explosion);
-                engineState.setComponent(explosion, new AutoDestroy({ delay: 1.5 }));
-
-                // recoil
-                gsap.to(unit.cannon.position, {
-                    duration: MathUtils.randFloat(.05, .08),
-                    z: `-=.15`,
-                    yoyo: true,
-                    repeat: 3,
-                    ease: "bounce.inOut"
-                });
-
+                unit.shoot(targetPos);
                 this._attackTimer = attackFrequency;
             }
                 break;
