@@ -21,6 +21,7 @@ const maxBarCount = 2048;
 
 const matrix = new Matrix4();
 const barMatrix = new Matrix4();
+const barScale = new Vector3(cellSize, 1, 1);
 
 class RailFactory {
 
@@ -82,9 +83,11 @@ class RailFactory {
 
         for (let i = 0; i < length; ++i) {
             barMatrix.makeTranslation(0, 0, 0 + i * cellSize - barOffset);
+            barMatrix.scale(barScale);
             matrix.multiplyMatrices(container.matrix, barMatrix);
             this._railBars.setMatrixAt(instanceIndex, matrix);            
             barMatrix.makeTranslation(0, 0, i * cellSize + barOffset);
+            barMatrix.scale(barScale);
             matrix.multiplyMatrices(container.matrix, barMatrix);
             this._railBars.setMatrixAt(instanceIndex + 1, matrix);
             instanceIndex += 2;
@@ -182,7 +185,7 @@ class RailFactory {
             barMatrix.compose(
                 point,
                 lookAtQuat.setFromRotationMatrix(lookAtMat.lookAt(point, lookAtPos, container.up)),
-                GameUtils.vec3.one
+                barScale
             );
 
             matrix.copy(container.matrix).multiply(mesh.matrix).multiply(barMatrix);
