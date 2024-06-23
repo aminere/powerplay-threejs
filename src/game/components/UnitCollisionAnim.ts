@@ -27,7 +27,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
 
     override start(_owner: Object3D) {
         if (this.props.unit.isIdle) {            
-            unitAnimation.setAnimation(this.props.unit, "walk");
+            unitAnimation.setAnimation(this.props.unit, "walk", { transitionDuration: .2, scheduleCommonAnim: true });
         }
         this.setState({ timer: this.props.duration });
     }
@@ -36,7 +36,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
         this.state.timer -= time.deltaTime;
         if (this.state.timer < 0) {
             if (this.props.unit.isIdle) {     
-                unitAnimation.setAnimation(this.props.unit, "idle");
+                unitAnimation.setAnimation(this.props.unit, "idle", { transitionDuration: .2, scheduleCommonAnim: true });
             }
             engineState.removeComponent(UnitCollisionAnim, owner);
         }

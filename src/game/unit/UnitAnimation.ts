@@ -1,5 +1,4 @@
 import { MathUtils } from "three";
-import { utils } from "../../engine/Utils";
 import { LoopMode } from "../../engine/serialization/Types";
 import { skeletonManager } from "../animation/SkeletonManager";
 import { getSkeletonId, skeletonPool } from "../animation/SkeletonPool";
@@ -53,29 +52,22 @@ class UnitAnimation {
     
             if (props.scheduleCommonAnim) {
                 skeletonPool.releaseSkeletonTweens(unit.skeleton!);
-                const _transitionDuration = transitionDuration;
 
-                if (unit.animation.name === animation) {
-                    const currentAction = unit.animation.action;
-                    const targetAction = skeletonManager.getAction(animation)!;
-                    const anim = { time: 0 }
-                    unit.skeleton!.syncToCommonAnim = gsap.to(anim, {
-                        time: _transitionDuration,
-                        duration: _transitionDuration,
-                        onUpdate: () => {
-                            const factor = anim.time / _transitionDuration;
-                            currentAction.time = MathUtils.lerp(currentAction.time, targetAction.time, factor);
-                        },
-                        onComplete: () => {
-                            currentAction.time = targetAction.time;
-                            unit.skeleton!.syncToCommonAnim = null;
-                        }
-                    })
-                }
-
-                unit.skeleton!.scheduleCommonAnim = utils.postpone(_transitionDuration, () => {
-                    unit.skeleton!.scheduleCommonAnim = null;
-                    this.setCommonAnimation(unit, animation, destAnimSpeed);                    
+                const currentAction = unit.animation.action;
+                const targetAction = skeletonManager.getAction(animation)!;
+                const anim = { time: 0 }
+                unit.skeleton!.syncToCommonAnim = gsap.to(anim, {
+                    time: transitionDuration,
+                    duration: transitionDuration,
+                    onUpdate: () => {
+                        const factor = anim.time / transitionDuration;
+                        currentAction.time = MathUtils.lerp(currentAction.time, targetAction.time, factor);
+                    },
+                    onComplete: () => {
+                        currentAction.time = targetAction.time;
+                        unit.skeleton!.syncToCommonAnim = null;
+                        this.setCommonAnimation(unit, animation, destAnimSpeed);
+                    }
                 });
 
             } else {

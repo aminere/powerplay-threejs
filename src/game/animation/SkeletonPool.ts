@@ -14,7 +14,6 @@ export interface IUniqueSkeleton {
     skeleton: Skeleton;
     armature: Object3D;
     mixer: AnimationMixer;
-    scheduleCommonAnim: gsap.core.Tween | null;
     syncToCommonAnim: gsap.core.Tween | null;
 }
 
@@ -77,7 +76,6 @@ class SkeletonPool {
                 skeleton: _skeleton, 
                 armature,
                 mixer,
-                scheduleCommonAnim: null,
                 syncToCommonAnim: null
             };
             skeletons.push(skeleton);
@@ -150,11 +148,7 @@ class SkeletonPool {
         unit.skeleton = null;
     }
 
-    public releaseSkeletonTweens(skeleton: IUniqueSkeleton) {
-        if (skeleton.scheduleCommonAnim) {
-            skeleton.scheduleCommonAnim.kill();
-            skeleton.scheduleCommonAnim = null;
-        }
+    public releaseSkeletonTweens(skeleton: IUniqueSkeleton) {        
         if (skeleton.syncToCommonAnim) {
             skeleton.syncToCommonAnim.kill();
             skeleton.syncToCommonAnim = null;
