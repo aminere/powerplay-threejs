@@ -33,7 +33,7 @@ const openList = new Set<string>();
 const visitedCells = new Map<string, boolean>();
 const gridNeighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const diagonalNeighbors = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
-const flowfieldNeighbors = [...gridNeighbors, ...diagonalNeighbors];
+// const flowfieldNeighbors = [...gridNeighbors, ...diagonalNeighbors];
 const lateralCellBlocked = [false, false];
 const verticalCellBlocked = [false, false];
 const neighborCoords = new Vector2();
@@ -94,7 +94,7 @@ class FlowField {
             const flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
             const currentIndex = localCoords.y * mapRes + localCoords.x;
 
-            for (const [dx, dy] of flowfieldNeighbors) {
+            for (const [dx, dy] of gridNeighbors) {
                 neighborCoords.set(currentCoords.x + dx, currentCoords.y + dy);
 
                 if (fastMode) {

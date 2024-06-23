@@ -26,7 +26,7 @@ export class UnitCollisionAnim extends Component<UnitCollisionAnimProps, IUnitCo
     }
 
     override start(_owner: Object3D) {
-        if (this.props.unit.isIdle) {
+        if (this.props.unit.isIdle) {            
             unitAnimation.setAnimation(this.props.unit, "walk");
         }
         this.setState({ timer: this.props.duration });

@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Vector4 } from "three";
+import { Vector2, Vector3 } from "three";
 import { unitConfig } from "../../config/UnitConfig";
 import { State } from "../../fsm/StateMachine";
 import { ITankUnit } from "../TankUnit";

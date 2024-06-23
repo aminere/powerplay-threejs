@@ -112,7 +112,7 @@ class Conveyors {
         this._straightConveyor = conveyor.clone();
         this._straightConveyor.castShadow = true;
         const straightConveyorTop = conveyorTop.clone();
-        straightConveyorTop.position.setY(height * cellSize);
+        straightConveyorTop.position.setY(height);
         this._straightConveyor.add(straightConveyorTop);
 
         conveyorTopInstances.receiveShadow = true;
@@ -358,7 +358,8 @@ class Conveyors {
                 const _mesh = this._straightConveyor.clone();
                 _mesh.position.copy(worldPos);
                 const angle = conveyorUtils.getAngle(direction);
-                _mesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);    
+                _mesh.quaternion.setFromAxisAngle(GameUtils.vec3.up, angle);
+                _mesh.scale.copy(scale);
                 return _mesh;
             }
         })();

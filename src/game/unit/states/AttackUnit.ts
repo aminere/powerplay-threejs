@@ -7,12 +7,12 @@ import { unitAnimation } from "../UnitAnimation";
 import { unitMotion } from "../UnitMotion";
 import { UnitUtils } from "../UnitUtils";
 import { IdleEnemy } from "./IdleEnemy";
-import { MeleeDefendState } from "./MeleeDefendState";
+import { SoldierState } from "./SoldierState";
 
 enum AttackStep {
     Idle,
     Approach,
-    Attack
+    MeleeAttack
 }
 
 const { separations } = config.steering;
@@ -27,6 +27,13 @@ export class AttackUnit extends State<ICharacterUnit> {
     private _loopConsumed = false;
     private _attackIndex = 0;    
 
+    override exit(unit: ICharacterUnit) {
+        if (!unit.isIdle) {
+            unit.isIdle = true;
+            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
+        }
+    }
+
     override update(unit: ICharacterUnit) {
 
         const target = this._target;
@@ -34,11 +41,15 @@ export class AttackUnit extends State<ICharacterUnit> {
             if (unit.motionId > 0) {
                 unitMotion.endMotion(unit);
             }
-            unit.isIdle = true;
-            unitAnimation.setAnimation(unit, "idle", { transitionDuration: .3, scheduleCommonAnim: true });
+                    
             this._step = AttackStep.Idle;
             this._target = null;
-            unit.fsm.switchState(IdleEnemy);
+
+            if (UnitUtils.isEnemy(unit)) {
+                unit.fsm.switchState(IdleEnemy);
+            } else {
+                unit.fsm.switchState(null);
+            }
             return;
         }
 
@@ -50,8 +61,22 @@ export class AttackUnit extends State<ICharacterUnit> {
             }
                 break;
 
-            case AttackStep.Attack: {
+            case AttackStep.Approach: {
+                switch (unit.resource?.type) {
+                    case "ak47": 
+                    case "rpg": {
+                        const { range } = config.combat[unit.resource.type];
+                        if (!UnitUtils.isOutOfRange(unit, target, range - 1)) {
+                            unitMotion.endMotion(unit);
+                            const soldier = unit.fsm.switchState(SoldierState);
+                            soldier.attackTarget(target);
+                        }
+                    }
+                }
+            }
+            break;
 
+            case AttackStep.MeleeAttack: {
                 UnitUtils.rotateToTarget(unit, target!);
                 
                 const separation = separations[unit.type] + separations[target!.type];
@@ -81,13 +106,23 @@ export class AttackUnit extends State<ICharacterUnit> {
 
                 // attack
                 const damage = unitConfig[unit.type].damage;
-                target!.setHitpoints(target!.hitpoints - damage);
-                if (target!.isAlive && UnitUtils.isWorker(target!)) {
-                    const worker = target as ICharacterUnit;
-                    if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                        const meleeState = target!.fsm.getState(MeleeDefendState) ?? target!.fsm.switchState(MeleeDefendState);
-                        meleeState.startAttack(target as ICharacterUnit, unit);
-                    }
+                target.setHitpoints(target.hitpoints - damage);
+                if (target.isAlive) {
+                    // get attacked unit to respond
+                    if (UnitUtils.isVehicle(target)) {
+                        break;
+                    }                    
+                    if (target.isIdle && target.motionId === 0) {
+                        if (UnitUtils.isWorker(target)) {
+                            const worker = target as ICharacterUnit;
+                            if (worker.resource) {
+                                break;
+                            }
+                        }
+
+                        const attack = target!.fsm.getState(AttackUnit) ?? target!.fsm.switchState(AttackUnit);
+                        attack.setTarget(unit);
+                    }                    
                 }
             }
             break;
@@ -99,30 +134,15 @@ export class AttackUnit extends State<ICharacterUnit> {
             return;
         }
         this._target = target;
-    }
-
-    public startAttack(unit: ICharacterUnit) {
-        if (this._step === AttackStep.Attack) {
-            console.assert(false);
-            return;
-        }
-        if (unit.motionId > 0) {
-            unitMotion.endMotion(unit);
-        }
-        this._step = AttackStep.Attack;
-        unit.isIdle = false;
-        this._loopConsumed = false;
-        this._attackIndex = 0;
-        unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
-    }
+    }    
 
     public onColliding(unit: ICharacterUnit) {
-        if (this._step === AttackStep.Attack || unit.motionId === 0) {
+        if (this._step === AttackStep.MeleeAttack || unit.motionId === 0) {
             return;
         }
         const withTarget = unit.collidingWith.includes(this._target!);
         if (withTarget) {
-            this.startAttack(unit);
+            this.startMeleeAttack(unit);
         }
     }
 
@@ -131,12 +151,40 @@ export class AttackUnit extends State<ICharacterUnit> {
         if (target?.isAlive) {
             if (target.coords.mapCoords.equals(unit.targetCell.mapCoords)) {
                 // target didn't move since last detection, so start attacking
-                this.startAttack(unit);
+                this.startMeleeAttack(unit);
             } else {
-                // keep following
-                unitMotion.moveUnit(unit, target.coords.mapCoords);
+                (() => {
+                    const attack = target.fsm.getState(AttackUnit);
+                    if (attack) {
+                        if (attack.target === unit) {
+                            // avoid orbiting into each other
+                            if (unit.motionId > 0) {
+                                unitMotion.endMotion(unit);
+                            }
+                            return;
+                        }
+                    }
+
+                    // keep following
+                    unitMotion.moveUnit(unit, target.coords.mapCoords);
+                })();
             }
         }
+    }
+
+    private startMeleeAttack(unit: ICharacterUnit) {
+        if (this._step === AttackStep.MeleeAttack) {
+            console.assert(false);
+            return;
+        }
+        if (unit.motionId > 0) {
+            unitMotion.endMotion(unit);
+        }
+        this._step = AttackStep.MeleeAttack;
+        unit.isIdle = false;
+        this._loopConsumed = false;
+        this._attackIndex = 0;
+        unitAnimation.setAnimation(unit, "attack", { transitionDuration: .1 });
     }
 }
 

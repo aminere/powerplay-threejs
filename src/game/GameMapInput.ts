@@ -14,11 +14,11 @@ import { time } from "../engine/core/Time";
 import { GameMapProps } from "./components/GameMapProps";
 import { buildings } from "./buildings/Buildings";
 import { getCellFromAddr } from "./unit/UnitAddr";
-import { MeleeAttackState } from "./unit/states/MeleeAttackState";
 import { buildingConfig } from "./config/BuildingConfig";
 import gsap from "gsap";
 import { unitMotion } from "./unit/UnitMotion";
 import { TankAttackUnit } from "./unit/states/TankAttackUnit";
+import { AttackUnit } from "./unit/states/AttackUnit";
 
 const mapCoords = new Vector2();
 const cellCoords = new Vector2();
@@ -541,8 +541,8 @@ class GameMapInput {
                                     for (const _unit of units) {
                                         switch (_unit.type) {
                                             case "worker": {
-                                                const attack = _unit.fsm.getState(MeleeAttackState) ?? _unit.fsm.switchState(MeleeAttackState);
-                                                attack.setTarget(targetEnemy);                                            
+                                                const attack = _unit.fsm.getState(AttackUnit) ?? _unit.fsm.switchState(AttackUnit);
+                                                attack.setTarget(targetEnemy);
                                             }
                                             break;
 

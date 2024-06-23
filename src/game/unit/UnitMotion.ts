@@ -14,11 +14,13 @@ import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./IUnit";
 import { UnitUtils } from "./UnitUtils";
 import { ICharacterUnit } from "./ICharacterUnit";
-import { MeleeAttackState } from "./states/MeleeAttackState";
 import { IVehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
 import { FlowfieldUtils } from "../pathfinding/FlowfieldUtils";
 import { AttackUnit } from "./states/AttackUnit";
+import { TankAttackUnit } from "./states/TankAttackUnit";
+import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
+import { engineState } from "../../engine/EngineState";
 
 const cellDirection = new Vector2();
 
@@ -271,38 +273,40 @@ function isMovingTowards(unit: IUnit, neighbor: IUnit) {
     return vectorsHaveSameDirection(toNeighbor, unit.velocity);
 }
 
-function collisionResponse(unit: IUnit, neighbor: IUnit) {
-    if (unit.motionTime < 1) {
-        // fresh motion, simple separation
-        moveAwayFrom(unit, neighbor, 1, .5);
-        return;
-    }
+function collisionResponse(unit: IUnit, neighbor: IUnit) {    
 
     if (unit.motionId > 0) {
+
+        if (unit.motionTime < 1) {
+            // fresh motion, simple separation
+            moveAwayFrom(unit, neighbor, 1, .5);
+            return;
+        }
+
         if (neighbor.motionId === 0) {
             if (neighbor.isIdle) {
                 // no need to do anything, the stationary neighbor will move itself
             } else {
                 slideAlongNeighbor(unit, neighbor);
             }
-
-        } else {
-            if (isMovingTowards(unit, neighbor)) {
-                if (isMovingTowards(neighbor, unit)) {
-                    // slow down and move away from the collision
-                    moveAwayFrom(unit, neighbor, .5, 1);
-                } else {
-                    // neighbor is moving away from me
-                    (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
-                    moveAwayFrom(unit, neighbor, 1, 1);
-                }
-            } else {
-                (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0x0000ff);
-                // already moving away from the collision
-                moveAwayFrom(unit, neighbor, 1, 1);
-            }
+            return;
         }
-        return;
+
+        if (isMovingTowards(unit, neighbor)) {
+            if (isMovingTowards(neighbor, unit)) {
+                // slow down and move away from the collision
+                moveAwayFrom(unit, neighbor, .5, 1);
+            } else {
+                // neighbor is moving away from me
+                (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0xff0000);
+                moveAwayFrom(unit, neighbor, 1, 1);
+            }            
+        } else {
+            (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0x0000ff);
+            // already moving away from the collision
+            moveAwayFrom(unit, neighbor, 1, 1);
+        }
+        return;    
     }
 
     // unit is not moving
@@ -312,6 +316,17 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
         } else {
             avoidMovingNeighbor(unit, neighbor, .2);
         }
+        
+        if (!UnitUtils.isVehicle(unit)) {
+            const collisionAnim = utils.getComponent(UnitCollisionAnim, unit.visual);
+            if (collisionAnim) {
+                collisionAnim.reset();
+            } else {
+                const character = unit as ICharacterUnit;
+                engineState.setComponent(unit.visual, new UnitCollisionAnim({ unit: character }));
+            }
+        }
+
     } else {
         // keep being busy, but slightly move away from the collision
         (getBox3Helper(unit.visual).material as LineBasicMaterial).color.set(0x00ff00);
@@ -396,19 +411,21 @@ export class UnitMotion {
             if (!isDirectionValid(flowfields, unit)) {
                 continue;
             }
+           
+            if (targetUnit) {                
+                const target = unit.fsm.getState(AttackUnit)?.target ?? unit.fsm.getState(TankAttackUnit)?.target;
+                if (targetUnit === target) {
+                    // unit is attacking the target, don't interrupt
+                    continue;
+                }
+            }
 
             if (motionId === null) {
                 motionId = flowField.register(flowfields, targetUnit);
                 movingUnits = flowField.getMotion(motionId).units;
             }
 
-            const target = unit.fsm.getState(MeleeAttackState)?.target;
-            if (targetUnit && targetUnit === target) {
-                // unit is attacking the target, don't interrupt
-            } else {
-                unit.clearAction();
-            }
-
+            unit.clearAction();
             moveTo(unit, motionCommandId, motionId, destMapCoords);
             movingUnits!.push(unit);
         }
@@ -433,7 +450,7 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-                const direction = FlowfieldUtils.getDirectionBilinear(unit, awayDirection);
+                const direction = FlowfieldUtils.getDirection(unit, awayDirection);
                 unit.acceleration.x += direction.x * maxForce;
                 unit.acceleration.z += direction.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);
@@ -598,12 +615,6 @@ export class UnitMotion {
                             const attack = unit.fsm.getState(AttackUnit);
                             if (attack) {
                                 attack.onReachedTarget(unit as ICharacterUnit);
-                                return;
-                            }
-
-                            const meleeAttackState = unit.fsm.getState(MeleeAttackState);
-                            if (meleeAttackState) {
-                                meleeAttackState.onReachedTarget(unit as ICharacterUnit);
                                 return;
                             }
 

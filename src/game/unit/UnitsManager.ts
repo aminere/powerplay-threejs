@@ -23,8 +23,6 @@ import { buildings } from "../buildings/Buildings";
 import { conveyors } from "../Conveyors";
 import { IUnit, UnitState } from "./IUnit";
 import { ICharacterUnit } from "./ICharacterUnit";
-import { MeleeDefendState } from "./states/MeleeDefendState";
-import { MeleeAttackState } from "./states/MeleeAttackState";
 import { unitConfig } from "../config/UnitConfig";
 import { AttackBuilding } from "./states/AttackBuilding";
 import { EnemyCharacter } from "./EnemyCharacter";
@@ -261,7 +259,12 @@ class UnitsManager {
                                 visual: skinnedMesh,
                                 type,
                                 animation: skeletonManager.applyIdleAnim(skinnedMesh),
-                                states: [new IdleEnemy(), new AttackUnit(), new AttackBuilding()],                                
+                                states: [
+                                    new IdleEnemy(),
+                                    // new SoldierState(), TODO enemies with weapons
+                                    new AttackUnit(), 
+                                    new AttackBuilding()
+                                ]
                             });
                         }
                         
@@ -272,8 +275,7 @@ class UnitsManager {
                             states: [
                                 new MiningState(), 
                                 new SoldierState(),
-                                new MeleeDefendState(), 
-                                new MeleeAttackState()
+                                new AttackUnit()
                             ]                            
                         });
                     })();                   

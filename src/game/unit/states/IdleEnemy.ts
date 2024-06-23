@@ -27,6 +27,7 @@ export class IdleEnemy extends State<ICharacterUnit> {
         if (closestBuilding) {
             const attack = unit.fsm.switchState(AttackBuilding);
             attack.setTarget(closestBuilding);
+            this._search.reset();
             return;          
         }
     }

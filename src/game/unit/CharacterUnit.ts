@@ -8,7 +8,6 @@ import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { Fadeout } from "../components/Fadeout";
 import { cmdFogRemoveCircle, evtUnitStateChanged } from "../../Events";
 import { unitAnimation } from "./UnitAnimation";
-import { utils } from "../../engine/Utils";
 import { ICell, ICarriedResource } from "../GameTypes";
 import { IDepotState } from "../buildings/BuildingTypes";
 import { SoldierState } from "./states/SoldierState";
@@ -23,7 +22,6 @@ import { MiningState } from "./states/MiningState";
 import { ICharacterUnit, ICharacterUnitProps, IUnitAnim } from "./ICharacterUnit";
 import { IUnit, UnitState } from "./IUnit";
 import { GameUtils } from "../GameUtils";
-import { MeleeAttackState } from "./states/MeleeAttackState";
 import { Assemblies } from "../buildings/Assemblies";
 import { objects } from "../../engine/resources/Objects";
 import { unitConfig } from "../config/UnitConfig";
@@ -169,24 +167,9 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
     }
 
     public override onColliding() {
-        if (this.motionId === 0) {
-            const collisionAnim = utils.getComponent(UnitCollisionAnim, this.visual);
-            if (collisionAnim) {
-                collisionAnim.reset();
-            } else {
-                engineState.setComponent(this.visual, new UnitCollisionAnim({ unit: this }));
-            }
-        }
-
         const attack = this.fsm.getState(AttackUnit);
         if (attack) {
             attack.onColliding(this);
-            return;
-        }
-        
-        const meleeAttackState = this.fsm.getState(MeleeAttackState);
-        if (meleeAttackState) {
-            meleeAttackState.onColliding(this);
             return;
         }
     }
@@ -325,8 +308,8 @@ export class CharacterUnit extends Unit implements ICharacterUnit {
                 return; // keep going
             }
 
-            const meleeAttackState = this.fsm.getState(MeleeAttackState);
-            if (meleeAttackState) {
+            const attack = this.fsm.getState(AttackUnit);
+            if (attack) {
                 return; // keep going
             }
 

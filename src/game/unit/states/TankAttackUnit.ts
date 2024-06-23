@@ -9,8 +9,6 @@ import { UnitUtils } from "../UnitUtils";
 import { IVehicleUnit } from "../VehicleUnit";
 import { IdleTank } from "./IdleTank";
 import { time } from "../../../engine/core/Time";
-import { ICharacterUnit } from "../ICharacterUnit";
-import { MeleeAttackState } from "./MeleeAttackState";
 import { AttackUnit } from "./AttackUnit";
 
 enum AttackStep {
@@ -27,6 +25,8 @@ const { unitScale } = config.game;
 const headOffset = unitScale;
 
 export class TankAttackUnit extends State<ITankUnit> {
+
+    public get target() { return this._target; }
 
     private _target: IUnit | null = null;
     private _step = AttackStep.Idle;
@@ -88,24 +88,9 @@ export class TankAttackUnit extends State<ITankUnit> {
                     const attack = target.fsm.getState(TankAttackUnit) ?? target.fsm.switchState(TankAttackUnit);
                     attack.setTarget(unit);
                 } else {
-                    switch (target.type) {
-                        case "worker": {
-                            const worker = target as ICharacterUnit;
-                            if (worker.isIdle && worker.motionId === 0 && !worker.resource) {
-                                unitMotion.moveUnit(worker, unit.coords.mapCoords);
-                                const meleeState = worker.fsm.getState(MeleeAttackState) ?? worker.fsm.switchState(MeleeAttackState);
-                                meleeState.setTarget(unit);
-                            }
-                        }
-                        break;
-                        case "enemy-melee": {
-                            const enemy = target as ICharacterUnit;
-                            if (enemy.isIdle && enemy.motionId === 0) {
-                                const attack = enemy!.fsm.getState(AttackUnit) ?? enemy!.fsm.switchState(AttackUnit);
-                                attack.setTarget(unit);
-                            }
-                        }
-                        break;
+                    if (target.isIdle && target.motionId === 0) {
+                        const attack = target.fsm.getState(AttackUnit) ?? target.fsm.switchState(AttackUnit);
+                        attack.setTarget(unit);
                     }
                 }
 
