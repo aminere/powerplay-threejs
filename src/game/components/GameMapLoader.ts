@@ -24,7 +24,7 @@ import { EnvProps } from "./EnvProps";
 import { GameMapUpdate } from "./GameMapUpdate";
 import { Rails } from "../Rails";
 import { ICell } from "../GameTypes";
-import { GameMode, UnitType } from "../GameDefinitions";
+import { GameMode } from "../GameDefinitions";
 import { objects } from "../../engine/resources/Objects";
 import { meshes } from "../../powerplay";
 import { Mines } from "../buildings/Mines";
@@ -115,7 +115,6 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
         trees.init(data.size);
  
-        const unitsToSpawn = new Map<Vector2, UnitType[]>();
         for (const sector of data.sectors) {
 
             const [x, y] = sector.key.split(",").map(i => parseInt(i));
@@ -149,11 +148,7 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
 
                 if (cell.resource) {
                     resources.create(sectorInstance, sectorCoords, localCoords, cellInstance, cell.resource);
-                }
-
-                if (cell.units !== undefined) {
-                    unitsToSpawn.set(mapCoords.clone(), cell.units);
-                }
+                }                
 
                 if (cell.conveyor) {
                     const { direction, startAxis, endAxis } = cell.conveyor;
@@ -166,10 +161,8 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         this.init(data.size, data.cameraPos, data.gameMode, owner);
 
         // create units and structure after all sectors are created and fogOfWar is initialized
-        for (const [coords, units] of unitsToSpawn) {
-            for (const unit of units) {
-                unitsManager.spawn(coords, unit);
-            }
+        for (const { type, coords } of data.units) {            
+            unitsManager.spawn(coords, type);
         }
 
         for (const [type, instances] of Object.entries(data.buildings)) {

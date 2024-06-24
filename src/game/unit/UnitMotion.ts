@@ -169,21 +169,19 @@ function getVehicleFlowfieldCost(destCell: ICell, currentCell: ICell) {
     }
 }
 
-const cellUnits = new Array<IUnit>();
-function getCellUnits(mapCoords: Vector2, radius: number) {
-    cellUnits.length = 0;
+const neighbors = new Set<IUnit>();
+function getNeighbors(mapCoords: Vector2, radius: number, out: Set<IUnit>) {
     for (let y = mapCoords.y - radius; y <= mapCoords.y + radius; y++) {
         for (let x = mapCoords.x - radius; x <= mapCoords.x + radius; x++) {
             cellCoords.set(x, y);
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const neighbor of units) {
-                    cellUnits.push(neighbor);
+                    out.add(neighbor);
                 }
             }
         }
     }
-    return cellUnits;
 }
 
 // const cellUnits2x2 = new Array<IUnit>();
@@ -464,37 +462,21 @@ export class UnitMotion {
         }
 
         if (unit.collidable) {
-
-            const neighbors = (() => {
-                return getCellUnits(unit.coords.mapCoords, 1);
-                // if (UnitUtils.isVehicle(unit)) {
-                //     const truck = unit as IVehicleUnit;
-                //     const vehicleNeighbors = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
-                //     const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
-                //     return _neighbors.concat(vehicleNeighbors);
-                // } else {
-                //     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
-                //     const { x, y } = unit.coords.mapCoords;
-                //     const mapCoords2x2 = cellCoords.set(Math.floor(x / cellsPerVehicleCell), Math.floor(y / cellsPerVehicleCell));
-                //     const vehicleNeighbors = getCellUnits2x2(mapCoords2x2, 1);
-                //     return _neighbors.concat(vehicleNeighbors);
-                // }
+            neighbors.clear();
+            const radius = (() => {
+                if (unit.type === "truck") {
+                    return 2;                    
+                }
+                return 1;
             })();
-
-            const _neighbors = Array.from(new Set(neighbors));
-            for (const neighbor of _neighbors) {
+            getNeighbors(unit.coords.mapCoords, radius, neighbors);
+            for (const neighbor of neighbors) {
                 if (!neighbor.collidable) {
                     continue;
                 }
                 if (neighbor === unit) {
                     continue;
                 }
-
-                // if (unit.motionCommandId > 0 && neighbor.motionCommandId === unit.motionCommandId) {
-                //     if (movingInSameDirection(unit, neighbor)) {
-                //         continue;
-                //     }
-                // }
 
                 const collisionTestId = `${unit.visual.id},${neighbor.visual.id}`;
                 const collides = (() => {
@@ -520,12 +502,12 @@ export class UnitMotion {
 
                 if (collides) {
                     const canAffectEachOther = (() => {
-                        const isEnemy1 = UnitUtils.isEnemy(unit);
-                        const isEnemy2 = UnitUtils.isEnemy(neighbor);
-                        if (isEnemy1 !== isEnemy2) {
-                            // enemies can't push each other
-                            return false;
-                        }
+                        // const isEnemy1 = UnitUtils.isEnemy(unit);
+                        // const isEnemy2 = UnitUtils.isEnemy(neighbor);
+                        // if (isEnemy1 !== isEnemy2) {
+                        //     // enemies can't push each other
+                        //     return false;
+                        // }
                         return true;
                     })();
 
@@ -573,11 +555,36 @@ export class UnitMotion {
                 const unitIndex = currentCell.units!.indexOf(unit);
                 console.assert(unitIndex >= 0);
                 utils.fastDelete(currentCell.units!, unitIndex);
+                if (UnitUtils.isVehicle(unit)) {
+                    for (let [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+                        cellCoords.set(unit.coords.mapCoords.x + dx, unit.coords.mapCoords.y + dy);
+                        const cell = GameUtils.getCell(cellCoords);
+                        if (cell) {
+                            const unitIndex = cell.units!.indexOf(unit);
+                            console.assert(unitIndex >= 0);
+                            utils.fastDelete(cell.units!, unitIndex);
+                        }
+                    }
+                }
+
                 if (nextCell.units) {
                     console.assert(!nextCell.units.includes(unit));
                     nextCell.units.push(unit);
                 } else {
                     nextCell.units = [unit];
+                }
+                if (UnitUtils.isVehicle(unit)) {
+                    for (let [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+                        cellCoords.set(nextMapCoords.x + dx, nextMapCoords.y + dy);
+                        const cell = GameUtils.getCell(cellCoords);
+                        if (cell) {
+                            if (cell.units) {
+                                cell.units.push(unit);
+                            } else {
+                                cell.units = [unit];
+                            }
+                        }
+                    }
                 }
 
                 // update unit coords

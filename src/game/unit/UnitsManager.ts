@@ -1,4 +1,4 @@
-import { Box3Helper, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector2, Vector3 } from "three";
+import { Box3Helper, Mesh, Object3D, Vector2, Vector3 } from "three";
 import { input } from "../../engine/Input";
 import { GameUtils } from "../GameUtils";
 import { SelectedElems, cmdFogAddCircle, cmdSetSelectedElems, cmdSpawnUnit, cmdStartSelection, cmdUpdateHealthBars, evtUnitKilled, evtUnitSpawned } from "../../Events";
@@ -288,8 +288,8 @@ class UnitsManager {
                     box3Helper.visible = false;
                     evtUnitSpawned.post(unit);
 
-                    const debug = new Mesh(new SphereGeometry(.5), new MeshBasicMaterial({ color: 0xff0000 }));
-                    unit.visual.add(debug);
+                    // const debug = new Mesh(new SphereGeometry(.5), new MeshBasicMaterial({ color: 0xff0000 }));
+                    // unit.visual.add(debug);
                     return unit;
                 }    
             }

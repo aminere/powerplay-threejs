@@ -80,11 +80,15 @@ export class Sector {
     }
 
     public static updateHighlightTexture(sector: ISector, localCoords: Vector2, color: Color) {
+        const material = ((sector.layers.terrain as Mesh).material as Material);
+        if (!material.userData.shader) {
+            return;
+        }
         const { mapRes } = config.game;
         const cellIndex = localCoords.y * mapRes + localCoords.x;
         const stride = cellIndex * 4;        
         sector.textureData.highlight.set(color.toArray().map(c => c * 255), stride);
-        const uniforms = ((sector.layers.terrain as Mesh).material as Material).userData.shader.uniforms as TerrainUniforms;
+        const uniforms = material.userData.shader.uniforms as TerrainUniforms;
         uniforms.highlightTexture.value.needsUpdate = true;
     }
 

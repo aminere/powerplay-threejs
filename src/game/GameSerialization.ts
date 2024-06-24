@@ -1,22 +1,27 @@
 import { Vector2, Vector3 } from "three";
 import { Axis, IConveyorConfig, IRail, IRailConfig } from "./GameTypes";
 import { BuildingType, IAssemblyState, IBuildingInstance, IFactoryState } from "./buildings/BuildingTypes";
-import { RawResourceType, ResourceType, UnitType, PlayerVehicleType, GameMode } from "./GameDefinitions";
+import { RawResourceType, ResourceType, PlayerVehicleType, GameMode, UnitType } from "./GameDefinitions";
 import { BufferAttribute, BufferGeometry, Mesh } from "three";
 import { GameMapState } from "./components/GameMapState";
 import { GameMapProps } from "./components/GameMapProps";
+import { unitsManager } from "./unit/UnitsManager";
 
 interface ISerializedCell {
     index: number;
     roadTile?: number;
     resource?: RawResourceType;
-    units?: UnitType[];
     conveyor?: IConveyorConfig;
 }
 
 interface ISerializedElevation {
     vertexIndex: number;
     height: number;
+}
+
+interface ISerializedUnit {
+    type: UnitType;
+    coords: Vector2;
 }
 
 interface ISerializedSector {
@@ -51,9 +56,10 @@ export interface ISerializedGameMap {
     size: number;
     sectors: ISerializedSector[];
     buildings: Record<BuildingType, TSerializedBuilding[]>;
+    units: ISerializedUnit[];
     rails: ISerializedRail[];
     cameraPos: Vector3;
-    gameMode: GameMode;
+    gameMode: GameMode;    
 }
 
 function serializeFactory(instance: IBuildingInstance) {
@@ -113,8 +119,7 @@ export function serializeGameMap() {
                 index: cellIndex,
                 roadTile: cell.roadTile,
                 resource: cell.resource?.type,
-                conveyor: cell.conveyor?.config,
-                units: cell.units?.map(unit => unit.type)
+                conveyor: cell.conveyor?.config
             };
             
             return serializedCell;
@@ -159,10 +164,18 @@ export function serializeGameMap() {
         }        
     }
 
+    const units = unitsManager.units.map(unit => {
+        return {
+            type: unit.type,
+            coords: unit.coords.mapCoords.clone()
+        }
+    });
+
     const result: ISerializedGameMap = {
         size: state.sectorRes,
         sectors,
         buildings,
+        units,
         rails: rails.map(rail => {
             const serializedRail: ISerializedRail = {                
                 config: rail.config!,

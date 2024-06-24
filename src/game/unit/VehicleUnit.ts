@@ -1,4 +1,4 @@
-import { Mesh, Object3D, Vector3 } from "three";
+import { Mesh, Object3D, Vector2, Vector3 } from "three";
 import { utils } from "../../engine/Utils";
 import { meshes } from "../../engine/resources/Meshes";
 import { IUnit, UnitState } from "./IUnit";
@@ -11,6 +11,9 @@ import { Fadeout } from "../components/Fadeout";
 import { objects } from "../../engine/resources/Objects";
 import { AutoDestroy } from "../components/AutoDestroy";
 import { unitConfig } from "../config/UnitConfig";
+import { GameUtils } from "../GameUtils";
+
+const cellCoords = new Vector2();
 
 export interface IVehicleUnit extends IUnit {
     // coords2x2: IUnitAddr;
@@ -33,6 +36,18 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
         // computeUnitAddr2x2(this.coords.mapCoords, this._coords2x2);
         // const cell2x2 = this._coords2x2.sector.cells2x2[this._coords2x2.cellIndex];
         // cell2x2.units.push(this);
+        const { mapCoords } = this.coords; 
+        for (let [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+            cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
+            const cell = GameUtils.getCell(cellCoords);
+            if (cell) {
+                if (cell.units) {
+                    cell.units.push(this);
+                } else {
+                    cell.units = [this];
+                }
+            }
+        }
     }
 
     public override setHitpoints(value: number) {
@@ -47,7 +62,18 @@ export class VehicleUnit extends Unit implements IVehicleUnit {
     }
 
     public override onDeath() {
-        
+
+        const { mapCoords } = this.coords; 
+        for (let [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]) {
+            cellCoords.set(mapCoords.x + dx, mapCoords.y + dy);
+            const cell = GameUtils.getCell(cellCoords);
+            if (cell) {
+                const unitIndex = cell.units!.indexOf(this);
+                console.assert(unitIndex >= 0, `unit ${this.type} not found in cell`);
+                utils.fastDelete(cell.units!, unitIndex);        
+            }
+        }        
+
         const chunks = new Object3D();
         chunks.name = `${this.type}-chunks`;
         const _chunks = meshes.loadImmediate(`/models/${chunks.name}.glb`);
