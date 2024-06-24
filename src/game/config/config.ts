@@ -20,7 +20,7 @@ export const config = {
     game: {
         cellSize: 1,
         cellsPerRoadBlock: 1,
-        mapRes: 32,
+        mapRes: 16,
         cellsPerVehicleCell: 4,
         elevationStep: .2,
         unitScale: .7,
@@ -73,7 +73,7 @@ export const config = {
     conveyors: {
         itemSize: .5, // relative to the cell
         itemScale: .7,
-        width: .8,
+        width: .7,
         height: .34,
         maxCount: 500,
         speed: 1,

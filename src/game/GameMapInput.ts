@@ -27,7 +27,6 @@ const oldPos = new Vector3();
 const normalizedPos = new Vector2();
 const intersection = new Vector3();
 const { zoomSpeed, zoomRange, orthoSize } = config.camera;
-const { mapRes, cellsPerVehicleCell } = config.game;
 const localRay = new Ray();
 const worldRay = new Ray();
 const inverseMatrix = new Matrix4();
@@ -392,16 +391,14 @@ class GameMapInput {
                             const sectorCoords = new Vector2();
                             const localCoords = new Vector2();
                             const cell = GameUtils.getCell(state.raycastedCellCoords, sectorCoords, localCoords);
-                            const _x = Math.floor(state.raycastedCellCoords.x / 2);
-                            const _y = Math.floor(state.raycastedCellCoords.y / 2);
-                            console.log(`mapCoords: ${state.raycastedCellCoords.x},${state.raycastedCellCoords.y}, mapCoords2x2: ${_x},${_y}`);
+                            console.log(`mapCoords: ${state.raycastedCellCoords.x},${state.raycastedCellCoords.y}`);
                             console.log(cell);
-                            const sector = GameUtils.getSector(sectorCoords)!;
-                            const x = Math.floor(localCoords.x / cellsPerVehicleCell);
-                            const y = Math.floor(localCoords.y / cellsPerVehicleCell);
-                            const cellIndex2x2 = y * (mapRes / cellsPerVehicleCell) + x;
-                            const cell2x2 = sector.cells2x2[cellIndex2x2];
-                            console.log(cell2x2);
+                            // const sector = GameUtils.getSector(sectorCoords)!;
+                            // const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                            // const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                            // const cellIndex2x2 = y * (mapRes / cellsPerVehicleCell) + x;
+                            // const cell2x2 = sector.cells2x2[cellIndex2x2];
+                            // console.log(cell2x2);
                         }
                     }
                 }

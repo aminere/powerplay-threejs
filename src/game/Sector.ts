@@ -6,10 +6,8 @@ import { utils } from "../engine/Utils";
 import { FlowfieldViewer } from "./debug/FlowfieldViewer";
 import { Cell } from "./Cell";
 import { GameMapState } from "./components/GameMapState";
-import { IUnit } from "./unit/IUnit";
 
-const { mapRes, cellSize, cellsPerVehicleCell } = config.game;
-const vehicleMapRes = mapRes / cellsPerVehicleCell;
+const { mapRes, cellSize } = config.game;
 
 export class Sector {
     public static create(coords: Vector2) {
@@ -27,7 +25,7 @@ export class Sector {
 
         const grid = [...Array(mapRes * mapRes)];
         const cells = grid.map((_, i) => new Cell(`${x}${y}${i}`));
-        const cells2x2 = [...Array(vehicleMapRes * vehicleMapRes)].map(() => ({ units: [] as IUnit[] }));
+        // const cells2x2 = [...Array(vehicleMapRes * vehicleMapRes)].map(() => ({ units: [] as IUnit[] }));
 
         // terrain
         const { mesh, cellTextureData, highlightTextureData } = terrain.createPatch(coords);
@@ -39,7 +37,7 @@ export class Sector {
         const { sectors } = GameMapState.instance;
         const sector: ISector = {
             cells,
-            cells2x2,
+            // cells2x2,
             root: sectorRoot,
             layers: {
                 terrain: mesh,

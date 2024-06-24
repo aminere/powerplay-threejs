@@ -23,8 +23,8 @@ export function makeUnitAddr() {
     return addr;
 }
 
-const { mapRes, cellsPerVehicleCell } = config.game;
-const vehicleMapRes = mapRes / cellsPerVehicleCell;
+
+const { mapRes } = config.game;
 export function computeUnitAddr(mapCoords: Vector2, addrOut: IUnitAddr) {
     addrOut.mapCoords.copy(mapCoords);
     GameUtils.getCell(mapCoords, addrOut.sectorCoords, addrOut.localCoords)!;
@@ -32,14 +32,16 @@ export function computeUnitAddr(mapCoords: Vector2, addrOut: IUnitAddr) {
     addrOut.cellIndex = addrOut.localCoords.y * mapRes + addrOut.localCoords.x;
 }
 
-export function computeUnitAddr2x2(mapCoords1x1: Vector2, addrOut2x2: IUnitAddr) {
-    addrOut2x2.mapCoords.set(Math.floor(mapCoords1x1.x / cellsPerVehicleCell), Math.floor(mapCoords1x1.y / cellsPerVehicleCell));
-    GameUtils.getCell(mapCoords1x1, addrOut2x2.sectorCoords, addrOut2x2.localCoords)!;
-    addrOut2x2.localCoords.set(Math.floor(addrOut2x2.localCoords.x / cellsPerVehicleCell), Math.floor(addrOut2x2.localCoords.y / cellsPerVehicleCell));
-    addrOut2x2.sector = GameMapState.instance.sectors.get(`${addrOut2x2.sectorCoords.x},${addrOut2x2.sectorCoords.y}`)!;
-    addrOut2x2.cellIndex = addrOut2x2.localCoords.y * vehicleMapRes + addrOut2x2.localCoords.x;
-    return addrOut2x2;
-}
+// const { cellsPerVehicleCell } = config.game;
+// const vehicleMapRes = mapRes / cellsPerVehicleCell;
+// export function computeUnitAddr2x2(mapCoords1x1: Vector2, addrOut2x2: IUnitAddr) {
+//     addrOut2x2.mapCoords.set(Math.floor(mapCoords1x1.x / cellsPerVehicleCell), Math.floor(mapCoords1x1.y / cellsPerVehicleCell));
+//     GameUtils.getCell(mapCoords1x1, addrOut2x2.sectorCoords, addrOut2x2.localCoords)!;
+//     addrOut2x2.localCoords.set(Math.floor(addrOut2x2.localCoords.x / cellsPerVehicleCell), Math.floor(addrOut2x2.localCoords.y / cellsPerVehicleCell));
+//     addrOut2x2.sector = GameMapState.instance.sectors.get(`${addrOut2x2.sectorCoords.x},${addrOut2x2.sectorCoords.y}`)!;
+//     addrOut2x2.cellIndex = addrOut2x2.localCoords.y * vehicleMapRes + addrOut2x2.localCoords.x;
+//     return addrOut2x2;
+// }
 
 export function copyUnitAddr(src: IUnitAddr, dest: IUnitAddr) {
     dest.mapCoords.copy(src.mapCoords);
@@ -53,7 +55,7 @@ export function getCellFromAddr(addr: IUnitAddr) {
     return addr.sector.cells[addr.cellIndex];
 }
 
-export function getCell2x2FromAddr(addr2x2: IUnitAddr) {
-    return addr2x2.sector.cells2x2[addr2x2.cellIndex];
-}
+// export function getCell2x2FromAddr(addr2x2: IUnitAddr) {
+//     return addr2x2.sector.cells2x2[addr2x2.cellIndex];
+// }
 

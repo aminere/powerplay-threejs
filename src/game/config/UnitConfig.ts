@@ -19,7 +19,7 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         damage: 2,
         arrivalDamping: characterArrivalDamping,
         range: {
-            vision: 15,
+            vision: 10,
             attack: 1
         }
     },
@@ -28,7 +28,7 @@ export const unitConfig: Record<UnitType, IUnitConfig> = {
         damage: 2,
         arrivalDamping: characterArrivalDamping,
         range: {
-            vision: 15,
+            vision: 10,
             attack: 1
         }
     },    

@@ -2,7 +2,7 @@ import { Box3Helper, LineBasicMaterial, MathUtils, Object3D, Vector2, Vector3 } 
 import { ICell } from "../GameTypes";
 import { TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
-import { computeUnitAddr, computeUnitAddr2x2, getCell2x2FromAddr, getCellFromAddr } from "./UnitAddr";
+import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { time } from "../../engine/core/Time";
 import { GameMapState } from "../components/GameMapState";
 import { cellPathfinder } from "../pathfinding/CellPathfinder";
@@ -14,7 +14,6 @@ import { cmdFogMoveCircle } from "../../Events";
 import { IUnit } from "./IUnit";
 import { UnitUtils } from "./UnitUtils";
 import { ICharacterUnit } from "./ICharacterUnit";
-import { IVehicleUnit } from "./VehicleUnit";
 import { unitConfig } from "../config/UnitConfig";
 import { FlowfieldUtils } from "../pathfinding/FlowfieldUtils";
 import { AttackUnit } from "./states/AttackUnit";
@@ -33,8 +32,7 @@ const lookDirection = new Vector3();
 const nextMapCoords = new Vector2();
 const nextPos = new Vector3();
 
-const { mapRes, cellsPerVehicleCell } = config.game;
-const vehicleMapRes = mapRes / cellsPerVehicleCell;
+const { mapRes } = config.game;
 const { maxForce, separations } = config.steering;
 
 function getBox3Helper(visual: Object3D) {
@@ -63,10 +61,10 @@ function moveTo(unit: IUnit, motionCommandId: number, motionId: number, mapCoord
     unit.motionTime = 0;
     computeUnitAddr(mapCoords, unit.targetCell);
 
-    if (UnitUtils.isVehicle(unit)) {
-        const vehicle = unit as IVehicleUnit;
-        computeUnitAddr2x2(mapCoords, vehicle.targetCell2x2);
-    }
+    // if (UnitUtils.isVehicle(unit)) {
+    //     const vehicle = unit as IVehicleUnit;
+    //     computeUnitAddr2x2(mapCoords, vehicle.targetCell2x2);
+    // }
 
     unit.onMove(bindSkeleton);
 }
@@ -188,46 +186,46 @@ function getCellUnits(mapCoords: Vector2, radius: number) {
     return cellUnits;
 }
 
-const cellUnits2x2 = new Array<IUnit>();
-function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
-    cellUnits2x2.length = 0;
-    const { sectors } = GameMapState.instance;
-    for (let y = mapCoords2x2.y - radius; y <= mapCoords2x2.y + radius; y++) {
-        for (let x = mapCoords2x2.x - radius; x <= mapCoords2x2.x + radius; x++) {
-            const sectorX = Math.floor(x / vehicleMapRes);
-            const sectorY = Math.floor(y / vehicleMapRes);
-            const sector = sectors.get(`${sectorX},${sectorY}`);
-            if (sector) {
-                const sectorStartX = sectorX * vehicleMapRes;
-                const sectorStartY = sectorY * vehicleMapRes;
-                const localX = x - sectorStartX;
-                const localY = y - sectorStartY;
-                const cellIndex = localY * vehicleMapRes + localX;
-                const cell = sector.cells2x2[cellIndex];
-                for (const neighbor of cell.units) {
-                    cellUnits2x2.push(neighbor);
-                }
-            }
-        }
-    }
-    return cellUnits2x2;
-}
+// const cellUnits2x2 = new Array<IUnit>();
+// function getCellUnits2x2(mapCoords2x2: Vector2, radius: number) {
+//     cellUnits2x2.length = 0;
+//     const { sectors } = GameMapState.instance;
+//     for (let y = mapCoords2x2.y - radius; y <= mapCoords2x2.y + radius; y++) {
+//         for (let x = mapCoords2x2.x - radius; x <= mapCoords2x2.x + radius; x++) {
+//             const sectorX = Math.floor(x / vehicleMapRes);
+//             const sectorY = Math.floor(y / vehicleMapRes);
+//             const sector = sectors.get(`${sectorX},${sectorY}`);
+//             if (sector) {
+//                 const sectorStartX = sectorX * vehicleMapRes;
+//                 const sectorStartY = sectorY * vehicleMapRes;
+//                 const localX = x - sectorStartX;
+//                 const localY = y - sectorStartY;
+//                 const cellIndex = localY * vehicleMapRes + localX;
+//                 const cell = sector.cells2x2[cellIndex];
+//                 for (const neighbor of cell.units) {
+//                     cellUnits2x2.push(neighbor);
+//                 }
+//             }
+//         }
+//     }
+//     return cellUnits2x2;
+// }
 
-function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
-    const x = Math.floor(nextMapCoords.x / cellsPerVehicleCell);
-    const y = Math.floor(nextMapCoords.y / cellsPerVehicleCell);
-    const coords2x2 = vehicle.coords2x2;
-    if (coords2x2.mapCoords.x === x && coords2x2.mapCoords.y === y) {
-        return;
-    }
-    const currentCell = coords2x2.sector!.cells2x2[coords2x2.cellIndex];
-    const unitIndex = currentCell.units!.indexOf(vehicle);
-    console.assert(unitIndex >= 0);
-    utils.fastDelete(currentCell.units!, unitIndex);
-    computeUnitAddr2x2(nextMapCoords, coords2x2);
-    const nextCell = coords2x2.sector.cells2x2[coords2x2.cellIndex];
-    nextCell.units.push(vehicle);
-}
+// function tryMoveVehicle(vehicle: IVehicleUnit, nextMapCoords: Vector2) {
+//     const x = Math.floor(nextMapCoords.x / cellsPerVehicleCell);
+//     const y = Math.floor(nextMapCoords.y / cellsPerVehicleCell);
+//     const coords2x2 = vehicle.coords2x2;
+//     if (coords2x2.mapCoords.x === x && coords2x2.mapCoords.y === y) {
+//         return;
+//     }
+//     const currentCell = coords2x2.sector!.cells2x2[coords2x2.cellIndex];
+//     const unitIndex = currentCell.units!.indexOf(vehicle);
+//     console.assert(unitIndex >= 0);
+//     utils.fastDelete(currentCell.units!, unitIndex);
+//     computeUnitAddr2x2(nextMapCoords, coords2x2);
+//     const nextCell = coords2x2.sector.cells2x2[coords2x2.cellIndex];
+//     nextCell.units.push(vehicle);
+// }
 
 function moveAwayFrom(unit: IUnit, neighbor: IUnit, currentAccel: number, repulsion: number) {
     awayDirection3.subVectors(unit.visual.position, neighbor.visual.position).setY(0);
@@ -450,7 +448,14 @@ export class UnitMotion {
 
         if (unit.motionId > 0) {
             if (!unit.arriving) {
-                const direction = FlowfieldUtils.getDirection(unit, awayDirection);
+                const direction = (() => {
+                    return FlowfieldUtils.getDirection(unit, awayDirection);
+                    // if (UnitUtils.isVehicle(unit)) {
+                    //     return FlowfieldUtils.getDirectionBilinear(unit, awayDirection);
+                    // } else {
+                    //     return FlowfieldUtils.getDirection(unit, awayDirection);
+                    // }
+                })();                               
                 unit.acceleration.x += direction.x * maxForce;
                 unit.acceleration.z += direction.y * maxForce;
                 unit.acceleration.clampLength(0, maxForce);
@@ -461,18 +466,19 @@ export class UnitMotion {
         if (unit.collidable) {
 
             const neighbors = (() => {
-                if (UnitUtils.isVehicle(unit)) {
-                    const truck = unit as IVehicleUnit;
-                    const vehicleNeighbors = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
-                    const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
-                    return _neighbors.concat(vehicleNeighbors);
-                } else {
-                    const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
-                    const { x, y } = unit.coords.mapCoords;
-                    const mapCoords2x2 = cellCoords.set(Math.floor(x / cellsPerVehicleCell), Math.floor(y / cellsPerVehicleCell));
-                    const vehicleNeighbors = getCellUnits2x2(mapCoords2x2, 1);
-                    return _neighbors.concat(vehicleNeighbors);
-                }
+                return getCellUnits(unit.coords.mapCoords, 1);
+                // if (UnitUtils.isVehicle(unit)) {
+                //     const truck = unit as IVehicleUnit;
+                //     const vehicleNeighbors = getCellUnits2x2(truck.coords2x2.mapCoords, 1);
+                //     const _neighbors = getCellUnits(unit.coords.mapCoords, 2);
+                //     return _neighbors.concat(vehicleNeighbors);
+                // } else {
+                //     const _neighbors = getCellUnits(unit.coords.mapCoords, 1);
+                //     const { x, y } = unit.coords.mapCoords;
+                //     const mapCoords2x2 = cellCoords.set(Math.floor(x / cellsPerVehicleCell), Math.floor(y / cellsPerVehicleCell));
+                //     const vehicleNeighbors = getCellUnits2x2(mapCoords2x2, 1);
+                //     return _neighbors.concat(vehicleNeighbors);
+                // }
             })();
 
             const _neighbors = Array.from(new Set(neighbors));
@@ -491,10 +497,10 @@ export class UnitMotion {
                 // }
 
                 const collisionTestId = `${unit.visual.id},${neighbor.visual.id}`;
-                const willCollide = (() => {
+                const collides = (() => {
                     const cachedResult = this._collisionResults.get(collisionTestId);
                     if (cachedResult === undefined) {
-                        const newResult = UnitUtils.willCollide(unit, neighbor);
+                        const newResult = UnitUtils.collides(unit, neighbor);
                         this._collisionResults.set(collisionTestId, newResult);
                         const collisionTestId2 = `${neighbor.visual.id},${unit.visual.id}`;
                         this._collisionResults.set(collisionTestId2, newResult);
@@ -512,7 +518,7 @@ export class UnitMotion {
                     }
                 })();
 
-                if (willCollide) {
+                if (collides) {
                     const canAffectEachOther = (() => {
                         const isEnemy1 = UnitUtils.isEnemy(unit);
                         const isEnemy2 = UnitUtils.isEnemy(neighbor);
@@ -581,34 +587,35 @@ export class UnitMotion {
                 if (localCoords.x < 0 || localCoords.x >= mapRes || localCoords.y < 0 || localCoords.y >= mapRes) {
                     // entered a new sector
                     computeUnitAddr(nextMapCoords, unit.coords);
-                    if (UnitUtils.isVehicle(unit)) {
-                        tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);
-                    }
+                    // if (UnitUtils.isVehicle(unit)) {
+                    //     tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);
+                    // }
 
                 } else {
                     unit.coords.mapCoords.copy(nextMapCoords);
                     unit.coords.cellIndex = localCoords.y * mapRes + localCoords.x;
-                    if (UnitUtils.isVehicle(unit)) {
-                        tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);
-                    }
+                    // if (UnitUtils.isVehicle(unit)) {
+                    //     tryMoveVehicle(unit as IVehicleUnit, nextMapCoords);
+                    // }
                 }
 
                 if (isMoving && !unit.arriving) {
                     const reachedTarget = (() => {
-                        if (UnitUtils.isVehicle(unit)) {
-                            const vehicle = unit as IVehicleUnit;
-                            if (vehicle.targetCell2x2.mapCoords.equals(vehicle.coords2x2.mapCoords)) {
-                                return true;
-                            }
-                            const targetCell2x2 = getCell2x2FromAddr(vehicle.targetCell2x2);
-                            const cell2x2 = getCell2x2FromAddr(vehicle.coords2x2);
-                            if (cell2x2.building && targetCell2x2.building === cell2x2.building) {
-                                return true;
-                            }
-                            return false;
-                        } else {
-                            return unit.targetCell.mapCoords.equals(nextMapCoords);
-                        }
+                        return unit.targetCell.mapCoords.equals(nextMapCoords);
+                        // if (UnitUtils.isVehicle(unit)) {
+                        //     const vehicle = unit as IVehicleUnit;
+                        //     if (vehicle.targetCell2x2.mapCoords.equals(vehicle.coords2x2.mapCoords)) {
+                        //         return true;
+                        //     }
+                        //     const targetCell2x2 = getCell2x2FromAddr(vehicle.targetCell2x2);
+                        //     const cell2x2 = getCell2x2FromAddr(vehicle.coords2x2);
+                        //     if (cell2x2.building && targetCell2x2.building === cell2x2.building) {
+                        //         return true;
+                        //     }
+                        //     return false;
+                        // } else {
+                        //     return unit.targetCell.mapCoords.equals(nextMapCoords);
+                        // }
                     })();
                     if (reachedTarget) {
                         (() => {
@@ -638,7 +645,7 @@ export class UnitMotion {
             const rotationHalfDuration = (() => {
                 if (UnitUtils.isVehicle(unit)) {
                     if (unit.collidingWith.length > 0) {
-                        return .25;
+                        return .1;
                     }
                 }
                 return .1;

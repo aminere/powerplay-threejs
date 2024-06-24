@@ -130,6 +130,34 @@ export class UnitUtils {
         }
     }
 
+    public static collides(unit1: IUnit, unit2: IUnit) {
+        const unit1IsTruck = unit1.type === "truck";
+        const unit2IsTruck = unit2.type === "truck";
+        if (unit1IsTruck && unit2IsTruck) {
+            const box1Pos = unit1.visual.localToWorld(truckWorldCorner1.copy(truckCorner));
+            truckPoly1.pos.x = box1Pos.x;
+            truckPoly1.pos.y = box1Pos.z;
+            truckPoly1.setAngle(-unit1.angle);
+            const box2Pos = unit2.visual.localToWorld(truckWorldCorner2.copy(truckCorner));
+            truckPoly2.pos.x = box2Pos.x;
+            truckPoly2.pos.y = box2Pos.z;
+            truckPoly2.setAngle(-unit2.angle);
+            const isColliding = sat.testPolygonPolygon(truckPoly1, truckPoly2);
+            return isColliding;
+        } else {
+            if (unit1IsTruck) {
+                return truckCollidesWithUnit(unit1 as ITruckUnit, unit2);
+            } else if (unit2IsTruck) {
+                return truckCollidesWithUnit(unit2 as ITruckUnit, unit1);
+            } else {
+                // both have sphere collision
+                const dist = unit1.visual.position.distanceTo(unit2.visual.position);
+                const separation = separations[unit1.type] + separations[unit2.type];
+                return dist < separation;
+            }
+        }
+    }
+
     public static updateRotation(unit: IUnit, _direction: Vector3, halfDuration: number) {
         if (_direction.lengthSq() > 0.001) {
             // direction.copy(_direction).normalize().negate();

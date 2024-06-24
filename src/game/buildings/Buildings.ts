@@ -19,8 +19,7 @@ import { engineState } from "../../engine/EngineState";
 import { Fadeout } from "../components/Fadeout";
 import { AutoDestroy } from "../components/AutoDestroy";
 
-const { cellSize, mapRes, cellsPerVehicleCell, elevationStep } = config.game;
-const vehicleMapRes = mapRes / cellsPerVehicleCell;
+const { cellSize, mapRes, elevationStep } = config.game;
 const verticesPerRow = mapRes + 1;
 const cellCoords = new Vector2();
 const sectorCoords = new Vector2();
@@ -38,6 +37,18 @@ class Buildings {
         if (this._buildings.size > 0) {
             return;
         }
+
+        // const material = new MeshBasicMaterial({ color: 0x00FF00 });
+        // const geometry = new BoxGeometry(1, 1, 1);
+        // geometry.translate(.5, .5, .5);
+        // for (const type of BuildingTypes) {
+        //     const { size } = buildingConfig[type];
+        //     const box = new Mesh(geometry, material);
+        //     box.scale.copy(size);
+        //     const root = new Object3D();
+        //     root.add(box);
+        //     this.registerBuilding(root, type);
+        // }
 
         const meshBuildings: BuildingType[] = [
             "incubator",
@@ -62,7 +73,7 @@ class Buildings {
             const building = _objectBuildings[i];
             const buildingType = objectBuildings[i];
             this.registerBuilding(building, buildingType);
-        }        
+        }
     }
 
     public getBoundingBox(buildingType: BuildingType) {
@@ -118,13 +129,13 @@ class Buildings {
                 cellCoords.set(mapCoords.x + j, mapCoords.y + i);
                 const cell = GameUtils.getCell(cellCoords, sectorCoords, localCoords)!;
                 cell.building = buildingInstance;
-
-                const x = Math.floor(localCoords.x / cellsPerVehicleCell);
-                const y = Math.floor(localCoords.y / cellsPerVehicleCell);
-                const cellIndex2x2 = y * vehicleMapRes + x;
                 const sector = GameUtils.getSector(sectorCoords)!;
-                const cell2x2 = sector.cells2x2[cellIndex2x2];
-                cell2x2.building = instanceId;                
+
+                // const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                // const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                // const cellIndex2x2 = y * vehicleMapRes + x;
+                // const cell2x2 = sector.cells2x2[cellIndex2x2];
+                // cell2x2.building = instanceId;                
 
                 const geometry = (sector.layers.terrain as Mesh).geometry as BufferGeometry;
                 const startVertexIndex = localCoords.y * verticesPerRow + localCoords.x;
@@ -225,12 +236,12 @@ class Buildings {
                 const cell = GameUtils.getCell(cellCoords, undefined, localCoords)!;
                 cell.building = undefined;
 
-                const x = Math.floor(localCoords.x / cellsPerVehicleCell);
-                const y = Math.floor(localCoords.y / cellsPerVehicleCell);
-                const cellIndex2x2 = y * vehicleMapRes + x;
-                const sector = GameUtils.getSector(sectorCoords)!;
-                const cell2x2 = sector.cells2x2[cellIndex2x2];
-                cell2x2.building = undefined;
+                // const x = Math.floor(localCoords.x / cellsPerVehicleCell);
+                // const y = Math.floor(localCoords.y / cellsPerVehicleCell);
+                // const cellIndex2x2 = y * vehicleMapRes + x;
+                // const sector = GameUtils.getSector(sectorCoords)!;
+                // const cell2x2 = sector.cells2x2[cellIndex2x2];
+                // cell2x2.building = undefined;
             }
         }
 
