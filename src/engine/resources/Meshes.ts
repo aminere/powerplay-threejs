@@ -1,6 +1,7 @@
 
 import { FrontSide, Mesh, Object3D } from "three";
 import { GLTFLoader, FBXLoader } from "three/examples/jsm/Addons.js";
+import { utils } from "../Utils";
 
 class Meshes {
     private _gltfLoader = new GLTFLoader();
@@ -55,11 +56,13 @@ class Meshes {
 
     private loadScene(path: string) {
         const ext = path.split(".").pop()?.toLowerCase();
+        const basePath = utils.getBasePath();
+        const fullPath = `${basePath}${path}`;
         switch (ext) {
             case "fbx":
                 return new Promise<Object3D>((resolve, reject) => {
                     this._fbxLoader.load(
-                        path,
+                        fullPath,
                         root => resolve(root),
                         undefined,
                         error => reject(error));
@@ -69,7 +72,7 @@ class Meshes {
             case "gltf":
                 return new Promise<Object3D>((resolve, reject) => {
                     this._gltfLoader.load(
-                        path,
+                        fullPath,
                         gltf => resolve(gltf.scene),
                         undefined,
                         error => reject(error));

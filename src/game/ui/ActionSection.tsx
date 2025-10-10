@@ -4,6 +4,7 @@ import { ActionButton } from "./ActionButton";
 import { uiconfig } from "./uiconfig";
 import { GameMapState } from "../components/GameMapState";
 import gsap from "gsap";
+import { utils } from "../../engine/Utils";
 
 interface IActionSectionProps {
     open: boolean;
@@ -73,7 +74,7 @@ export function ActionSection(props: IActionSectionProps) {
             }
         }}
     >
-        <img src={`/images/icons/${props.name}.png`} />
+        <img src={`${utils.getBasePath()}images/icons/${props.name}.png`} />
         <div
             className="ui"
             ref={actionsRef}
@@ -108,7 +109,7 @@ export function ActionSection(props: IActionSectionProps) {
                         props.onSelected(_action);
                     }}
                 >
-                    <img src={`/images/icons/${_action}.png`} />
+                    <img src={`${utils.getBasePath()}images/icons/${_action}.png`} />
                 </ActionButton>
             })}
         </div>

@@ -1,4 +1,5 @@
 import { Font, FontLoader  } from "three/examples/jsm/Addons.js";
+import { utils } from "../Utils";
 
 class _3DFonts {
     private _loader = new FontLoader();
@@ -22,7 +23,9 @@ class _3DFonts {
         }
 
         const promise = new Promise<Font>(resolve => {
-            this._loader.load(`fonts/${fontName}.json`, (font) => {
+            const basePath = utils.getBasePath();
+            const fullPath = `${basePath}fonts/${fontName}.json`;
+            this._loader.load(fullPath, (font) => {
                 this._cache.set(fontName, font);
                 this._loading.delete(fontName);
                 resolve(font);

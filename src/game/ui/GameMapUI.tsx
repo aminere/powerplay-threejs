@@ -23,6 +23,7 @@ import { engine } from "../../engine/Engine";
 import { ElevationType, RawResourceType, RawResourceTypes, UnitType } from "../GameDefinitions";
 import { ActionButton } from "./ActionButton";
 import { InGameMenu } from "./InGameMenu";
+import { utils } from "../../engine/Utils";
 
 export function GameMapUI() {    
 
@@ -307,7 +308,7 @@ export function GameMapUI() {
                     }
                 }}
             >
-                <img src={`/images/icons/destroy.png`} />
+                <img src={`${utils.getBasePath()}images/icons/destroy.png`} />
             </ActionButton>
         </div>
 

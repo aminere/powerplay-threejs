@@ -18,6 +18,7 @@ import { Mines } from "../buildings/Mines";
 import { resourceConfig } from "../config/ResourceConfig";
 import { Assemblies } from "../buildings/Assemblies";
 import { ResourceType } from "../GameDefinitions";
+import { utils } from "../../engine/Utils";
 
 const outputFullError = "No space to eject! Connect conveyor to building";
 
@@ -174,7 +175,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                             unitsManager.killSelection();
                                         }}
                                     >
-                                        <img src="/images/icons/destroy.png" />
+                                        <img src={`${utils.getBasePath()}images/icons/destroy.png`} />
                                     </ActionButton>
                                 </FooterActions>
                             </>
@@ -375,7 +376,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                         unitsManager.killSelection();
                                     }}
                                 >
-                                    <img src="/images/icons/destroy.png" />
+                                    <img src={`${utils.getBasePath()}images/icons/destroy.png`} />
                                 </ActionButton>
                             </FooterActions>
                         </>
@@ -393,7 +394,7 @@ export function ActionsPanel(props: React.PropsWithChildren<ActionsPanelProps>) 
                                     unitsManager.killSelection();
                                 }}
                             >
-                                <img src="/images/icons/destroy.png" />
+                                <img src={`${utils.getBasePath()}images/icons/destroy.png`} />
                             </ActionButton>
                         </FooterActions>
                     }

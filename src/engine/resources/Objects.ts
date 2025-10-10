@@ -1,4 +1,5 @@
 import { Object3D, ObjectLoader } from "three";
+import { utils } from "../Utils";
 
 class Objects {
     private _loader = new ObjectLoader();
@@ -23,7 +24,9 @@ class Objects {
             return inProgress;
         }
 
-        const promise = this._loader.loadAsync(path)
+        const basePath = utils.getBasePath();
+        const fullPath = `${basePath}${path}`;
+        const promise = this._loader.loadAsync(fullPath)
             .then(obj => {
                 this._cache.set(path, obj);
                 this._loading.delete(path);                

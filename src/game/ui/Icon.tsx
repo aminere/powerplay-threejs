@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { utils } from "../../engine/Utils";
 
 interface IconProps {
     name: string;
@@ -35,7 +36,7 @@ export function Icon(props: IconProps) {
             };
             loading.current = true;
             setLoaded(false);
-            img.src = `/images/icons/${name}.png`;
+            img.src = `${utils.getBasePath()}images/icons/${name}.png`;
         }   
         setIcon(name);
     }, [name]);
@@ -45,10 +46,10 @@ export function Icon(props: IconProps) {
     }
 
     if (loaded) {
-        return <img src={`/images/icons/${icon}.png`} />
+        return <img src={`${utils.getBasePath()}images/icons/${icon}.png`} />
     }
 
-    return <img src={`/images/icons/404.png`} />;
+    return <img src={`${utils.getBasePath()}images/icons/404.png`} />;
     // return <span>{icon}</span>;
 }
 

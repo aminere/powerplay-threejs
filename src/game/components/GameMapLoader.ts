@@ -67,7 +67,9 @@ async function loadData(path: string, fromLocalStorage: boolean) {
         const data = JSON.parse(dataStr) as ISerializedGameMap;
         return data;
     } else {
-        const response = await fetch(`/scenes/${path}.json`);
+        const basePath = utils.getBasePath();
+        const fullPath = `${basePath}scenes/${path}.json`;
+        const response = await fetch(fullPath);
         const data = await response.json() as ISerializedGameMap;
         return data;
     }

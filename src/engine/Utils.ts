@@ -12,6 +12,10 @@ const lightDir = new Vector3();
 const worldPos = new Vector3();
 
 class Utils {
+    public getBasePath() {
+        return '/prototype/';
+    }
+
     public updateCameraAspect(camera: Camera, width: number, height: number) {
         const orthoCamera = camera as OrthographicCamera;
         const perspectiveCamera = camera as PerspectiveCamera;

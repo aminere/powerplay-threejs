@@ -1,3 +1,4 @@
+import { utils } from "../../engine/Utils";
 import { GameMapState } from "../components/GameMapState";
 import { ActionButton } from "./ActionButton";
 
@@ -31,7 +32,7 @@ export function TransportAction(props: ITransportActionProps) {
             }
         }}
     >
-        <img src={`/images/icons/${props.type}.png`} />
+        <img src={`${utils.getBasePath()}images/icons/${props.type}.png`} />
     </ActionButton>
 }
 
