@@ -161,9 +161,11 @@ export class GameMapLoader extends Component<GameMapLoaderProps, GameMapState> {
         this.init(data.size, data.cameraPos, data.gameMode, owner);
 
         // create units and structure after all sectors are created and fogOfWar is initialized
-        for (const { type, coords } of data.units) {            
-            unitsManager.spawn(coords, type);
-        }
+        if (data.units) {
+            for (const { type, coords } of data.units) {            
+                unitsManager.spawn(coords, type);
+            }
+        }        
 
         for (const [type, instances] of Object.entries(data.buildings)) {
             const buildingType = type as BuildingType;

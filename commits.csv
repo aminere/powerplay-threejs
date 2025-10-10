@@ -1,0 +1,600 @@
+a39356d,Amine Rehioui,2024-06-24 19:02:54 +0100,vehicles fill 3xx cell grid
+1f498fe,Amine Rehioui,2024-06-24 18:03:33 +0100,remove cell2x2 logic
+e6defe9,Amine Rehioui,2024-06-23 18:26:32 +0100,animation generalize transitions
+bc69178,Amine Rehioui,2024-06-23 18:25:39 +0100,rails take cellSize into account
+07ff2ec,Amine Rehioui,2024-06-23 16:18:16 +0100,fixes
+00c8022,Amine Rehioui,2024-06-22 22:55:02 +0100,tanks fix
+626f2b7,Amine Rehioui,2024-06-22 20:03:40 +0100,tanks can attack buildings
+5c16572,Amine Rehioui,2024-06-22 19:13:54 +0100,refactor tank states
+2d40674,Amine Rehioui,2024-06-22 17:33:01 +0100,remove NPCState
+4437cd1,Amine Rehioui,2024-06-22 15:06:02 +0100,enemies can attack buildings
+124c158,Amine Rehioui,2024-06-21 22:28:53 +0100,building instances per sector
+58fd9fd,Amine Rehioui,2024-06-21 20:51:20 +0100,melee attack polish
+2cf2896,Amine Rehioui,2024-06-21 20:51:06 +0100,fixx unit death leak
+350918a,Amine Rehioui,2024-06-21 20:45:51 +0100,motion polish
+ef49cff,Amine Rehioui,2024-06-20 21:44:57 +0100,buildings can explode
+64e28ce,Amine Rehioui,2024-06-20 19:58:06 +0100,wip
+e8eef13,Amine Rehioui,2024-06-20 19:55:13 +0100,units orient with surface
+251a654,Amine Rehioui,2024-06-20 17:32:04 +0100,Character Animation transition fix
+c5be50b,Amine Rehioui,2024-06-19 21:30:51 +0100,restore conveyor logic
+cd76ba1,Amine Rehioui,2024-06-19 21:19:08 +0100,wip
+8b4b824,Amine Rehioui,2024-06-19 14:35:56 +0100,flowfield motion code move to dedicated class
+c0c1066,Amine Rehioui,2024-06-16 14:07:25 +0100,bilinear flowfield sampling
+05fa79b,Amine Rehioui,2024-06-16 01:11:57 +0100,flowfield bilinear filtering wip
+5f1444b,Amine Rehioui,2024-06-15 17:08:46 +0100,wip
+3ffab10,Amine Rehioui,2024-06-15 14:59:23 +0100,wip
+5a244d2,Amine Rehioui,2024-06-15 13:09:15 +0100,elevation normals wip
+c7986ad,Amine Rehioui,2024-06-15 02:04:04 +0100,fix NASTY motions not being disposed when engine is stopped
+ab07366,Amine Rehioui,2024-06-15 01:45:17 +0100,fixes
+f3630d4,Amine Rehioui,2024-06-14 23:36:44 +0100,enemy tanks
+c1d2460,Amine Rehioui,2024-06-14 22:38:34 +0100,tanks can fire rockets
+54de521,Amine Rehioui,2024-06-14 19:34:11 +0100,add explosion to chunks for vehicles
+d270eb6,Amine Rehioui,2024-06-14 10:28:29 +0100,poish
+ccc7aa1,Amine Rehioui,2024-06-14 10:18:05 +0100,fix crashes
+324c8eb,Amine Rehioui,2024-06-14 01:48:43 +0100,polish
+86a9644,Amine Rehioui,2024-06-14 01:46:11 +0100,polish
+5e6f86f,Amine Rehioui,2024-06-14 01:32:32 +0100,fix ak47
+05a2ff1,Amine Rehioui,2024-06-14 01:06:31 +0100,rockets!
+923a31d,Amine Rehioui,2024-06-13 23:03:21 +0100,wip
+73b4762,Amine Rehioui,2024-06-13 22:22:42 +0100,wip
+da08211,Amine Rehioui,2024-06-13 21:22:30 +0100,world space particles
+3de28af,Amine Rehioui,2024-06-13 18:20:13 +0100,rockets wip
+4a25f60,Amine Rehioui,2024-06-13 17:38:14 +0100,rpg wip
+0c93704,Amine Rehioui,2024-06-13 00:25:39 +0100,rpg
+c314fcb,Amine Rehioui,2024-06-12 14:54:14 +0100,double click selection
+2a06d15,Amine Rehioui,2024-06-12 13:47:34 +0100,wip
+110acdc,Amine Rehioui,2024-06-12 13:21:17 +0100,motion polish
+ebefbf8,Amine Rehioui,2024-06-12 13:20:25 +0100,minimap touch bug
+eee3e64,Amine Rehioui,2024-06-12 13:19:59 +0100,fix
+27a83de,Amine Rehioui,2024-06-12 13:19:48 +0100,fix flowfield viewer bug
+9501eef,Amine Rehioui,2024-06-12 01:54:18 +0100,unitmotion wip fix very nasty duplicate Unit id bug
+3d02b1d,Amine Rehioui,2024-06-10 02:07:20 +0100,motion polish
+812bfbd,Amine Rehioui,2024-06-10 00:02:38 +0100,wip
+c39b8b2,Amine Rehioui,2024-06-08 15:03:19 +0100,wip
+1708a54,Amine Rehioui,2024-06-08 01:58:15 +0100,wip
+d051460,Amine Rehioui,2024-06-08 01:44:14 +0100,npc / tank interactions
+06f4962,Amine Rehioui,2024-06-07 23:33:56 +0100,wip
+8ba966d,Amine Rehioui,2024-06-07 23:28:25 +0100,wip
+2f9cc42,Amine Rehioui,2024-06-07 21:31:28 +0100,wip
+0bf4129,Amine Rehioui,2024-06-07 18:44:48 +0100,wip
+f5e8287,Amine Rehioui,2024-06-07 18:43:10 +0100,accurate oriented bbox collisions test! thanks sat lib
+5a41679,Amine Rehioui,2024-06-06 19:52:13 +0100,instanced particels take self rotation into account
+a451fe9,Amine Rehioui,2024-06-06 01:46:59 +0100,tank polish
+a021550,Amine Rehioui,2024-06-05 11:58:12 +0100,shooting polish
+bbba4af,Amine Rehioui,2024-06-05 01:35:37 +0100,wip
+ef27fa7,Amine Rehioui,2024-06-05 01:27:31 +0100,instanced particles and billboards in world space
+b0aab3b,Amine Rehioui,2024-06-04 21:05:36 +0100,proper particle velocity support
+9663bee,Amine Rehioui,2024-06-04 21:04:33 +0100,fix nasty tank gsap leak
+54a0b15,Amine Rehioui,2024-06-04 13:25:17 +0100,wip
+056245a,Amine Rehioui,2024-06-04 12:20:30 +0100,minor renaming
+53f8789,Amine Rehioui,2024-06-04 12:19:59 +0100,particles color mixin
+791e846,Amine Rehioui,2024-06-04 11:44:08 +0100,fix nasty serialization bug
+e3205be,Amine Rehioui,2024-06-04 02:14:30 +0100,fixes
+f0ffce7,Amine Rehioui,2024-06-04 00:57:59 +0100,wip
+c058619,Amine Rehioui,2024-06-04 00:56:45 +0100,add billboards add instanced particles
+e53caa0,Amine Rehioui,2024-06-03 20:29:49 +0100,wip
+d042b1f,Amine Rehioui,2024-06-03 18:51:18 +0100,engine supports key input
+a9fb822,Amine Rehioui,2024-06-03 11:39:58 +0100,add smoke feedback to buildings
+61b2788,Amine Rehioui,2024-05-31 20:08:38 +0000,add factory smoke engine time stop advance when paused
+84327cc,Amine Rehioui,2024-05-25 23:44:18 +0100,fix panning on ui
+69e8346,Amine Rehioui,2024-05-25 00:58:01 +0100,fix
+8b18290,Amine Rehioui,2024-05-24 23:59:06 +0100,demo fixes
+fcbed4d,Amine Rehioui,2024-05-23 14:50:01 +0000,integrate gsap update into the engine main loop
+75d37f5,Amine Rehioui,2024-05-23 11:24:41 +0000,fixes
+d9b9ff9,Amine Rehioui,2024-05-23 11:03:34 +0000,polish
+175e6b5,Amine Rehioui,2024-05-23 10:37:06 +0000,fixes
+d3991a4,Amine Rehioui,2024-05-23 00:01:18 +0000,tutorial fix
+98c3251,Amine Rehioui,2024-05-22 23:45:19 +0000,wip
+fdc846e,Amine Rehioui,2024-05-22 23:18:53 +0000,wip
+17e2944,Amine Rehioui,2024-05-22 22:32:25 +0000,finish sandbox
+88be6b7,Amine Rehioui,2024-05-22 21:55:34 +0000,sandbox wip
+a5e2296,Amine Rehioui,2024-05-22 17:47:48 +0000,sandbox wip
+5ef147c,Amine Rehioui,2024-05-22 14:47:44 +0000,sandbox wip
+4142a03,Amine Rehioui,2024-05-22 13:48:59 +0000,sandbox wip
+a5cd8f4,Amine Rehioui,2024-05-21 11:14:18 +0000,polish tutorial
+48f4d57,Amine Rehioui,2024-05-21 00:53:45 +0000,buildings affet elevation
+450d7ba,Amine Rehioui,2024-05-20 23:49:41 +0000,tooltips
+ccac5c8,Amine Rehioui,2024-05-20 23:25:27 +0000,tooltips wip
+a3fa637,Amine Rehioui,2024-05-20 21:57:05 +0000,wip
+ab5e3a6,Amine Rehioui,2024-05-20 19:59:01 +0000,fix
+56ba0d7,Amine Rehioui,2024-05-20 19:47:03 +0000,polish
+ab15443,Amine Rehioui,2024-05-20 19:13:16 +0000,wip
+6d3589f,Amine Rehioui,2024-05-20 19:12:13 +0000,tooltips wip
+ecfb6be,Amine Rehioui,2024-05-20 18:03:57 +0000,wip
+f3af784,Amine Rehioui,2024-05-20 16:30:33 +0000,wip
+afbc74b,Amine Rehioui,2024-05-20 11:51:22 +0000,fix typo
+23d7f24,Amine Rehioui,2024-05-20 11:16:36 +0000,demo polish
+01cdd82,Amine Rehioui,2024-05-20 10:30:52 +0000,fix indicator bug
+8443c91,Amine Rehioui,2024-05-20 10:09:39 +0000,exitgame
+d4a98e5,Amine Rehioui,2024-05-20 00:44:23 +0000,fix desktop input
+567bec4,Amine Rehioui,2024-05-20 00:19:39 +0000,fix input in desktop
+62ddc2a,Amine Rehioui,2024-05-19 23:11:28 +0000,wip
+315a032,Amine Rehioui,2024-05-19 22:48:03 +0000,wip
+a03714a,Amine Rehioui,2024-05-19 20:53:37 +0000,tutorial dialog
+77532e5,Amine Rehioui,2024-05-19 20:14:39 +0000,wip
+9081a96,Amine Rehioui,2024-05-19 18:11:55 +0000,wip
+c1ee312,Amine Rehioui,2024-05-19 18:03:23 +0000,wip
+dff087a,Amine Rehioui,2024-05-19 13:27:03 +0000,wip
+06ed58f,Amine Rehioui,2024-05-19 12:20:28 +0000,wip
+6912073,Amine Rehioui,2024-05-19 01:15:35 +0000,wip
+e0205af,Amine Rehioui,2024-05-19 01:00:32 +0000,wip
+740a772,Amine Rehioui,2024-05-18 21:34:20 +0000,wip
+6882a32,Amine Rehioui,2024-05-18 21:04:08 +0000,wip
+1ae76f5,Amine Rehioui,2024-05-18 15:37:53 +0000,wip
+ca406df,Amine Rehioui,2024-05-18 12:49:12 +0000,wip
+977048a,Amine Rehioui,2024-05-17 22:18:28 +0000,wip
+76cb263,Amine Rehioui,2024-05-17 19:57:03 +0000,indicators wip
+8f934d3,Amine Rehioui,2024-05-17 14:15:51 +0000,wip
+e41d78f,Amine Rehioui,2024-05-17 11:24:13 +0000,conveyor preview + truck transfers
+1b8c2aa,Amine Rehioui,2024-05-16 21:45:07 +0000,wip
+75178f9,Amine Rehioui,2024-05-16 19:09:07 +0100,conveyor fixes
+a35dac1,Amine Rehioui,2024-05-16 01:13:28 +0000,highlight depot ranges
+e47c7b6,Amine Rehioui,2024-05-16 00:33:10 +0000,depot construction effect
+1c99962,Amine Rehioui,2024-05-15 16:19:47 +0100,fixes
+ca8db3f,Amine Rehioui,2024-05-15 12:41:41 +0100,wip
+047b93b,Amine Rehioui,2024-05-15 12:23:49 +0100,wip
+e85fad4,Amine Rehioui,2024-05-14 20:09:13 +0100,truck motion with 2x2 cells
+0acca43,Amine Rehioui,2024-05-14 15:44:17 +0100,consumable liquid resources !!!!
+d774837,Amine Rehioui,2024-05-14 01:12:27 +0000,new water rendering show selection outline
+5e6f63d,Amine Rehioui,2024-05-14 00:33:06 +0000,wip
+1dfee6a,Amine Rehioui,2024-05-13 21:47:52 +0000,wip
+f3029b7,Amine Rehioui,2024-05-13 21:08:29 +0000,depot fix
+01d977f,Amine Rehioui,2024-05-13 20:14:26 +0000,depot auto output
+dd8fc7b,Amine Rehioui,2024-05-13 19:40:34 +0000,depot output panel + spawn mechanic
+1723a55,Amine Rehioui,2024-05-13 17:58:44 +0000,depots support multiple resources
+9d0aa34,Amine Rehioui,2024-05-13 13:01:57 +0000,wip
+ed9470d,Amine Rehioui,2024-05-13 11:27:39 +0000,rightclick attack
+c418074,Amine Rehioui,2024-05-13 10:46:45 +0000,fix ui icon refresh bug
+b8d00a4,Amine Rehioui,2024-05-13 02:03:16 +0000,wip
+5c9fe07,Amine Rehioui,2024-05-13 01:17:09 +0000,wip
+0ef37cf,Amine Rehioui,2024-05-13 00:41:09 +0000,unit collision caching
+0221a8d,Amine Rehioui,2024-05-12 23:17:39 +0000,match fog plane with terrain fog color
+9b238b0,Amine Rehioui,2024-05-12 22:23:03 +0000,serialize camera pos
+698c2f0,Amine Rehioui,2024-05-12 21:44:46 +0000,make trees work nicely with fog of war
+7fde6fe,Amine Rehioui,2024-05-12 19:39:27 +0000,oil
+1820fc1,Amine Rehioui,2024-05-12 14:19:54 +0000,oil wip
+ce49aa2,Amine Rehioui,2024-05-12 13:25:36 +0000,enprops
+8b33fe4,Amine Rehioui,2024-05-12 13:01:06 +0000,envprops take elevation into account
+974dea2,Amine Rehioui,2024-05-12 01:48:00 +0000,wip
+c1474ef,Amine Rehioui,2024-05-12 01:24:59 +0000,wip
+bba4958,Amine Rehioui,2024-05-12 00:56:29 +0000,wip
+43db355,Amine Rehioui,2024-05-11 22:02:33 +0000,assmblies wip
+490d818,Amine Rehioui,2024-05-11 21:03:04 +0000,mines ui
+6e71922,Amine Rehioui,2024-05-11 17:39:06 +0000,factory auto output
+5fb472e,Amine Rehioui,2024-05-11 16:59:39 +0000,wip
+7627cb5,Amine Rehioui,2024-05-11 13:00:27 +0000,wip
+cb154f5,Amine Rehioui,2024-05-11 12:05:08 +0000,wip
+9ed41a7,Amine Rehioui,2024-05-11 02:48:05 +0000,wip
+ca86a54,Amine Rehioui,2024-05-10 21:11:58 +0000,factory progress
+0e43075,Amine Rehioui,2024-05-10 19:58:40 +0000,fix truck collision bug!
+3135d5f,Amine Rehioui,2024-05-10 19:44:57 +0000,wip
+a92c02f,Amine Rehioui,2024-05-10 19:25:15 +0000,wip
+ce2ccc6,Amine Rehioui,2024-05-10 17:00:47 +0000,wip
+5e32b20,Amine Rehioui,2024-05-10 17:00:38 +0000,wip
+9ad470a,Amine Rehioui,2024-05-10 14:17:13 +0000,wip
+665d811,Amine Rehioui,2024-05-10 13:27:24 +0000,collision polish
+8de5c99,Amine Rehioui,2024-05-10 13:01:44 +0000,truck collision polish
+755eea7,Amine Rehioui,2024-05-10 11:49:16 +0000,colliders
+a338628,Amine Rehioui,2024-05-09 20:15:11 +0100,collision wip
+ee7ea88,Amine Rehioui,2024-05-09 15:45:58 +0100,todo obbobb ntersects
+f337134,Amine Rehioui,2024-05-09 15:45:04 +0100,sphereObb intersection
+35b6eda,Amine Rehioui,2024-05-08 22:55:38 +0000,wip
+fa0d488,Amine Rehioui,2024-05-08 18:46:10 +0000,wip
+a72d2b7,Amine Rehioui,2024-05-08 01:51:08 +0000,polish
+1a576e4,Amine Rehioui,2024-05-07 23:20:17 +0000,ui polish
+4b0cb6b,Amine Rehioui,2024-05-07 21:58:50 +0000,ui wip
+753c58b,Amine Rehioui,2024-05-07 17:31:24 +0000,wip
+d0d7672,Amine Rehioui,2024-05-07 14:26:36 +0000,wip
+0ca2098,Amine Rehioui,2024-05-07 12:37:40 +0000,fixes
+6b9162b,Amine Rehioui,2024-05-07 01:21:33 +0000,polish + action chaining wip
+22a3dcc,Amine Rehioui,2024-05-06 22:14:48 +0000,wip
+b72af21,Amine Rehioui,2024-05-06 22:13:32 +0000,wip
+bcf107b,Amine Rehioui,2024-05-06 21:52:33 +0000,progress indictor
+cff3c36,Amine Rehioui,2024-05-06 21:27:16 +0000,wip
+5b84939,Amine Rehioui,2024-05-06 20:38:19 +0000,wip
+b4c1e86,Amine Rehioui,2024-05-06 20:21:41 +0000,wip
+d0e29d9,Amine Rehioui,2024-05-06 18:31:44 +0000,wip
+4604f2f,Amine Rehioui,2024-05-06 17:40:21 +0000,wip
+b6bdf86,Amine Rehioui,2024-05-06 16:06:47 +0000,wip
+fc3604f,Amine Rehioui,2024-05-06 15:09:20 +0000,wip
+a8fe418,Amine Rehioui,2024-05-06 12:28:53 +0000,ui wip
+5492093,Amine Rehioui,2024-05-06 00:36:25 +0000,fixes
+9397cfb,Amine Rehioui,2024-05-05 19:52:39 +0100,much better miningstate
+68c881c,Amine Rehioui,2024-05-05 17:17:51 +0100,wip
+8a4ebbe,Amine Rehioui,2024-05-05 13:15:28 +0100,wip
+e1f2156,Amine Rehioui,2024-05-04 20:21:08 +0100,wip
+b55b8c5,Amine Rehioui,2024-05-04 01:59:01 +0000,wip
+3fb3909,Amine Rehioui,2024-05-04 01:03:13 +0000,wip
+aa0ed8e,Amine Rehioui,2024-05-03 21:22:48 +0000,fixes
+9bdbe85,Amine Rehioui,2024-05-03 21:22:44 +0000,ui
+72e239b,Amine Rehioui,2024-05-03 21:22:27 +0000,unitmotion actually slide along obstacles
+0ebe34b,Amine Rehioui,2024-05-03 18:46:33 +0000,wip
+e1a6ffb,Amine Rehioui,2024-05-03 18:46:23 +0000,units slide along obstacles
+24af458,Amine Rehioui,2024-05-03 17:03:10 +0000,wip
+3613d33,Amine Rehioui,2024-05-03 16:37:04 +0000,factories require stone depots
+f97a316,Amine Rehioui,2024-05-03 15:09:25 +0000,wip
+c23cb17,Amine Rehioui,2024-05-03 12:20:23 +0000,depots shoridinger input
+862c298,Amine Rehioui,2024-05-03 10:45:18 +0000,wip
+08b5041,Amine Rehioui,2024-05-02 23:47:10 +0000,wip
+55dcb45,Amine Rehioui,2024-05-02 18:22:52 +0000,wip
+68200be,Amine Rehioui,2024-05-02 17:05:35 +0000,wip
+4de7e3f,Amine Rehioui,2024-05-02 14:56:13 +0000,wip
+6d08dbe,Amine Rehioui,2024-05-02 12:30:12 +0000,wip
+c9dbe47,Amine Rehioui,2024-05-02 11:47:36 +0000,wip
+35b2c4c,Amine Rehioui,2024-05-02 11:27:17 +0000,wip
+5ebda30,Amine Rehioui,2024-05-02 11:00:40 +0000,ui wip
+35bda5b,Amine Rehioui,2024-05-01 22:13:35 +0000,wip
+2f7795a,Amine Rehioui,2024-05-01 22:13:17 +0000,wip
+2641bda,Amine Rehioui,2024-05-01 15:08:09 +0000,wip
+c6ecc1d,Amine Rehioui,2024-05-01 01:01:45 +0000,removing pickable resources wip
+f084ffe,Amine Rehioui,2024-05-01 01:01:24 +0000,incubators wip
+20aa4c0,Amine Rehioui,2024-04-29 15:10:58 +0000,fix crashes
+875ca99,Amine Rehioui,2024-04-29 11:43:44 +0000,truck fixes
+6d791c3,Amine Rehioui,2024-04-29 01:08:37 +0000,truck to/from depots
+bc112a4,Amine Rehioui,2024-04-28 23:43:22 +0000,trucks wip
+2790ef3,Amine Rehioui,2024-04-28 12:38:20 +0000,trucks wip
+cbef175,Amine Rehioui,2024-04-28 11:02:44 +0000,incubators wip
+deb7a3b,Amine Rehioui,2024-04-27 22:13:53 +0000,wip
+432f173,Amine Rehioui,2024-04-27 14:58:20 +0100,wip
+119051d,Amine Rehioui,2024-04-27 14:01:25 +0100,logistics wip
+335ed67,Amine Rehioui,2024-04-27 13:09:26 +0100,logisitcs wip
+94f7080,Amine Rehioui,2024-04-26 20:52:49 +0000,depots + new resource logistics wip
+7b9ac6a,Amine Rehioui,2024-04-26 18:57:24 +0000,depots
+9c2257e,Amine Rehioui,2024-04-26 16:56:13 +0000,depots wip
+3059063,Amine Rehioui,2024-04-26 13:40:00 +0000,depots wip
+c68ad60,Amine Rehioui,2024-04-26 10:38:42 +0000,unitmotion polish
+eae71f1,Amine Rehioui,2024-04-25 19:25:08 +0100,vwhicle motion
+e05fca1,Amine Rehioui,2024-04-25 17:30:54 +0100,MAJOR MOTION REFACTOR, USE PROPER ACCEL + VELOCITY FOR STEERING, FEELS MUCH BETTER!!!!
+d8e1d16,Amine Rehioui,2024-04-24 23:51:24 +0000,tank shot explosions
+ed6a372,Amine Rehioui,2024-04-24 22:22:15 +0000,remove Car component
+733d0f5,Amine Rehioui,2024-04-24 22:21:56 +0000,remove Flock component vehicle collision wip
+6f9b9b8,Amine Rehioui,2024-04-23 20:48:43 +0000,tanks wip
+6893512,Amine Rehioui,2024-04-23 18:07:18 +0000,tanks wips
+252a724,Amine Rehioui,2024-04-23 13:48:01 +0000,fix cell picking
+cb0c7cf,Amine Rehioui,2024-04-23 12:58:15 +0000,units killing proper cleanup elevation handling wip
+8a8cc25,Amine Rehioui,2024-04-23 01:29:08 +0000,fixes
+ce75c08,Amine Rehioui,2024-04-23 01:08:08 +0000,water grabbing
+0d09fa3,Amine Rehioui,2024-04-23 00:40:14 +0000,major elevation refactor
+166b95e,Amine Rehioui,2024-04-23 00:39:59 +0000,water resource handling
+9ad4762,Amine Rehioui,2024-04-23 18:05:19 +0100,fix trees
+7e62be2,Amine Rehioui,2024-04-23 16:42:33 +0100,trees as resources
+b267088,Amine Rehioui,2024-04-22 02:11:09 +0000,fixes
+fc6b6dd,Amine Rehioui,2024-04-22 01:53:21 +0000,wip
+4670cc1,Amine Rehioui,2024-04-22 20:02:22 +0000,wip
+1d19969,Amine Rehioui,2024-04-22 19:59:19 +0000,polish
+6d5f725,Amine Rehioui,2024-04-22 19:46:00 +0000,much simpler NPCState
+79e8cf3,Amine Rehioui,2024-04-22 15:33:44 +0000,motion polish
+053ed55,Amine Rehioui,2024-04-21 22:48:17 +0000,wip
+5926abe,Amine Rehioui,2024-04-21 22:02:23 +0000,cleanup
+f2287e0,Amine Rehioui,2024-04-21 20:08:49 +0000,motion cleanuo
+93dcf84,Amine Rehioui,2024-04-20 13:59:13 +0100,update
+a8ce12c,Amine Rehioui,2024-04-20 13:54:59 +0100,fix compilation
+ee62192,Amine Rehioui,2024-04-20 13:11:59 +0100,soldier wip
+851af11,Amine Rehioui,2024-04-20 10:38:32 +0100,soldiers wip
+ce0f9a9,Amine Rehioui,2024-04-20 09:43:14 +0100,refactor
+02ddeb0,Amine Rehioui,2024-04-19 21:22:39 +0100,trucks can pick and deposit resources
+6218274,Amine Rehioui,2024-04-19 21:05:08 +0100,truck pick up items
+0097028,Amine Rehioui,2024-04-19 19:24:16 +0100,much better elevation handling trucks wip
+20feb50,Amine Rehioui,2024-04-19 17:17:20 +0100,support moving units and trucks at the same time
+fb03682,Amine Rehioui,2024-04-19 16:10:10 +0100,unit serialization + vehicle motion
+cbc7775,Amine Rehioui,2024-04-18 19:31:25 +0100,fix warning
+54f41b1,Amine Rehioui,2024-04-18 18:00:24 +0100,major Unit refactor, support truck units
+009ae36,Amine Rehioui,2024-04-18 12:55:46 +0100,shooting wip
+18914ae,Amine Rehioui,2024-04-18 01:18:37 +0100,wip
+85bdddc,Amine Rehioui,2024-04-18 00:19:21 +0100,units resource pikcing
+d726096,Amine Rehioui,2024-04-17 18:39:03 +0100,polish
+50d590d,Amine Rehioui,2024-04-17 18:32:38 +0100,much better mining mechanic
+f666b96,Amine Rehioui,2024-04-17 17:36:15 +0100,multiple units wip
+81dd158,Amine Rehioui,2024-04-17 14:37:05 +0100,better terrain brush
+1f9d681,Amine Rehioui,2024-04-17 00:49:39 +0100,wip
+92d9ac8,Amine Rehioui,2024-04-16 00:25:12 +0100,wip
+99fb53e,Amine Rehioui,2024-04-15 15:50:18 +0100,wip
+113f60b,Amine Rehioui,2024-04-15 15:48:40 +0100,threejs 163
+93cac3e,Amine Rehioui,2024-04-15 11:43:24 +0100,polish rails
+414dcdf,Amine Rehioui,2024-04-15 02:45:19 +0000,instanced rail bars
+20cb32f,Amine Rehioui,2024-04-15 00:01:23 +0000,rails serialization
+6ce2a79,Amine Rehioui,2024-04-14 22:19:33 +0000,polish rails
+ec72a28,Amine Rehioui,2024-04-14 17:20:04 +0000,ELEVATION: remove AOE style of keeping neighbors at one elevation step
+e10ccfc,Amine Rehioui,2024-04-14 17:19:21 +0000,wip
+02ad863,Amine Rehioui,2024-04-14 00:01:15 +0000,wip
+2ba3a83,Amine Rehioui,2024-04-13 14:27:31 +0000,wip
+44741c1,Amine Rehioui,2024-04-13 13:09:06 +0000,remove conveyor normals
+6de74ea,Amine Rehioui,2024-04-13 01:24:59 +0000,fix unit bounding boxes
+ffae1ff,Amine Rehioui,2024-04-13 00:40:58 +0000,polish conveyors
+17c24d9,Amine Rehioui,2024-04-12 20:31:11 +0000,can render mutli lane roads
+0f1843c,Amine Rehioui,2024-04-12 13:43:08 +0000,polish wip
+19a7899,Amine Rehioui,2024-04-12 03:26:19 +0000,wip
+50a418a,Amine Rehioui,2024-04-11 23:41:10 +0000,trains polish
+b14884b,Amine Rehioui,2024-04-10 23:01:44 +0000,enable shadow on conveyor items
+f2d2187,Amine Rehioui,2024-04-10 09:31:06 +0000,fix compile errors
+5b01c04,Amine Rehioui,2024-04-10 02:55:40 +0000,conveyor polish
+d0b00a0,Amine Rehioui,2024-04-09 14:06:37 +0000,mining fixes
+db40555,Amine Rehioui,2024-04-09 03:44:30 +0000,fix bug
+ad3b07d,Amine Rehioui,2024-04-09 03:05:57 +0000,ak47 wip
+9e3d4d4,Amine Rehioui,2024-04-08 23:40:35 +0000,logistics fix
+ca89eb5,Amine Rehioui,2024-04-08 23:01:39 +0000,motion fixes
+383fcb0,Amine Rehioui,2024-04-08 22:45:58 +0000,much better interactions with buildings
+33afc69,Amine Rehioui,2024-04-08 19:00:39 +0000,prototype iwp
+ed05d5a,Amine Rehioui,2024-04-07 17:33:42 +0000,stop mining is target resource was picked by another unit
+5f327fc,Amine Rehioui,2024-04-07 17:16:52 +0000,logistics wip
+37f8aec,Amine Rehioui,2024-04-07 15:10:21 +0000,wip
+09e2b84,Amine Rehioui,2024-04-07 13:56:00 +0000,production wip
+f9fa2c0,Amine Rehioui,2024-04-07 13:55:42 +0000,production wip
+b0af97b,Amine Rehioui,2024-04-07 13:28:45 +0000,buildings wip
+2a9a7bf,Amine Rehioui,2024-04-06 16:20:10 +0000,minor
+b93a3fe,Amine Rehioui,2024-04-06 16:14:04 +0000,polish lighting
+d49971a,Amine Rehioui,2024-04-06 02:21:26 +0000,conveyor items fixes
+3033357,Amine Rehioui,2024-04-06 00:34:10 +0000,logistics wip
+db7aee4,Amine Rehioui,2024-04-05 23:53:36 +0000,logistis wip
+3809cd2,Amine Rehioui,2024-04-05 21:45:37 +0000,conveyor + building comms wip
+327f705,Amine Rehioui,2024-04-05 17:42:22 +0000,wip
+40039e0,Amine Rehioui,2024-04-05 15:40:55 +0000,logicistics wup
+6c5f6f2,Amine Rehioui,2024-04-05 13:38:14 +0000,item picking wip
+6843fbd,Amine Rehioui,2024-04-05 02:55:29 +0000,wip
+886a14c,Amine Rehioui,2024-04-05 02:48:37 +0000,wip
+835bfd8,Amine Rehioui,2024-04-05 02:43:19 +0000,major units manager optim, traverse units once
+ff24362,Amine Rehioui,2024-04-05 02:24:51 +0000,wip
+3d3f455,Amine Rehioui,2024-04-04 18:11:35 +0000,wip
+7a5f82c,Amine Rehioui,2024-04-04 18:05:14 +0000,factory wip
+f18c43e,Amine Rehioui,2024-04-04 16:21:25 +0000,factory wip
+4f92524,Amine Rehioui,2024-04-04 15:57:05 +0000,mining wip
+75152a6,Amine Rehioui,2024-04-04 15:10:20 +0000,factory wip
+df095c1,Amine Rehioui,2024-04-04 12:27:12 +0000,pathfinding optim
+f0764fd,Amine Rehioui,2024-04-04 03:14:22 +0000,factory wip
+f304ad5,Amine Rehioui,2024-04-04 00:57:54 +0000,wip
+9cb91bf,Amine Rehioui,2024-04-04 00:57:37 +0000,factory wip
+1d38754,Amine Rehioui,2024-04-03 02:10:39 +0000,mining wip
+05c173e,Amine Rehioui,2024-04-03 01:34:19 +0000,mining wip
+5fc03d1,Amine Rehioui,2024-04-02 23:36:31 +0000,mining wip
+16758c0,Amine Rehioui,2024-04-02 18:53:58 +0000,mingin wip
+b2d9817,Amine Rehioui,2024-04-02 16:02:43 +0000,mining wip
+8cbeacf,Amine Rehioui,2024-04-02 15:29:11 +0000,buildings wip
+8326ee7,Amine Rehioui,2024-04-01 18:18:08 +0000,gameplay wip
+36e5381,Amine Rehioui,2024-04-01 00:40:41 +0000,buildings wip
+eef3d8f,Amine Rehioui,2024-04-01 00:40:26 +0000,major improvement to multi sector motion
+3740577,Amine Rehioui,2024-03-27 01:26:45 +0000,wip
+6b18b9f,Amine Rehioui,2024-03-26 18:42:53 +0000,buildigns wip
+006baf8,Amine Rehioui,2024-03-26 17:34:27 +0000,unit motion fixes
+7756f94,Amine Rehioui,2024-03-26 13:57:23 +0000,gamemap refactor
+0343853,Amine Rehioui,2024-03-26 12:36:13 +0000,major simplification and unit motion fix
+d903520,Amine Rehioui,2024-03-26 12:32:55 +0000,wip
+abe53cf,Amine Rehioui,2024-03-24 12:31:45 +0000,refactor
+a7a5399,Amine Rehioui,2024-03-24 02:15:01 +0000,refactor
+461d2a5,Amine Rehioui,2024-03-23 17:10:56 +0000,gamemap state refactoring
+4ed4ba9,Amine Rehioui,2024-03-22 18:48:19 +0000,create GameMapUpdate
+f7c6259,Amine Rehioui,2024-03-22 12:10:42 +0000,wip
+7f52029,Amine Rehioui,2024-03-22 01:31:21 +0000,unit motion and deserialization fixes
+de0576b,Amine Rehioui,2024-03-21 16:36:59 +0000,refactor for gamemap serialization
+853ba14,Amine Rehioui,2024-03-21 00:36:32 +0000,steam trailer wip
+c9246a9,Amine Rehioui,2024-03-21 00:34:09 +0000,Make minimap size independent from world size
+6c9ab9c,Amine Rehioui,2024-03-18 13:34:53 +0000,gamemap input fix
+36eb54c,Amine Rehioui,2024-03-14 16:14:09 +0000,cell refactor
+83e9c25,Amine Rehioui,2024-03-12 14:25:39 +0000,fix conveyor items bug
+520494d,Amine Rehioui,2024-03-12 14:07:50 +0000,conveyor fixes
+f35661e,Amine Rehioui,2024-03-12 01:50:32 +0000,conveyor intersections
+c33442f,Amine Rehioui,2024-03-11 23:52:19 +0000,conveyor items
+2aa34cb,Amine Rehioui,2024-03-11 23:31:28 +0000,conveyor items
+ded246a,Amine Rehioui,2024-03-11 20:59:58 +0000,conveyor items wip
+96d90a5,Amine Rehioui,2024-03-10 20:45:46 +0100,conveyor items wip
+614b62b,Amine Rehioui,2024-03-09 23:30:29 +0100,conveyors wip
+7930e98,Amine Rehioui,2024-03-09 14:00:57 +0100,wip
+1464da1,Amine Rehioui,2024-03-09 13:29:55 +0100,conveyors wip
+9af4057,Amine Rehioui,2024-03-09 12:56:43 +0100,conveyors wip
+259635d,Amine Rehioui,2024-03-09 07:35:54 +0100,wip
+2135cc3,Amine Rehioui,2024-03-09 01:30:27 +0100,conveyors fixes
+cc7a797,Amine Rehioui,2024-03-08 14:23:13 +0100,conveyor items wip
+1f30205,Amine Rehioui,2024-03-08 14:19:01 +0100,buildings affect fog of war
+b2da572,Amine Rehioui,2024-03-07 23:29:47 +0100,item on conveyor
+77885f5,Amine Rehioui,2024-03-07 22:18:42 +0100,conveyors dragging ignores existing conveyors
+6c3bb87,Amine Rehioui,2024-03-07 20:41:17 +0100,conveyor bugs
+b90c58f,Amine Rehioui,2024-03-07 13:08:05 +0100,fix conveyor bugs
+0e056a1,Amine Rehioui,2024-03-07 10:29:14 +0100,fix conveyor bug
+b0ff988,Amine Rehioui,2024-03-07 02:13:58 +0100,conveyor debugging wip
+393aae7,Amine Rehioui,2024-03-07 01:40:44 +0100,corner converyors
+aa0db2f,Amine Rehioui,2024-03-06 23:39:32 +0100,curved conveyors wip
+24a8622,Amine Rehioui,2024-03-06 20:09:24 +0100,conveyor dragging
+e150223,Amine Rehioui,2024-03-06 13:01:22 +0100,conveyors wip
+be6cdc9,Amine Rehioui,2024-03-06 11:49:10 +0100,conveyors wip
+789ec96,Amine Rehioui,2024-03-05 20:31:31 +0100,conveyors wip
+4749366,Amine Rehioui,2024-03-05 01:21:48 +0100,conveyors wip
+06f211a,Amine Rehioui,2024-03-04 19:35:01 +0100,minimap supports camera rotation conveyors wip
+cb5fa40,Amine Rehioui,2024-03-04 12:08:58 +0100,minimap fixes
+37f1bfc,Amine Rehioui,2024-03-04 11:50:53 +0100,spawn units
+f4ae3ac,Amine Rehioui,2024-03-04 11:31:20 +0100,unit spawning wip
+36feedc,Amine Rehioui,2024-03-03 23:48:42 +0100,unit spawning wip
+090327d,Amine Rehioui,2024-03-03 17:17:28 +0100,building selection
+e3d62a0,Amine Rehioui,2024-03-03 16:39:25 +0100,buildings wip
+0146ac6,Amine Rehioui,2024-03-03 11:12:02 +0100,buildings support
+89d8601,Amine Rehioui,2024-03-02 16:33:12 +0100,fix preview road tiles
+1c8d23f,Amine Rehioui,2024-03-01 12:22:11 +0100,npc fixes
+c5af323,Amine Rehioui,2024-03-01 11:03:43 +0100,velocity damping + arrival
+51f9bd9,Amine Rehioui,2024-03-01 00:35:54 +0100,wip
+0cd83f1,Amine Rehioui,2024-03-01 00:35:44 +0100,much simpler damping (thanks Freya!)
+fc73328,Amine Rehioui,2024-02-28 17:51:10 +0100,bring back npc states
+2e5bc31,Amine Rehioui,2024-02-28 16:55:19 +0100,unit motion wip
+63fffea,Amine Rehioui,2024-02-28 12:42:09 +0100,unit hashing wip
+6ce0caf,Amine Rehioui,2024-02-28 12:41:58 +0100,wip
+6b74560,Amine Rehioui,2024-02-12 23:49:25 +0100,camera zoom tweak
+563dfbe,Amine Rehioui,2024-02-12 19:54:49 +0100,minimap input
+3f13a2c,Amine Rehioui,2024-02-12 00:36:29 +0100,minimap wip
+d4334fe,Amine Rehioui,2024-02-11 18:15:37 +0100,fog hide sides
+0624aab,Amine Rehioui,2024-02-11 01:06:00 +0100,minimap wip
+de86634,Amine Rehioui,2024-02-10 10:40:05 +0100,minimap wip
+c8fe929,Amine Rehioui,2024-02-09 23:32:54 +0100,Minimap wip
+0c31882,Amine Rehioui,2024-02-09 15:37:22 +0100,fix fog of war minimap wip
+4dd7a1b,Amine Rehioui,2024-02-09 12:52:29 +0100,fog of war can detect unseen tiles
+e7f86f3,Amine Rehioui,2024-02-09 00:07:57 +0100,polish fog of war
+e2716ee,Amine Rehioui,2024-02-08 23:56:54 +0100,fog of war circle caching + moveCircle with dx/dy
+1a50077,Amine Rehioui,2024-02-08 23:22:20 +0100,Fog of war v1 - with Plane
+3c21ba7,Amine Rehioui,2024-02-08 21:37:47 +0100,cleanup
+100093f,Amine Rehioui,2024-02-08 21:15:49 +0100,palettize flow directions
+5e30efa,Amine Rehioui,2024-02-08 18:30:50 +0100,organizae engine code into folders
+959fe8b,Amine Rehioui,2024-02-08 10:10:48 +0100,fog of war wip
+9498c8a,Amine Rehioui,2024-02-07 18:21:14 +0100,Handle computing missing flowfield on the fly
+f46ca15,Amine Rehioui,2024-02-07 14:26:20 +0100,flowfield polish
+64dbd24,Amine Rehioui,2024-02-07 12:15:18 +0100,major flowfield compute optim add debug text to flowfield
+22e140f,Amine Rehioui,2024-02-06 23:57:55 +0100,flowfield avoid duplicate neighbor processing
+f3cae50,Amine Rehioui,2024-02-06 16:32:57 +0100,multi sector motion works!!!!
+bf5c03d,Amine Rehioui,2024-02-05 23:42:15 +0100,wip
+dd4579b,Amine Rehioui,2024-02-05 23:40:07 +0100,qip
+6ba4c79,Amine Rehioui,2024-02-05 22:25:14 +0100,multi sector motion wip
+50d4f2a,Amine Rehioui,2024-02-05 19:42:50 +0100,cross sector motion wip
+61faa7a,Amine Rehioui,2024-02-05 17:46:53 +0100,multi sector motion wip
+78e0bd3,Amine Rehioui,2024-02-05 00:26:42 +0100,cross sector motion wip
+6baf5c1,Amine Rehioui,2024-02-03 22:52:39 +0100,Fix naster archer animation bug
+36dd74a,Amine Rehioui,2024-02-02 00:09:46 +0100,Introduce array fastDelete inter sector motion wip
+737a5b7,Amine Rehioui,2024-02-01 19:58:53 +0100,sector pathing wip
+03a2dae,Amine Rehioui,2024-02-01 18:45:27 +0100,handle resource cells
+cd151de,Amine Rehioui,2024-02-01 18:39:58 +0100,cross sector motion wip
+8c98fd6,Amine Rehioui,2024-02-01 17:52:03 +0100,minor refactor
+00ef4dd,Amine Rehioui,2024-02-01 17:49:15 +0100,instanced env props
+bc03c2a,Amine Rehioui,2024-01-31 23:15:27 +0100,mesh loader polish
+3d7df7b,Amine Rehioui,2024-01-31 23:13:50 +0100,water optim
+4c2be79,Amine Rehioui,2024-01-31 13:16:43 +0100,better fitting bounding sphere for sectors
+f47e58a,Amine Rehioui,2024-01-31 13:15:37 +0100,optimizations
+49a0024,Amine Rehioui,2024-01-31 00:46:32 +0100,add sectors to node
+f647347,Amine Rehioui,2024-01-31 00:39:07 +0100,Major flowfield memory optim
+b22e9a7,Amine Rehioui,2024-01-31 00:08:08 +0100,texture caching
+d4f2448,Amine Rehioui,2024-01-30 22:11:07 +0100,tree wind
+bc6948e,Amine Rehioui,2024-01-30 19:20:21 +0100,instanced trees
+8bd0c31,Amine Rehioui,2024-01-30 19:17:33 +0100,instanced trees
+bfbbaff,Amine Rehioui,2024-01-30 18:00:32 +0100,better terrain generation, per vertex noise sampling to avoid needing to stitch sectors together
+cf09dbe,Amine Rehioui,2024-01-30 14:21:07 +0100,trees shader wip
+8f692ab,Amine Rehioui,2024-01-30 00:13:57 +0100,water with perlin texture
+87e54ef,Amine Rehioui,2024-01-25 23:42:42 +0100,building placement wip
+881355e,Amine Rehioui,2024-01-25 22:19:30 +0100,water with vertex shader animation
+cd58045,Amine Rehioui,2024-01-24 23:46:22 +0100,stitch sectors
+25824a2,Amine Rehioui,2024-01-24 19:09:54 +0100,environment wip
+4e52e6a,Amine Rehioui,2024-01-23 23:25:33 +0100,experimenting with vertex colors
+97e222c,Amine Rehioui,2024-01-23 00:56:11 +0100,terrain wip
+f180a27,Amine Rehioui,2024-01-22 10:44:13 +0100,use fastnoise-lite
+1a38fc5,Amine Rehioui,2024-01-21 00:00:30 +0100,polish
+5ad015b,Amine Rehioui,2024-01-20 10:59:06 +0100,polish archer
+c701db8,Amine Rehioui,2024-01-20 01:09:22 +0100,range attack
+8c23961,Amine Rehioui,2024-01-19 23:25:47 +0100,range attack wip
+c4dd6eb,Amine Rehioui,2024-01-19 19:45:41 +0100,animation system ability to poll anims
+310b5c4,Amine Rehioui,2024-01-19 13:00:14 +0100,ensure all animation changes are safe
+d3684da,Amine Rehioui,2024-01-19 12:53:00 +0100,range attack wip
+edf35b1,Amine Rehioui,2024-01-18 19:34:03 +0100,fix death animation
+d1d108f,Amine Rehioui,2024-01-18 18:38:44 +0100,death anim transition
+36b180e,Amine Rehioui,2024-01-18 18:23:15 +0100,ability to engine step refactor animation system
+f9e42fa,Amine Rehioui,2024-01-18 00:58:36 +0100,transition skeletons wip
+86bf4b8,Amine Rehioui,2024-01-17 22:39:45 +0100,animation transitions
+d37f60e,Amine Rehioui,2024-01-17 16:16:17 +0100,animation transitions wip
+6726774,Amine Rehioui,2024-01-17 14:35:20 +0100,fix flock bugs
+fa3d590,Amine Rehioui,2024-01-16 23:52:39 +0100,death anim wip
+c5b3394,Amine Rehioui,2024-01-16 19:07:08 +0100,death anim wip
+0491570,Amine Rehioui,2024-01-16 15:47:38 +0100,death animation wip
+f391400,Amine Rehioui,2024-01-16 15:25:36 +0100,death anim handling huge fix in the skeletonmanager, armatures are now fully animated!
+78540fc,Amine Rehioui,2024-01-16 00:00:17 +0100,melee attacks
+f069763,Amine Rehioui,2024-01-15 21:04:23 +0100,melee attack
+eb9402f,Amine Rehioui,2024-01-15 01:12:24 +0100,NPC wip
+91ae174,Amine Rehioui,2024-01-15 00:08:57 +0100,NPC wip
+a69dffd,Amine Rehioui,2024-01-13 22:58:59 +0100,npcs wip
+e661d1f,Amine Rehioui,2024-01-13 16:27:22 +0100,wip
+c3ad50f,Amine Rehioui,2024-01-12 00:00:47 +0100,NPCs wip
+c42a567,Amine Rehioui,2024-01-11 23:21:05 +0100,unit combat wip
+a786ad4,Amine Rehioui,2024-01-10 22:53:13 +0100,NPC characters wi[
+654c46d,Amine Rehioui,2024-01-10 19:07:30 +0100,resource collection functional
+b2f5adf,Amine Rehioui,2024-01-09 23:35:10 +0100,resource mining wip
+fd90359,Amine Rehioui,2024-01-09 20:35:42 +0100,mining wip
+71295bd,Amine Rehioui,2024-01-09 14:21:37 +0100,much better unit collision anim
+15dcb90,Amine Rehioui,2024-01-09 13:58:29 +0100,resource mining wip
+ecffc3e,Amine Rehioui,2024-01-08 19:58:40 +0100,mining wip
+0715525,Amine Rehioui,2023-12-25 00:15:46 +0100,resource mining wip
+a02c667,Amine Rehioui,2023-12-24 18:21:50 +0100,mining wip
+9680f3a,Amine Rehioui,2023-12-24 17:29:45 +0100,FSM wip
+dbb5bcb,Amine Rehioui,2023-12-22 19:09:21 +0100,resource picking wip
+1cb26df,Amine Rehioui,2023-12-22 18:50:49 +0100,smoothDampVec3, smoothDampQuat
+ac52546,Amine Rehioui,2023-12-22 18:50:27 +0100,better flock motion - use smoothDamp
+936a359,Amine Rehioui,2023-12-21 17:30:16 +0100,better rotation handling
+ade5dfe,Amine Rehioui,2023-12-21 17:17:01 +0100,skeleton manager
+72d89be,Amine Rehioui,2023-12-20 23:06:39 +0100,resource mining wip
+f98c8a2,Amine Rehioui,2023-12-20 15:05:06 +0100,improved pathfinding
+d91d10d,Amine Rehioui,2023-12-20 00:56:06 +0100,support multiple simultaneous flowfields!
+e784c1f,Amine Rehioui,2023-12-19 19:26:43 +0100,flow field wip
+690a591,Amine Rehioui,2023-12-19 00:53:27 +0100,flowfiels wip
+ce9709b,Amine Rehioui,2023-12-18 19:32:38 +0100,polish
+54293dd,Amine Rehioui,2023-12-18 00:48:38 +0100,mega healthbar optim - with Canvas flowfields wip
+6154bd5,Amine Rehioui,2023-12-17 21:36:02 +0100,flow pathfinding wip
+0511f9c,Amine Rehioui,2023-12-17 21:35:31 +0100,remove old healthbar
+ad004fe,Amine Rehioui,2023-12-17 18:30:00 +0100,health bar optimization
+823f0b4,Amine Rehioui,2023-12-17 17:47:57 +0100,multiple selection wip
+44e3c0d,Amine Rehioui,2023-12-17 09:34:54 +0100,multiple selection wip
+e72b8d5,Amine Rehioui,2023-12-17 00:43:27 +0100,update UI after engine render
+6429adf,Amine Rehioui,2023-12-16 23:52:53 +0100,unit selection and move healthbars
+dd56b06,Amine Rehioui,2023-12-16 00:26:53 +0100,flock look at
+c2b4da1,Amine Rehioui,2023-12-16 00:00:10 +0100,shared skeleton instances
+1d266a6,Amine Rehioui,2023-12-15 23:13:06 +0100,engineState refactor
+e4dd6cc,Amine Rehioui,2023-12-15 14:15:32 +0100,fix
+18d177f,Amine Rehioui,2023-12-15 14:12:34 +0100,flock wip
+6afb65b,Amine Rehioui,2023-12-14 16:18:48 +0100,good flock behavior
+7062ff4,Amine Rehioui,2023-12-14 16:02:44 +0100,flock wip
+3ae9ae3,Amine Rehioui,2023-12-14 00:24:45 +0100,flock improvement
+b510042,Amine Rehioui,2023-12-13 23:34:22 +0100,group motion v1 !!! SNAPSHOT
+896aecb,Amine Rehioui,2023-12-13 20:56:09 +0100,unit motion wip
+b6c4cfb,Amine Rehioui,2023-12-13 00:05:18 +0100,gamemap serialization
+70b4ec3,Amine Rehioui,2023-12-12 00:12:54 +0100,water patches
+59587de,Amine Rehioui,2023-12-11 20:45:30 +0100,grass
+529ae50,Amine Rehioui,2023-12-11 19:30:25 +0100,mesh loading fixes
+eaf6bc3,Amine Rehioui,2023-12-10 00:23:18 +0100,animated tree
+68e7ec2,Amine Rehioui,2023-12-09 19:54:40 +0100,animation management
+2b0504e,Amine Rehioui,2023-12-08 21:23:19 +0100,animation db + animator can referene animations
+dca2770,Amine Rehioui,2023-12-08 20:41:38 +0100,serialization fixes
+ecdb605,Amine Rehioui,2023-12-07 19:09:38 +0100,temp fix
+a0a913c,Amine Rehioui,2023-12-07 19:03:46 +0100,skinned mesh related fixes
+bdb7133,Amine Rehioui,2023-12-07 02:19:44 +0100,Animation system wip
+0196a1a,Amine Rehioui,2023-12-06 01:54:51 +0100,engine fixes
+16f0173,Amine Rehioui,2023-12-05 11:29:11 +0100,minor fixes
+10d8440,Amine Rehioui,2023-12-05 03:28:19 +0100,particles
+916b76f,Amine Rehioui,2023-12-04 18:51:06 +0100,particles wip
+d349bc0,Amine Rehioui,2023-12-04 13:03:13 +0100,fix compile error
+efb8e5e,Amine Rehioui,2023-12-04 00:00:51 +0100,particles wip
+99b7de2,Amine Rehioui,2023-12-02 19:01:05 +0100,particles wip much better serialization of component state
+5b30ff8,Amine Rehioui,2023-12-02 18:01:39 +0100,particles wip
+a8fd227,Amine Rehioui,2023-12-02 13:00:38 +0100,array serialization
+5296e70,Amine Rehioui,2023-12-02 01:37:21 +0100,particles wip
+08668f8,Amine Rehioui,2023-12-01 15:46:48 +0100,more serialization fixes
+437fc47,Amine Rehioui,2023-12-01 14:30:56 +0100,serialization fixes
+32d2b19,Amine Rehioui,2023-11-27 19:40:15 +0100,fix shadows
+298b595,Amine Rehioui,2023-11-27 18:27:49 +0100,fixes
+f23b070,Amine Rehioui,2023-11-27 13:50:46 +0100,improve dir light handling
+8cf9ffd,Amine Rehioui,2023-11-26 00:26:02 +0100,try different tile types
+abe49ac,Amine Rehioui,2023-11-25 19:38:38 +0100,better serialization
+cd40418,Amine Rehioui,2023-11-25 17:52:10 +0100,add reflection for enum propperties
+9eeedd5,Amine Rehioui,2023-11-25 09:53:55 +0100,move absolute object layers to map instead of sectors
+25c09fe,Amine Rehioui,2023-11-25 00:41:40 +0100,resources + prefabs
+d4f5e0d,Amine Rehioui,2023-11-23 18:17:19 +0100,ensure mapstate is not serialized
+beadbf7,Amine Rehioui,2023-11-23 16:49:04 +0100,better time api
+82bd278,Amine Rehioui,2023-11-23 16:41:50 +0100,dispose resources when scene is unloaded
+5820f5c,Amine Rehioui,2023-11-23 16:35:23 +0100,major component update optim
+da02436,Amine Rehioui,2023-11-23 00:56:25 +0100,add threestats
+b6836c4,Amine Rehioui,2023-11-23 00:06:28 +0100,add getComponents() + bring back cars
+8a53dbf,Amine Rehioui,2023-11-22 23:16:29 +0100,entity creation + trains
+61a536e,Amine Rehioui,2023-11-22 20:58:19 +0100,preloaded rail meshes
+2ff6d04,Amine Rehioui,2023-11-22 20:51:45 +0100,input fixes
+76375d1,Amine Rehioui,2023-11-22 17:02:56 +0100,gameintegration wip
+ef5f0b3,Amine Rehioui,2023-11-22 16:04:34 +0100,elevation action
+b48201b,Amine Rehioui,2023-11-22 01:33:35 +0100,game ui integration
+f56b77e,Amine Rehioui,2023-11-22 01:33:26 +0100,game ui integration
+744f8a2,Amine Rehioui,2023-11-21 22:52:37 +0100,game ui integration
+a6b6401,Amine Rehioui,2023-11-21 22:00:22 +0100,game ui wip
+a3a9032,Amine Rehioui,2023-11-21 21:41:33 +0100,tileselector works
+3886f22,Amine Rehioui,2023-11-21 20:03:29 +0100,keyboard panning
+70bb2e9,Amine Rehioui,2023-11-21 19:39:52 +0100,fix touch input across editor ang game
+9d9e344,Amine Rehioui,2023-11-21 01:30:09 +0100,camera control wip
+2a6e1d2,Amine Rehioui,2023-11-21 00:58:14 +0100,Camera zoom
+edd53f6,Amine Rehioui,2023-11-21 00:43:27 +0100,camera pan
+27b6d0a,Amine Rehioui,2023-11-21 00:16:10 +0100,touch input
+be8a063,Amine Rehioui,2023-11-20 01:43:57 +0100,game integration wip
+e49cd3f,Amine Rehioui,2023-11-19 22:25:13 +0100,Game integration wip
+265eaca,Amine Rehioui,2023-11-19 21:59:14 +0100,wip
+35b4bd4,Amine Rehioui,2023-11-19 01:51:26 +0100,game integration wip - can create sectors
+f50c407,Amine Rehioui,2023-11-18 00:41:00 +0100,Game integration wip
+4214fa5,Amine Rehioui,2023-11-16 17:12:11 +0100,play mode wip
+455deb0,Amine Rehioui,2023-11-16 14:47:47 +0100,move scene camera parsing to the engine
+2d8c401,Amine Rehioui,2023-11-15 20:51:30 +0100,takout camera logic
+ca510af,Amine Rehioui,2023-11-15 01:00:16 +0100,engine scene loading wip
+3f9ef37,Amine Rehioui,2023-11-14 23:20:31 +0100,engine wip
+eacb230,Amine Rehioui,2023-11-14 16:04:38 +0100,wip
+cb9856c,Amine Rehioui,2023-11-12 01:28:46 +0100,populate
