@@ -1,6 +1,6 @@
 ## Powerplay RTS Three.js Prototype
 
-This is the full source code to the <a href="https://powerplayrts.com">Powerplay RTS</a> prototype, including game, engine, and editor.
+This is the full source code to the <a href="https://powerplayrts.com" target="_blank">Powerplay RTS</a> prototype, including game, engine, and editor.
 
 ## Setup instructions (Windows 11)
 
@@ -18,9 +18,11 @@ This will allow the editor to access the game data located in `game/public`, thr
 
 `npm run build:watch`
 
+:warning: Keep the above command running an open a new terminal. It will allow hot reload of the game library within the editor.
+
 `cd editor` ▶️ `npm run dev`
 
-open `http://localhost:5173` in web browser
+open `http://localhost:5173` in a web browser
 
 Press the play button! 🎮
 
