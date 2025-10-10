@@ -1,6 +1,7 @@
 
 import { Texture, TextureLoader } from "three";
 import { utils } from "../Utils";
+import { evtAssetLoaded } from "../../Events";
 
 class Textures {
     private _loader = new TextureLoader();
@@ -14,8 +15,10 @@ class Textures {
         
         const basePath = utils.getBasePath();
         const fullPath = `${basePath}${path}`;
+
         const texture = this._loader.load(fullPath);
         this._cache.set(path, texture);
+        evtAssetLoaded.post(path);
         return texture;
     }
 }

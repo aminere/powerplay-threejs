@@ -56,6 +56,7 @@ export const evtBuildingStateChanged = new AsyncEvent<IBuildingInstance>();
 export const evtUnitStateChanged = new AsyncEvent<IUnit>();
 export const evtCellStateChanged = new AsyncEvent<ICell>();
 export const evtGameMapUIMounted = new AsyncEvent<void>();
+export const evtAssetLoaded = new AsyncEvent<string>();
 
 interface IIndicator {
     align?: "left" | "top";

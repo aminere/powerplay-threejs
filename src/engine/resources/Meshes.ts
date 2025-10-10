@@ -2,6 +2,7 @@
 import { FrontSide, Mesh, Object3D } from "three";
 import { GLTFLoader, FBXLoader } from "three/examples/jsm/Addons.js";
 import { utils } from "../Utils";
+import { evtAssetLoaded } from "../../Events";
 
 class Meshes {
     private _gltfLoader = new GLTFLoader();
@@ -42,6 +43,7 @@ class Meshes {
                 }
                 this._cache.set(path, meshes);
                 this._loading.delete(path);
+                evtAssetLoaded.post(path);
                 return meshes;
             })
             .catch(error => {

@@ -1,5 +1,6 @@
 import { Font, FontLoader  } from "three/examples/jsm/Addons.js";
 import { utils } from "../Utils";
+import { evtAssetLoaded } from "../../Events";
 
 class _3DFonts {
     private _loader = new FontLoader();
@@ -28,6 +29,7 @@ class _3DFonts {
             this._loader.load(fullPath, (font) => {
                 this._cache.set(fontName, font);
                 this._loading.delete(fontName);
+                evtAssetLoaded.post(fontName);
                 resolve(font);
             });
         });

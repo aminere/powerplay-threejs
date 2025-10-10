@@ -1,5 +1,6 @@
 import { Object3D, ObjectLoader } from "three";
 import { utils } from "../Utils";
+import { evtAssetLoaded } from "../../Events";
 
 class Objects {
     private _loader = new ObjectLoader();
@@ -29,7 +30,8 @@ class Objects {
         const promise = this._loader.loadAsync(fullPath)
             .then(obj => {
                 this._cache.set(path, obj);
-                this._loading.delete(path);                
+                this._loading.delete(path); 
+                evtAssetLoaded.post(path);               
                 return obj;
             });
         this._loading.set(path, promise);
