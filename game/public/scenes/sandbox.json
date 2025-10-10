@@ -1,0 +1,429 @@
+{
+  "metadata": {
+    "version": 4.6,
+    "type": "Object",
+    "generator": "Object3D.toJSON"
+  },
+  "object": {
+    "uuid": "3b507689-c938-4d0a-91eb-0c4b76c2cd7a",
+    "type": "Scene",
+    "userData": {
+      "mainCamera": "2222a2e1-04ca-4f5d-b507-72066c1b7a43"
+    },
+    "layers": 1,
+    "matrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "children": [
+      {
+        "uuid": "18e872aa-9edd-4525-ac7f-70198e285b7b",
+        "type": "Object3D",
+        "name": "camera-root",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "children": [
+          {
+            "uuid": "9dbbbebf-4471-435e-8eca-44e6f0ff5640",
+            "type": "Object3D",
+            "name": "camera-pivot",
+            "userData": {
+              "eulerRotation": {
+                "isEuler": true,
+                "_x": -0.5235987755982988,
+                "_y": 0.7853981633974483,
+                "_z": 0,
+                "_order": "YXZ"
+              }
+            },
+            "layers": 1,
+            "matrix": [
+              0.7071067811865477,
+              2.775557561562892e-17,
+              -0.7071067811865477,
+              0,
+              -0.35355339059327373,
+              0.8660254037844387,
+              -0.3535533905932737,
+              0,
+              0.6123724356957946,
+              0.49999999999999994,
+              0.6123724356957946,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "children": [
+              {
+                "uuid": "2222a2e1-04ca-4f5d-b507-72066c1b7a43",
+                "type": "OrthographicCamera",
+                "layers": 1,
+                "matrix": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  150,
+                  1
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 4,
+                "left": -17.330920302969368,
+                "right": 17.330920302969368,
+                "top": 10,
+                "bottom": -10,
+                "near": 0.1,
+                "far": 300
+              }
+            ]
+          },
+          {
+            "uuid": "ec70a314-56a5-48c4-b6c0-66eba0b4f97f",
+            "type": "DirectionalLight",
+            "castShadow": true,
+            "userData": {
+              "components": {},
+              "eulerRotation": {
+                "isEuler": true,
+                "_x": -1.3962634015954636,
+                "_y": 0.5235987755982988,
+                "_z": 0,
+                "_order": "XYZ"
+              }
+            },
+            "layers": 1,
+            "matrix": [
+              0.8660254037844387,
+              -0.49240387650610395,
+              -0.08682408883346523,
+              0,
+              -2.7755575615628873e-17,
+              0.17364817766693016,
+              -0.9848077530122066,
+              0,
+              0.4999999999999992,
+              0.8528685319524422,
+              0.15038373318043521,
+              0,
+              15,
+              87,
+              15,
+              1
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "color": 16777215,
+            "intensity": 1.5,
+            "shadow": {
+              "mapSize": [
+                2048,
+                2048
+              ],
+              "camera": {
+                "uuid": "862e9493-a410-4141-9847-fd5e06e27a1c",
+                "type": "OrthographicCamera",
+                "layers": 1,
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 1,
+                "left": -5,
+                "right": 5,
+                "top": 5,
+                "bottom": -5,
+                "near": 0.1,
+                "far": 100
+              }
+            }
+          }
+        ]
+      },
+      {
+        "uuid": "b3c629e9-9ad4-4a85-8dc3-01ab0cb23928",
+        "type": "Object3D",
+        "name": "sandbox-map",
+        "userData": {
+          "components": {
+            "GameMap": {
+              "props": {
+                "active": true,
+                "debugFreeCosts": false,
+                "debugPathfinding": false,
+                "debugCollisions": false,
+                "saveToDisk": true,
+                "saveCommand": true,
+                "gameMode": "sandbox",
+                "brushSize": 2,
+                "brushHeight": 1,
+                "relativeBrush": true,
+                "treesCommand": true,
+                "elevationCommand": true,
+                "size": 5,
+                "continentFreqInv": 30,
+                "erosionFreqInv": 50,
+                "continentWeight": 1,
+                "erosionWeight": -1,
+                "continentGain": 0.1,
+                "erosionGain": 0,
+                "continent": {
+                  "_data": [
+                    {
+                      "x": -1,
+                      "y": 0
+                    },
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 0.4,
+                      "y": 1
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 5
+                    },
+                    {
+                      "x": 0.6,
+                      "y": 18
+                    },
+                    {
+                      "x": 1,
+                      "y": 20
+                    }
+                  ]
+                },
+                "erosion": {
+                  "_data": [
+                    {
+                      "x": -1,
+                      "y": 0
+                    },
+                    {
+                      "x": -0.5,
+                      "y": 0
+                    },
+                    {
+                      "x": -0.5,
+                      "y": 0
+                    },
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 0.4,
+                      "y": 0
+                    },
+                    {
+                      "x": 0.45,
+                      "y": 1
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 10
+                    },
+                    {
+                      "x": 1,
+                      "y": 30
+                    }
+                  ]
+                },
+                "debugCells": false
+              }
+            }
+          }
+        },
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "uuid": "2368b199-43a6-4e61-8112-ad98f3b78f00",
+        "type": "HemisphereLight",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "color": 16777215,
+        "intensity": 0.8,
+        "groundColor": 14375444
+      },
+      {
+        "uuid": "f3f12ae7-e3f1-45b5-8b1d-fa47e4d4ee4a",
+        "type": "Object3D",
+        "name": "GameMapLoader",
+        "userData": {
+          "components": {
+            "GameMapLoader": {
+              "props": {
+                "active": true,
+                "path": "sandbox-map",
+                "fromLocalStorage": false
+              }
+            }
+          },
+          "eulerRotation": {
+            "isEuler": true,
+            "_x": 0,
+            "_y": 0,
+            "_z": 0,
+            "_order": "XYZ"
+          }
+        },
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    "backgroundRotation": [
+      0,
+      0,
+      0,
+      "XYZ"
+    ],
+    "environmentRotation": [
+      0,
+      0,
+      0,
+      "XYZ"
+    ]
+  }
+}

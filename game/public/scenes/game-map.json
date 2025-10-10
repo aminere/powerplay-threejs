@@ -1,0 +1,5859 @@
+{
+  "size": 5,
+  "sectors": [
+    {
+      "key": "0,0",
+      "cells": [
+        {
+          "index": 119,
+          "resource": "water"
+        },
+        {
+          "index": 120,
+          "resource": "water"
+        },
+        {
+          "index": 121,
+          "resource": "water"
+        },
+        {
+          "index": 122,
+          "resource": "water"
+        },
+        {
+          "index": 123,
+          "resource": "water"
+        },
+        {
+          "index": 124,
+          "resource": "water"
+        },
+        {
+          "index": 125,
+          "resource": "water"
+        },
+        {
+          "index": 149,
+          "resource": "wood"
+        },
+        {
+          "index": 150,
+          "resource": "wood"
+        },
+        {
+          "index": 151,
+          "resource": "water"
+        },
+        {
+          "index": 152,
+          "resource": "water"
+        },
+        {
+          "index": 153,
+          "resource": "water"
+        },
+        {
+          "index": 154,
+          "resource": "water"
+        },
+        {
+          "index": 155,
+          "resource": "water"
+        },
+        {
+          "index": 156,
+          "resource": "water"
+        },
+        {
+          "index": 157,
+          "resource": "water"
+        },
+        {
+          "index": 176,
+          "resource": "wood"
+        },
+        {
+          "index": 181,
+          "resource": "wood"
+        },
+        {
+          "index": 182,
+          "resource": "wood"
+        },
+        {
+          "index": 183,
+          "resource": "water"
+        },
+        {
+          "index": 184,
+          "resource": "water"
+        },
+        {
+          "index": 185,
+          "resource": "water"
+        },
+        {
+          "index": 186,
+          "resource": "water"
+        },
+        {
+          "index": 187,
+          "resource": "water"
+        },
+        {
+          "index": 188,
+          "resource": "water"
+        },
+        {
+          "index": 189,
+          "resource": "water"
+        },
+        {
+          "index": 207,
+          "resource": "wood"
+        },
+        {
+          "index": 208,
+          "resource": "wood"
+        },
+        {
+          "index": 209,
+          "resource": "wood"
+        },
+        {
+          "index": 210,
+          "resource": "wood"
+        },
+        {
+          "index": 212,
+          "resource": "wood"
+        },
+        {
+          "index": 213,
+          "resource": "wood"
+        },
+        {
+          "index": 214,
+          "resource": "wood"
+        },
+        {
+          "index": 215,
+          "resource": "water"
+        },
+        {
+          "index": 216,
+          "resource": "water"
+        },
+        {
+          "index": 217,
+          "resource": "water"
+        },
+        {
+          "index": 218,
+          "resource": "water"
+        },
+        {
+          "index": 219,
+          "resource": "water"
+        },
+        {
+          "index": 220,
+          "resource": "water"
+        },
+        {
+          "index": 221,
+          "resource": "water"
+        },
+        {
+          "index": 222,
+          "resource": "water"
+        },
+        {
+          "index": 239,
+          "resource": "wood"
+        },
+        {
+          "index": 240,
+          "resource": "wood"
+        },
+        {
+          "index": 241,
+          "resource": "wood"
+        },
+        {
+          "index": 242,
+          "resource": "wood"
+        },
+        {
+          "index": 243,
+          "resource": "wood"
+        },
+        {
+          "index": 244,
+          "resource": "wood"
+        },
+        {
+          "index": 248,
+          "resource": "water"
+        },
+        {
+          "index": 249,
+          "resource": "water"
+        },
+        {
+          "index": 250,
+          "resource": "water"
+        },
+        {
+          "index": 251,
+          "resource": "water"
+        },
+        {
+          "index": 252,
+          "resource": "water"
+        },
+        {
+          "index": 253,
+          "resource": "water"
+        },
+        {
+          "index": 254,
+          "resource": "water"
+        },
+        {
+          "index": 267,
+          "resource": "wood"
+        },
+        {
+          "index": 268,
+          "resource": "wood"
+        },
+        {
+          "index": 269,
+          "resource": "wood"
+        },
+        {
+          "index": 271,
+          "resource": "wood"
+        },
+        {
+          "index": 272,
+          "resource": "wood"
+        },
+        {
+          "index": 280,
+          "resource": "water"
+        },
+        {
+          "index": 281,
+          "resource": "water"
+        },
+        {
+          "index": 282,
+          "resource": "water"
+        },
+        {
+          "index": 283,
+          "resource": "water"
+        },
+        {
+          "index": 284,
+          "resource": "water"
+        },
+        {
+          "index": 285,
+          "resource": "water"
+        },
+        {
+          "index": 286,
+          "resource": "water"
+        },
+        {
+          "index": 298,
+          "resource": "wood"
+        },
+        {
+          "index": 330,
+          "resource": "wood"
+        },
+        {
+          "index": 355,
+          "resource": "water"
+        },
+        {
+          "index": 356,
+          "resource": "water"
+        },
+        {
+          "index": 357,
+          "resource": "water"
+        },
+        {
+          "index": 362,
+          "resource": "wood"
+        },
+        {
+          "index": 386,
+          "resource": "water"
+        },
+        {
+          "index": 387,
+          "resource": "water"
+        },
+        {
+          "index": 388,
+          "resource": "water"
+        },
+        {
+          "index": 389,
+          "resource": "water"
+        },
+        {
+          "index": 394,
+          "resource": "wood"
+        },
+        {
+          "index": 397,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 417,
+          "resource": "water"
+        },
+        {
+          "index": 418,
+          "resource": "water"
+        },
+        {
+          "index": 419,
+          "resource": "water"
+        },
+        {
+          "index": 420,
+          "resource": "water"
+        },
+        {
+          "index": 421,
+          "resource": "water"
+        },
+        {
+          "index": 426,
+          "resource": "wood"
+        },
+        {
+          "index": 449,
+          "resource": "water"
+        },
+        {
+          "index": 450,
+          "resource": "water"
+        },
+        {
+          "index": 451,
+          "resource": "water"
+        },
+        {
+          "index": 452,
+          "resource": "water"
+        },
+        {
+          "index": 453,
+          "resource": "water"
+        },
+        {
+          "index": 454,
+          "resource": "water"
+        },
+        {
+          "index": 458,
+          "resource": "wood"
+        },
+        {
+          "index": 462,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 481,
+          "resource": "water"
+        },
+        {
+          "index": 482,
+          "resource": "water"
+        },
+        {
+          "index": 483,
+          "resource": "water"
+        },
+        {
+          "index": 484,
+          "resource": "water"
+        },
+        {
+          "index": 485,
+          "resource": "water"
+        },
+        {
+          "index": 486,
+          "resource": "water"
+        },
+        {
+          "index": 490,
+          "resource": "wood"
+        },
+        {
+          "index": 491,
+          "resource": "wood"
+        },
+        {
+          "index": 513,
+          "resource": "water"
+        },
+        {
+          "index": 514,
+          "resource": "water"
+        },
+        {
+          "index": 515,
+          "resource": "water"
+        },
+        {
+          "index": 516,
+          "resource": "water"
+        },
+        {
+          "index": 517,
+          "resource": "water"
+        },
+        {
+          "index": 518,
+          "resource": "water"
+        },
+        {
+          "index": 527,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 529,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 537,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 538,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 545,
+          "resource": "water"
+        },
+        {
+          "index": 546,
+          "resource": "water"
+        },
+        {
+          "index": 547,
+          "resource": "water"
+        },
+        {
+          "index": 548,
+          "resource": "water"
+        },
+        {
+          "index": 549,
+          "resource": "water"
+        },
+        {
+          "index": 561,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 569,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 577,
+          "resource": "water"
+        },
+        {
+          "index": 578,
+          "resource": "water"
+        },
+        {
+          "index": 579,
+          "resource": "water"
+        },
+        {
+          "index": 580,
+          "resource": "water"
+        },
+        {
+          "index": 581,
+          "resource": "water"
+        },
+        {
+          "index": 593,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 601,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 605,
+          "resource": "iron"
+        },
+        {
+          "index": 609,
+          "resource": "water"
+        },
+        {
+          "index": 610,
+          "resource": "water"
+        },
+        {
+          "index": 611,
+          "resource": "water"
+        },
+        {
+          "index": 612,
+          "resource": "water"
+        },
+        {
+          "index": 613,
+          "resource": "water"
+        },
+        {
+          "index": 616,
+          "resource": "coal"
+        },
+        {
+          "index": 618,
+          "resource": "iron"
+        },
+        {
+          "index": 625,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 633,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 639,
+          "units": [
+            "tank"
+          ]
+        },
+        {
+          "index": 657,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 665,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 689,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 697,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 808,
+          "resource": "wood"
+        },
+        {
+          "index": 809,
+          "resource": "wood"
+        },
+        {
+          "index": 810,
+          "resource": "wood"
+        },
+        {
+          "index": 840,
+          "resource": "wood"
+        },
+        {
+          "index": 841,
+          "resource": "wood"
+        },
+        {
+          "index": 843,
+          "resource": "wood"
+        },
+        {
+          "index": 844,
+          "resource": "wood"
+        },
+        {
+          "index": 849,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 873,
+          "resource": "wood"
+        },
+        {
+          "index": 874,
+          "resource": "wood"
+        },
+        {
+          "index": 875,
+          "resource": "wood"
+        },
+        {
+          "index": 877,
+          "resource": "wood"
+        },
+        {
+          "index": 881,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 905,
+          "resource": "wood"
+        },
+        {
+          "index": 906,
+          "resource": "wood"
+        },
+        {
+          "index": 907,
+          "resource": "wood"
+        },
+        {
+          "index": 908,
+          "resource": "wood"
+        },
+        {
+          "index": 909,
+          "resource": "wood"
+        },
+        {
+          "index": 910,
+          "resource": "wood"
+        },
+        {
+          "index": 913,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 938,
+          "resource": "wood"
+        },
+        {
+          "index": 940,
+          "resource": "wood"
+        },
+        {
+          "index": 941,
+          "resource": "wood"
+        },
+        {
+          "index": 942,
+          "resource": "wood"
+        },
+        {
+          "index": 945,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 1
+            },
+            "startAxis": "z",
+            "endAxis": "x"
+          }
+        },
+        {
+          "index": 946,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 947,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 948,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 971,
+          "resource": "wood"
+        },
+        {
+          "index": 972,
+          "resource": "wood"
+        },
+        {
+          "index": 974,
+          "resource": "wood"
+        },
+        {
+          "index": 975,
+          "resource": "wood"
+        },
+        {
+          "index": 988,
+          "units": [
+            "tank"
+          ]
+        },
+        {
+          "index": 1004,
+          "resource": "wood"
+        },
+        {
+          "index": 1005,
+          "resource": "wood"
+        },
+        {
+          "index": 1006,
+          "resource": "wood"
+        },
+        {
+          "index": 1007,
+          "resource": "wood"
+        },
+        {
+          "index": 1008,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 146,
+          "height": 1
+        },
+        {
+          "vertexIndex": 147,
+          "height": 1
+        },
+        {
+          "vertexIndex": 148,
+          "height": 1
+        },
+        {
+          "vertexIndex": 150,
+          "height": 1
+        },
+        {
+          "vertexIndex": 151,
+          "height": 2
+        },
+        {
+          "vertexIndex": 152,
+          "height": 2
+        },
+        {
+          "vertexIndex": 153,
+          "height": 2
+        },
+        {
+          "vertexIndex": 154,
+          "height": 1
+        },
+        {
+          "vertexIndex": 156,
+          "height": -5
+        },
+        {
+          "vertexIndex": 157,
+          "height": -5
+        },
+        {
+          "vertexIndex": 158,
+          "height": -5
+        },
+        {
+          "vertexIndex": 159,
+          "height": -5
+        },
+        {
+          "vertexIndex": 160,
+          "height": -5
+        },
+        {
+          "vertexIndex": 161,
+          "height": -5
+        },
+        {
+          "vertexIndex": 179,
+          "height": 1
+        },
+        {
+          "vertexIndex": 180,
+          "height": 2
+        },
+        {
+          "vertexIndex": 181,
+          "height": 2
+        },
+        {
+          "vertexIndex": 182,
+          "height": 2
+        },
+        {
+          "vertexIndex": 183,
+          "height": 4
+        },
+        {
+          "vertexIndex": 184,
+          "height": 5
+        },
+        {
+          "vertexIndex": 185,
+          "height": 5
+        },
+        {
+          "vertexIndex": 186,
+          "height": 4
+        },
+        {
+          "vertexIndex": 187,
+          "height": 3
+        },
+        {
+          "vertexIndex": 188,
+          "height": 3
+        },
+        {
+          "vertexIndex": 189,
+          "height": -5
+        },
+        {
+          "vertexIndex": 190,
+          "height": -5
+        },
+        {
+          "vertexIndex": 191,
+          "height": -5
+        },
+        {
+          "vertexIndex": 192,
+          "height": -5
+        },
+        {
+          "vertexIndex": 193,
+          "height": -5
+        },
+        {
+          "vertexIndex": 194,
+          "height": -5
+        },
+        {
+          "vertexIndex": 212,
+          "height": 3
+        },
+        {
+          "vertexIndex": 213,
+          "height": 4
+        },
+        {
+          "vertexIndex": 214,
+          "height": 4
+        },
+        {
+          "vertexIndex": 215,
+          "height": 2
+        },
+        {
+          "vertexIndex": 216,
+          "height": 4
+        },
+        {
+          "vertexIndex": 217,
+          "height": 5
+        },
+        {
+          "vertexIndex": 218,
+          "height": 5
+        },
+        {
+          "vertexIndex": 219,
+          "height": 5
+        },
+        {
+          "vertexIndex": 220,
+          "height": 4
+        },
+        {
+          "vertexIndex": 221,
+          "height": 4
+        },
+        {
+          "vertexIndex": 222,
+          "height": -5
+        },
+        {
+          "vertexIndex": 223,
+          "height": -5
+        },
+        {
+          "vertexIndex": 224,
+          "height": -5
+        },
+        {
+          "vertexIndex": 225,
+          "height": -5
+        },
+        {
+          "vertexIndex": 226,
+          "height": -5
+        },
+        {
+          "vertexIndex": 227,
+          "height": -5
+        },
+        {
+          "vertexIndex": 245,
+          "height": 4
+        },
+        {
+          "vertexIndex": 246,
+          "height": 4
+        },
+        {
+          "vertexIndex": 247,
+          "height": 4
+        },
+        {
+          "vertexIndex": 248,
+          "height": 2
+        },
+        {
+          "vertexIndex": 249,
+          "height": 3
+        },
+        {
+          "vertexIndex": 250,
+          "height": 5
+        },
+        {
+          "vertexIndex": 251,
+          "height": 5
+        },
+        {
+          "vertexIndex": 252,
+          "height": 5
+        },
+        {
+          "vertexIndex": 253,
+          "height": 4
+        },
+        {
+          "vertexIndex": 254,
+          "height": 4
+        },
+        {
+          "vertexIndex": 255,
+          "height": 2
+        },
+        {
+          "vertexIndex": 256,
+          "height": -5
+        },
+        {
+          "vertexIndex": 257,
+          "height": -5
+        },
+        {
+          "vertexIndex": 258,
+          "height": -5
+        },
+        {
+          "vertexIndex": 259,
+          "height": -5
+        },
+        {
+          "vertexIndex": 260,
+          "height": -5
+        },
+        {
+          "vertexIndex": 261,
+          "height": -5
+        },
+        {
+          "vertexIndex": 278,
+          "height": 4
+        },
+        {
+          "vertexIndex": 279,
+          "height": 4
+        },
+        {
+          "vertexIndex": 280,
+          "height": 4
+        },
+        {
+          "vertexIndex": 282,
+          "height": 1
+        },
+        {
+          "vertexIndex": 283,
+          "height": 2
+        },
+        {
+          "vertexIndex": 284,
+          "height": 2
+        },
+        {
+          "vertexIndex": 285,
+          "height": 2
+        },
+        {
+          "vertexIndex": 286,
+          "height": 2
+        },
+        {
+          "vertexIndex": 287,
+          "height": 1
+        },
+        {
+          "vertexIndex": 288,
+          "height": 1
+        },
+        {
+          "vertexIndex": 289,
+          "height": -5
+        },
+        {
+          "vertexIndex": 290,
+          "height": -5
+        },
+        {
+          "vertexIndex": 291,
+          "height": -5
+        },
+        {
+          "vertexIndex": 292,
+          "height": -5
+        },
+        {
+          "vertexIndex": 293,
+          "height": -5
+        },
+        {
+          "vertexIndex": 294,
+          "height": -5
+        },
+        {
+          "vertexIndex": 311,
+          "height": 2
+        },
+        {
+          "vertexIndex": 312,
+          "height": 2
+        },
+        {
+          "vertexIndex": 313,
+          "height": 2
+        },
+        {
+          "vertexIndex": 321,
+          "height": 1
+        },
+        {
+          "vertexIndex": 322,
+          "height": 1
+        },
+        {
+          "vertexIndex": 323,
+          "height": 1
+        },
+        {
+          "vertexIndex": 400,
+          "height": -5
+        },
+        {
+          "vertexIndex": 401,
+          "height": -5
+        },
+        {
+          "vertexIndex": 404,
+          "height": 1
+        },
+        {
+          "vertexIndex": 405,
+          "height": 1
+        },
+        {
+          "vertexIndex": 406,
+          "height": 1
+        },
+        {
+          "vertexIndex": 407,
+          "height": 1
+        },
+        {
+          "vertexIndex": 408,
+          "height": 1
+        },
+        {
+          "vertexIndex": 432,
+          "height": -5
+        },
+        {
+          "vertexIndex": 433,
+          "height": -5
+        },
+        {
+          "vertexIndex": 434,
+          "height": -5
+        },
+        {
+          "vertexIndex": 437,
+          "height": 1
+        },
+        {
+          "vertexIndex": 438,
+          "height": 1
+        },
+        {
+          "vertexIndex": 439,
+          "height": 2
+        },
+        {
+          "vertexIndex": 440,
+          "height": 2
+        },
+        {
+          "vertexIndex": 441,
+          "height": 2
+        },
+        {
+          "vertexIndex": 464,
+          "height": -5
+        },
+        {
+          "vertexIndex": 465,
+          "height": -5
+        },
+        {
+          "vertexIndex": 466,
+          "height": -5
+        },
+        {
+          "vertexIndex": 467,
+          "height": -5
+        },
+        {
+          "vertexIndex": 470,
+          "height": 1
+        },
+        {
+          "vertexIndex": 471,
+          "height": 1
+        },
+        {
+          "vertexIndex": 472,
+          "height": 2
+        },
+        {
+          "vertexIndex": 473,
+          "height": 2
+        },
+        {
+          "vertexIndex": 474,
+          "height": 2
+        },
+        {
+          "vertexIndex": 497,
+          "height": -5
+        },
+        {
+          "vertexIndex": 498,
+          "height": -5
+        },
+        {
+          "vertexIndex": 499,
+          "height": -5
+        },
+        {
+          "vertexIndex": 500,
+          "height": -5
+        },
+        {
+          "vertexIndex": 501,
+          "height": -5
+        },
+        {
+          "vertexIndex": 505,
+          "height": 1
+        },
+        {
+          "vertexIndex": 506,
+          "height": 1
+        },
+        {
+          "vertexIndex": 507,
+          "height": 1
+        },
+        {
+          "vertexIndex": 530,
+          "height": -5
+        },
+        {
+          "vertexIndex": 531,
+          "height": -5
+        },
+        {
+          "vertexIndex": 532,
+          "height": -5
+        },
+        {
+          "vertexIndex": 533,
+          "height": -5
+        },
+        {
+          "vertexIndex": 534,
+          "height": -5
+        },
+        {
+          "vertexIndex": 538,
+          "height": 1
+        },
+        {
+          "vertexIndex": 539,
+          "height": 1
+        },
+        {
+          "vertexIndex": 540,
+          "height": 1
+        },
+        {
+          "vertexIndex": 563,
+          "height": -5
+        },
+        {
+          "vertexIndex": 564,
+          "height": -5
+        },
+        {
+          "vertexIndex": 565,
+          "height": -5
+        },
+        {
+          "vertexIndex": 566,
+          "height": -5
+        },
+        {
+          "vertexIndex": 571,
+          "height": 1
+        },
+        {
+          "vertexIndex": 572,
+          "height": 1
+        },
+        {
+          "vertexIndex": 573,
+          "height": 1
+        },
+        {
+          "vertexIndex": 596,
+          "height": -5
+        },
+        {
+          "vertexIndex": 597,
+          "height": -5
+        },
+        {
+          "vertexIndex": 598,
+          "height": -5
+        },
+        {
+          "vertexIndex": 599,
+          "height": -5
+        },
+        {
+          "vertexIndex": 615,
+          "height": 1
+        },
+        {
+          "vertexIndex": 616,
+          "height": 1
+        },
+        {
+          "vertexIndex": 617,
+          "height": 1
+        },
+        {
+          "vertexIndex": 629,
+          "height": -5
+        },
+        {
+          "vertexIndex": 630,
+          "height": -5
+        },
+        {
+          "vertexIndex": 631,
+          "height": -5
+        },
+        {
+          "vertexIndex": 632,
+          "height": -5
+        },
+        {
+          "vertexIndex": 646,
+          "height": 1
+        },
+        {
+          "vertexIndex": 647,
+          "height": 2
+        },
+        {
+          "vertexIndex": 648,
+          "height": 2
+        },
+        {
+          "vertexIndex": 649,
+          "height": 2
+        },
+        {
+          "vertexIndex": 650,
+          "height": 2
+        },
+        {
+          "vertexIndex": 679,
+          "height": 1
+        },
+        {
+          "vertexIndex": 680,
+          "height": 2
+        },
+        {
+          "vertexIndex": 681,
+          "height": 2
+        },
+        {
+          "vertexIndex": 682,
+          "height": 2
+        },
+        {
+          "vertexIndex": 683,
+          "height": 2
+        },
+        {
+          "vertexIndex": 712,
+          "height": 1
+        },
+        {
+          "vertexIndex": 713,
+          "height": 2
+        },
+        {
+          "vertexIndex": 714,
+          "height": 2
+        },
+        {
+          "vertexIndex": 715,
+          "height": 2
+        },
+        {
+          "vertexIndex": 716,
+          "height": 2
+        },
+        {
+          "vertexIndex": 747,
+          "height": 1
+        },
+        {
+          "vertexIndex": 748,
+          "height": 1
+        },
+        {
+          "vertexIndex": 749,
+          "height": 1
+        },
+        {
+          "vertexIndex": 780,
+          "height": 1
+        },
+        {
+          "vertexIndex": 781,
+          "height": 1
+        },
+        {
+          "vertexIndex": 782,
+          "height": 1
+        },
+        {
+          "vertexIndex": 800,
+          "height": 1
+        },
+        {
+          "vertexIndex": 801,
+          "height": 2
+        },
+        {
+          "vertexIndex": 802,
+          "height": 2
+        },
+        {
+          "vertexIndex": 803,
+          "height": 2
+        },
+        {
+          "vertexIndex": 804,
+          "height": 2
+        },
+        {
+          "vertexIndex": 813,
+          "height": 1
+        },
+        {
+          "vertexIndex": 814,
+          "height": 1
+        },
+        {
+          "vertexIndex": 815,
+          "height": 1
+        },
+        {
+          "vertexIndex": 833,
+          "height": 2
+        },
+        {
+          "vertexIndex": 834,
+          "height": 3
+        },
+        {
+          "vertexIndex": 835,
+          "height": 3
+        },
+        {
+          "vertexIndex": 836,
+          "height": 3
+        },
+        {
+          "vertexIndex": 837,
+          "height": 3
+        },
+        {
+          "vertexIndex": 846,
+          "height": 1
+        },
+        {
+          "vertexIndex": 847,
+          "height": 1
+        },
+        {
+          "vertexIndex": 848,
+          "height": 1
+        },
+        {
+          "vertexIndex": 861,
+          "height": 5
+        },
+        {
+          "vertexIndex": 862,
+          "height": 5
+        },
+        {
+          "vertexIndex": 863,
+          "height": 5
+        },
+        {
+          "vertexIndex": 866,
+          "height": 2
+        },
+        {
+          "vertexIndex": 867,
+          "height": 3
+        },
+        {
+          "vertexIndex": 868,
+          "height": 3
+        },
+        {
+          "vertexIndex": 869,
+          "height": 3
+        },
+        {
+          "vertexIndex": 870,
+          "height": 3
+        },
+        {
+          "vertexIndex": 894,
+          "height": 5
+        },
+        {
+          "vertexIndex": 895,
+          "height": 5
+        },
+        {
+          "vertexIndex": 896,
+          "height": 5
+        },
+        {
+          "vertexIndex": 899,
+          "height": 1
+        },
+        {
+          "vertexIndex": 900,
+          "height": 2
+        },
+        {
+          "vertexIndex": 901,
+          "height": 2
+        },
+        {
+          "vertexIndex": 902,
+          "height": 2
+        },
+        {
+          "vertexIndex": 903,
+          "height": 1
+        },
+        {
+          "vertexIndex": 904,
+          "height": 2
+        },
+        {
+          "vertexIndex": 905,
+          "height": 2
+        },
+        {
+          "vertexIndex": 906,
+          "height": 2
+        },
+        {
+          "vertexIndex": 927,
+          "height": 5
+        },
+        {
+          "vertexIndex": 928,
+          "height": 5
+        },
+        {
+          "vertexIndex": 929,
+          "height": 5
+        },
+        {
+          "vertexIndex": 934,
+          "height": 1
+        },
+        {
+          "vertexIndex": 935,
+          "height": 1
+        },
+        {
+          "vertexIndex": 936,
+          "height": 1
+        },
+        {
+          "vertexIndex": 937,
+          "height": 2
+        },
+        {
+          "vertexIndex": 938,
+          "height": 2
+        },
+        {
+          "vertexIndex": 939,
+          "height": 2
+        },
+        {
+          "vertexIndex": 970,
+          "height": 2
+        },
+        {
+          "vertexIndex": 971,
+          "height": 2
+        },
+        {
+          "vertexIndex": 972,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1074,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1075,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1076,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "1,0",
+      "cells": [],
+      "elevation": [
+        {
+          "vertexIndex": 798,
+          "height": 1
+        },
+        {
+          "vertexIndex": 799,
+          "height": 1
+        },
+        {
+          "vertexIndex": 800,
+          "height": 1
+        },
+        {
+          "vertexIndex": 831,
+          "height": 1
+        },
+        {
+          "vertexIndex": 832,
+          "height": 2
+        },
+        {
+          "vertexIndex": 833,
+          "height": 2
+        },
+        {
+          "vertexIndex": 864,
+          "height": 1
+        },
+        {
+          "vertexIndex": 865,
+          "height": 2
+        },
+        {
+          "vertexIndex": 866,
+          "height": 2
+        },
+        {
+          "vertexIndex": 867,
+          "height": 1
+        },
+        {
+          "vertexIndex": 898,
+          "height": 2
+        },
+        {
+          "vertexIndex": 899,
+          "height": 2
+        },
+        {
+          "vertexIndex": 900,
+          "height": 1
+        },
+        {
+          "vertexIndex": 930,
+          "height": 1
+        },
+        {
+          "vertexIndex": 931,
+          "height": 2
+        },
+        {
+          "vertexIndex": 932,
+          "height": 2
+        },
+        {
+          "vertexIndex": 933,
+          "height": 1
+        },
+        {
+          "vertexIndex": 963,
+          "height": 2
+        },
+        {
+          "vertexIndex": 964,
+          "height": 2
+        },
+        {
+          "vertexIndex": 965,
+          "height": 2
+        },
+        {
+          "vertexIndex": 968,
+          "height": 1
+        },
+        {
+          "vertexIndex": 969,
+          "height": 1
+        },
+        {
+          "vertexIndex": 970,
+          "height": 1
+        },
+        {
+          "vertexIndex": 994,
+          "height": 1
+        },
+        {
+          "vertexIndex": 995,
+          "height": 2
+        },
+        {
+          "vertexIndex": 996,
+          "height": 2
+        },
+        {
+          "vertexIndex": 997,
+          "height": 2
+        },
+        {
+          "vertexIndex": 998,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1001,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1002,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1003,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1027,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1028,
+          "height": 3
+        },
+        {
+          "vertexIndex": 1029,
+          "height": 3
+        },
+        {
+          "vertexIndex": 1030,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1031,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1034,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1035,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1036,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1060,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1061,
+          "height": 3
+        },
+        {
+          "vertexIndex": 1062,
+          "height": 3
+        },
+        {
+          "vertexIndex": 1063,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1064,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "2,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,1",
+      "cells": [
+        {
+          "index": 13,
+          "resource": "wood"
+        },
+        {
+          "index": 14,
+          "resource": "wood"
+        },
+        {
+          "index": 15,
+          "resource": "wood"
+        },
+        {
+          "index": 16,
+          "resource": "wood"
+        },
+        {
+          "index": 45,
+          "resource": "wood"
+        },
+        {
+          "index": 48,
+          "resource": "wood"
+        },
+        {
+          "index": 49,
+          "resource": "wood"
+        },
+        {
+          "index": 78,
+          "resource": "wood"
+        },
+        {
+          "index": 80,
+          "resource": "wood"
+        },
+        {
+          "index": 81,
+          "resource": "wood"
+        },
+        {
+          "index": 110,
+          "resource": "wood"
+        },
+        {
+          "index": 111,
+          "resource": "wood"
+        },
+        {
+          "index": 112,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 18,
+          "height": 1
+        },
+        {
+          "vertexIndex": 19,
+          "height": 1
+        },
+        {
+          "vertexIndex": 20,
+          "height": 1
+        },
+        {
+          "vertexIndex": 51,
+          "height": 1
+        },
+        {
+          "vertexIndex": 52,
+          "height": 1
+        },
+        {
+          "vertexIndex": 53,
+          "height": 1
+        },
+        {
+          "vertexIndex": 84,
+          "height": 1
+        },
+        {
+          "vertexIndex": 85,
+          "height": 1
+        },
+        {
+          "vertexIndex": 86,
+          "height": 1
+        },
+        {
+          "vertexIndex": 93,
+          "height": 1
+        },
+        {
+          "vertexIndex": 94,
+          "height": 1
+        },
+        {
+          "vertexIndex": 95,
+          "height": 1
+        },
+        {
+          "vertexIndex": 126,
+          "height": 1
+        },
+        {
+          "vertexIndex": 127,
+          "height": 2
+        },
+        {
+          "vertexIndex": 128,
+          "height": 2
+        },
+        {
+          "vertexIndex": 129,
+          "height": 1
+        },
+        {
+          "vertexIndex": 130,
+          "height": 1
+        },
+        {
+          "vertexIndex": 153,
+          "height": 1
+        },
+        {
+          "vertexIndex": 154,
+          "height": 2
+        },
+        {
+          "vertexIndex": 155,
+          "height": 2
+        },
+        {
+          "vertexIndex": 156,
+          "height": 1
+        },
+        {
+          "vertexIndex": 157,
+          "height": 1
+        },
+        {
+          "vertexIndex": 159,
+          "height": 1
+        },
+        {
+          "vertexIndex": 160,
+          "height": 2
+        },
+        {
+          "vertexIndex": 161,
+          "height": 2
+        },
+        {
+          "vertexIndex": 162,
+          "height": 1
+        },
+        {
+          "vertexIndex": 163,
+          "height": 1
+        },
+        {
+          "vertexIndex": 186,
+          "height": 1
+        },
+        {
+          "vertexIndex": 187,
+          "height": 2
+        },
+        {
+          "vertexIndex": 188,
+          "height": 2
+        },
+        {
+          "vertexIndex": 189,
+          "height": 2
+        },
+        {
+          "vertexIndex": 190,
+          "height": 2
+        },
+        {
+          "vertexIndex": 191,
+          "height": 1
+        },
+        {
+          "vertexIndex": 192,
+          "height": 1
+        },
+        {
+          "vertexIndex": 194,
+          "height": 1
+        },
+        {
+          "vertexIndex": 195,
+          "height": 1
+        },
+        {
+          "vertexIndex": 196,
+          "height": 1
+        },
+        {
+          "vertexIndex": 219,
+          "height": 1
+        },
+        {
+          "vertexIndex": 220,
+          "height": 2
+        },
+        {
+          "vertexIndex": 221,
+          "height": 2
+        },
+        {
+          "vertexIndex": 222,
+          "height": 2
+        },
+        {
+          "vertexIndex": 223,
+          "height": 2
+        },
+        {
+          "vertexIndex": 224,
+          "height": 1
+        },
+        {
+          "vertexIndex": 225,
+          "height": 1
+        },
+        {
+          "vertexIndex": 250,
+          "height": 1
+        },
+        {
+          "vertexIndex": 251,
+          "height": 2
+        },
+        {
+          "vertexIndex": 252,
+          "height": 2
+        },
+        {
+          "vertexIndex": 253,
+          "height": 1
+        },
+        {
+          "vertexIndex": 254,
+          "height": 1
+        },
+        {
+          "vertexIndex": 256,
+          "height": 1
+        },
+        {
+          "vertexIndex": 257,
+          "height": 1
+        },
+        {
+          "vertexIndex": 258,
+          "height": 1
+        },
+        {
+          "vertexIndex": 282,
+          "height": 1
+        },
+        {
+          "vertexIndex": 283,
+          "height": 2
+        },
+        {
+          "vertexIndex": 284,
+          "height": 2
+        },
+        {
+          "vertexIndex": 285,
+          "height": 2
+        },
+        {
+          "vertexIndex": 286,
+          "height": 1
+        },
+        {
+          "vertexIndex": 287,
+          "height": 1
+        },
+        {
+          "vertexIndex": 315,
+          "height": 1
+        },
+        {
+          "vertexIndex": 316,
+          "height": 2
+        },
+        {
+          "vertexIndex": 317,
+          "height": 2
+        },
+        {
+          "vertexIndex": 318,
+          "height": 1
+        },
+        {
+          "vertexIndex": 348,
+          "height": 1
+        },
+        {
+          "vertexIndex": 349,
+          "height": 1
+        },
+        {
+          "vertexIndex": 350,
+          "height": 1
+        },
+        {
+          "vertexIndex": 384,
+          "height": 1
+        },
+        {
+          "vertexIndex": 385,
+          "height": 1
+        },
+        {
+          "vertexIndex": 386,
+          "height": 1
+        },
+        {
+          "vertexIndex": 417,
+          "height": 1
+        },
+        {
+          "vertexIndex": 418,
+          "height": 1
+        },
+        {
+          "vertexIndex": 419,
+          "height": 1
+        },
+        {
+          "vertexIndex": 450,
+          "height": 1
+        },
+        {
+          "vertexIndex": 451,
+          "height": 1
+        },
+        {
+          "vertexIndex": 452,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "1,1",
+      "cells": [
+        {
+          "index": 376,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 402,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 407,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 437,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 439,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 466,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 467,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 469,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 470,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 497,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 500,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 529,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 530,
+          "units": [
+            "enemy-melee"
+          ]
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 4,
+          "height": 1
+        },
+        {
+          "vertexIndex": 5,
+          "height": 3
+        },
+        {
+          "vertexIndex": 6,
+          "height": 3
+        },
+        {
+          "vertexIndex": 7,
+          "height": 2
+        },
+        {
+          "vertexIndex": 8,
+          "height": 1
+        },
+        {
+          "vertexIndex": 34,
+          "height": 1
+        },
+        {
+          "vertexIndex": 35,
+          "height": 1
+        },
+        {
+          "vertexIndex": 36,
+          "height": 1
+        },
+        {
+          "vertexIndex": 38,
+          "height": 2
+        },
+        {
+          "vertexIndex": 39,
+          "height": 2
+        },
+        {
+          "vertexIndex": 40,
+          "height": 2
+        },
+        {
+          "vertexIndex": 41,
+          "height": 1
+        },
+        {
+          "vertexIndex": 42,
+          "height": 1
+        },
+        {
+          "vertexIndex": 43,
+          "height": 1
+        },
+        {
+          "vertexIndex": 67,
+          "height": 1
+        },
+        {
+          "vertexIndex": 68,
+          "height": 1
+        },
+        {
+          "vertexIndex": 69,
+          "height": 1
+        },
+        {
+          "vertexIndex": 71,
+          "height": 2
+        },
+        {
+          "vertexIndex": 72,
+          "height": 2
+        },
+        {
+          "vertexIndex": 73,
+          "height": 2
+        },
+        {
+          "vertexIndex": 74,
+          "height": 1
+        },
+        {
+          "vertexIndex": 75,
+          "height": 1
+        },
+        {
+          "vertexIndex": 76,
+          "height": 1
+        },
+        {
+          "vertexIndex": 100,
+          "height": 1
+        },
+        {
+          "vertexIndex": 101,
+          "height": 1
+        },
+        {
+          "vertexIndex": 102,
+          "height": 1
+        },
+        {
+          "vertexIndex": 104,
+          "height": 2
+        },
+        {
+          "vertexIndex": 105,
+          "height": 2
+        },
+        {
+          "vertexIndex": 106,
+          "height": 2
+        },
+        {
+          "vertexIndex": 107,
+          "height": 1
+        },
+        {
+          "vertexIndex": 108,
+          "height": 1
+        },
+        {
+          "vertexIndex": 109,
+          "height": 1
+        },
+        {
+          "vertexIndex": 137,
+          "height": 1
+        },
+        {
+          "vertexIndex": 138,
+          "height": 1
+        },
+        {
+          "vertexIndex": 139,
+          "height": 1
+        },
+        {
+          "vertexIndex": 170,
+          "height": 1
+        },
+        {
+          "vertexIndex": 171,
+          "height": 1
+        },
+        {
+          "vertexIndex": 172,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "2,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,2",
+      "cells": [
+        {
+          "index": 21,
+          "resource": "wood"
+        },
+        {
+          "index": 23,
+          "resource": "wood"
+        },
+        {
+          "index": 53,
+          "resource": "wood"
+        },
+        {
+          "index": 57,
+          "resource": "wood"
+        },
+        {
+          "index": 60,
+          "resource": "wood"
+        },
+        {
+          "index": 85,
+          "resource": "wood"
+        },
+        {
+          "index": 86,
+          "resource": "wood"
+        },
+        {
+          "index": 91,
+          "resource": "wood"
+        },
+        {
+          "index": 92,
+          "resource": "wood"
+        },
+        {
+          "index": 93,
+          "resource": "wood"
+        },
+        {
+          "index": 118,
+          "resource": "wood"
+        },
+        {
+          "index": 120,
+          "resource": "wood"
+        },
+        {
+          "index": 121,
+          "resource": "wood"
+        },
+        {
+          "index": 124,
+          "resource": "wood"
+        },
+        {
+          "index": 125,
+          "resource": "wood"
+        },
+        {
+          "index": 151,
+          "resource": "wood"
+        },
+        {
+          "index": 152,
+          "resource": "wood"
+        },
+        {
+          "index": 153,
+          "resource": "wood"
+        },
+        {
+          "index": 154,
+          "resource": "wood"
+        },
+        {
+          "index": 155,
+          "resource": "wood"
+        },
+        {
+          "index": 156,
+          "resource": "wood"
+        },
+        {
+          "index": 157,
+          "resource": "wood"
+        },
+        {
+          "index": 182,
+          "resource": "wood"
+        },
+        {
+          "index": 183,
+          "resource": "wood"
+        },
+        {
+          "index": 185,
+          "resource": "wood"
+        },
+        {
+          "index": 186,
+          "resource": "wood"
+        },
+        {
+          "index": 187,
+          "resource": "wood"
+        },
+        {
+          "index": 214,
+          "resource": "wood"
+        },
+        {
+          "index": 216,
+          "resource": "wood"
+        },
+        {
+          "index": 218,
+          "resource": "wood"
+        },
+        {
+          "index": 247,
+          "resource": "wood"
+        },
+        {
+          "index": 249,
+          "resource": "wood"
+        },
+        {
+          "index": 516,
+          "resource": "wood"
+        },
+        {
+          "index": 528,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 530,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 549,
+          "resource": "wood"
+        },
+        {
+          "index": 550,
+          "resource": "wood"
+        },
+        {
+          "index": 551,
+          "resource": "wood"
+        },
+        {
+          "index": 552,
+          "resource": "wood"
+        },
+        {
+          "index": 553,
+          "resource": "wood"
+        },
+        {
+          "index": 567,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 575,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 582,
+          "resource": "wood"
+        },
+        {
+          "index": 583,
+          "resource": "wood"
+        },
+        {
+          "index": 584,
+          "resource": "wood"
+        },
+        {
+          "index": 585,
+          "resource": "wood"
+        },
+        {
+          "index": 599,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 607,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 613,
+          "resource": "wood"
+        },
+        {
+          "index": 614,
+          "resource": "wood"
+        },
+        {
+          "index": 615,
+          "resource": "wood"
+        },
+        {
+          "index": 631,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 636,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 639,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 642,
+          "resource": "wood"
+        },
+        {
+          "index": 643,
+          "resource": "wood"
+        },
+        {
+          "index": 644,
+          "resource": "wood"
+        },
+        {
+          "index": 645,
+          "resource": "wood"
+        },
+        {
+          "index": 646,
+          "resource": "wood"
+        },
+        {
+          "index": 647,
+          "resource": "wood"
+        },
+        {
+          "index": 648,
+          "resource": "wood"
+        },
+        {
+          "index": 650,
+          "resource": "iron"
+        },
+        {
+          "index": 663,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 667,
+          "resource": "iron"
+        },
+        {
+          "index": 671,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 674,
+          "resource": "wood"
+        },
+        {
+          "index": 675,
+          "resource": "wood"
+        },
+        {
+          "index": 677,
+          "resource": "wood"
+        },
+        {
+          "index": 678,
+          "resource": "wood"
+        },
+        {
+          "index": 695,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 703,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 707,
+          "resource": "wood"
+        },
+        {
+          "index": 708,
+          "resource": "wood"
+        },
+        {
+          "index": 709,
+          "resource": "wood"
+        },
+        {
+          "index": 710,
+          "resource": "wood"
+        },
+        {
+          "index": 714,
+          "resource": "coal"
+        },
+        {
+          "index": 727,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 737,
+          "resource": "wood"
+        },
+        {
+          "index": 738,
+          "resource": "wood"
+        },
+        {
+          "index": 739,
+          "resource": "wood"
+        },
+        {
+          "index": 740,
+          "resource": "wood"
+        },
+        {
+          "index": 741,
+          "resource": "wood"
+        },
+        {
+          "index": 743,
+          "resource": "wood"
+        },
+        {
+          "index": 769,
+          "resource": "wood"
+        },
+        {
+          "index": 770,
+          "resource": "wood"
+        },
+        {
+          "index": 773,
+          "resource": "wood"
+        },
+        {
+          "index": 775,
+          "resource": "wood"
+        },
+        {
+          "index": 802,
+          "resource": "wood"
+        },
+        {
+          "index": 804,
+          "resource": "wood"
+        },
+        {
+          "index": 805,
+          "resource": "wood"
+        },
+        {
+          "index": 806,
+          "resource": "wood"
+        },
+        {
+          "index": 807,
+          "resource": "wood"
+        },
+        {
+          "index": 835,
+          "resource": "wood"
+        },
+        {
+          "index": 836,
+          "resource": "wood"
+        },
+        {
+          "index": 840,
+          "resource": "water"
+        },
+        {
+          "index": 841,
+          "resource": "water"
+        },
+        {
+          "index": 842,
+          "resource": "water"
+        },
+        {
+          "index": 843,
+          "resource": "water"
+        },
+        {
+          "index": 844,
+          "resource": "water"
+        },
+        {
+          "index": 845,
+          "resource": "water"
+        },
+        {
+          "index": 868,
+          "resource": "wood"
+        },
+        {
+          "index": 872,
+          "resource": "water"
+        },
+        {
+          "index": 873,
+          "resource": "water"
+        },
+        {
+          "index": 874,
+          "resource": "water"
+        },
+        {
+          "index": 875,
+          "resource": "water"
+        },
+        {
+          "index": 876,
+          "resource": "water"
+        },
+        {
+          "index": 877,
+          "resource": "water"
+        },
+        {
+          "index": 887,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 904,
+          "resource": "water"
+        },
+        {
+          "index": 905,
+          "resource": "water"
+        },
+        {
+          "index": 906,
+          "resource": "water"
+        },
+        {
+          "index": 907,
+          "resource": "water"
+        },
+        {
+          "index": 908,
+          "resource": "water"
+        },
+        {
+          "index": 909,
+          "resource": "water"
+        },
+        {
+          "index": 910,
+          "resource": "water"
+        },
+        {
+          "index": 911,
+          "resource": "water"
+        },
+        {
+          "index": 919,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 936,
+          "resource": "water"
+        },
+        {
+          "index": 937,
+          "resource": "water"
+        },
+        {
+          "index": 938,
+          "resource": "water"
+        },
+        {
+          "index": 939,
+          "resource": "water"
+        },
+        {
+          "index": 940,
+          "resource": "water"
+        },
+        {
+          "index": 941,
+          "resource": "water"
+        },
+        {
+          "index": 942,
+          "resource": "water"
+        },
+        {
+          "index": 943,
+          "resource": "water"
+        },
+        {
+          "index": 951,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 968,
+          "resource": "water"
+        },
+        {
+          "index": 969,
+          "resource": "water"
+        },
+        {
+          "index": 970,
+          "resource": "water"
+        },
+        {
+          "index": 971,
+          "resource": "water"
+        },
+        {
+          "index": 972,
+          "resource": "water"
+        },
+        {
+          "index": 973,
+          "resource": "water"
+        },
+        {
+          "index": 974,
+          "resource": "water"
+        },
+        {
+          "index": 975,
+          "resource": "water"
+        },
+        {
+          "index": 983,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 1000,
+          "resource": "water"
+        },
+        {
+          "index": 1001,
+          "resource": "water"
+        },
+        {
+          "index": 1002,
+          "resource": "water"
+        },
+        {
+          "index": 1003,
+          "resource": "water"
+        },
+        {
+          "index": 1004,
+          "resource": "water"
+        },
+        {
+          "index": 1005,
+          "resource": "water"
+        },
+        {
+          "index": 1015,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 1
+            },
+            "startAxis": "z",
+            "endAxis": "x"
+          }
+        },
+        {
+          "index": 1016,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 1017,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 1018,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 1019,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 148,
+          "height": 1
+        },
+        {
+          "vertexIndex": 149,
+          "height": 1
+        },
+        {
+          "vertexIndex": 150,
+          "height": 1
+        },
+        {
+          "vertexIndex": 152,
+          "height": 1
+        },
+        {
+          "vertexIndex": 153,
+          "height": 1
+        },
+        {
+          "vertexIndex": 154,
+          "height": 1
+        },
+        {
+          "vertexIndex": 161,
+          "height": 1
+        },
+        {
+          "vertexIndex": 162,
+          "height": 2
+        },
+        {
+          "vertexIndex": 163,
+          "height": 2
+        },
+        {
+          "vertexIndex": 164,
+          "height": 1
+        },
+        {
+          "vertexIndex": 179,
+          "height": 1
+        },
+        {
+          "vertexIndex": 180,
+          "height": 2
+        },
+        {
+          "vertexIndex": 181,
+          "height": 2
+        },
+        {
+          "vertexIndex": 182,
+          "height": 3
+        },
+        {
+          "vertexIndex": 183,
+          "height": 3
+        },
+        {
+          "vertexIndex": 184,
+          "height": 2
+        },
+        {
+          "vertexIndex": 185,
+          "height": 2
+        },
+        {
+          "vertexIndex": 186,
+          "height": 1
+        },
+        {
+          "vertexIndex": 187,
+          "height": 1
+        },
+        {
+          "vertexIndex": 190,
+          "height": 1
+        },
+        {
+          "vertexIndex": 191,
+          "height": 1
+        },
+        {
+          "vertexIndex": 192,
+          "height": 1
+        },
+        {
+          "vertexIndex": 194,
+          "height": 1
+        },
+        {
+          "vertexIndex": 195,
+          "height": 2
+        },
+        {
+          "vertexIndex": 196,
+          "height": 2
+        },
+        {
+          "vertexIndex": 197,
+          "height": 1
+        },
+        {
+          "vertexIndex": 211,
+          "height": 1
+        },
+        {
+          "vertexIndex": 212,
+          "height": 2
+        },
+        {
+          "vertexIndex": 213,
+          "height": 2
+        },
+        {
+          "vertexIndex": 214,
+          "height": 2
+        },
+        {
+          "vertexIndex": 215,
+          "height": 3
+        },
+        {
+          "vertexIndex": 216,
+          "height": 3
+        },
+        {
+          "vertexIndex": 217,
+          "height": 3
+        },
+        {
+          "vertexIndex": 218,
+          "height": 3
+        },
+        {
+          "vertexIndex": 219,
+          "height": 1
+        },
+        {
+          "vertexIndex": 220,
+          "height": 1
+        },
+        {
+          "vertexIndex": 223,
+          "height": 1
+        },
+        {
+          "vertexIndex": 224,
+          "height": 1
+        },
+        {
+          "vertexIndex": 225,
+          "height": 1
+        },
+        {
+          "vertexIndex": 227,
+          "height": 1
+        },
+        {
+          "vertexIndex": 228,
+          "height": 2
+        },
+        {
+          "vertexIndex": 229,
+          "height": 2
+        },
+        {
+          "vertexIndex": 230,
+          "height": 1
+        },
+        {
+          "vertexIndex": 244,
+          "height": 2
+        },
+        {
+          "vertexIndex": 245,
+          "height": 2
+        },
+        {
+          "vertexIndex": 246,
+          "height": 2
+        },
+        {
+          "vertexIndex": 247,
+          "height": 1
+        },
+        {
+          "vertexIndex": 248,
+          "height": 1
+        },
+        {
+          "vertexIndex": 249,
+          "height": 3
+        },
+        {
+          "vertexIndex": 250,
+          "height": 3
+        },
+        {
+          "vertexIndex": 251,
+          "height": 3
+        },
+        {
+          "vertexIndex": 252,
+          "height": 2
+        },
+        {
+          "vertexIndex": 254,
+          "height": 1
+        },
+        {
+          "vertexIndex": 255,
+          "height": 1
+        },
+        {
+          "vertexIndex": 256,
+          "height": 1
+        },
+        {
+          "vertexIndex": 257,
+          "height": 1
+        },
+        {
+          "vertexIndex": 258,
+          "height": 1
+        },
+        {
+          "vertexIndex": 274,
+          "height": 1
+        },
+        {
+          "vertexIndex": 275,
+          "height": 2
+        },
+        {
+          "vertexIndex": 276,
+          "height": 2
+        },
+        {
+          "vertexIndex": 277,
+          "height": 2
+        },
+        {
+          "vertexIndex": 278,
+          "height": 2
+        },
+        {
+          "vertexIndex": 279,
+          "height": 1
+        },
+        {
+          "vertexIndex": 282,
+          "height": 1
+        },
+        {
+          "vertexIndex": 283,
+          "height": 3
+        },
+        {
+          "vertexIndex": 284,
+          "height": 3
+        },
+        {
+          "vertexIndex": 285,
+          "height": 2
+        },
+        {
+          "vertexIndex": 287,
+          "height": 1
+        },
+        {
+          "vertexIndex": 288,
+          "height": 1
+        },
+        {
+          "vertexIndex": 289,
+          "height": 1
+        },
+        {
+          "vertexIndex": 296,
+          "height": 1
+        },
+        {
+          "vertexIndex": 307,
+          "height": 1
+        },
+        {
+          "vertexIndex": 308,
+          "height": 2
+        },
+        {
+          "vertexIndex": 309,
+          "height": 2
+        },
+        {
+          "vertexIndex": 310,
+          "height": 2
+        },
+        {
+          "vertexIndex": 311,
+          "height": 2
+        },
+        {
+          "vertexIndex": 312,
+          "height": 1
+        },
+        {
+          "vertexIndex": 313,
+          "height": 1
+        },
+        {
+          "vertexIndex": 316,
+          "height": 1
+        },
+        {
+          "vertexIndex": 317,
+          "height": 1
+        },
+        {
+          "vertexIndex": 318,
+          "height": 1
+        },
+        {
+          "vertexIndex": 320,
+          "height": 1
+        },
+        {
+          "vertexIndex": 321,
+          "height": 1
+        },
+        {
+          "vertexIndex": 322,
+          "height": 1
+        },
+        {
+          "vertexIndex": 329,
+          "height": 1
+        },
+        {
+          "vertexIndex": 340,
+          "height": 1
+        },
+        {
+          "vertexIndex": 341,
+          "height": 2
+        },
+        {
+          "vertexIndex": 342,
+          "height": 2
+        },
+        {
+          "vertexIndex": 343,
+          "height": 2
+        },
+        {
+          "vertexIndex": 344,
+          "height": 2
+        },
+        {
+          "vertexIndex": 345,
+          "height": 1
+        },
+        {
+          "vertexIndex": 346,
+          "height": 1
+        },
+        {
+          "vertexIndex": 362,
+          "height": 1
+        },
+        {
+          "vertexIndex": 373,
+          "height": 1
+        },
+        {
+          "vertexIndex": 374,
+          "height": 2
+        },
+        {
+          "vertexIndex": 375,
+          "height": 2
+        },
+        {
+          "vertexIndex": 376,
+          "height": 2
+        },
+        {
+          "vertexIndex": 377,
+          "height": 1
+        },
+        {
+          "vertexIndex": 378,
+          "height": 1
+        },
+        {
+          "vertexIndex": 379,
+          "height": 1
+        },
+        {
+          "vertexIndex": 406,
+          "height": 3
+        },
+        {
+          "vertexIndex": 407,
+          "height": 5
+        },
+        {
+          "vertexIndex": 408,
+          "height": 5
+        },
+        {
+          "vertexIndex": 409,
+          "height": 4
+        },
+        {
+          "vertexIndex": 410,
+          "height": 2
+        },
+        {
+          "vertexIndex": 437,
+          "height": 1
+        },
+        {
+          "vertexIndex": 438,
+          "height": 2
+        },
+        {
+          "vertexIndex": 439,
+          "height": 3
+        },
+        {
+          "vertexIndex": 440,
+          "height": 5
+        },
+        {
+          "vertexIndex": 441,
+          "height": 5
+        },
+        {
+          "vertexIndex": 442,
+          "height": 4
+        },
+        {
+          "vertexIndex": 443,
+          "height": 2
+        },
+        {
+          "vertexIndex": 470,
+          "height": 1
+        },
+        {
+          "vertexIndex": 471,
+          "height": 2
+        },
+        {
+          "vertexIndex": 472,
+          "height": 2
+        },
+        {
+          "vertexIndex": 473,
+          "height": 4
+        },
+        {
+          "vertexIndex": 474,
+          "height": 4
+        },
+        {
+          "vertexIndex": 475,
+          "height": 3
+        },
+        {
+          "vertexIndex": 476,
+          "height": 1
+        },
+        {
+          "vertexIndex": 503,
+          "height": 1
+        },
+        {
+          "vertexIndex": 504,
+          "height": 1
+        },
+        {
+          "vertexIndex": 505,
+          "height": 1
+        },
+        {
+          "vertexIndex": 534,
+          "height": 1
+        },
+        {
+          "vertexIndex": 535,
+          "height": 2
+        },
+        {
+          "vertexIndex": 536,
+          "height": 2
+        },
+        {
+          "vertexIndex": 537,
+          "height": 2
+        },
+        {
+          "vertexIndex": 538,
+          "height": 1
+        },
+        {
+          "vertexIndex": 567,
+          "height": 1
+        },
+        {
+          "vertexIndex": 568,
+          "height": 2
+        },
+        {
+          "vertexIndex": 569,
+          "height": 2
+        },
+        {
+          "vertexIndex": 570,
+          "height": 2
+        },
+        {
+          "vertexIndex": 571,
+          "height": 1
+        },
+        {
+          "vertexIndex": 600,
+          "height": 1
+        },
+        {
+          "vertexIndex": 601,
+          "height": 2
+        },
+        {
+          "vertexIndex": 602,
+          "height": 2
+        },
+        {
+          "vertexIndex": 603,
+          "height": 1
+        },
+        {
+          "vertexIndex": 673,
+          "height": 1
+        },
+        {
+          "vertexIndex": 674,
+          "height": 1
+        },
+        {
+          "vertexIndex": 675,
+          "height": 1
+        },
+        {
+          "vertexIndex": 706,
+          "height": 1
+        },
+        {
+          "vertexIndex": 707,
+          "height": 1
+        },
+        {
+          "vertexIndex": 708,
+          "height": 1
+        },
+        {
+          "vertexIndex": 739,
+          "height": 1
+        },
+        {
+          "vertexIndex": 740,
+          "height": 1
+        },
+        {
+          "vertexIndex": 741,
+          "height": 1
+        },
+        {
+          "vertexIndex": 756,
+          "height": 1
+        },
+        {
+          "vertexIndex": 757,
+          "height": 1
+        },
+        {
+          "vertexIndex": 758,
+          "height": 1
+        },
+        {
+          "vertexIndex": 789,
+          "height": 1
+        },
+        {
+          "vertexIndex": 790,
+          "height": 1
+        },
+        {
+          "vertexIndex": 791,
+          "height": 1
+        },
+        {
+          "vertexIndex": 822,
+          "height": 1
+        },
+        {
+          "vertexIndex": 823,
+          "height": 1
+        },
+        {
+          "vertexIndex": 824,
+          "height": 1
+        },
+        {
+          "vertexIndex": 840,
+          "height": 1
+        },
+        {
+          "vertexIndex": 841,
+          "height": 1
+        },
+        {
+          "vertexIndex": 842,
+          "height": 1
+        },
+        {
+          "vertexIndex": 855,
+          "height": 1
+        },
+        {
+          "vertexIndex": 856,
+          "height": 1
+        },
+        {
+          "vertexIndex": 857,
+          "height": 1
+        },
+        {
+          "vertexIndex": 873,
+          "height": 1
+        },
+        {
+          "vertexIndex": 874,
+          "height": 2
+        },
+        {
+          "vertexIndex": 875,
+          "height": 2
+        },
+        {
+          "vertexIndex": 876,
+          "height": 1
+        },
+        {
+          "vertexIndex": 886,
+          "height": 1
+        },
+        {
+          "vertexIndex": 887,
+          "height": 1
+        },
+        {
+          "vertexIndex": 888,
+          "height": 1
+        },
+        {
+          "vertexIndex": 889,
+          "height": 1
+        },
+        {
+          "vertexIndex": 890,
+          "height": 1
+        },
+        {
+          "vertexIndex": 900,
+          "height": -5
+        },
+        {
+          "vertexIndex": 901,
+          "height": -5
+        },
+        {
+          "vertexIndex": 902,
+          "height": -5
+        },
+        {
+          "vertexIndex": 903,
+          "height": -5
+        },
+        {
+          "vertexIndex": 904,
+          "height": -5
+        },
+        {
+          "vertexIndex": 906,
+          "height": 1
+        },
+        {
+          "vertexIndex": 907,
+          "height": 2
+        },
+        {
+          "vertexIndex": 908,
+          "height": 2
+        },
+        {
+          "vertexIndex": 909,
+          "height": 1
+        },
+        {
+          "vertexIndex": 919,
+          "height": 1
+        },
+        {
+          "vertexIndex": 920,
+          "height": 1
+        },
+        {
+          "vertexIndex": 921,
+          "height": 1
+        },
+        {
+          "vertexIndex": 933,
+          "height": -5
+        },
+        {
+          "vertexIndex": 934,
+          "height": -5
+        },
+        {
+          "vertexIndex": 935,
+          "height": -5
+        },
+        {
+          "vertexIndex": 936,
+          "height": -5
+        },
+        {
+          "vertexIndex": 937,
+          "height": -5
+        },
+        {
+          "vertexIndex": 940,
+          "height": 1
+        },
+        {
+          "vertexIndex": 941,
+          "height": 1
+        },
+        {
+          "vertexIndex": 942,
+          "height": 1
+        },
+        {
+          "vertexIndex": 952,
+          "height": 1
+        },
+        {
+          "vertexIndex": 953,
+          "height": 1
+        },
+        {
+          "vertexIndex": 954,
+          "height": 1
+        },
+        {
+          "vertexIndex": 966,
+          "height": -5
+        },
+        {
+          "vertexIndex": 967,
+          "height": -5
+        },
+        {
+          "vertexIndex": 968,
+          "height": -5
+        },
+        {
+          "vertexIndex": 969,
+          "height": -5
+        },
+        {
+          "vertexIndex": 970,
+          "height": -5
+        },
+        {
+          "vertexIndex": 971,
+          "height": -5
+        },
+        {
+          "vertexIndex": 972,
+          "height": -5
+        },
+        {
+          "vertexIndex": 976,
+          "height": 1
+        },
+        {
+          "vertexIndex": 977,
+          "height": 1
+        },
+        {
+          "vertexIndex": 978,
+          "height": 1
+        },
+        {
+          "vertexIndex": 999,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1000,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1001,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1002,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1003,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1004,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1005,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1009,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1010,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1011,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1032,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1033,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1034,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1035,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1036,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1037,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1038,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1039,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1042,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1043,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1044,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1066,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1067,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1068,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1069,
+          "height": -5
+        },
+        {
+          "vertexIndex": 1070,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1071,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1072,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "3,2",
+      "cells": [
+        {
+          "index": 611,
+          "units": [
+            "tank"
+          ]
+        },
+        {
+          "index": 774,
+          "units": [
+            "tank"
+          ]
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 132,
+          "height": 1
+        },
+        {
+          "vertexIndex": 165,
+          "height": 1
+        },
+        {
+          "vertexIndex": 198,
+          "height": 1
+        },
+        {
+          "vertexIndex": 235,
+          "height": 1
+        },
+        {
+          "vertexIndex": 236,
+          "height": 1
+        },
+        {
+          "vertexIndex": 237,
+          "height": 1
+        },
+        {
+          "vertexIndex": 264,
+          "height": 1
+        },
+        {
+          "vertexIndex": 265,
+          "height": 1
+        },
+        {
+          "vertexIndex": 266,
+          "height": 1
+        },
+        {
+          "vertexIndex": 268,
+          "height": 1
+        },
+        {
+          "vertexIndex": 269,
+          "height": 1
+        },
+        {
+          "vertexIndex": 270,
+          "height": 1
+        },
+        {
+          "vertexIndex": 297,
+          "height": 1
+        },
+        {
+          "vertexIndex": 298,
+          "height": 1
+        },
+        {
+          "vertexIndex": 299,
+          "height": 1
+        },
+        {
+          "vertexIndex": 301,
+          "height": 1
+        },
+        {
+          "vertexIndex": 302,
+          "height": 1
+        },
+        {
+          "vertexIndex": 303,
+          "height": 1
+        },
+        {
+          "vertexIndex": 330,
+          "height": 1
+        },
+        {
+          "vertexIndex": 331,
+          "height": 1
+        },
+        {
+          "vertexIndex": 332,
+          "height": 1
+        },
+        {
+          "vertexIndex": 334,
+          "height": 1
+        },
+        {
+          "vertexIndex": 335,
+          "height": 1
+        },
+        {
+          "vertexIndex": 336,
+          "height": 1
+        },
+        {
+          "vertexIndex": 367,
+          "height": 1
+        },
+        {
+          "vertexIndex": 368,
+          "height": 1
+        },
+        {
+          "vertexIndex": 369,
+          "height": 1
+        },
+        {
+          "vertexIndex": 400,
+          "height": 1
+        },
+        {
+          "vertexIndex": 401,
+          "height": 1
+        },
+        {
+          "vertexIndex": 402,
+          "height": 1
+        },
+        {
+          "vertexIndex": 726,
+          "height": 1
+        },
+        {
+          "vertexIndex": 727,
+          "height": 1
+        },
+        {
+          "vertexIndex": 728,
+          "height": 1
+        },
+        {
+          "vertexIndex": 759,
+          "height": 1
+        },
+        {
+          "vertexIndex": 760,
+          "height": 1
+        },
+        {
+          "vertexIndex": 761,
+          "height": 1
+        },
+        {
+          "vertexIndex": 792,
+          "height": 1
+        },
+        {
+          "vertexIndex": 793,
+          "height": 1
+        },
+        {
+          "vertexIndex": 794,
+          "height": 1
+        },
+        {
+          "vertexIndex": 825,
+          "height": 1
+        },
+        {
+          "vertexIndex": 826,
+          "height": 1
+        },
+        {
+          "vertexIndex": 827,
+          "height": 1
+        },
+        {
+          "vertexIndex": 858,
+          "height": 1
+        },
+        {
+          "vertexIndex": 859,
+          "height": 1
+        },
+        {
+          "vertexIndex": 860,
+          "height": 1
+        },
+        {
+          "vertexIndex": 998,
+          "height": -1
+        },
+        {
+          "vertexIndex": 999,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1030,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1031,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1032,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1060,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1063,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1064,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1066,
+          "height": -1
+        },
+        {
+          "vertexIndex": 1067,
+          "height": -1
+        }
+      ]
+    },
+    {
+      "key": "4,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,3",
+      "cells": [
+        {
+          "index": 9,
+          "resource": "water"
+        },
+        {
+          "index": 10,
+          "resource": "water"
+        },
+        {
+          "index": 11,
+          "resource": "water"
+        },
+        {
+          "index": 12,
+          "resource": "water"
+        },
+        {
+          "index": 13,
+          "resource": "water"
+        },
+        {
+          "index": 43,
+          "resource": "water"
+        },
+        {
+          "index": 44,
+          "resource": "water"
+        },
+        {
+          "index": 45,
+          "resource": "water"
+        },
+        {
+          "index": 126,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 146,
+          "resource": "wood"
+        },
+        {
+          "index": 158,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 178,
+          "resource": "wood"
+        },
+        {
+          "index": 180,
+          "resource": "wood"
+        },
+        {
+          "index": 181,
+          "resource": "wood"
+        },
+        {
+          "index": 190,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 191,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 210,
+          "resource": "wood"
+        },
+        {
+          "index": 211,
+          "resource": "wood"
+        },
+        {
+          "index": 212,
+          "resource": "wood"
+        },
+        {
+          "index": 214,
+          "resource": "wood"
+        },
+        {
+          "index": 222,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 223,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 239,
+          "resource": "wood"
+        },
+        {
+          "index": 242,
+          "resource": "wood"
+        },
+        {
+          "index": 244,
+          "resource": "wood"
+        },
+        {
+          "index": 245,
+          "resource": "wood"
+        },
+        {
+          "index": 247,
+          "resource": "wood"
+        },
+        {
+          "index": 248,
+          "resource": "wood"
+        },
+        {
+          "index": 271,
+          "resource": "wood"
+        },
+        {
+          "index": 272,
+          "resource": "wood"
+        },
+        {
+          "index": 273,
+          "resource": "wood"
+        },
+        {
+          "index": 274,
+          "resource": "wood"
+        },
+        {
+          "index": 275,
+          "resource": "wood"
+        },
+        {
+          "index": 277,
+          "resource": "wood"
+        },
+        {
+          "index": 278,
+          "resource": "wood"
+        },
+        {
+          "index": 280,
+          "resource": "wood"
+        },
+        {
+          "index": 306,
+          "resource": "wood"
+        },
+        {
+          "index": 307,
+          "resource": "wood"
+        },
+        {
+          "index": 311,
+          "resource": "wood"
+        },
+        {
+          "index": 313,
+          "resource": "wood"
+        },
+        {
+          "index": 336,
+          "resource": "wood"
+        },
+        {
+          "index": 337,
+          "resource": "wood"
+        },
+        {
+          "index": 339,
+          "resource": "wood"
+        },
+        {
+          "index": 342,
+          "resource": "wood"
+        },
+        {
+          "index": 346,
+          "resource": "wood"
+        },
+        {
+          "index": 371,
+          "resource": "wood"
+        },
+        {
+          "index": 372,
+          "resource": "wood"
+        },
+        {
+          "index": 375,
+          "resource": "wood"
+        },
+        {
+          "index": 376,
+          "resource": "wood"
+        },
+        {
+          "index": 377,
+          "resource": "wood"
+        },
+        {
+          "index": 378,
+          "resource": "wood"
+        },
+        {
+          "index": 379,
+          "resource": "wood"
+        },
+        {
+          "index": 382,
+          "resource": "wood"
+        },
+        {
+          "index": 407,
+          "resource": "wood"
+        },
+        {
+          "index": 408,
+          "resource": "wood"
+        },
+        {
+          "index": 410,
+          "resource": "wood"
+        },
+        {
+          "index": 412,
+          "resource": "wood"
+        },
+        {
+          "index": 413,
+          "resource": "wood"
+        },
+        {
+          "index": 414,
+          "resource": "wood"
+        },
+        {
+          "index": 437,
+          "resource": "wood"
+        },
+        {
+          "index": 440,
+          "resource": "wood"
+        },
+        {
+          "index": 441,
+          "resource": "wood"
+        },
+        {
+          "index": 442,
+          "resource": "wood"
+        },
+        {
+          "index": 443,
+          "resource": "wood"
+        },
+        {
+          "index": 472,
+          "resource": "wood"
+        },
+        {
+          "index": 473,
+          "resource": "wood"
+        },
+        {
+          "index": 474,
+          "resource": "wood"
+        },
+        {
+          "index": 505,
+          "resource": "wood"
+        },
+        {
+          "index": 506,
+          "resource": "wood"
+        },
+        {
+          "index": 507,
+          "resource": "wood"
+        },
+        {
+          "index": 508,
+          "resource": "wood"
+        },
+        {
+          "index": 510,
+          "resource": "wood"
+        },
+        {
+          "index": 537,
+          "resource": "wood"
+        },
+        {
+          "index": 538,
+          "resource": "wood"
+        },
+        {
+          "index": 541,
+          "resource": "wood"
+        },
+        {
+          "index": 542,
+          "resource": "wood"
+        },
+        {
+          "index": 570,
+          "resource": "wood"
+        },
+        {
+          "index": 571,
+          "resource": "wood"
+        },
+        {
+          "index": 572,
+          "resource": "wood"
+        },
+        {
+          "index": 573,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 10,
+          "height": -5
+        },
+        {
+          "vertexIndex": 11,
+          "height": -5
+        },
+        {
+          "vertexIndex": 12,
+          "height": -5
+        },
+        {
+          "vertexIndex": 13,
+          "height": -5
+        },
+        {
+          "vertexIndex": 14,
+          "height": 1
+        },
+        {
+          "vertexIndex": 15,
+          "height": 1
+        },
+        {
+          "vertexIndex": 16,
+          "height": 1
+        },
+        {
+          "vertexIndex": 45,
+          "height": -5
+        },
+        {
+          "vertexIndex": 46,
+          "height": -5
+        },
+        {
+          "vertexIndex": 47,
+          "height": 1
+        },
+        {
+          "vertexIndex": 48,
+          "height": 1
+        },
+        {
+          "vertexIndex": 49,
+          "height": 1
+        },
+        {
+          "vertexIndex": 50,
+          "height": 1
+        },
+        {
+          "vertexIndex": 51,
+          "height": 1
+        },
+        {
+          "vertexIndex": 52,
+          "height": 1
+        },
+        {
+          "vertexIndex": 83,
+          "height": 1
+        },
+        {
+          "vertexIndex": 84,
+          "height": 1
+        },
+        {
+          "vertexIndex": 85,
+          "height": 1
+        },
+        {
+          "vertexIndex": 116,
+          "height": 1
+        },
+        {
+          "vertexIndex": 117,
+          "height": 1
+        },
+        {
+          "vertexIndex": 118,
+          "height": 1
+        },
+        {
+          "vertexIndex": 119,
+          "height": 1
+        },
+        {
+          "vertexIndex": 120,
+          "height": 1
+        },
+        {
+          "vertexIndex": 121,
+          "height": 1
+        },
+        {
+          "vertexIndex": 152,
+          "height": 1
+        },
+        {
+          "vertexIndex": 153,
+          "height": 1
+        },
+        {
+          "vertexIndex": 154,
+          "height": 1
+        },
+        {
+          "vertexIndex": 185,
+          "height": 1
+        },
+        {
+          "vertexIndex": 186,
+          "height": 1
+        },
+        {
+          "vertexIndex": 187,
+          "height": 1
+        },
+        {
+          "vertexIndex": 188,
+          "height": 1
+        },
+        {
+          "vertexIndex": 189,
+          "height": 1
+        },
+        {
+          "vertexIndex": 190,
+          "height": 1
+        },
+        {
+          "vertexIndex": 221,
+          "height": 1
+        },
+        {
+          "vertexIndex": 222,
+          "height": 1
+        },
+        {
+          "vertexIndex": 223,
+          "height": 1
+        },
+        {
+          "vertexIndex": 254,
+          "height": 1
+        },
+        {
+          "vertexIndex": 255,
+          "height": 1
+        },
+        {
+          "vertexIndex": 256,
+          "height": 1
+        },
+        {
+          "vertexIndex": 323,
+          "height": 1
+        },
+        {
+          "vertexIndex": 324,
+          "height": 1
+        },
+        {
+          "vertexIndex": 325,
+          "height": 1
+        },
+        {
+          "vertexIndex": 356,
+          "height": 2
+        },
+        {
+          "vertexIndex": 357,
+          "height": 2
+        },
+        {
+          "vertexIndex": 358,
+          "height": 2
+        },
+        {
+          "vertexIndex": 389,
+          "height": 2
+        },
+        {
+          "vertexIndex": 390,
+          "height": 2
+        },
+        {
+          "vertexIndex": 391,
+          "height": 2
+        },
+        {
+          "vertexIndex": 394,
+          "height": 1
+        },
+        {
+          "vertexIndex": 395,
+          "height": 1
+        },
+        {
+          "vertexIndex": 422,
+          "height": 1
+        },
+        {
+          "vertexIndex": 423,
+          "height": 1
+        },
+        {
+          "vertexIndex": 424,
+          "height": 1
+        },
+        {
+          "vertexIndex": 427,
+          "height": 2
+        },
+        {
+          "vertexIndex": 428,
+          "height": 2
+        },
+        {
+          "vertexIndex": 460,
+          "height": 2
+        },
+        {
+          "vertexIndex": 461,
+          "height": 2
+        },
+        {
+          "vertexIndex": 493,
+          "height": 1
+        },
+        {
+          "vertexIndex": 494,
+          "height": 2
+        },
+        {
+          "vertexIndex": 527,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "3,3",
+      "cells": [
+        {
+          "index": 96,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 128,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 129,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 160,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 192,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 193,
+          "units": [
+            "worker"
+          ]
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 4,
+          "height": 1
+        },
+        {
+          "vertexIndex": 7,
+          "height": -1
+        },
+        {
+          "vertexIndex": 8,
+          "height": -1
+        },
+        {
+          "vertexIndex": 10,
+          "height": -1
+        },
+        {
+          "vertexIndex": 11,
+          "height": -1
+        },
+        {
+          "vertexIndex": 37,
+          "height": 1
+        },
+        {
+          "vertexIndex": 38,
+          "height": 1
+        },
+        {
+          "vertexIndex": 40,
+          "height": -1
+        },
+        {
+          "vertexIndex": 41,
+          "height": -1
+        },
+        {
+          "vertexIndex": 43,
+          "height": -1
+        },
+        {
+          "vertexIndex": 44,
+          "height": -1
+        },
+        {
+          "vertexIndex": 70,
+          "height": 1
+        },
+        {
+          "vertexIndex": 71,
+          "height": 1
+        },
+        {
+          "vertexIndex": 72,
+          "height": -1
+        },
+        {
+          "vertexIndex": 73,
+          "height": -1
+        },
+        {
+          "vertexIndex": 74,
+          "height": -1
+        },
+        {
+          "vertexIndex": 76,
+          "height": -1
+        },
+        {
+          "vertexIndex": 77,
+          "height": -1
+        },
+        {
+          "vertexIndex": 105,
+          "height": -1
+        },
+        {
+          "vertexIndex": 106,
+          "height": -1
+        },
+        {
+          "vertexIndex": 107,
+          "height": -1
+        },
+        {
+          "vertexIndex": 281,
+          "height": 1
+        },
+        {
+          "vertexIndex": 282,
+          "height": 2
+        },
+        {
+          "vertexIndex": 283,
+          "height": 2
+        },
+        {
+          "vertexIndex": 284,
+          "height": 1
+        },
+        {
+          "vertexIndex": 285,
+          "height": 2
+        },
+        {
+          "vertexIndex": 286,
+          "height": 2
+        },
+        {
+          "vertexIndex": 287,
+          "height": 2
+        },
+        {
+          "vertexIndex": 288,
+          "height": 1
+        },
+        {
+          "vertexIndex": 309,
+          "height": 1
+        },
+        {
+          "vertexIndex": 310,
+          "height": 2
+        },
+        {
+          "vertexIndex": 311,
+          "height": 3
+        },
+        {
+          "vertexIndex": 312,
+          "height": 3
+        },
+        {
+          "vertexIndex": 313,
+          "height": 3
+        },
+        {
+          "vertexIndex": 314,
+          "height": 4
+        },
+        {
+          "vertexIndex": 315,
+          "height": 6
+        },
+        {
+          "vertexIndex": 316,
+          "height": 6
+        },
+        {
+          "vertexIndex": 317,
+          "height": 4
+        },
+        {
+          "vertexIndex": 318,
+          "height": 2
+        },
+        {
+          "vertexIndex": 319,
+          "height": 3
+        },
+        {
+          "vertexIndex": 320,
+          "height": 3
+        },
+        {
+          "vertexIndex": 321,
+          "height": 2
+        },
+        {
+          "vertexIndex": 342,
+          "height": 2
+        },
+        {
+          "vertexIndex": 343,
+          "height": 3
+        },
+        {
+          "vertexIndex": 344,
+          "height": 5
+        },
+        {
+          "vertexIndex": 345,
+          "height": 7
+        },
+        {
+          "vertexIndex": 346,
+          "height": 7
+        },
+        {
+          "vertexIndex": 347,
+          "height": 6
+        },
+        {
+          "vertexIndex": 348,
+          "height": 6
+        },
+        {
+          "vertexIndex": 349,
+          "height": 6
+        },
+        {
+          "vertexIndex": 350,
+          "height": 4
+        },
+        {
+          "vertexIndex": 351,
+          "height": 3
+        },
+        {
+          "vertexIndex": 352,
+          "height": 3
+        },
+        {
+          "vertexIndex": 353,
+          "height": 3
+        },
+        {
+          "vertexIndex": 354,
+          "height": 2
+        },
+        {
+          "vertexIndex": 363,
+          "height": 1
+        },
+        {
+          "vertexIndex": 364,
+          "height": 1
+        },
+        {
+          "vertexIndex": 370,
+          "height": 1
+        },
+        {
+          "vertexIndex": 371,
+          "height": 1
+        },
+        {
+          "vertexIndex": 372,
+          "height": 1
+        },
+        {
+          "vertexIndex": 373,
+          "height": 1
+        },
+        {
+          "vertexIndex": 374,
+          "height": 1
+        },
+        {
+          "vertexIndex": 375,
+          "height": 2
+        },
+        {
+          "vertexIndex": 376,
+          "height": 3
+        },
+        {
+          "vertexIndex": 377,
+          "height": 5
+        },
+        {
+          "vertexIndex": 378,
+          "height": 7
+        },
+        {
+          "vertexIndex": 379,
+          "height": 7
+        },
+        {
+          "vertexIndex": 380,
+          "height": 6
+        },
+        {
+          "vertexIndex": 381,
+          "height": 5
+        },
+        {
+          "vertexIndex": 382,
+          "height": 5
+        },
+        {
+          "vertexIndex": 383,
+          "height": 3
+        },
+        {
+          "vertexIndex": 384,
+          "height": 3
+        },
+        {
+          "vertexIndex": 385,
+          "height": 3
+        },
+        {
+          "vertexIndex": 386,
+          "height": 2
+        },
+        {
+          "vertexIndex": 387,
+          "height": 1
+        },
+        {
+          "vertexIndex": 396,
+          "height": 2
+        },
+        {
+          "vertexIndex": 397,
+          "height": 2
+        },
+        {
+          "vertexIndex": 399,
+          "height": 1
+        },
+        {
+          "vertexIndex": 400,
+          "height": 1
+        },
+        {
+          "vertexIndex": 401,
+          "height": 1
+        },
+        {
+          "vertexIndex": 403,
+          "height": 2
+        },
+        {
+          "vertexIndex": 404,
+          "height": 2
+        },
+        {
+          "vertexIndex": 405,
+          "height": 2
+        },
+        {
+          "vertexIndex": 406,
+          "height": 2
+        },
+        {
+          "vertexIndex": 407,
+          "height": 2
+        },
+        {
+          "vertexIndex": 408,
+          "height": 2
+        },
+        {
+          "vertexIndex": 409,
+          "height": 1
+        },
+        {
+          "vertexIndex": 410,
+          "height": 2
+        },
+        {
+          "vertexIndex": 411,
+          "height": 4
+        },
+        {
+          "vertexIndex": 412,
+          "height": 5
+        },
+        {
+          "vertexIndex": 413,
+          "height": 5
+        },
+        {
+          "vertexIndex": 414,
+          "height": 4
+        },
+        {
+          "vertexIndex": 415,
+          "height": 2
+        },
+        {
+          "vertexIndex": 416,
+          "height": 3
+        },
+        {
+          "vertexIndex": 417,
+          "height": 3
+        },
+        {
+          "vertexIndex": 418,
+          "height": 2
+        },
+        {
+          "vertexIndex": 419,
+          "height": 1
+        },
+        {
+          "vertexIndex": 429,
+          "height": 2
+        },
+        {
+          "vertexIndex": 430,
+          "height": 2
+        },
+        {
+          "vertexIndex": 431,
+          "height": 1
+        },
+        {
+          "vertexIndex": 432,
+          "height": 1
+        },
+        {
+          "vertexIndex": 433,
+          "height": 1
+        },
+        {
+          "vertexIndex": 434,
+          "height": 1
+        },
+        {
+          "vertexIndex": 435,
+          "height": 1
+        },
+        {
+          "vertexIndex": 436,
+          "height": 2
+        },
+        {
+          "vertexIndex": 437,
+          "height": 2
+        },
+        {
+          "vertexIndex": 438,
+          "height": 2
+        },
+        {
+          "vertexIndex": 439,
+          "height": 2
+        },
+        {
+          "vertexIndex": 440,
+          "height": 2
+        },
+        {
+          "vertexIndex": 441,
+          "height": 2
+        },
+        {
+          "vertexIndex": 442,
+          "height": 1
+        },
+        {
+          "vertexIndex": 443,
+          "height": 3
+        },
+        {
+          "vertexIndex": 444,
+          "height": 6
+        },
+        {
+          "vertexIndex": 445,
+          "height": 7
+        },
+        {
+          "vertexIndex": 446,
+          "height": 7
+        },
+        {
+          "vertexIndex": 447,
+          "height": 3
+        },
+        {
+          "vertexIndex": 448,
+          "height": 1
+        },
+        {
+          "vertexIndex": 449,
+          "height": 1
+        },
+        {
+          "vertexIndex": 450,
+          "height": 1
+        },
+        {
+          "vertexIndex": 462,
+          "height": 2
+        },
+        {
+          "vertexIndex": 463,
+          "height": 2
+        },
+        {
+          "vertexIndex": 464,
+          "height": 1
+        },
+        {
+          "vertexIndex": 465,
+          "height": 1
+        },
+        {
+          "vertexIndex": 466,
+          "height": 1
+        },
+        {
+          "vertexIndex": 467,
+          "height": 1
+        },
+        {
+          "vertexIndex": 468,
+          "height": 1
+        },
+        {
+          "vertexIndex": 469,
+          "height": 1
+        },
+        {
+          "vertexIndex": 470,
+          "height": 1
+        },
+        {
+          "vertexIndex": 471,
+          "height": 1
+        },
+        {
+          "vertexIndex": 472,
+          "height": 1
+        },
+        {
+          "vertexIndex": 473,
+          "height": 1
+        },
+        {
+          "vertexIndex": 474,
+          "height": 1
+        },
+        {
+          "vertexIndex": 475,
+          "height": 3
+        },
+        {
+          "vertexIndex": 476,
+          "height": 4
+        },
+        {
+          "vertexIndex": 477,
+          "height": 7
+        },
+        {
+          "vertexIndex": 478,
+          "height": 9
+        },
+        {
+          "vertexIndex": 479,
+          "height": 9
+        },
+        {
+          "vertexIndex": 480,
+          "height": 7
+        },
+        {
+          "vertexIndex": 481,
+          "height": 3
+        },
+        {
+          "vertexIndex": 482,
+          "height": 2
+        },
+        {
+          "vertexIndex": 495,
+          "height": 1
+        },
+        {
+          "vertexIndex": 496,
+          "height": 1
+        },
+        {
+          "vertexIndex": 497,
+          "height": 1
+        },
+        {
+          "vertexIndex": 500,
+          "height": 1
+        },
+        {
+          "vertexIndex": 501,
+          "height": 1
+        },
+        {
+          "vertexIndex": 502,
+          "height": 1
+        },
+        {
+          "vertexIndex": 503,
+          "height": 1
+        },
+        {
+          "vertexIndex": 504,
+          "height": 1
+        },
+        {
+          "vertexIndex": 508,
+          "height": 3
+        },
+        {
+          "vertexIndex": 509,
+          "height": 6
+        },
+        {
+          "vertexIndex": 510,
+          "height": 7
+        },
+        {
+          "vertexIndex": 511,
+          "height": 9
+        },
+        {
+          "vertexIndex": 512,
+          "height": 9
+        },
+        {
+          "vertexIndex": 513,
+          "height": 8
+        },
+        {
+          "vertexIndex": 514,
+          "height": 4
+        },
+        {
+          "vertexIndex": 515,
+          "height": 2
+        },
+        {
+          "vertexIndex": 541,
+          "height": 3
+        },
+        {
+          "vertexIndex": 542,
+          "height": 6
+        },
+        {
+          "vertexIndex": 543,
+          "height": 6
+        },
+        {
+          "vertexIndex": 544,
+          "height": 7
+        },
+        {
+          "vertexIndex": 545,
+          "height": 8
+        },
+        {
+          "vertexIndex": 546,
+          "height": 8
+        },
+        {
+          "vertexIndex": 547,
+          "height": 4
+        },
+        {
+          "vertexIndex": 548,
+          "height": 1
+        },
+        {
+          "vertexIndex": 574,
+          "height": 1
+        },
+        {
+          "vertexIndex": 575,
+          "height": 3
+        },
+        {
+          "vertexIndex": 576,
+          "height": 5
+        },
+        {
+          "vertexIndex": 577,
+          "height": 6
+        },
+        {
+          "vertexIndex": 578,
+          "height": 8
+        },
+        {
+          "vertexIndex": 579,
+          "height": 8
+        },
+        {
+          "vertexIndex": 580,
+          "height": 4
+        },
+        {
+          "vertexIndex": 609,
+          "height": 1
+        },
+        {
+          "vertexIndex": 610,
+          "height": 6
+        },
+        {
+          "vertexIndex": 611,
+          "height": 8
+        },
+        {
+          "vertexIndex": 612,
+          "height": 8
+        },
+        {
+          "vertexIndex": 613,
+          "height": 3
+        },
+        {
+          "vertexIndex": 643,
+          "height": 2
+        },
+        {
+          "vertexIndex": 644,
+          "height": 4
+        },
+        {
+          "vertexIndex": 645,
+          "height": 4
+        },
+        {
+          "vertexIndex": 646,
+          "height": 2
+        }
+      ]
+    },
+    {
+      "key": "4,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,4",
+      "cells": [],
+      "elevation": []
+    }
+  ],
+  "buildings": {
+    "factory": [
+      {
+        "mapCoords": {
+          "x": 15,
+          "y": 12
+        },
+        "output": "steel"
+      },
+      {
+        "mapCoords": {
+          "x": 15,
+          "y": 22
+        },
+        "output": "rpg"
+      },
+      {
+        "mapCoords": {
+          "x": 23,
+          "y": 12
+        },
+        "output": "ak47"
+      },
+      {
+        "mapCoords": {
+          "x": 85,
+          "y": 77
+        },
+        "output": "steel"
+      },
+      {
+        "mapCoords": {
+          "x": 93,
+          "y": 77
+        },
+        "output": "ak47"
+      },
+      {
+        "mapCoords": {
+          "x": 85,
+          "y": 87
+        },
+        "output": "rpg"
+      }
+    ],
+    "depot": [
+      {
+        "mapCoords": {
+          "x": 21,
+          "y": 28
+        }
+      },
+      {
+        "mapCoords": {
+          "x": 24,
+          "y": 22
+        }
+      },
+      {
+        "mapCoords": {
+          "x": 94,
+          "y": 86
+        }
+      },
+      {
+        "mapCoords": {
+          "x": 92,
+          "y": 94
+        }
+      }
+    ]
+  },
+  "rails": [],
+  "cameraPos": {
+    "x": 84.56606826440074,
+    "y": 0,
+    "z": 75.72059097778353
+  }
+}

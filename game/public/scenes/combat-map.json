@@ -1,0 +1,409 @@
+{
+  "size": 5,
+  "sectors": [
+    {
+      "key": "0,0",
+      "cells": [
+        {
+          "index": 393,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": -1
+            },
+            "startAxis": "z",
+            "endAxis": "x"
+          }
+        },
+        {
+          "index": 394,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 395,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 396,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 397,
+          "conveyor": {
+            "direction": {
+              "x": 1,
+              "y": 0
+            },
+            "startAxis": "x"
+          }
+        },
+        {
+          "index": 425,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 434,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 444,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 457,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 466,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 489,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 498,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 521,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 530,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 553,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 555,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 556,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 557,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 562,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": 1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 585,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 588,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 589,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 590,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 617,
+          "conveyor": {
+            "direction": {
+              "x": 0,
+              "y": -1
+            },
+            "startAxis": "z"
+          }
+        },
+        {
+          "index": 621,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 622,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 712,
+          "resource": "iron"
+        },
+        {
+          "index": 713,
+          "resource": "iron"
+        },
+        {
+          "index": 813,
+          "units": [
+            "tank"
+          ]
+        },
+        {
+          "index": 919,
+          "units": [
+            "truck"
+          ]
+        }
+      ],
+      "elevation": []
+    },
+    {
+      "key": "1,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,4",
+      "cells": [],
+      "elevation": []
+    }
+  ],
+  "buildings": {
+    "factory": [
+      {
+        "mapCoords": {
+          "x": 14,
+          "y": 9
+        },
+        "output": "ak47"
+      }
+    ],
+    "mine": [
+      {
+        "mapCoords": {
+          "x": 8,
+          "y": 20
+        }
+      }
+    ],
+    "depot": [
+      {
+        "mapCoords": {
+          "x": 17,
+          "y": 18
+        }
+      }
+    ]
+  },
+  "rails": [],
+  "cameraPos": {
+    "x": -1.0250380924958225,
+    "y": 0,
+    "z": 0.40053625796934883
+  }
+}

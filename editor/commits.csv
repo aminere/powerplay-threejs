@@ -1,0 +1,228 @@
+6bef070,Amine Rehioui,2024-06-23 16:18:35 +0100,fix
+df23f46,Amine Rehioui,2024-06-21 19:35:40 +0100,fix scene saving
+ff1d5f5,Amine Rehioui,2024-06-15 13:07:39 +0100,can select when engine is paused
+408fb70,Amine Rehioui,2024-06-13 17:36:26 +0100,control fixes
+6d1de83,Amine Rehioui,2024-06-08 01:43:19 +0100,wip
+0600b55,Amine Rehioui,2024-06-05 12:00:16 +0100,fic ocmpile
+1abfcd1,Amine Rehioui,2024-06-05 11:37:02 +0100,compoentn clipboard
+e660911,Amine Rehioui,2024-06-05 01:27:54 +0100,minor
+8cf5463,Amine Rehioui,2024-06-04 00:57:30 +0100,add billboards & instanced particles
+b9250bc,Amine Rehioui,2024-06-03 18:52:00 +0100,engine supports key input
+feebdb9,Amine Rehioui,2024-05-20 16:39:45 +0000,wip
+f71dc7c,Amine Rehioui,2024-05-20 11:26:21 +0000,fonts fix
+30ff81b,Amine Rehioui,2024-05-19 23:12:41 +0000,wip
+068c8f0,Amine Rehioui,2024-05-19 18:11:34 +0000,fix crash
+986cb0e,Amine Rehioui,2024-05-18 22:19:11 +0000,wip
+dc50aaf,Amine Rehioui,2024-05-10 11:49:48 +0000,colliders
+93475bd,Amine Rehioui,2024-05-09 15:46:50 +0100,fix
+8d91b43,Amine Rehioui,2024-05-08 12:21:42 +0000,can take screenshots
+efb0b75,Amine Rehioui,2024-05-07 01:24:59 +0000,wip
+8adef7a,Amine Rehioui,2024-05-04 20:21:21 +0100,wip
+6034599,Amine Rehioui,2024-05-03 12:20:39 +0000,shrodinger depot
+088f44a,Amine Rehioui,2024-05-03 10:45:52 +0000,remove translation on click
+47d55d5,Amine Rehioui,2024-05-01 15:08:38 +0000,wip
+556588f,Amine Rehioui,2024-05-01 01:00:03 +0000,can disable transform gizmos on selected objects
+fc6552b,Amine Rehioui,2024-04-26 20:51:59 +0000,wip
+aed573b,Amine Rehioui,2024-04-23 13:14:09 +0000, avoid affecting in-game input when clicking on viewport controls
+1ff73a2,Amine Rehioui,2024-04-22 01:35:31 +0000,minor polish
+9a59e76,Amine Rehioui,2024-04-19 19:24:28 +0100,add elevation command
+ff3a5ee,Amine Rehioui,2024-04-19 17:04:54 +0100,fix
+44c1aa2,Amine Rehioui,2024-04-18 12:52:16 +0100,polish
+72b4324,Amine Rehioui,2024-04-18 12:50:01 +0100,Delete public/fonts
+9f8f17a,Amine Rehioui,2024-04-18 11:58:01 +0100,polish
+49e3207,Amine Rehioui,2024-04-18 11:54:25 +0100,entity search
+8e31a9c,Amine Rehioui,2024-04-18 01:16:01 +0100,fix
+a2e2674,Amine Rehioui,2024-04-17 00:50:24 +0100,fix
+500c43a,Amine Rehioui,2024-04-16 00:17:40 +0100,can generate trees from the inspector
+c5cc21b,Amine Rehioui,2024-04-15 15:57:27 +0100,wip
+3fdab78,Amine Rehioui,2024-04-15 15:49:20 +0100,threejs 163
+255ace9,Amine Rehioui,2024-04-15 00:01:56 +0000,rails serialization
+113c99f,Amine Rehioui,2024-04-14 22:00:52 +0000,polish
+b3d0d21,Amine Rehioui,2024-04-14 00:01:01 +0000,improve serialization
+88446ed,Amine Rehioui,2024-04-12 03:27:05 +0000,fixes
+4298a42,Amine Rehioui,2024-04-12 01:59:29 +0000,polish
+650ac16,Amine Rehioui,2024-04-11 22:51:21 +0000,polish
+1246595,Amine Rehioui,2024-04-08 23:01:50 +0000,minor
+262b7f6,Amine Rehioui,2024-04-08 18:57:27 +0000,selection fix
+d737c3e,Amine Rehioui,2024-04-08 01:50:35 +0000,drag and drop on self
+fc5df49,Amine Rehioui,2024-04-08 01:01:46 +0000,editor polish
+3047e57,Amine Rehioui,2024-04-07 17:32:51 +0000,minor
+c23c4a6,Amine Rehioui,2024-04-07 13:51:59 +0000,wip
+74749fb,Amine Rehioui,2024-04-06 16:19:57 +0000,can save to disk
+17274fa,Amine Rehioui,2024-04-06 16:14:15 +0000,expose camera far
+8793293,Amine Rehioui,2024-04-05 02:25:12 +0000,better editor animation handling
+a08a166,Amine Rehioui,2024-04-04 18:11:40 +0000,wip
+9cfde50,Amine Rehioui,2024-04-02 16:02:36 +0000,serialization fix
+1eb8af8,Amine Rehioui,2024-04-02 01:51:10 +0000,fix favicon
+11dfa1f,Amine Rehioui,2024-04-01 18:16:15 +0000,fixes
+d194827,Amine Rehioui,2024-03-27 01:25:26 +0000,editor fixes
+9f3f55b,Amine Rehioui,2024-03-26 17:34:33 +0000,wip
+0cdccde,Amine Rehioui,2024-03-23 17:12:58 +0000,engine ui render no longer part of main render
+21098b9,Amine Rehioui,2024-03-22 01:30:20 +0000,conveyor serialization
+c95c0e1,Amine Rehioui,2024-03-21 16:37:41 +0000,game serialization improvements
+16a13bc,Amine Rehioui,2024-03-14 16:14:19 +0000,cell refactor
+f7a311c,Amine Rehioui,2024-03-06 20:09:00 +0100,support more light types
+d17765e,Amine Rehioui,2024-03-03 11:10:28 +0100,buildings serialization
+fed90bb,Amine Rehioui,2024-02-12 19:52:39 +0100,fix input bug
+478e48f,Amine Rehioui,2024-02-12 00:36:39 +0100,fix stats bug
+58a12c4,Amine Rehioui,2024-02-07 12:14:16 +0100,add fonts
+fe5fc43,Amine Rehioui,2024-02-03 22:51:32 +0100,faster dave timeouts
+f40bacf,Amine Rehioui,2024-01-31 13:16:22 +0100,expose matrixWorldAutoUpdate
+e1fe628,Amine Rehioui,2024-01-31 00:08:20 +0100,wip
+8a3cbee,Amine Rehioui,2024-01-24 19:09:43 +0100,wip
+f726dd8,Amine Rehioui,2024-01-23 00:55:46 +0100,terrain wip
+60cba78,Amine Rehioui,2024-01-22 10:43:06 +0100,use fastnoise-lite
+121a313,Amine Rehioui,2024-01-21 00:00:49 +0100,better map serialization
+f1af016,Amine Rehioui,2024-01-18 18:23:30 +0100,can engine step
+a97693d,Amine Rehioui,2024-01-13 22:58:26 +0100,fix editor crash
+4032e52,Amine Rehioui,2024-01-10 22:53:35 +0100,wip
+585a405,Amine Rehioui,2024-01-09 23:34:36 +0100,wip
+9110b85,Amine Rehioui,2023-12-20 22:28:17 +0100,Fix particles size in perspective
+65dab9d,Amine Rehioui,2023-12-18 19:32:02 +0100,polish
+9d7cc94,Amine Rehioui,2023-12-18 00:48:47 +0100,minor
+c6ad7e9,Amine Rehioui,2023-12-17 18:30:33 +0100,healthbar optim
+ff0ba61,Amine Rehioui,2023-12-16 23:51:24 +0100,minor
+8e56e09,Amine Rehioui,2023-12-16 00:16:03 +0100,fixes
+fe4fa06,Amine Rehioui,2023-12-15 23:58:48 +0100,serialization fixes
+0896152,Amine Rehioui,2023-12-15 23:13:18 +0100,engineState refactor
+ce01f98,Amine Rehioui,2023-12-14 16:02:52 +0100,input fixes
+82ffd51,Amine Rehioui,2023-12-13 20:54:41 +0100,test folder
+7a67f5d,Amine Rehioui,2023-12-13 16:41:13 +0100,fixes
+b5d4a74,Amine Rehioui,2023-12-12 23:59:56 +0100,Gamemap serialization wip
+b9cae47,Amine Rehioui,2023-12-12 00:14:31 +0100,testig menu
+be4ef27,Amine Rehioui,2023-12-11 20:51:42 +0100,grass
+6a9ae41,Amine Rehioui,2023-12-11 19:30:36 +0100,grass wip
+79739f4,Amine Rehioui,2023-12-10 00:23:07 +0100,fic
+2dadfa8,Amine Rehioui,2023-12-09 20:36:37 +0100,Animation workflow
+25f7e64,Amine Rehioui,2023-12-09 18:13:36 +0100,add hex field to color picker
+d0eacaf,Amine Rehioui,2023-12-09 02:10:57 +0100,minor
+e3fd6fc,Amine Rehioui,2023-12-08 21:23:36 +0100,multiple animation support + fixes
+c9fe9e1,Amine Rehioui,2023-12-08 20:43:11 +0100,serialization fixes
+3ba0bce,Amine Rehioui,2023-12-07 19:03:49 +0100,skinned mesh related fixes
+610c55a,Amine Rehioui,2023-12-07 02:20:21 +0100,Animation system wip
+3cba0ef,Amine Rehioui,2023-12-06 01:57:03 +0100,fixes
+68a070c,Amine Rehioui,2023-12-05 22:23:40 +0100,component related fixes
+5a1b53d,Amine Rehioui,2023-12-05 21:21:38 +0100,grid helper
+eef543c,Amine Rehioui,2023-12-05 11:29:17 +0100,minor fixes
+b169599,Amine Rehioui,2023-12-05 03:27:59 +0100,particles
+d227e57,Amine Rehioui,2023-12-04 18:49:51 +0100,particles wip
+d439c3e,Amine Rehioui,2023-12-04 13:03:00 +0100,inspector fixes
+d999d6a,Amine Rehioui,2023-12-04 00:02:17 +0100,particles wip fix numberfield bug
+64c42e0,Amine Rehioui,2023-12-02 18:59:54 +0100,polish array props
+6895950,Amine Rehioui,2023-12-02 18:02:34 +0100,keep light frustum uptodate
+5e5738d,Amine Rehioui,2023-12-02 17:06:04 +0100,array property
+2c6b8b5,Amine Rehioui,2023-12-02 13:04:21 +0100,array props wip
+a4b7e1d,Amine Rehioui,2023-12-02 01:41:09 +0100,fix section close
+6c5e218,Amine Rehioui,2023-12-02 01:37:03 +0100,array property wip
+7a01b5d,Amine Rehioui,2023-12-02 00:45:17 +0100,material and geometry inspector fixes
+297df7d,Amine Rehioui,2023-12-02 00:14:48 +0100,fix number / slider
+d2d71e2,Amine Rehioui,2023-12-01 23:02:11 +0100,polish color and texture pickers
+8ec7abb,Amine Rehioui,2023-12-01 16:16:06 +0100,polish inspectors
+2c42230,Amine Rehioui,2023-12-01 15:47:51 +0100,undo redo fixes
+e8e13e1,Amine Rehioui,2023-12-01 14:30:34 +0100,undo  redo fixes
+fea81e5,Amine Rehioui,2023-11-30 18:39:43 +0100,component inspector
+8d6a41e,Amine Rehioui,2023-11-30 17:32:39 +0100,finish material inspector
+46cbaa2,Amine Rehioui,2023-11-30 17:02:45 +0100,new texture picker
+ca1358e,Amine Rehioui,2023-11-30 16:16:48 +0100,new material inspector
+3ae9f36,Amine Rehioui,2023-11-30 01:07:13 +0100,geometry inspector
+28ebabe,Amine Rehioui,2023-11-30 00:32:16 +0100,finish object inspector
+49d4ac3,Amine Rehioui,2023-11-29 23:28:31 +0100,wip
+3531535,Amine Rehioui,2023-11-29 23:13:25 +0100,style the default controls
+7653a8f,Amine Rehioui,2023-11-29 22:51:49 +0100,use standard slider and color picker
+cc895c2,Amine Rehioui,2023-11-29 22:30:59 +0100,inspector polish
+ea16c31,Amine Rehioui,2023-11-29 22:06:09 +0100,property grid wip
+335110c,Amine Rehioui,2023-11-29 19:39:40 +0100,property grid wip
+3a14e3e,Amine Rehioui,2023-11-29 18:21:42 +0100,handle saving and undo redo
+5b07b6a,Amine Rehioui,2023-11-29 18:07:21 +0100,transform properties
+da50abf,Amine Rehioui,2023-11-29 15:56:32 +0100,new inspector wip
+af9760e,Amine Rehioui,2023-11-29 14:11:03 +0100,remove stats.js
+c1fa776,Amine Rehioui,2023-11-27 18:45:58 +0100,fix bug
+4bae417,Amine Rehioui,2023-11-27 18:29:00 +0100,handle light frustums
+9285d02,Amine Rehioui,2023-11-27 13:53:41 +0100,dir light handling wip
+5cfba71,Amine Rehioui,2023-11-27 01:51:42 +0100,fix object focus
+3e29b18,Amine Rehioui,2023-11-27 01:31:13 +0100,editor camera orbit focus object copy paste
+b7ea5b2,Amine Rehioui,2023-11-26 00:27:39 +0100,wip
+d0916f2,Amine Rehioui,2023-11-25 19:39:15 +0100,better serialization
+69770e8,Amine Rehioui,2023-11-25 18:35:18 +0100,can show hide render stats
+7847afa,Amine Rehioui,2023-11-25 17:52:56 +0100,support enum properties
+003e5f2,Amine Rehioui,2023-11-25 10:02:38 +0100,can undo in play mode
+df27025,Amine Rehioui,2023-11-25 00:43:12 +0100,can save objects (prefabs)
+58d044c,Amine Rehioui,2023-11-23 16:49:16 +0100,time api changed
+b6bbc0c,Amine Rehioui,2023-11-23 16:33:45 +0100,polish
+4f3fa48,Amine Rehioui,2023-11-23 00:57:20 +0100,add render stats
+7b5db4f,Amine Rehioui,2023-11-22 20:50:47 +0100,input fixes
+ec0b635,Amine Rehioui,2023-11-22 17:03:29 +0100,game integration wip
+76d84bb,Amine Rehioui,2023-11-22 16:04:47 +0100,game integration wip
+ef7a0f2,Amine Rehioui,2023-11-21 22:52:15 +0100,gameui integration
+f13d2db,Amine Rehioui,2023-11-21 22:01:00 +0100,game ui wip
+29e3dbc,Amine Rehioui,2023-11-21 20:04:20 +0100,fix touch input
+53feb86,Amine Rehioui,2023-11-21 01:30:50 +0100,game integration wip
+3161ee4,Amine Rehioui,2023-11-20 01:44:13 +0100,fix viewport resizing
+c335bfd,Amine Rehioui,2023-11-19 22:16:57 +0100,symlink to game assets
+24aad24,Amine Rehioui,2023-11-19 21:59:42 +0100,game integration wip
+e23a5a2,Amine Rehioui,2023-11-19 01:52:57 +0100,game integration wip
+3328477,Amine Rehioui,2023-11-18 00:52:21 +0100,game integration wip
+aa064dc,Amine Rehioui,2023-11-16 17:13:19 +0100,play mode
+4db6f6c,Amine Rehioui,2023-11-16 14:50:42 +0100,moved camera parsing to the engine
+5ddac07,Amine Rehioui,2023-11-16 01:05:05 +0100,scene management
+f6b829b,Amine Rehioui,2023-11-15 23:13:11 +0100,multiple camera support
+76fbe02,Amine Rehioui,2023-11-15 20:52:25 +0100,multiple cameras wip
+8724c5a,Amine Rehioui,2023-11-15 01:03:02 +0100,moved most logic to the engine - wip
+5390dbd,Amine Rehioui,2023-11-14 23:22:22 +0100,can modify editor layout
+dcc0af2,Amine Rehioui,2023-11-14 16:05:13 +0100,use powerplay-lib
+dfca11b,Amine Rehioui,2023-11-14 00:57:12 +0100,re-consolidate in one editor, will split to a generic editor after the game is done if needed
+1afce63,Amine Rehioui,2023-11-13 00:37:48 +0100,components wip
+c1a67e6,Amine Rehioui,2023-11-13 00:06:18 +0100,components wip
+3093a2c,Amine Rehioui,2023-11-12 22:06:29 +0100,Inspectors in a tab
+3955b8a,Amine Rehioui,2023-11-12 01:10:34 +0100,make the editor as a module
+0262a50,Amine Rehioui,2023-11-11 18:48:54 +0100,fix material inspector bug
+44e3234,Amine Rehioui,2023-11-11 18:34:04 +0100,can undo/redo object move operations
+c89796c,Amine Rehioui,2023-11-11 17:53:39 +0100,polish
+a5d329d,Amine Rehioui,2023-11-11 01:33:49 +0100,light inspector wip
+d0ac0cb,Amine Rehioui,2023-11-11 00:15:01 +0100,components wip
+1242469,Amine Rehioui,2023-11-10 18:59:46 +0100,fix more undo redo bugs
+5920329,Amine Rehioui,2023-11-10 18:28:53 +0100,cleaner undo redo
+d723e3f,Amine Rehioui,2023-11-10 17:45:26 +0100,refactoring
+646b77a,Amine Rehioui,2023-11-10 15:18:20 +0100,polish
+18e2c1b,Amine Rehioui,2023-11-09 21:38:54 +0100,more inspector bugs
+ffe5a12,Amine Rehioui,2023-11-09 21:27:10 +0100,fix undo redo bugs
+f11f00b,Amine Rehioui,2023-11-09 15:50:26 +0100,undo move entity
+55844f0,Amine Rehioui,2023-11-09 14:42:29 +0100,can undo deletes
+2bf8c16,Amine Rehioui,2023-11-09 13:50:08 +0100,undo redo bugs
+c7158d1,Amine Rehioui,2023-11-09 01:59:31 +0100,wip
+21caa05,Amine Rehioui,2023-11-09 01:46:12 +0100,undo redo
+4499512,Amine Rehioui,2023-11-09 00:34:09 +0100,undo redo wip
+be1dba7,Amine Rehioui,2023-11-08 21:52:43 +0100,texture pickers
+754c8e2,Amine Rehioui,2023-11-08 19:21:22 +0100,components and texture picker wip
+0500ce0,Amine Rehioui,2023-11-08 18:04:17 +0100,polish inspector
+81573f9,Amine Rehioui,2023-11-08 15:44:29 +0100,material inspector wip
+124e7a0,Amine Rehioui,2023-11-07 18:05:09 +0100,Material inspector wip
+bc43702,Amine Rehioui,2023-11-07 13:51:36 +0100,wip
+12e5886,Amine Rehioui,2023-11-07 13:44:19 +0100,Material and geometry inspectors wip
+2855695,Amine Rehioui,2023-11-07 10:30:24 +0100,much better state handling
+3802e16,Amine Rehioui,2023-11-07 01:45:05 +0100,wip
+f9121be,Amine Rehioui,2023-11-07 01:39:50 +0100,geometry and material inspectors wip
+9ffc110,Amine Rehioui,2023-11-06 23:47:07 +0100,wip
+10fd552,Amine Rehioui,2023-11-06 20:50:11 +0100,polish
+454cf7a,Amine Rehioui,2023-11-06 20:31:57 +0100,euler rotation handling
+ad15fdf,Amine Rehioui,2023-11-06 20:10:10 +0100,inspector wip
+0e19ca3,Amine Rehioui,2023-11-06 12:23:11 +0100,inspector fixes
+f5df098,Amine Rehioui,2023-11-06 00:36:47 +0100,inspector wip
+e099c20,Amine Rehioui,2023-11-05 23:18:45 +0100,3d picking
+ed0ad16,Amine Rehioui,2023-11-05 23:02:52 +0100,wip
+3c844b0,Amine Rehioui,2023-11-05 22:32:40 +0100,persistent scenes
+f031532,Amine Rehioui,2023-11-05 17:52:30 +0100,object deletion
+488f275,Amine Rehioui,2023-11-05 15:52:47 +0100,transform control switched
+e638cca,Amine Rehioui,2023-11-05 15:16:04 +0100,selection wip
+0e17ce2,Amine Rehioui,2023-11-05 13:40:48 +0100,treeview drag and drop wip
+b6ed0ba,Amine Rehioui,2023-11-05 10:40:32 +0100,wip
+d9f3d4c,Amine Rehioui,2023-11-05 02:19:02 +0100,wip
+6edcf76,Amine Rehioui,2023-11-05 01:37:53 +0100,wip
+4a85404,Amine Rehioui,2023-11-05 00:45:19 +0100,wip
+bb9bdbe,Amine Rehioui,2023-11-04 23:26:08 +0100,wip
+ab76b52,Amine Rehioui,2023-11-04 16:32:47 +0100,add three js
+51b4b90,Amine Rehioui,2023-11-04 15:29:30 +0100,using blueprintjs
+d64ecd0,Amine Rehioui,2023-11-04 13:11:50 +0100,flex layout
+33dd9ad,Amine Rehioui,2023-11-04 01:28:09 +0100,wip
+b9eaa05,Amine Rehioui,2023-11-03 21:10:20 +0100,populate
+69c8e94,Amine Rehioui,2023-11-03 21:08:15 +0100,Initial commit

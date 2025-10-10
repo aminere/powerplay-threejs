@@ -1,0 +1,4239 @@
+{
+  "size": 5,
+  "sectors": [
+    {
+      "key": "0,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,3",
+      "cells": [
+        {
+          "index": 314,
+          "resource": "wood"
+        },
+        {
+          "index": 315,
+          "resource": "wood"
+        },
+        {
+          "index": 316,
+          "resource": "wood"
+        },
+        {
+          "index": 342,
+          "resource": "wood"
+        },
+        {
+          "index": 343,
+          "resource": "wood"
+        },
+        {
+          "index": 344,
+          "resource": "wood"
+        },
+        {
+          "index": 345,
+          "resource": "wood"
+        },
+        {
+          "index": 346,
+          "resource": "wood"
+        },
+        {
+          "index": 347,
+          "resource": "wood"
+        },
+        {
+          "index": 348,
+          "resource": "wood"
+        },
+        {
+          "index": 349,
+          "resource": "wood"
+        },
+        {
+          "index": 351,
+          "resource": "wood"
+        },
+        {
+          "index": 374,
+          "resource": "wood"
+        },
+        {
+          "index": 375,
+          "resource": "wood"
+        },
+        {
+          "index": 376,
+          "resource": "wood"
+        },
+        {
+          "index": 379,
+          "resource": "wood"
+        },
+        {
+          "index": 380,
+          "resource": "wood"
+        },
+        {
+          "index": 381,
+          "resource": "wood"
+        },
+        {
+          "index": 407,
+          "resource": "wood"
+        },
+        {
+          "index": 408,
+          "resource": "wood"
+        },
+        {
+          "index": 409,
+          "resource": "wood"
+        },
+        {
+          "index": 410,
+          "resource": "wood"
+        },
+        {
+          "index": 411,
+          "resource": "wood"
+        },
+        {
+          "index": 412,
+          "resource": "wood"
+        },
+        {
+          "index": 413,
+          "resource": "wood"
+        },
+        {
+          "index": 414,
+          "resource": "wood"
+        },
+        {
+          "index": 415,
+          "resource": "wood"
+        },
+        {
+          "index": 439,
+          "resource": "wood"
+        },
+        {
+          "index": 440,
+          "resource": "wood"
+        },
+        {
+          "index": 441,
+          "resource": "wood"
+        },
+        {
+          "index": 442,
+          "resource": "wood"
+        },
+        {
+          "index": 444,
+          "resource": "wood"
+        },
+        {
+          "index": 445,
+          "resource": "wood"
+        },
+        {
+          "index": 446,
+          "resource": "wood"
+        },
+        {
+          "index": 475,
+          "resource": "wood"
+        },
+        {
+          "index": 476,
+          "resource": "wood"
+        },
+        {
+          "index": 477,
+          "resource": "wood"
+        },
+        {
+          "index": 478,
+          "resource": "wood"
+        },
+        {
+          "index": 503,
+          "resource": "wood"
+        },
+        {
+          "index": 504,
+          "resource": "wood"
+        },
+        {
+          "index": 509,
+          "resource": "wood"
+        },
+        {
+          "index": 510,
+          "resource": "wood"
+        },
+        {
+          "index": 511,
+          "resource": "wood"
+        },
+        {
+          "index": 535,
+          "resource": "wood"
+        },
+        {
+          "index": 536,
+          "resource": "wood"
+        },
+        {
+          "index": 537,
+          "resource": "wood"
+        },
+        {
+          "index": 543,
+          "resource": "wood"
+        },
+        {
+          "index": 569,
+          "resource": "wood"
+        },
+        {
+          "index": 570,
+          "resource": "wood"
+        },
+        {
+          "index": 571,
+          "resource": "wood"
+        },
+        {
+          "index": 573,
+          "resource": "wood"
+        },
+        {
+          "index": 574,
+          "resource": "wood"
+        },
+        {
+          "index": 590,
+          "resource": "water"
+        },
+        {
+          "index": 591,
+          "resource": "water"
+        },
+        {
+          "index": 592,
+          "resource": "water"
+        },
+        {
+          "index": 593,
+          "resource": "water"
+        },
+        {
+          "index": 594,
+          "resource": "water"
+        },
+        {
+          "index": 595,
+          "resource": "water"
+        },
+        {
+          "index": 602,
+          "resource": "wood"
+        },
+        {
+          "index": 603,
+          "resource": "wood"
+        },
+        {
+          "index": 604,
+          "resource": "wood"
+        },
+        {
+          "index": 605,
+          "resource": "wood"
+        },
+        {
+          "index": 606,
+          "resource": "wood"
+        },
+        {
+          "index": 607,
+          "resource": "wood"
+        },
+        {
+          "index": 615,
+          "resource": "wood"
+        },
+        {
+          "index": 616,
+          "resource": "wood"
+        },
+        {
+          "index": 617,
+          "resource": "wood"
+        },
+        {
+          "index": 622,
+          "resource": "water"
+        },
+        {
+          "index": 623,
+          "resource": "water"
+        },
+        {
+          "index": 624,
+          "resource": "water"
+        },
+        {
+          "index": 625,
+          "resource": "water"
+        },
+        {
+          "index": 626,
+          "resource": "water"
+        },
+        {
+          "index": 627,
+          "resource": "water"
+        },
+        {
+          "index": 635,
+          "resource": "wood"
+        },
+        {
+          "index": 636,
+          "resource": "wood"
+        },
+        {
+          "index": 637,
+          "resource": "wood"
+        },
+        {
+          "index": 638,
+          "resource": "wood"
+        },
+        {
+          "index": 639,
+          "resource": "wood"
+        },
+        {
+          "index": 645,
+          "resource": "wood"
+        },
+        {
+          "index": 646,
+          "resource": "wood"
+        },
+        {
+          "index": 647,
+          "resource": "wood"
+        },
+        {
+          "index": 648,
+          "resource": "wood"
+        },
+        {
+          "index": 654,
+          "resource": "water"
+        },
+        {
+          "index": 655,
+          "resource": "water"
+        },
+        {
+          "index": 656,
+          "resource": "water"
+        },
+        {
+          "index": 657,
+          "resource": "water"
+        },
+        {
+          "index": 658,
+          "resource": "water"
+        },
+        {
+          "index": 659,
+          "resource": "water"
+        },
+        {
+          "index": 660,
+          "resource": "water"
+        },
+        {
+          "index": 661,
+          "resource": "water"
+        },
+        {
+          "index": 662,
+          "resource": "water"
+        },
+        {
+          "index": 663,
+          "resource": "water"
+        },
+        {
+          "index": 668,
+          "resource": "wood"
+        },
+        {
+          "index": 669,
+          "resource": "wood"
+        },
+        {
+          "index": 670,
+          "resource": "wood"
+        },
+        {
+          "index": 671,
+          "resource": "wood"
+        },
+        {
+          "index": 675,
+          "resource": "wood"
+        },
+        {
+          "index": 676,
+          "resource": "wood"
+        },
+        {
+          "index": 679,
+          "resource": "wood"
+        },
+        {
+          "index": 681,
+          "resource": "wood"
+        },
+        {
+          "index": 682,
+          "resource": "wood"
+        },
+        {
+          "index": 683,
+          "resource": "wood"
+        },
+        {
+          "index": 686,
+          "resource": "water"
+        },
+        {
+          "index": 688,
+          "resource": "water"
+        },
+        {
+          "index": 689,
+          "resource": "water"
+        },
+        {
+          "index": 690,
+          "resource": "water"
+        },
+        {
+          "index": 691,
+          "resource": "water"
+        },
+        {
+          "index": 692,
+          "resource": "water"
+        },
+        {
+          "index": 693,
+          "resource": "water"
+        },
+        {
+          "index": 694,
+          "resource": "water"
+        },
+        {
+          "index": 695,
+          "resource": "water"
+        },
+        {
+          "index": 701,
+          "resource": "wood"
+        },
+        {
+          "index": 702,
+          "resource": "wood"
+        },
+        {
+          "index": 707,
+          "resource": "wood"
+        },
+        {
+          "index": 711,
+          "resource": "wood"
+        },
+        {
+          "index": 712,
+          "resource": "wood"
+        },
+        {
+          "index": 713,
+          "resource": "wood"
+        },
+        {
+          "index": 715,
+          "resource": "wood"
+        },
+        {
+          "index": 720,
+          "resource": "water"
+        },
+        {
+          "index": 721,
+          "resource": "water"
+        },
+        {
+          "index": 722,
+          "resource": "water"
+        },
+        {
+          "index": 723,
+          "resource": "water"
+        },
+        {
+          "index": 724,
+          "resource": "water"
+        },
+        {
+          "index": 725,
+          "resource": "water"
+        },
+        {
+          "index": 726,
+          "resource": "water"
+        },
+        {
+          "index": 727,
+          "resource": "water"
+        },
+        {
+          "index": 738,
+          "resource": "wood"
+        },
+        {
+          "index": 744,
+          "resource": "wood"
+        },
+        {
+          "index": 745,
+          "resource": "wood"
+        },
+        {
+          "index": 746,
+          "resource": "wood"
+        },
+        {
+          "index": 747,
+          "resource": "wood"
+        },
+        {
+          "index": 752,
+          "resource": "water"
+        },
+        {
+          "index": 753,
+          "resource": "water"
+        },
+        {
+          "index": 754,
+          "resource": "water"
+        },
+        {
+          "index": 755,
+          "resource": "water"
+        },
+        {
+          "index": 756,
+          "resource": "water"
+        },
+        {
+          "index": 757,
+          "resource": "water"
+        },
+        {
+          "index": 758,
+          "resource": "water"
+        },
+        {
+          "index": 759,
+          "resource": "water"
+        },
+        {
+          "index": 770,
+          "resource": "wood"
+        },
+        {
+          "index": 771,
+          "resource": "wood"
+        },
+        {
+          "index": 774,
+          "resource": "wood"
+        },
+        {
+          "index": 775,
+          "resource": "wood"
+        },
+        {
+          "index": 776,
+          "resource": "wood"
+        },
+        {
+          "index": 778,
+          "resource": "wood"
+        },
+        {
+          "index": 779,
+          "resource": "wood"
+        },
+        {
+          "index": 784,
+          "resource": "water"
+        },
+        {
+          "index": 785,
+          "resource": "water"
+        },
+        {
+          "index": 786,
+          "resource": "water"
+        },
+        {
+          "index": 787,
+          "resource": "water"
+        },
+        {
+          "index": 788,
+          "resource": "water"
+        },
+        {
+          "index": 789,
+          "resource": "water"
+        },
+        {
+          "index": 790,
+          "resource": "water"
+        },
+        {
+          "index": 803,
+          "resource": "wood"
+        },
+        {
+          "index": 804,
+          "resource": "wood"
+        },
+        {
+          "index": 805,
+          "resource": "wood"
+        },
+        {
+          "index": 807,
+          "resource": "wood"
+        },
+        {
+          "index": 808,
+          "resource": "wood"
+        },
+        {
+          "index": 809,
+          "resource": "wood"
+        },
+        {
+          "index": 810,
+          "resource": "wood"
+        },
+        {
+          "index": 813,
+          "resource": "wood"
+        },
+        {
+          "index": 820,
+          "resource": "water"
+        },
+        {
+          "index": 821,
+          "resource": "water"
+        },
+        {
+          "index": 822,
+          "resource": "water"
+        },
+        {
+          "index": 835,
+          "resource": "wood"
+        },
+        {
+          "index": 836,
+          "resource": "wood"
+        },
+        {
+          "index": 838,
+          "resource": "wood"
+        },
+        {
+          "index": 839,
+          "resource": "wood"
+        },
+        {
+          "index": 841,
+          "resource": "wood"
+        },
+        {
+          "index": 842,
+          "resource": "wood"
+        },
+        {
+          "index": 845,
+          "resource": "wood"
+        },
+        {
+          "index": 867,
+          "resource": "wood"
+        },
+        {
+          "index": 868,
+          "resource": "wood"
+        },
+        {
+          "index": 870,
+          "resource": "wood"
+        },
+        {
+          "index": 871,
+          "resource": "wood"
+        },
+        {
+          "index": 873,
+          "resource": "wood"
+        },
+        {
+          "index": 874,
+          "resource": "wood"
+        },
+        {
+          "index": 876,
+          "resource": "wood"
+        },
+        {
+          "index": 877,
+          "resource": "wood"
+        },
+        {
+          "index": 899,
+          "resource": "wood"
+        },
+        {
+          "index": 900,
+          "resource": "wood"
+        },
+        {
+          "index": 901,
+          "resource": "wood"
+        },
+        {
+          "index": 903,
+          "resource": "wood"
+        },
+        {
+          "index": 904,
+          "resource": "wood"
+        },
+        {
+          "index": 905,
+          "resource": "wood"
+        },
+        {
+          "index": 906,
+          "resource": "wood"
+        },
+        {
+          "index": 907,
+          "resource": "wood"
+        },
+        {
+          "index": 908,
+          "resource": "wood"
+        },
+        {
+          "index": 909,
+          "resource": "wood"
+        },
+        {
+          "index": 910,
+          "resource": "wood"
+        },
+        {
+          "index": 930,
+          "resource": "wood"
+        },
+        {
+          "index": 931,
+          "resource": "wood"
+        },
+        {
+          "index": 932,
+          "resource": "wood"
+        },
+        {
+          "index": 933,
+          "resource": "wood"
+        },
+        {
+          "index": 935,
+          "resource": "wood"
+        },
+        {
+          "index": 936,
+          "resource": "wood"
+        },
+        {
+          "index": 939,
+          "resource": "wood"
+        },
+        {
+          "index": 940,
+          "resource": "wood"
+        },
+        {
+          "index": 942,
+          "resource": "wood"
+        },
+        {
+          "index": 964,
+          "resource": "wood"
+        },
+        {
+          "index": 965,
+          "resource": "wood"
+        },
+        {
+          "index": 967,
+          "resource": "wood"
+        },
+        {
+          "index": 968,
+          "resource": "wood"
+        },
+        {
+          "index": 971,
+          "resource": "wood"
+        },
+        {
+          "index": 972,
+          "resource": "wood"
+        },
+        {
+          "index": 973,
+          "resource": "wood"
+        },
+        {
+          "index": 974,
+          "resource": "wood"
+        },
+        {
+          "index": 994,
+          "resource": "wood"
+        },
+        {
+          "index": 995,
+          "resource": "wood"
+        },
+        {
+          "index": 996,
+          "resource": "wood"
+        },
+        {
+          "index": 997,
+          "resource": "wood"
+        },
+        {
+          "index": 998,
+          "resource": "wood"
+        },
+        {
+          "index": 999,
+          "resource": "wood"
+        },
+        {
+          "index": 1000,
+          "resource": "wood"
+        },
+        {
+          "index": 1001,
+          "resource": "wood"
+        },
+        {
+          "index": 1002,
+          "resource": "wood"
+        },
+        {
+          "index": 1003,
+          "resource": "wood"
+        },
+        {
+          "index": 1004,
+          "resource": "wood"
+        },
+        {
+          "index": 1005,
+          "resource": "wood"
+        },
+        {
+          "index": 1006,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 551,
+          "height": 1
+        },
+        {
+          "vertexIndex": 552,
+          "height": 1
+        },
+        {
+          "vertexIndex": 553,
+          "height": 1
+        },
+        {
+          "vertexIndex": 584,
+          "height": 1
+        },
+        {
+          "vertexIndex": 585,
+          "height": 2
+        },
+        {
+          "vertexIndex": 586,
+          "height": 2
+        },
+        {
+          "vertexIndex": 587,
+          "height": 1
+        },
+        {
+          "vertexIndex": 588,
+          "height": 1
+        },
+        {
+          "vertexIndex": 617,
+          "height": 1
+        },
+        {
+          "vertexIndex": 618,
+          "height": 2
+        },
+        {
+          "vertexIndex": 619,
+          "height": 2
+        },
+        {
+          "vertexIndex": 620,
+          "height": 2
+        },
+        {
+          "vertexIndex": 621,
+          "height": 2
+        },
+        {
+          "vertexIndex": 622,
+          "height": 2
+        },
+        {
+          "vertexIndex": 623,
+          "height": 2
+        },
+        {
+          "vertexIndex": 624,
+          "height": 1
+        },
+        {
+          "vertexIndex": 642,
+          "height": -5
+        },
+        {
+          "vertexIndex": 643,
+          "height": -5
+        },
+        {
+          "vertexIndex": 644,
+          "height": -5
+        },
+        {
+          "vertexIndex": 645,
+          "height": -5
+        },
+        {
+          "vertexIndex": 646,
+          "height": -5
+        },
+        {
+          "vertexIndex": 652,
+          "height": 1
+        },
+        {
+          "vertexIndex": 653,
+          "height": 2
+        },
+        {
+          "vertexIndex": 654,
+          "height": 2
+        },
+        {
+          "vertexIndex": 655,
+          "height": 2
+        },
+        {
+          "vertexIndex": 656,
+          "height": 2
+        },
+        {
+          "vertexIndex": 657,
+          "height": 1
+        },
+        {
+          "vertexIndex": 675,
+          "height": -5
+        },
+        {
+          "vertexIndex": 676,
+          "height": -5
+        },
+        {
+          "vertexIndex": 677,
+          "height": -5
+        },
+        {
+          "vertexIndex": 678,
+          "height": -5
+        },
+        {
+          "vertexIndex": 679,
+          "height": -5
+        },
+        {
+          "vertexIndex": 687,
+          "height": 1
+        },
+        {
+          "vertexIndex": 688,
+          "height": 2
+        },
+        {
+          "vertexIndex": 689,
+          "height": 2
+        },
+        {
+          "vertexIndex": 690,
+          "height": 1
+        },
+        {
+          "vertexIndex": 708,
+          "height": -5
+        },
+        {
+          "vertexIndex": 709,
+          "height": -5
+        },
+        {
+          "vertexIndex": 710,
+          "height": -5
+        },
+        {
+          "vertexIndex": 711,
+          "height": -5
+        },
+        {
+          "vertexIndex": 712,
+          "height": -5
+        },
+        {
+          "vertexIndex": 713,
+          "height": -5
+        },
+        {
+          "vertexIndex": 714,
+          "height": -5
+        },
+        {
+          "vertexIndex": 715,
+          "height": -5
+        },
+        {
+          "vertexIndex": 716,
+          "height": -5
+        },
+        {
+          "vertexIndex": 720,
+          "height": 2
+        },
+        {
+          "vertexIndex": 721,
+          "height": 2
+        },
+        {
+          "vertexIndex": 722,
+          "height": 2
+        },
+        {
+          "vertexIndex": 723,
+          "height": 1
+        },
+        {
+          "vertexIndex": 724,
+          "height": 1
+        },
+        {
+          "vertexIndex": 743,
+          "height": -5
+        },
+        {
+          "vertexIndex": 744,
+          "height": -5
+        },
+        {
+          "vertexIndex": 745,
+          "height": -5
+        },
+        {
+          "vertexIndex": 746,
+          "height": -5
+        },
+        {
+          "vertexIndex": 747,
+          "height": -5
+        },
+        {
+          "vertexIndex": 748,
+          "height": -5
+        },
+        {
+          "vertexIndex": 749,
+          "height": -5
+        },
+        {
+          "vertexIndex": 752,
+          "height": 1
+        },
+        {
+          "vertexIndex": 753,
+          "height": 2
+        },
+        {
+          "vertexIndex": 754,
+          "height": 2
+        },
+        {
+          "vertexIndex": 755,
+          "height": 2
+        },
+        {
+          "vertexIndex": 756,
+          "height": 1
+        },
+        {
+          "vertexIndex": 757,
+          "height": 1
+        },
+        {
+          "vertexIndex": 776,
+          "height": -5
+        },
+        {
+          "vertexIndex": 777,
+          "height": -5
+        },
+        {
+          "vertexIndex": 778,
+          "height": -5
+        },
+        {
+          "vertexIndex": 779,
+          "height": -5
+        },
+        {
+          "vertexIndex": 780,
+          "height": -5
+        },
+        {
+          "vertexIndex": 781,
+          "height": -5
+        },
+        {
+          "vertexIndex": 782,
+          "height": -5
+        },
+        {
+          "vertexIndex": 785,
+          "height": 1
+        },
+        {
+          "vertexIndex": 786,
+          "height": 1
+        },
+        {
+          "vertexIndex": 787,
+          "height": 1
+        },
+        {
+          "vertexIndex": 788,
+          "height": 1
+        },
+        {
+          "vertexIndex": 789,
+          "height": 1
+        },
+        {
+          "vertexIndex": 790,
+          "height": 1
+        },
+        {
+          "vertexIndex": 809,
+          "height": -5
+        },
+        {
+          "vertexIndex": 810,
+          "height": -5
+        },
+        {
+          "vertexIndex": 811,
+          "height": -5
+        },
+        {
+          "vertexIndex": 812,
+          "height": -5
+        },
+        {
+          "vertexIndex": 813,
+          "height": -5
+        },
+        {
+          "vertexIndex": 814,
+          "height": -5
+        },
+        {
+          "vertexIndex": 818,
+          "height": 1
+        },
+        {
+          "vertexIndex": 819,
+          "height": 1
+        },
+        {
+          "vertexIndex": 820,
+          "height": 1
+        },
+        {
+          "vertexIndex": 845,
+          "height": -5
+        },
+        {
+          "vertexIndex": 846,
+          "height": -5
+        },
+        {
+          "vertexIndex": 847,
+          "height": -5
+        },
+        {
+          "vertexIndex": 857,
+          "height": 1
+        },
+        {
+          "vertexIndex": 871,
+          "height": 1
+        },
+        {
+          "vertexIndex": 872,
+          "height": 1
+        },
+        {
+          "vertexIndex": 873,
+          "height": 1
+        },
+        {
+          "vertexIndex": 904,
+          "height": 1
+        },
+        {
+          "vertexIndex": 905,
+          "height": 1
+        },
+        {
+          "vertexIndex": 906,
+          "height": 1
+        },
+        {
+          "vertexIndex": 908,
+          "height": 2
+        },
+        {
+          "vertexIndex": 909,
+          "height": 2
+        },
+        {
+          "vertexIndex": 910,
+          "height": 2
+        },
+        {
+          "vertexIndex": 937,
+          "height": 1
+        },
+        {
+          "vertexIndex": 938,
+          "height": 1
+        },
+        {
+          "vertexIndex": 939,
+          "height": 1
+        },
+        {
+          "vertexIndex": 940,
+          "height": 1
+        },
+        {
+          "vertexIndex": 941,
+          "height": 3
+        },
+        {
+          "vertexIndex": 942,
+          "height": 5
+        },
+        {
+          "vertexIndex": 943,
+          "height": 5
+        },
+        {
+          "vertexIndex": 944,
+          "height": 2
+        },
+        {
+          "vertexIndex": 945,
+          "height": 1
+        },
+        {
+          "vertexIndex": 946,
+          "height": 1
+        },
+        {
+          "vertexIndex": 947,
+          "height": 1
+        },
+        {
+          "vertexIndex": 971,
+          "height": 1
+        },
+        {
+          "vertexIndex": 972,
+          "height": 1
+        },
+        {
+          "vertexIndex": 973,
+          "height": 1
+        },
+        {
+          "vertexIndex": 974,
+          "height": 3
+        },
+        {
+          "vertexIndex": 975,
+          "height": 5
+        },
+        {
+          "vertexIndex": 976,
+          "height": 5
+        },
+        {
+          "vertexIndex": 977,
+          "height": 3
+        },
+        {
+          "vertexIndex": 978,
+          "height": 1
+        },
+        {
+          "vertexIndex": 979,
+          "height": 1
+        },
+        {
+          "vertexIndex": 980,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1004,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1005,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1006,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1007,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1008,
+          "height": 4
+        },
+        {
+          "vertexIndex": 1009,
+          "height": 4
+        },
+        {
+          "vertexIndex": 1010,
+          "height": 3
+        },
+        {
+          "vertexIndex": 1011,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1012,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1013,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1040,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1041,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1042,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1043,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1073,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1074,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1075,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "1,3",
+      "cells": [
+        {
+          "index": 352,
+          "resource": "wood"
+        },
+        {
+          "index": 353,
+          "resource": "wood"
+        },
+        {
+          "index": 416,
+          "resource": "wood"
+        },
+        {
+          "index": 417,
+          "resource": "wood"
+        },
+        {
+          "index": 418,
+          "resource": "wood"
+        },
+        {
+          "index": 419,
+          "resource": "wood"
+        },
+        {
+          "index": 420,
+          "resource": "wood"
+        },
+        {
+          "index": 448,
+          "resource": "wood"
+        },
+        {
+          "index": 449,
+          "resource": "wood"
+        },
+        {
+          "index": 450,
+          "resource": "wood"
+        },
+        {
+          "index": 453,
+          "resource": "wood"
+        },
+        {
+          "index": 480,
+          "resource": "wood"
+        },
+        {
+          "index": 482,
+          "resource": "wood"
+        },
+        {
+          "index": 483,
+          "resource": "wood"
+        },
+        {
+          "index": 484,
+          "resource": "wood"
+        },
+        {
+          "index": 486,
+          "resource": "wood"
+        },
+        {
+          "index": 513,
+          "resource": "wood"
+        },
+        {
+          "index": 514,
+          "resource": "wood"
+        },
+        {
+          "index": 516,
+          "resource": "wood"
+        },
+        {
+          "index": 517,
+          "resource": "wood"
+        },
+        {
+          "index": 518,
+          "resource": "wood"
+        },
+        {
+          "index": 519,
+          "resource": "wood"
+        },
+        {
+          "index": 546,
+          "resource": "wood"
+        },
+        {
+          "index": 549,
+          "resource": "wood"
+        },
+        {
+          "index": 550,
+          "resource": "wood"
+        },
+        {
+          "index": 551,
+          "resource": "wood"
+        },
+        {
+          "index": 578,
+          "resource": "wood"
+        },
+        {
+          "index": 579,
+          "resource": "wood"
+        },
+        {
+          "index": 583,
+          "resource": "wood"
+        },
+        {
+          "index": 584,
+          "resource": "wood"
+        },
+        {
+          "index": 585,
+          "resource": "wood"
+        },
+        {
+          "index": 608,
+          "resource": "wood"
+        },
+        {
+          "index": 610,
+          "resource": "wood"
+        },
+        {
+          "index": 612,
+          "resource": "wood"
+        },
+        {
+          "index": 615,
+          "resource": "wood"
+        },
+        {
+          "index": 616,
+          "resource": "wood"
+        },
+        {
+          "index": 617,
+          "resource": "wood"
+        },
+        {
+          "index": 640,
+          "resource": "wood"
+        },
+        {
+          "index": 641,
+          "resource": "wood"
+        },
+        {
+          "index": 642,
+          "resource": "wood"
+        },
+        {
+          "index": 643,
+          "resource": "wood"
+        },
+        {
+          "index": 644,
+          "resource": "wood"
+        },
+        {
+          "index": 645,
+          "resource": "wood"
+        },
+        {
+          "index": 646,
+          "resource": "wood"
+        },
+        {
+          "index": 647,
+          "resource": "wood"
+        },
+        {
+          "index": 649,
+          "resource": "wood"
+        },
+        {
+          "index": 650,
+          "resource": "wood"
+        },
+        {
+          "index": 651,
+          "resource": "wood"
+        },
+        {
+          "index": 672,
+          "resource": "wood"
+        },
+        {
+          "index": 673,
+          "resource": "wood"
+        },
+        {
+          "index": 674,
+          "resource": "wood"
+        },
+        {
+          "index": 675,
+          "resource": "wood"
+        },
+        {
+          "index": 678,
+          "resource": "wood"
+        },
+        {
+          "index": 679,
+          "resource": "wood"
+        },
+        {
+          "index": 680,
+          "resource": "wood"
+        },
+        {
+          "index": 681,
+          "resource": "wood"
+        },
+        {
+          "index": 682,
+          "resource": "wood"
+        },
+        {
+          "index": 683,
+          "resource": "wood"
+        },
+        {
+          "index": 684,
+          "resource": "wood"
+        },
+        {
+          "index": 706,
+          "resource": "wood"
+        },
+        {
+          "index": 707,
+          "resource": "wood"
+        },
+        {
+          "index": 708,
+          "resource": "wood"
+        },
+        {
+          "index": 711,
+          "resource": "wood"
+        },
+        {
+          "index": 712,
+          "resource": "wood"
+        },
+        {
+          "index": 714,
+          "resource": "wood"
+        },
+        {
+          "index": 715,
+          "resource": "wood"
+        },
+        {
+          "index": 716,
+          "resource": "wood"
+        },
+        {
+          "index": 717,
+          "resource": "wood"
+        },
+        {
+          "index": 739,
+          "resource": "wood"
+        },
+        {
+          "index": 740,
+          "resource": "wood"
+        },
+        {
+          "index": 741,
+          "resource": "wood"
+        },
+        {
+          "index": 744,
+          "resource": "wood"
+        },
+        {
+          "index": 745,
+          "resource": "wood"
+        },
+        {
+          "index": 746,
+          "resource": "wood"
+        },
+        {
+          "index": 747,
+          "resource": "wood"
+        },
+        {
+          "index": 749,
+          "resource": "wood"
+        },
+        {
+          "index": 750,
+          "resource": "wood"
+        },
+        {
+          "index": 769,
+          "resource": "wood"
+        },
+        {
+          "index": 770,
+          "resource": "wood"
+        },
+        {
+          "index": 771,
+          "resource": "wood"
+        },
+        {
+          "index": 772,
+          "resource": "wood"
+        },
+        {
+          "index": 773,
+          "resource": "wood"
+        },
+        {
+          "index": 774,
+          "resource": "wood"
+        },
+        {
+          "index": 776,
+          "resource": "wood"
+        },
+        {
+          "index": 779,
+          "resource": "wood"
+        },
+        {
+          "index": 780,
+          "resource": "wood"
+        },
+        {
+          "index": 782,
+          "resource": "wood"
+        },
+        {
+          "index": 802,
+          "resource": "wood"
+        },
+        {
+          "index": 803,
+          "resource": "wood"
+        },
+        {
+          "index": 804,
+          "resource": "wood"
+        },
+        {
+          "index": 805,
+          "resource": "wood"
+        },
+        {
+          "index": 806,
+          "resource": "wood"
+        },
+        {
+          "index": 807,
+          "resource": "wood"
+        },
+        {
+          "index": 808,
+          "resource": "wood"
+        },
+        {
+          "index": 809,
+          "resource": "wood"
+        },
+        {
+          "index": 812,
+          "resource": "wood"
+        },
+        {
+          "index": 813,
+          "resource": "wood"
+        },
+        {
+          "index": 814,
+          "resource": "wood"
+        },
+        {
+          "index": 815,
+          "resource": "wood"
+        },
+        {
+          "index": 835,
+          "resource": "wood"
+        },
+        {
+          "index": 836,
+          "resource": "wood"
+        },
+        {
+          "index": 840,
+          "resource": "wood"
+        },
+        {
+          "index": 842,
+          "resource": "wood"
+        },
+        {
+          "index": 843,
+          "resource": "wood"
+        },
+        {
+          "index": 845,
+          "resource": "wood"
+        },
+        {
+          "index": 846,
+          "resource": "wood"
+        },
+        {
+          "index": 847,
+          "resource": "wood"
+        },
+        {
+          "index": 868,
+          "resource": "wood"
+        },
+        {
+          "index": 873,
+          "resource": "wood"
+        },
+        {
+          "index": 875,
+          "resource": "wood"
+        },
+        {
+          "index": 876,
+          "resource": "wood"
+        },
+        {
+          "index": 878,
+          "resource": "wood"
+        },
+        {
+          "index": 879,
+          "resource": "wood"
+        },
+        {
+          "index": 903,
+          "resource": "wood"
+        },
+        {
+          "index": 906,
+          "resource": "wood"
+        },
+        {
+          "index": 907,
+          "resource": "wood"
+        },
+        {
+          "index": 909,
+          "resource": "wood"
+        },
+        {
+          "index": 910,
+          "resource": "wood"
+        },
+        {
+          "index": 911,
+          "resource": "wood"
+        },
+        {
+          "index": 912,
+          "resource": "wood"
+        },
+        {
+          "index": 938,
+          "resource": "wood"
+        },
+        {
+          "index": 939,
+          "resource": "wood"
+        },
+        {
+          "index": 940,
+          "resource": "wood"
+        },
+        {
+          "index": 941,
+          "resource": "wood"
+        },
+        {
+          "index": 943,
+          "resource": "wood"
+        },
+        {
+          "index": 969,
+          "resource": "wood"
+        },
+        {
+          "index": 970,
+          "resource": "wood"
+        },
+        {
+          "index": 971,
+          "resource": "wood"
+        },
+        {
+          "index": 972,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 727,
+          "height": 1
+        },
+        {
+          "vertexIndex": 728,
+          "height": 1
+        },
+        {
+          "vertexIndex": 729,
+          "height": 1
+        },
+        {
+          "vertexIndex": 760,
+          "height": 1
+        },
+        {
+          "vertexIndex": 761,
+          "height": 1
+        },
+        {
+          "vertexIndex": 762,
+          "height": 1
+        },
+        {
+          "vertexIndex": 793,
+          "height": 1
+        },
+        {
+          "vertexIndex": 794,
+          "height": 1
+        },
+        {
+          "vertexIndex": 795,
+          "height": 1
+        },
+        {
+          "vertexIndex": 825,
+          "height": 1
+        },
+        {
+          "vertexIndex": 826,
+          "height": 1
+        },
+        {
+          "vertexIndex": 829,
+          "height": 1
+        },
+        {
+          "vertexIndex": 830,
+          "height": 1
+        },
+        {
+          "vertexIndex": 831,
+          "height": 1
+        },
+        {
+          "vertexIndex": 859,
+          "height": 1
+        },
+        {
+          "vertexIndex": 862,
+          "height": 1
+        },
+        {
+          "vertexIndex": 863,
+          "height": 1
+        },
+        {
+          "vertexIndex": 864,
+          "height": 1
+        },
+        {
+          "vertexIndex": 895,
+          "height": 1
+        },
+        {
+          "vertexIndex": 896,
+          "height": 1
+        },
+        {
+          "vertexIndex": 897,
+          "height": 1
+        },
+        {
+          "vertexIndex": 930,
+          "height": 1
+        },
+        {
+          "vertexIndex": 931,
+          "height": 1
+        },
+        {
+          "vertexIndex": 932,
+          "height": 1
+        },
+        {
+          "vertexIndex": 963,
+          "height": 1
+        },
+        {
+          "vertexIndex": 964,
+          "height": 1
+        },
+        {
+          "vertexIndex": 965,
+          "height": 1
+        },
+        {
+          "vertexIndex": 966,
+          "height": 1
+        },
+        {
+          "vertexIndex": 967,
+          "height": 1
+        },
+        {
+          "vertexIndex": 968,
+          "height": 1
+        },
+        {
+          "vertexIndex": 996,
+          "height": 1
+        },
+        {
+          "vertexIndex": 997,
+          "height": 1
+        },
+        {
+          "vertexIndex": 998,
+          "height": 1
+        },
+        {
+          "vertexIndex": 999,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1000,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1001,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1031,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1032,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1033,
+          "height": 2
+        },
+        {
+          "vertexIndex": 1034,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1064,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1065,
+          "height": 1
+        },
+        {
+          "vertexIndex": 1066,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "2,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,4",
+      "cells": [
+        {
+          "index": 3,
+          "resource": "wood"
+        },
+        {
+          "index": 4,
+          "resource": "wood"
+        },
+        {
+          "index": 5,
+          "resource": "wood"
+        },
+        {
+          "index": 6,
+          "resource": "wood"
+        },
+        {
+          "index": 7,
+          "resource": "wood"
+        },
+        {
+          "index": 8,
+          "resource": "wood"
+        },
+        {
+          "index": 11,
+          "resource": "wood"
+        },
+        {
+          "index": 12,
+          "resource": "wood"
+        },
+        {
+          "index": 13,
+          "resource": "wood"
+        },
+        {
+          "index": 14,
+          "resource": "wood"
+        },
+        {
+          "index": 35,
+          "resource": "wood"
+        },
+        {
+          "index": 37,
+          "resource": "wood"
+        },
+        {
+          "index": 38,
+          "resource": "wood"
+        },
+        {
+          "index": 39,
+          "resource": "wood"
+        },
+        {
+          "index": 40,
+          "resource": "wood"
+        },
+        {
+          "index": 41,
+          "resource": "wood"
+        },
+        {
+          "index": 43,
+          "resource": "wood"
+        },
+        {
+          "index": 44,
+          "resource": "wood"
+        },
+        {
+          "index": 45,
+          "resource": "wood"
+        },
+        {
+          "index": 46,
+          "resource": "wood"
+        },
+        {
+          "index": 67,
+          "resource": "wood"
+        },
+        {
+          "index": 69,
+          "resource": "wood"
+        },
+        {
+          "index": 71,
+          "resource": "wood"
+        },
+        {
+          "index": 72,
+          "resource": "wood"
+        },
+        {
+          "index": 73,
+          "resource": "wood"
+        },
+        {
+          "index": 75,
+          "resource": "wood"
+        },
+        {
+          "index": 76,
+          "resource": "wood"
+        },
+        {
+          "index": 77,
+          "resource": "wood"
+        },
+        {
+          "index": 78,
+          "resource": "wood"
+        },
+        {
+          "index": 79,
+          "resource": "wood"
+        },
+        {
+          "index": 99,
+          "resource": "wood"
+        },
+        {
+          "index": 100,
+          "resource": "wood"
+        },
+        {
+          "index": 101,
+          "resource": "wood"
+        },
+        {
+          "index": 102,
+          "resource": "wood"
+        },
+        {
+          "index": 103,
+          "resource": "wood"
+        },
+        {
+          "index": 105,
+          "resource": "wood"
+        },
+        {
+          "index": 106,
+          "resource": "wood"
+        },
+        {
+          "index": 108,
+          "resource": "wood"
+        },
+        {
+          "index": 110,
+          "resource": "wood"
+        },
+        {
+          "index": 111,
+          "resource": "wood"
+        },
+        {
+          "index": 131,
+          "resource": "wood"
+        },
+        {
+          "index": 132,
+          "resource": "wood"
+        },
+        {
+          "index": 133,
+          "resource": "wood"
+        },
+        {
+          "index": 135,
+          "resource": "wood"
+        },
+        {
+          "index": 136,
+          "resource": "wood"
+        },
+        {
+          "index": 138,
+          "resource": "wood"
+        },
+        {
+          "index": 139,
+          "resource": "wood"
+        },
+        {
+          "index": 140,
+          "resource": "wood"
+        },
+        {
+          "index": 142,
+          "resource": "wood"
+        },
+        {
+          "index": 144,
+          "resource": "wood"
+        },
+        {
+          "index": 163,
+          "resource": "wood"
+        },
+        {
+          "index": 165,
+          "resource": "wood"
+        },
+        {
+          "index": 167,
+          "resource": "wood"
+        },
+        {
+          "index": 169,
+          "resource": "wood"
+        },
+        {
+          "index": 170,
+          "resource": "wood"
+        },
+        {
+          "index": 171,
+          "resource": "wood"
+        },
+        {
+          "index": 173,
+          "resource": "wood"
+        },
+        {
+          "index": 174,
+          "resource": "wood"
+        },
+        {
+          "index": 175,
+          "resource": "wood"
+        },
+        {
+          "index": 176,
+          "resource": "wood"
+        },
+        {
+          "index": 196,
+          "resource": "wood"
+        },
+        {
+          "index": 198,
+          "resource": "wood"
+        },
+        {
+          "index": 199,
+          "resource": "wood"
+        },
+        {
+          "index": 201,
+          "resource": "wood"
+        },
+        {
+          "index": 203,
+          "resource": "wood"
+        },
+        {
+          "index": 204,
+          "resource": "wood"
+        },
+        {
+          "index": 205,
+          "resource": "wood"
+        },
+        {
+          "index": 207,
+          "resource": "wood"
+        },
+        {
+          "index": 209,
+          "resource": "wood"
+        },
+        {
+          "index": 227,
+          "resource": "wood"
+        },
+        {
+          "index": 228,
+          "resource": "wood"
+        },
+        {
+          "index": 229,
+          "resource": "wood"
+        },
+        {
+          "index": 231,
+          "resource": "wood"
+        },
+        {
+          "index": 232,
+          "resource": "wood"
+        },
+        {
+          "index": 233,
+          "resource": "wood"
+        },
+        {
+          "index": 235,
+          "resource": "wood"
+        },
+        {
+          "index": 236,
+          "resource": "wood"
+        },
+        {
+          "index": 237,
+          "resource": "wood"
+        },
+        {
+          "index": 241,
+          "resource": "wood"
+        },
+        {
+          "index": 259,
+          "resource": "wood"
+        },
+        {
+          "index": 260,
+          "resource": "wood"
+        },
+        {
+          "index": 261,
+          "resource": "wood"
+        },
+        {
+          "index": 263,
+          "resource": "wood"
+        },
+        {
+          "index": 264,
+          "resource": "wood"
+        },
+        {
+          "index": 265,
+          "resource": "wood"
+        },
+        {
+          "index": 266,
+          "resource": "wood"
+        },
+        {
+          "index": 268,
+          "resource": "wood"
+        },
+        {
+          "index": 269,
+          "resource": "wood"
+        },
+        {
+          "index": 270,
+          "resource": "wood"
+        },
+        {
+          "index": 274,
+          "resource": "wood"
+        },
+        {
+          "index": 293,
+          "resource": "wood"
+        },
+        {
+          "index": 294,
+          "resource": "wood"
+        },
+        {
+          "index": 296,
+          "resource": "wood"
+        },
+        {
+          "index": 297,
+          "resource": "wood"
+        },
+        {
+          "index": 298,
+          "resource": "wood"
+        },
+        {
+          "index": 299,
+          "resource": "wood"
+        },
+        {
+          "index": 301,
+          "resource": "wood"
+        },
+        {
+          "index": 302,
+          "resource": "wood"
+        },
+        {
+          "index": 303,
+          "resource": "wood"
+        },
+        {
+          "index": 304,
+          "resource": "wood"
+        },
+        {
+          "index": 324,
+          "resource": "wood"
+        },
+        {
+          "index": 325,
+          "resource": "wood"
+        },
+        {
+          "index": 326,
+          "resource": "wood"
+        },
+        {
+          "index": 328,
+          "resource": "wood"
+        },
+        {
+          "index": 329,
+          "resource": "wood"
+        },
+        {
+          "index": 330,
+          "resource": "wood"
+        },
+        {
+          "index": 331,
+          "resource": "wood"
+        },
+        {
+          "index": 332,
+          "resource": "wood"
+        },
+        {
+          "index": 333,
+          "resource": "water"
+        },
+        {
+          "index": 334,
+          "resource": "wood"
+        },
+        {
+          "index": 335,
+          "resource": "wood"
+        },
+        {
+          "index": 336,
+          "resource": "wood"
+        },
+        {
+          "index": 337,
+          "resource": "wood"
+        },
+        {
+          "index": 338,
+          "resource": "wood"
+        },
+        {
+          "index": 356,
+          "resource": "wood"
+        },
+        {
+          "index": 358,
+          "resource": "wood"
+        },
+        {
+          "index": 359,
+          "resource": "wood"
+        },
+        {
+          "index": 362,
+          "resource": "wood"
+        },
+        {
+          "index": 363,
+          "resource": "wood"
+        },
+        {
+          "index": 364,
+          "resource": "wood"
+        },
+        {
+          "index": 365,
+          "resource": "water"
+        },
+        {
+          "index": 366,
+          "resource": "wood"
+        },
+        {
+          "index": 367,
+          "resource": "wood"
+        },
+        {
+          "index": 368,
+          "resource": "wood"
+        },
+        {
+          "index": 370,
+          "resource": "wood"
+        },
+        {
+          "index": 389,
+          "resource": "wood"
+        },
+        {
+          "index": 391,
+          "resource": "wood"
+        },
+        {
+          "index": 392,
+          "resource": "wood"
+        },
+        {
+          "index": 393,
+          "resource": "wood"
+        },
+        {
+          "index": 394,
+          "resource": "wood"
+        },
+        {
+          "index": 395,
+          "resource": "wood"
+        },
+        {
+          "index": 396,
+          "resource": "wood"
+        },
+        {
+          "index": 397,
+          "resource": "water"
+        },
+        {
+          "index": 398,
+          "resource": "water"
+        },
+        {
+          "index": 399,
+          "resource": "wood"
+        },
+        {
+          "index": 400,
+          "resource": "wood"
+        },
+        {
+          "index": 401,
+          "resource": "wood"
+        },
+        {
+          "index": 402,
+          "resource": "wood"
+        },
+        {
+          "index": 410,
+          "resource": "water"
+        },
+        {
+          "index": 411,
+          "resource": "water"
+        },
+        {
+          "index": 412,
+          "resource": "water"
+        },
+        {
+          "index": 413,
+          "resource": "water"
+        },
+        {
+          "index": 424,
+          "resource": "wood"
+        },
+        {
+          "index": 425,
+          "resource": "wood"
+        },
+        {
+          "index": 426,
+          "resource": "wood"
+        },
+        {
+          "index": 427,
+          "resource": "wood"
+        },
+        {
+          "index": 429,
+          "resource": "wood"
+        },
+        {
+          "index": 430,
+          "resource": "water"
+        },
+        {
+          "index": 431,
+          "resource": "water"
+        },
+        {
+          "index": 432,
+          "resource": "wood"
+        },
+        {
+          "index": 433,
+          "resource": "wood"
+        },
+        {
+          "index": 434,
+          "resource": "wood"
+        },
+        {
+          "index": 435,
+          "resource": "wood"
+        },
+        {
+          "index": 441,
+          "resource": "water"
+        },
+        {
+          "index": 442,
+          "resource": "water"
+        },
+        {
+          "index": 443,
+          "resource": "water"
+        },
+        {
+          "index": 444,
+          "resource": "water"
+        },
+        {
+          "index": 445,
+          "resource": "water"
+        },
+        {
+          "index": 446,
+          "resource": "water"
+        },
+        {
+          "index": 447,
+          "resource": "water"
+        },
+        {
+          "index": 454,
+          "resource": "wood"
+        },
+        {
+          "index": 457,
+          "resource": "wood"
+        },
+        {
+          "index": 458,
+          "resource": "wood"
+        },
+        {
+          "index": 459,
+          "resource": "wood"
+        },
+        {
+          "index": 460,
+          "resource": "wood"
+        },
+        {
+          "index": 461,
+          "resource": "wood"
+        },
+        {
+          "index": 462,
+          "resource": "wood"
+        },
+        {
+          "index": 463,
+          "resource": "water"
+        },
+        {
+          "index": 464,
+          "resource": "water"
+        },
+        {
+          "index": 466,
+          "resource": "wood"
+        },
+        {
+          "index": 467,
+          "resource": "wood"
+        },
+        {
+          "index": 473,
+          "resource": "water"
+        },
+        {
+          "index": 474,
+          "resource": "water"
+        },
+        {
+          "index": 475,
+          "resource": "water"
+        },
+        {
+          "index": 476,
+          "resource": "water"
+        },
+        {
+          "index": 477,
+          "resource": "water"
+        },
+        {
+          "index": 478,
+          "resource": "water"
+        },
+        {
+          "index": 479,
+          "resource": "water"
+        },
+        {
+          "index": 487,
+          "resource": "wood"
+        },
+        {
+          "index": 488,
+          "resource": "wood"
+        },
+        {
+          "index": 489,
+          "resource": "wood"
+        },
+        {
+          "index": 490,
+          "resource": "wood"
+        },
+        {
+          "index": 491,
+          "resource": "wood"
+        },
+        {
+          "index": 493,
+          "resource": "wood"
+        },
+        {
+          "index": 494,
+          "resource": "wood"
+        },
+        {
+          "index": 496,
+          "resource": "wood"
+        },
+        {
+          "index": 497,
+          "resource": "water"
+        },
+        {
+          "index": 498,
+          "resource": "wood"
+        },
+        {
+          "index": 499,
+          "resource": "wood"
+        },
+        {
+          "index": 500,
+          "resource": "wood"
+        },
+        {
+          "index": 505,
+          "resource": "water"
+        },
+        {
+          "index": 506,
+          "resource": "water"
+        },
+        {
+          "index": 507,
+          "resource": "water"
+        },
+        {
+          "index": 508,
+          "resource": "water"
+        },
+        {
+          "index": 509,
+          "resource": "water"
+        },
+        {
+          "index": 510,
+          "resource": "water"
+        },
+        {
+          "index": 511,
+          "resource": "water"
+        },
+        {
+          "index": 521,
+          "resource": "wood"
+        },
+        {
+          "index": 522,
+          "resource": "wood"
+        },
+        {
+          "index": 523,
+          "resource": "wood"
+        },
+        {
+          "index": 524,
+          "resource": "wood"
+        },
+        {
+          "index": 525,
+          "resource": "wood"
+        },
+        {
+          "index": 526,
+          "resource": "wood"
+        },
+        {
+          "index": 527,
+          "resource": "wood"
+        },
+        {
+          "index": 528,
+          "resource": "wood"
+        },
+        {
+          "index": 529,
+          "resource": "wood"
+        },
+        {
+          "index": 530,
+          "resource": "water"
+        },
+        {
+          "index": 532,
+          "resource": "wood"
+        },
+        {
+          "index": 533,
+          "resource": "wood"
+        },
+        {
+          "index": 537,
+          "resource": "water"
+        },
+        {
+          "index": 538,
+          "resource": "water"
+        },
+        {
+          "index": 539,
+          "resource": "water"
+        },
+        {
+          "index": 540,
+          "resource": "water"
+        },
+        {
+          "index": 541,
+          "resource": "water"
+        },
+        {
+          "index": 542,
+          "resource": "water"
+        },
+        {
+          "index": 543,
+          "resource": "water"
+        },
+        {
+          "index": 552,
+          "resource": "wood"
+        },
+        {
+          "index": 555,
+          "resource": "wood"
+        },
+        {
+          "index": 556,
+          "resource": "wood"
+        },
+        {
+          "index": 558,
+          "resource": "wood"
+        },
+        {
+          "index": 559,
+          "resource": "wood"
+        },
+        {
+          "index": 560,
+          "resource": "wood"
+        },
+        {
+          "index": 562,
+          "resource": "water"
+        },
+        {
+          "index": 563,
+          "resource": "wood"
+        },
+        {
+          "index": 564,
+          "resource": "wood"
+        },
+        {
+          "index": 565,
+          "resource": "wood"
+        },
+        {
+          "index": 566,
+          "resource": "wood"
+        },
+        {
+          "index": 570,
+          "resource": "water"
+        },
+        {
+          "index": 571,
+          "resource": "water"
+        },
+        {
+          "index": 572,
+          "resource": "water"
+        },
+        {
+          "index": 573,
+          "resource": "water"
+        },
+        {
+          "index": 574,
+          "resource": "water"
+        },
+        {
+          "index": 575,
+          "resource": "water"
+        },
+        {
+          "index": 586,
+          "resource": "wood"
+        },
+        {
+          "index": 588,
+          "resource": "wood"
+        },
+        {
+          "index": 589,
+          "resource": "wood"
+        },
+        {
+          "index": 590,
+          "resource": "wood"
+        },
+        {
+          "index": 591,
+          "resource": "wood"
+        },
+        {
+          "index": 592,
+          "resource": "wood"
+        },
+        {
+          "index": 593,
+          "resource": "wood"
+        },
+        {
+          "index": 594,
+          "resource": "wood"
+        },
+        {
+          "index": 597,
+          "resource": "wood"
+        },
+        {
+          "index": 599,
+          "resource": "wood"
+        },
+        {
+          "index": 603,
+          "resource": "water"
+        },
+        {
+          "index": 604,
+          "resource": "water"
+        },
+        {
+          "index": 605,
+          "resource": "water"
+        },
+        {
+          "index": 606,
+          "resource": "water"
+        },
+        {
+          "index": 607,
+          "resource": "water"
+        },
+        {
+          "index": 619,
+          "resource": "wood"
+        },
+        {
+          "index": 622,
+          "resource": "wood"
+        },
+        {
+          "index": 623,
+          "resource": "wood"
+        },
+        {
+          "index": 624,
+          "resource": "wood"
+        },
+        {
+          "index": 626,
+          "resource": "wood"
+        },
+        {
+          "index": 627,
+          "resource": "wood"
+        },
+        {
+          "index": 629,
+          "resource": "wood"
+        },
+        {
+          "index": 630,
+          "resource": "wood"
+        },
+        {
+          "index": 632,
+          "resource": "wood"
+        },
+        {
+          "index": 638,
+          "resource": "water"
+        },
+        {
+          "index": 639,
+          "resource": "water"
+        },
+        {
+          "index": 652,
+          "resource": "wood"
+        },
+        {
+          "index": 656,
+          "resource": "wood"
+        },
+        {
+          "index": 657,
+          "resource": "wood"
+        },
+        {
+          "index": 658,
+          "resource": "wood"
+        },
+        {
+          "index": 659,
+          "resource": "wood"
+        },
+        {
+          "index": 660,
+          "resource": "wood"
+        },
+        {
+          "index": 661,
+          "resource": "wood"
+        },
+        {
+          "index": 662,
+          "resource": "wood"
+        },
+        {
+          "index": 664,
+          "resource": "wood"
+        },
+        {
+          "index": 685,
+          "resource": "wood"
+        },
+        {
+          "index": 687,
+          "resource": "wood"
+        },
+        {
+          "index": 688,
+          "resource": "wood"
+        },
+        {
+          "index": 691,
+          "resource": "wood"
+        },
+        {
+          "index": 695,
+          "resource": "wood"
+        },
+        {
+          "index": 696,
+          "resource": "wood"
+        },
+        {
+          "index": 718,
+          "resource": "wood"
+        },
+        {
+          "index": 720,
+          "resource": "wood"
+        },
+        {
+          "index": 721,
+          "resource": "wood"
+        },
+        {
+          "index": 722,
+          "resource": "wood"
+        },
+        {
+          "index": 723,
+          "resource": "wood"
+        },
+        {
+          "index": 724,
+          "resource": "wood"
+        },
+        {
+          "index": 725,
+          "resource": "wood"
+        },
+        {
+          "index": 726,
+          "resource": "wood"
+        },
+        {
+          "index": 727,
+          "resource": "wood"
+        },
+        {
+          "index": 728,
+          "resource": "wood"
+        },
+        {
+          "index": 751,
+          "resource": "wood"
+        },
+        {
+          "index": 752,
+          "resource": "wood"
+        },
+        {
+          "index": 754,
+          "resource": "wood"
+        },
+        {
+          "index": 755,
+          "resource": "wood"
+        },
+        {
+          "index": 756,
+          "resource": "wood"
+        },
+        {
+          "index": 757,
+          "resource": "wood"
+        },
+        {
+          "index": 758,
+          "resource": "wood"
+        },
+        {
+          "index": 759,
+          "resource": "wood"
+        },
+        {
+          "index": 760,
+          "resource": "wood"
+        },
+        {
+          "index": 785,
+          "resource": "wood"
+        },
+        {
+          "index": 786,
+          "resource": "wood"
+        },
+        {
+          "index": 787,
+          "resource": "wood"
+        },
+        {
+          "index": 788,
+          "resource": "wood"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 17,
+          "height": 1
+        },
+        {
+          "vertexIndex": 18,
+          "height": 1
+        },
+        {
+          "vertexIndex": 19,
+          "height": 1
+        },
+        {
+          "vertexIndex": 79,
+          "height": 1
+        },
+        {
+          "vertexIndex": 80,
+          "height": 2
+        },
+        {
+          "vertexIndex": 81,
+          "height": 2
+        },
+        {
+          "vertexIndex": 82,
+          "height": 1
+        },
+        {
+          "vertexIndex": 83,
+          "height": 1
+        },
+        {
+          "vertexIndex": 112,
+          "height": 2
+        },
+        {
+          "vertexIndex": 113,
+          "height": 2
+        },
+        {
+          "vertexIndex": 114,
+          "height": 2
+        },
+        {
+          "vertexIndex": 115,
+          "height": 1
+        },
+        {
+          "vertexIndex": 116,
+          "height": 1
+        },
+        {
+          "vertexIndex": 145,
+          "height": 2
+        },
+        {
+          "vertexIndex": 146,
+          "height": 2
+        },
+        {
+          "vertexIndex": 147,
+          "height": 2
+        },
+        {
+          "vertexIndex": 148,
+          "height": 1
+        },
+        {
+          "vertexIndex": 149,
+          "height": 1
+        },
+        {
+          "vertexIndex": 178,
+          "height": 1
+        },
+        {
+          "vertexIndex": 179,
+          "height": 2
+        },
+        {
+          "vertexIndex": 180,
+          "height": 2
+        },
+        {
+          "vertexIndex": 211,
+          "height": 1
+        },
+        {
+          "vertexIndex": 212,
+          "height": 2
+        },
+        {
+          "vertexIndex": 213,
+          "height": 2
+        },
+        {
+          "vertexIndex": 214,
+          "height": 1
+        },
+        {
+          "vertexIndex": 215,
+          "height": 1
+        },
+        {
+          "vertexIndex": 246,
+          "height": 1
+        },
+        {
+          "vertexIndex": 247,
+          "height": 1
+        },
+        {
+          "vertexIndex": 248,
+          "height": 1
+        },
+        {
+          "vertexIndex": 279,
+          "height": 1
+        },
+        {
+          "vertexIndex": 280,
+          "height": 1
+        },
+        {
+          "vertexIndex": 281,
+          "height": 1
+        },
+        {
+          "vertexIndex": 310,
+          "height": 1
+        },
+        {
+          "vertexIndex": 311,
+          "height": 1
+        },
+        {
+          "vertexIndex": 312,
+          "height": 1
+        },
+        {
+          "vertexIndex": 343,
+          "height": 1
+        },
+        {
+          "vertexIndex": 344,
+          "height": 1
+        },
+        {
+          "vertexIndex": 345,
+          "height": 1
+        },
+        {
+          "vertexIndex": 346,
+          "height": 1
+        },
+        {
+          "vertexIndex": 347,
+          "height": 1
+        },
+        {
+          "vertexIndex": 348,
+          "height": 1
+        },
+        {
+          "vertexIndex": 376,
+          "height": 1
+        },
+        {
+          "vertexIndex": 377,
+          "height": 1
+        },
+        {
+          "vertexIndex": 378,
+          "height": 1
+        },
+        {
+          "vertexIndex": 379,
+          "height": 1
+        },
+        {
+          "vertexIndex": 380,
+          "height": 1
+        },
+        {
+          "vertexIndex": 381,
+          "height": 1
+        },
+        {
+          "vertexIndex": 412,
+          "height": 1
+        },
+        {
+          "vertexIndex": 413,
+          "height": 1
+        },
+        {
+          "vertexIndex": 414,
+          "height": 1
+        },
+        {
+          "vertexIndex": 456,
+          "height": -5
+        },
+        {
+          "vertexIndex": 457,
+          "height": -5
+        },
+        {
+          "vertexIndex": 458,
+          "height": -5
+        },
+        {
+          "vertexIndex": 488,
+          "height": -5
+        },
+        {
+          "vertexIndex": 489,
+          "height": -5
+        },
+        {
+          "vertexIndex": 490,
+          "height": -5
+        },
+        {
+          "vertexIndex": 491,
+          "height": -5
+        },
+        {
+          "vertexIndex": 492,
+          "height": -5
+        },
+        {
+          "vertexIndex": 493,
+          "height": -5
+        },
+        {
+          "vertexIndex": 521,
+          "height": -5
+        },
+        {
+          "vertexIndex": 522,
+          "height": -5
+        },
+        {
+          "vertexIndex": 523,
+          "height": -5
+        },
+        {
+          "vertexIndex": 524,
+          "height": -5
+        },
+        {
+          "vertexIndex": 525,
+          "height": -5
+        },
+        {
+          "vertexIndex": 526,
+          "height": -5
+        },
+        {
+          "vertexIndex": 527,
+          "height": -5
+        },
+        {
+          "vertexIndex": 554,
+          "height": -5
+        },
+        {
+          "vertexIndex": 555,
+          "height": -5
+        },
+        {
+          "vertexIndex": 556,
+          "height": -5
+        },
+        {
+          "vertexIndex": 557,
+          "height": -5
+        },
+        {
+          "vertexIndex": 558,
+          "height": -5
+        },
+        {
+          "vertexIndex": 559,
+          "height": -5
+        },
+        {
+          "vertexIndex": 560,
+          "height": -5
+        },
+        {
+          "vertexIndex": 588,
+          "height": -5
+        },
+        {
+          "vertexIndex": 589,
+          "height": -5
+        },
+        {
+          "vertexIndex": 590,
+          "height": -5
+        },
+        {
+          "vertexIndex": 591,
+          "height": -5
+        },
+        {
+          "vertexIndex": 592,
+          "height": -5
+        },
+        {
+          "vertexIndex": 593,
+          "height": -5
+        },
+        {
+          "vertexIndex": 622,
+          "height": -5
+        },
+        {
+          "vertexIndex": 623,
+          "height": -5
+        },
+        {
+          "vertexIndex": 624,
+          "height": -5
+        },
+        {
+          "vertexIndex": 625,
+          "height": -5
+        },
+        {
+          "vertexIndex": 626,
+          "height": -5
+        },
+        {
+          "vertexIndex": 658,
+          "height": -5
+        },
+        {
+          "vertexIndex": 659,
+          "height": -5
+        }
+      ]
+    },
+    {
+      "key": "1,4",
+      "cells": [
+        {
+          "index": 66,
+          "resource": "stone"
+        },
+        {
+          "index": 67,
+          "resource": "stone"
+        },
+        {
+          "index": 98,
+          "resource": "stone"
+        },
+        {
+          "index": 99,
+          "resource": "stone"
+        },
+        {
+          "index": 208,
+          "resource": "iron"
+        },
+        {
+          "index": 209,
+          "resource": "iron"
+        },
+        {
+          "index": 225,
+          "units": [
+            "worker"
+          ]
+        },
+        {
+          "index": 240,
+          "resource": "iron"
+        },
+        {
+          "index": 241,
+          "resource": "iron"
+        },
+        {
+          "index": 276,
+          "units": [
+            "enemy-melee"
+          ]
+        },
+        {
+          "index": 448,
+          "resource": "water"
+        },
+        {
+          "index": 449,
+          "resource": "water"
+        },
+        {
+          "index": 450,
+          "resource": "water"
+        },
+        {
+          "index": 480,
+          "resource": "water"
+        },
+        {
+          "index": 481,
+          "resource": "water"
+        },
+        {
+          "index": 482,
+          "resource": "water"
+        },
+        {
+          "index": 512,
+          "resource": "water"
+        },
+        {
+          "index": 513,
+          "resource": "water"
+        },
+        {
+          "index": 514,
+          "resource": "water"
+        },
+        {
+          "index": 544,
+          "resource": "water"
+        },
+        {
+          "index": 545,
+          "resource": "water"
+        },
+        {
+          "index": 546,
+          "resource": "water"
+        },
+        {
+          "index": 576,
+          "resource": "water"
+        },
+        {
+          "index": 577,
+          "resource": "water"
+        },
+        {
+          "index": 608,
+          "resource": "water"
+        },
+        {
+          "index": 609,
+          "resource": "water"
+        }
+      ],
+      "elevation": [
+        {
+          "vertexIndex": 8,
+          "height": 1
+        },
+        {
+          "vertexIndex": 9,
+          "height": 1
+        },
+        {
+          "vertexIndex": 10,
+          "height": 1
+        },
+        {
+          "vertexIndex": 76,
+          "height": 1
+        },
+        {
+          "vertexIndex": 77,
+          "height": 1
+        },
+        {
+          "vertexIndex": 78,
+          "height": 1
+        },
+        {
+          "vertexIndex": 109,
+          "height": 1
+        },
+        {
+          "vertexIndex": 110,
+          "height": 1
+        },
+        {
+          "vertexIndex": 111,
+          "height": 1
+        },
+        {
+          "vertexIndex": 142,
+          "height": 1
+        },
+        {
+          "vertexIndex": 143,
+          "height": 1
+        },
+        {
+          "vertexIndex": 144,
+          "height": 1
+        },
+        {
+          "vertexIndex": 303,
+          "height": 1
+        },
+        {
+          "vertexIndex": 304,
+          "height": 1
+        },
+        {
+          "vertexIndex": 305,
+          "height": 1
+        },
+        {
+          "vertexIndex": 333,
+          "height": 1
+        },
+        {
+          "vertexIndex": 334,
+          "height": 2
+        },
+        {
+          "vertexIndex": 335,
+          "height": 2
+        },
+        {
+          "vertexIndex": 336,
+          "height": 2
+        },
+        {
+          "vertexIndex": 337,
+          "height": 2
+        },
+        {
+          "vertexIndex": 338,
+          "height": 2
+        },
+        {
+          "vertexIndex": 339,
+          "height": 1
+        },
+        {
+          "vertexIndex": 366,
+          "height": 1
+        },
+        {
+          "vertexIndex": 367,
+          "height": 2
+        },
+        {
+          "vertexIndex": 368,
+          "height": 2
+        },
+        {
+          "vertexIndex": 369,
+          "height": 2
+        },
+        {
+          "vertexIndex": 370,
+          "height": 2
+        },
+        {
+          "vertexIndex": 371,
+          "height": 2
+        },
+        {
+          "vertexIndex": 372,
+          "height": 1
+        },
+        {
+          "vertexIndex": 399,
+          "height": 1
+        },
+        {
+          "vertexIndex": 400,
+          "height": 2
+        },
+        {
+          "vertexIndex": 401,
+          "height": 2
+        },
+        {
+          "vertexIndex": 402,
+          "height": 1
+        },
+        {
+          "vertexIndex": 403,
+          "height": 1
+        },
+        {
+          "vertexIndex": 404,
+          "height": 1
+        },
+        {
+          "vertexIndex": 405,
+          "height": 1
+        },
+        {
+          "vertexIndex": 435,
+          "height": 1
+        },
+        {
+          "vertexIndex": 436,
+          "height": 1
+        },
+        {
+          "vertexIndex": 437,
+          "height": 1
+        },
+        {
+          "vertexIndex": 467,
+          "height": 1
+        },
+        {
+          "vertexIndex": 468,
+          "height": 2
+        },
+        {
+          "vertexIndex": 469,
+          "height": 2
+        },
+        {
+          "vertexIndex": 470,
+          "height": 1
+        },
+        {
+          "vertexIndex": 495,
+          "height": -5
+        },
+        {
+          "vertexIndex": 496,
+          "height": -5
+        },
+        {
+          "vertexIndex": 497,
+          "height": -5
+        },
+        {
+          "vertexIndex": 500,
+          "height": 1
+        },
+        {
+          "vertexIndex": 501,
+          "height": 2
+        },
+        {
+          "vertexIndex": 502,
+          "height": 2
+        },
+        {
+          "vertexIndex": 503,
+          "height": 1
+        },
+        {
+          "vertexIndex": 528,
+          "height": -5
+        },
+        {
+          "vertexIndex": 529,
+          "height": -5
+        },
+        {
+          "vertexIndex": 530,
+          "height": -5
+        },
+        {
+          "vertexIndex": 533,
+          "height": 1
+        },
+        {
+          "vertexIndex": 534,
+          "height": 3
+        },
+        {
+          "vertexIndex": 535,
+          "height": 3
+        },
+        {
+          "vertexIndex": 536,
+          "height": 2
+        },
+        {
+          "vertexIndex": 561,
+          "height": -5
+        },
+        {
+          "vertexIndex": 562,
+          "height": -5
+        },
+        {
+          "vertexIndex": 563,
+          "height": -5
+        },
+        {
+          "vertexIndex": 567,
+          "height": 3
+        },
+        {
+          "vertexIndex": 568,
+          "height": 4
+        },
+        {
+          "vertexIndex": 569,
+          "height": 4
+        },
+        {
+          "vertexIndex": 570,
+          "height": 1
+        },
+        {
+          "vertexIndex": 594,
+          "height": -5
+        },
+        {
+          "vertexIndex": 595,
+          "height": -5
+        },
+        {
+          "vertexIndex": 600,
+          "height": 3
+        },
+        {
+          "vertexIndex": 601,
+          "height": 4
+        },
+        {
+          "vertexIndex": 602,
+          "height": 4
+        },
+        {
+          "vertexIndex": 603,
+          "height": 1
+        },
+        {
+          "vertexIndex": 627,
+          "height": -5
+        },
+        {
+          "vertexIndex": 628,
+          "height": -5
+        },
+        {
+          "vertexIndex": 632,
+          "height": 1
+        },
+        {
+          "vertexIndex": 633,
+          "height": 3
+        },
+        {
+          "vertexIndex": 634,
+          "height": 4
+        },
+        {
+          "vertexIndex": 635,
+          "height": 4
+        },
+        {
+          "vertexIndex": 636,
+          "height": 1
+        },
+        {
+          "vertexIndex": 665,
+          "height": 1
+        },
+        {
+          "vertexIndex": 666,
+          "height": 1
+        },
+        {
+          "vertexIndex": 667,
+          "height": 1
+        },
+        {
+          "vertexIndex": 698,
+          "height": 1
+        },
+        {
+          "vertexIndex": 699,
+          "height": 1
+        },
+        {
+          "vertexIndex": 700,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "key": "2,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,4",
+      "cells": [],
+      "elevation": []
+    }
+  ],
+  "buildings": {
+    "depot": [
+      {
+        "mapCoords": {
+          "x": 27,
+          "y": 130
+        }
+      }
+    ]
+  },
+  "rails": [],
+  "cameraPos": {
+    "x": 11.027238581934668,
+    "y": 0,
+    "z": 115.88129359571663
+  },
+  "gameMode": "tutorial"
+}

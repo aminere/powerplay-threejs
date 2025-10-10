@@ -1,0 +1,138 @@
+{
+  "size": 5,
+  "sectors": [
+    {
+      "key": "0,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,0",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,1",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,2",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,3",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "0,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "1,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "2,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "3,4",
+      "cells": [],
+      "elevation": []
+    },
+    {
+      "key": "4,4",
+      "cells": [],
+      "elevation": []
+    }
+  ],
+  "buildings": {},
+  "rails": [],
+  "cameraPos": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "gameMode": "sandbox"
+}

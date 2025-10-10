@@ -1,0 +1,28 @@
+# Made using Asset Forge (2.4.1)
+
+:materials
+
+[name:bricksDark;color:RGBA(0.878, 0.271, 0.271, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0;]
+[name:bricks;color:RGBA(1.000, 0.392, 0.306, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0;]
+[name:metalOrange;color:RGBA(1.000, 0.702, 0.000, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.5;valueB:0.2;]
+[name:steel;color:RGBA(0.311, 0.309, 0.340, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0.25;]
+[name:_defaultMat;color:RGBA(0.939, 0.953, 1.000, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0.25;]
+[name:dark;color:RGBA(0.224, 0.235, 0.275, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0;]
+[name:stone;color:RGBA(0.571, 0.559, 0.736, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.5;valueB:0;]
+[name:stoneDark;color:RGBA(0.403, 0.390, 0.594, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.5;valueB:0;]
+[name:stoneLight;color:RGBA(0.710, 0.701, 0.840, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.5;valueB:0;]
+[name:glass;color:RGBA(1.000, 1.000, 1.000, 1.000);scale:(1.0, 1.0);shader:Unlit;mapping:0;]
+[name:metalDark;color:RGBA(0.400, 0.388, 0.647, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0.5;]
+[name:metal;color:RGBA(0.580, 0.569, 0.769, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0.25;]
+
+:models
+
+[name:;collection:City;type:roof_windowLarge;position:(0.3275, 1.4000, 1.9000);rotation:(0.0000, 0.0000, 0.0000);scale:(1.3900, 1.0400, 1.0000);group:;locked:False;hidden:False;materials:dark+steel+glass;]
+[name:;collection:City;type:detail_ventMedium;position:(0.2830, 1.4000, 0.7050);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5400, 1.6000, 1.6500);group:;locked:False;hidden:False;materials:dark+steel+_defaultMat;]
+[name:;collection:Buildings;type:block;position:(1.8000, 0.0000, 0.5000);rotation:(0.0000, 0.0000, 0.0000);scale:(1.4000, 1.0000, 2.0000);group:;locked:False;hidden:False;materials:dark+dark;]
+[name:;collection:Buildings;type:roof_flatCenter;position:(1.8000, 0.0000, 2.0000);rotation:(0.0000, 0.0000, 0.0000);scale:(1.4000, 0.4000, 1.0000);group:;locked:False;hidden:False;materials:dark;]
+[name:;collection:City;type:roof_windowGlassLarge;position:(1.8000, 1.0000, 1.0000);rotation:(0.0000, 90.0000, 0.0000);scale:(1.0000, 0.8000, 1.2000);group:;locked:False;hidden:False;materials:steel+steel+glass;]
+[name:;collection:City;type:roof_windowGlassLarge;position:(1.8000, 1.0000, 0.0000);rotation:(0.0000, 90.0000, 0.0000);scale:(1.0000, 0.8000, 1.2000);group:;locked:False;hidden:False;materials:steel+steel+glass;]
+[name:;collection:Mechanical;type:pipe_largeBase;position:(0.6272, 1.4000, -0.1250);rotation:(0.0000, 0.0000, 0.0000);scale:(0.3456, 1.5300, 0.3500);group:;locked:False;hidden:False;materials:dark+_defaultMat;]
+[name:;collection:Mechanical;type:pipe_largeBase;position:(0.0272, 1.4000, -0.1250);rotation:(0.0000, 0.0000, 0.0000);scale:(0.3456, 1.5300, 0.3500);group:;locked:False;hidden:False;materials:dark+_defaultMat;]
+[name:;collection:Buildings;type:block;position:(0.3000, 0.0000, 1.0000);rotation:(0.0000, 0.0000, 0.0000);scale:(1.6000, 1.4000, 3.0000);group:;locked:False;hidden:False;materials:dark+dark;]

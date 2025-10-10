@@ -1,0 +1,52 @@
+{
+  "name": "spider-editor",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./lib/spider-editor.umd.cjs",
+  "module": "./lib/spider-editor.js",
+  "types": "./lib/spider-editor.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/spider-editor.js",
+      "require": "./lib/spider-editor.umd.cjs"
+    },
+    "./lib/style.css": {
+      "import": "./lib/style.css",
+      "require": "./lib/style.css"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:watch": "tsc && vite build --watch",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "devDependencies": {
+    "@tweakpane/core": "^2.0.1",
+    "@types/node": "^20.9.0",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@types/three": "^0.158.1",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.3",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "flexlayout-react": "^0.7.13",
+    "ts-events": "^3.4.1",
+    "tweakpane": "^4.0.1",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.6.3"
+  },
+  "peerDependencies": {
+    "@blueprintjs/core": "^5.6.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.158.0"
+  }
+}

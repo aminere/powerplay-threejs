@@ -1,0 +1,246 @@
+{
+  "metadata": {
+    "version": 4.6,
+    "type": "Object",
+    "generator": "Object3D.toJSON"
+  },
+  "geometries": [
+    {
+      "uuid": "0d5d4b3b-a5a3-4927-a037-678c6355391a",
+      "type": "BoxGeometry",
+      "width": 1,
+      "height": 1,
+      "depth": 1,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+    },
+    {
+      "uuid": "5dfa11b0-90dc-45c0-a97a-8b64cbdaf9c2",
+      "type": "BoxGeometry",
+      "width": 1,
+      "height": 1,
+      "depth": 1,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+    }
+  ],
+  "materials": [
+    {
+      "uuid": "c90a02f3-247c-4ef3-8903-d17bd1ac20e1",
+      "type": "MeshStandardMaterial",
+      "color": 16743019,
+      "roughness": 1,
+      "metalness": 0,
+      "emissive": 0,
+      "envMapIntensity": 1,
+      "blendColor": 0
+    },
+    {
+      "uuid": "46f94d05-80cf-4e07-b306-2e5b2180804d",
+      "type": "MeshStandardMaterial",
+      "color": 16743019,
+      "roughness": 1,
+      "metalness": 0,
+      "emissive": 0,
+      "envMapIntensity": 1,
+      "blendColor": 0
+    }
+  ],
+  "object": {
+    "uuid": "3fa12c7e-793e-4105-8f55-1ab37a94388b",
+    "type": "Object3D",
+    "name": "assembly",
+    "userData": {
+      "eulerRotation": {
+        "isEuler": true,
+        "_x": 0,
+        "_y": 0,
+        "_z": 0,
+        "_order": "XYZ"
+      }
+    },
+    "layers": 1,
+    "matrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "children": [
+      {
+        "uuid": "bd5ebcc5-efc4-4c5c-a5e0-f88b135453dd",
+        "type": "Mesh",
+        "name": "low",
+        "layers": 1,
+        "matrix": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0.2,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          3,
+          0.1,
+          3,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "geometry": "0d5d4b3b-a5a3-4927-a037-678c6355391a",
+        "material": "c90a02f3-247c-4ef3-8903-d17bd1ac20e1"
+      },
+      {
+        "uuid": "431876c4-1199-4fda-b1f9-3ea78af20b38",
+        "type": "Object3D",
+        "name": "body",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "children": [
+          {
+            "uuid": "fb3e8768-1f4e-442a-8a7f-b0e70be5514b",
+            "type": "Mesh",
+            "name": "Cube",
+            "layers": 1,
+            "matrix": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              3,
+              1,
+              1,
+              1
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "geometry": "5dfa11b0-90dc-45c0-a97a-8b64cbdaf9c2",
+            "material": "46f94d05-80cf-4e07-b306-2e5b2180804d"
+          },
+          {
+            "uuid": "fb3e8768-1f4e-442a-8a7f-b0e70be5514b",
+            "type": "Mesh",
+            "name": "Cube",
+            "layers": 1,
+            "matrix": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              1,
+              1,
+              1,
+              1
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "geometry": "5dfa11b0-90dc-45c0-a97a-8b64cbdaf9c2",
+            "material": "46f94d05-80cf-4e07-b306-2e5b2180804d"
+          },
+          {
+            "uuid": "fb3e8768-1f4e-442a-8a7f-b0e70be5514b",
+            "type": "Mesh",
+            "name": "Cube",
+            "layers": 1,
+            "matrix": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              1,
+              1,
+              3,
+              1
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "geometry": "5dfa11b0-90dc-45c0-a97a-8b64cbdaf9c2",
+            "material": "46f94d05-80cf-4e07-b306-2e5b2180804d"
+          }
+        ]
+      }
+    ]
+  }
+}

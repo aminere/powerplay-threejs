@@ -13,7 +13,8 @@ const worldPos = new Vector3();
 
 class Utils {
     public getBasePath() {
-        return '/prototype/';
+        return '';
+        // return '/prototype/';
     }
 
     public updateCameraAspect(camera: Camera, width: number, height: number) {
