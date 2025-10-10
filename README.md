@@ -1,6 +1,8 @@
 ## Powerplay RTS Three.js Prototype
 
-This is the full source code to the <a href="https://powerplayrts.com" target="_blank">Powerplay RTS</a> prototype, including game, engine, and editor.
+Full source code to the <a href="https://powerplayrts.com" target="_blank">Powerplay RTS</a> prototype, including game, engine, and editor.
+
+![Thumbnail](/powerplay-threejs.webp)
 
 ## Setup instructions (Windows 11)
 
@@ -30,4 +32,3 @@ Press the play button! 🎮
 
 Coming Soon 🔜
 
-![Thumbnail](/powerplay-threejs.webp)
