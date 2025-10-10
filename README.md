@@ -29,3 +29,5 @@ Press the play button! 🎮
 ## Run the game
 
 Coming Soon 🔜
+
+![Thumbnail](/powerplay-threejs.webp)
