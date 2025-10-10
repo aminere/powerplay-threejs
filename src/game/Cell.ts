@@ -2,7 +2,8 @@ import { InstancedMesh } from "three";
 import { ICell, IConveyor, IRail, IRawResource } from "./GameTypes";
 import { trees } from "./Trees";
 import { IUnit } from "./unit/IUnit";
-import { IBuildingInstance } from "../powerplay";
+import { IBuildingInstance } from "./buildings/BuildingTypes";
+import { VehicleType, VehicleTypes } from "./GameDefinitions";
 
 export class Cell implements ICell {
 
@@ -89,7 +90,26 @@ export class Cell implements ICell {
 
     public get isEmpty() { return this._isEmpty; }    
     public get hasUnits() { return this._units !== undefined && this._units.length > 0; }
-    public get flowFieldCost() { return this._flowFieldCost; }
+    public get flowFieldCost() {
+        const blockedByUnits = (() => {
+            const unitCount = this._units?.length ?? 0;
+            for (let i = 0; i < unitCount; i++) {
+                const unit = this._units![i];
+                if (!unit.isIdle) {
+                    return true;
+                }
+                if (VehicleTypes.includes(unit.type as VehicleType)) {
+                    return unit.motionCommandId === 0;
+                }
+            }
+            return false;
+        })();
+
+        if (blockedByUnits) {
+            return 0xffff;
+        }
+        return this._flowFieldCost; 
+    }
 
     private _isEmpty = true;
     private _isWalkable = true;

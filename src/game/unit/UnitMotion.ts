@@ -1,6 +1,6 @@
 import { Box3Helper, LineBasicMaterial, MathUtils, Object3D, Vector2, Vector3 } from "three";
 import { ICell } from "../GameTypes";
-import { TFlowFieldMap, flowField } from "../pathfinding/Flowfield";
+import { flowField } from "../pathfinding/Flowfield";
 import { GameUtils } from "../GameUtils";
 import { computeUnitAddr, getCellFromAddr } from "./UnitAddr";
 import { time } from "../../engine/core/Time";
@@ -20,8 +20,6 @@ import { AttackUnit } from "./states/AttackUnit";
 import { TankAttackUnit } from "./states/TankAttackUnit";
 import { UnitCollisionAnim } from "../components/UnitCollisionAnim";
 import { engineState } from "../../engine/EngineState";
-
-const cellDirection = new Vector2();
 
 const destSectorCoords = new Vector2();
 
@@ -130,22 +128,22 @@ function endMotion(unit: IUnit) {
     unit.acceleration.set(0, 0, 0);
 }
 
-function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
-    const { mapCoords, sectorCoords, cellIndex } = unit.coords;
-    const _flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
-    const flowfieldInfo = _flowField[cellIndex];
-    if (flowfieldInfo.direction) {
-        return true;
-    } else {
-        const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
-        if (computed) {
-            flowfieldInfo.direction = cellDirection.clone();
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
+// function isDirectionValid(flowfields: TFlowFieldMap, unit: IUnit) {
+//     const { mapCoords, sectorCoords, cellIndex } = unit.coords;
+//     const _flowField = flowfields.get(`${sectorCoords.x},${sectorCoords.y}`)!;
+//     const flowfieldInfo = _flowField[cellIndex];
+//     if (flowfieldInfo.direction) {
+//         return true;
+//     } else {
+//         const computed = flowField.computeDirection(flowfields, mapCoords, cellDirection);
+//         if (computed) {
+//             flowfieldInfo.direction = cellDirection.clone();
+//             return true;
+//         } else {
+//             return false;
+//         }
+//     }
+// }
 
 function getFlowfieldCost(destCell: ICell, currentCell: ICell) {
     if (destCell.resource) {
@@ -177,6 +175,12 @@ function getNeighbors(mapCoords: Vector2, radius: number, out: Set<IUnit>) {
             const units = GameUtils.getCell(cellCoords)?.units;
             if (units) {
                 for (const neighbor of units) {
+                    if (!neighbor.isIdle) {
+                        continue;
+                    }
+                    if (UnitUtils.isVehicle(neighbor) && neighbor.motionCommandId === 0) {
+                        continue;
+                    }
                     out.add(neighbor);
                 }
             }
@@ -330,6 +334,7 @@ function collisionResponse(unit: IUnit, neighbor: IUnit) {
     }
 }
 
+const unitsToMove = new Array<IUnit>();
 export class UnitMotion {
 
     private _motionCommandId = 1;
@@ -390,24 +395,15 @@ export class UnitMotion {
             return;
         }
 
-        const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
-        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
-        console.assert(flowfields);
-        let motionId: number | null = null;
-        let movingUnits: IUnit[] | null = null;
+        unitsToMove.length = 0;
         for (const unit of units) {
             if (!unit.isAlive) {
                 continue;
             }
-
             if (unit.coords.mapCoords.equals(destMapCoords)) {
                 continue;
             }
-
-            if (!isDirectionValid(flowfields, unit)) {
-                continue;
-            }
-           
+                   
             if (targetUnit) {                
                 const target = unit.fsm.getState(AttackUnit)?.target ?? unit.fsm.getState(TankAttackUnit)?.target;
                 if (targetUnit === target) {
@@ -416,16 +412,27 @@ export class UnitMotion {
                 }
             }
 
-            if (motionId === null) {
-                motionId = flowField.register(flowfields, targetUnit);
-                movingUnits = flowField.getMotion(motionId).units;
-            }
+            unit.motionCommandId = motionCommandId;
+            unitsToMove.push(unit);            
+        }
 
+        if (unitsToMove.length === 0) {
+            return;
+        }
+
+        const _getFlowfieldCost = favorRoads ? getVehicleFlowfieldCost : getFlowfieldCost;
+        const flowfields = flowField.compute(destMapCoords, sectors, cell => _getFlowfieldCost(destCell, cell), !favorRoads)!;
+        console.assert(flowfields);
+        const motionId = flowField.register(flowfields, targetUnit);
+        const movingUnits = flowField.getMotion(motionId).units;
+        for (const unit of unitsToMove) {            
+            // if (!isDirectionValid(flowfields, unit)) {
+            //     continue;
+            // }
             unit.clearAction();
             moveTo(unit, motionCommandId, motionId, destMapCoords);
             movingUnits!.push(unit);
         }
-
         for (const sector of GameMapState.instance.sectors.values()) {
             sector.flowfieldViewer.visible = false;
         }
@@ -461,11 +468,21 @@ export class UnitMotion {
             unit.motionTime += time.deltaTime;
         }
 
-        if (unit.collidable) {
+        const checkCollisions = (() => {
+            if (!unit.isIdle) {
+                return false;
+            }
+            if (UnitUtils.isVehicle(unit) && unit.motionId === 0) {
+                return false;
+            }
+            return unit.collidable;
+        })();
+
+        if (checkCollisions) {
             neighbors.clear();
             const radius = (() => {
-                if (unit.type === "truck") {
-                    return 2;                    
+                if (UnitUtils.isVehicle(unit)) {
+                    return 2;
                 }
                 return 1;
             })();
