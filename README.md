@@ -4,9 +4,11 @@ Full source code to the <a href="https://powerplayrts.com" target="_blank">Power
 
 ![Thumbnail](/powerplay-threejs.webp)
 
-## Play it live
+## Play it live 🎮
 
-<a href="https://powerplayrts.com/prototype/" target="_blank">Live Prototype</a>
+<a href="https://powerplayrts.com/prototype/" target="_blank">Live Prototype</a> 
+
+Press the Play button to Play 😃
 
 ## Setup instructions (Windows 11)
 
