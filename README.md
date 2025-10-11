@@ -10,23 +10,23 @@ Full source code to the <a href="https://powerplayrts.com" target="_blank">Power
 
 ## Setup instructions (Windows 11)
 
-`npm install`
+1. `npm install`
 
-`cd editor` ▶️ `npm install`
+2. `cd editor` ▶️ `npm install`
 
 :warning: Open a terminal in administrator mode
 
-`cd editor/public` ▶️ `create-symlinks.bat` or `./create-symlinks.sh` if you have mingw
+3. `cd editor/public` ▶️ `create-symlinks.bat` or `./create-symlinks.sh` if you have mingw
 
 This will allow the editor to access the game data located in `game/public`, through sym links.
 
 ## Run the editor
 
-`npm run build:watch`
+1. `npm run build:watch`
 
-:warning: Keep the above command running an open a new terminal. It will allow hot reload of the game library within the editor.
+:warning: Keep the above command running and open a new terminal. It will allow hot reload of the game library within the editor.
 
-`cd editor` ▶️ `npm run dev`
+2. `cd editor` ▶️ `npm run dev`
 
 open `http://localhost:5173` in a web browser
 
