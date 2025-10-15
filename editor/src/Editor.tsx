@@ -236,10 +236,12 @@ export function Editor() {
     const [lastLoadedAsset, setLastLoadedAsset] = useState<string>();
     useEffect(() => {
         const onSceneLoadingStarted = () => {
+            state.sceneLoadingInProgress = true;
             setSceneLoading(true);
             setDisabled(true);
         };
         const onSceneLoadingFinished = () => {
+            state.sceneLoadingInProgress = false;
             setSceneLoading(false);
             setDisabled(false);
         };

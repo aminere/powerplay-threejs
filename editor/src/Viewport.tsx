@@ -189,8 +189,7 @@ export function Viewport() {
 
             if (state.sceneLoadingInProgress) {
                 timeSinceLastAssetLoaded.current += time.deltaTime;
-                if (timeSinceLastAssetLoaded.current > 1) {
-                    state.sceneLoadingInProgress = false;
+                if (timeSinceLastAssetLoaded.current > 2) {
                     evtSceneLoadingFinished.post();
                 }
             }
@@ -728,8 +727,7 @@ export function Viewport() {
                             if (state.engineStatus !== "running") {
                                 cmdSaveScene.post(true);
                                 state.engineStatus = "running";
-                                setInGame(true);                                
-                                state.sceneLoadingInProgress = true;
+                                setInGame(true);
                                 evtSceneLoadingStarted.post();
                             }
                         }}
