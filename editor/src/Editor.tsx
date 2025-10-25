@@ -248,6 +248,9 @@ export function Editor() {
         const onAssetLoaded = (path: string) => {
             console.log(`Asset loaded: ${path}`);
             setLastLoadedAsset(path);
+            if (!state.sceneLoadingInProgress) {
+                onSceneLoadingStarted();
+            }
         }
         evtSceneLoadingStarted.attach(onSceneLoadingStarted);
         evtSceneLoadingFinished.attach(onSceneLoadingFinished);

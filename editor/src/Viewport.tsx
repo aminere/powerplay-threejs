@@ -189,7 +189,7 @@ export function Viewport() {
 
             if (state.sceneLoadingInProgress) {
                 timeSinceLastAssetLoaded.current += time.deltaTime;
-                if (timeSinceLastAssetLoaded.current > 2) {
+                if (timeSinceLastAssetLoaded.current > 3) {
                     evtSceneLoadingFinished.post();
                 }
             }
